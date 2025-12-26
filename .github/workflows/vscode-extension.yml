@@ -1,0 +1,162 @@
+name: VS Code Extension
+
+on:
+  push:
+    branches: [main]
+    paths: ["ditfa-code/ditfa-vscode/**", ".github/workflows/vscode-extension.yml"]
+  pull_request:
+    paths: ["ditfa-code/ditfa-vscode/**", ".github/workflows/vscode-extension.yml"]
+  # Publishing runs from a GitHub release, or on demand. A path filter cannot be
+  # scoped per ref type, so tags are not used as the trigger.
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish to the Marketplace and Open VSX"
+        type: boolean
+        default: false
+
+concurrency:
+  group: vscode-extension-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
+
+defaults:
+  run:
+    working-directory: ditfa-code/ditfa-vscode
+
+jobs:
+  check:
+    name: Typecheck, test, bundle
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: pnpm install --ignore-workspace --frozen-lockfile
+      # Fails if the checked-in protocol types have drifted from the Rust crate.
+      - run: pnpm run sync-protocol
+      - run: git diff --exit-code src/protocol/generated
+      - run: pnpm run typecheck
+      - run: pnpm test
+      - run: node esbuild.mjs --production
+
+  package:
+    name: Package ${{ matrix.vscode-target }}
+    needs: check
+    if: github.event_name == 'release' || inputs.publish
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            rust-target: aarch64-apple-darwin
+            vscode-target: darwin-arm64
+          - runner: macos-15-intel
+            rust-target: x86_64-apple-darwin
+            vscode-target: darwin-x64
+          - runner: ubuntu-24.04
+            rust-target: x86_64-unknown-linux-gnu
+            vscode-target: linux-x64
+          - runner: ubuntu-24.04-arm
+            rust-target: aarch64-unknown-linux-gnu
+            vscode-target: linux-arm64
+          - runner: windows-2025
+            rust-target: x86_64-pc-windows-msvc
+            vscode-target: win32-x64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ditfa-code/ditfa-rs
+
+      # The VSIX ships the matching ditfa binary so users get a working
+      # extension without a separate CLI install.
+      - name: Build ditfa
+        working-directory: ditfa-code
+        run: cargo build --release --target ${{ matrix.rust-target }} --manifest-path ditfa-rs/Cargo.toml --bin ditfa
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: pnpm install --ignore-workspace --frozen-lockfile
+      - run: pnpm run build
+
+      - name: Stage the binary
+        shell: bash
+        working-directory: ditfa-code
+        run: |
+          mkdir -p ditfa-vscode/dist/bin
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp "ditfa-rs/target/${{ matrix.rust-target }}/release/ditfa.exe" ditfa-vscode/dist/bin/
+          else
+            cp "ditfa-rs/target/${{ matrix.rust-target }}/release/ditfa" ditfa-vscode/dist/bin/
+            chmod +x ditfa-vscode/dist/bin/ditfa
+          fi
+
+      - name: Package VSIX
+        run: pnpm exec vsce package --no-dependencies --target ${{ matrix.vscode-target }} --out ditfa-code-${{ matrix.vscode-target }}.vsix
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vsix-${{ matrix.vscode-target }}
+          path: ditfa-code/ditfa-vscode/*.vsix
+          if-no-files-found: error
+
+  publish:
+    name: Publish
+    needs: package
+    if: github.event_name == 'release' || inputs.publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: vscode-marketplace
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: pnpm install --ignore-workspace --frozen-lockfile
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: vsix-*
+          merge-multiple: true
+          path: ditfa-code/ditfa-vscode/artifacts
+
+      - name: Publish to the Visual Studio Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          for vsix in artifacts/*.vsix; do
+            pnpm exec vsce publish --no-dependencies --packagePath "$vsix"
+          done
+
+      - name: Publish to Open VSX
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          for vsix in artifacts/*.vsix; do
+            pnpm exec ovsx publish --packagePath "$vsix"
+          done
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: ditfa-code/ditfa-vscode/artifacts/*.vsix
+          fail_on_unmatched_files: true
