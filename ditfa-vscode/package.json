@@ -1,0 +1,365 @@
+{
+  "name": "ditfa-code",
+  "displayName": "Ditfa Code",
+  "description": "Multi-provider AI coding agent inside VS Code. Connect to OpenAI, Anthropic, Gemini, or local models via Ollama and LM Studio.",
+  "version": "0.1.0",
+  "publisher": "ditfa",
+  "license": "Apache-2.0",
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.90.0",
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Foshati/arlenta.git",
+    "directory": "ditfa-code/ditfa-vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/Foshati/arlenta/issues"
+  },
+  "categories": ["AI", "Chat", "Programming Languages", "Machine Learning"],
+  "keywords": [
+    "ai",
+    "agent",
+    "coding assistant",
+    "openai",
+    "anthropic",
+    "gemini",
+    "ollama",
+    "local llm"
+  ],
+  "galleryBanner": {
+    "color": "#0B0D10",
+    "theme": "dark"
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": ["onStartupFinished"],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "Ditfa Code executes commands and edits files in the workspace, which requires trust."
+    }
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ditfa",
+          "title": "Ditfa Code",
+          "icon": "media/activity-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "ditfa": [
+        {
+          "id": "ditfa.chatView",
+          "name": "Chat",
+          "type": "webview",
+          "icon": "media/activity-icon.svg",
+          "contextualTitle": "Ditfa Code"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "ditfa.chatView",
+        "contents": "Ditfa Code is starting…\n\nIf this persists, the `ditfa` binary could not be found.\n[Locate the ditfa binary](command:ditfa.locateBinary)\n[Open Settings](command:ditfa.openSettings)",
+        "when": "ditfa.state == 'unavailable'"
+      }
+    ],
+    "commands": [
+      {
+        "command": "ditfa.openChat",
+        "title": "Open Chat",
+        "category": "Ditfa",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "ditfa.newThread",
+        "title": "New Thread",
+        "category": "Ditfa",
+        "icon": "$(add)"
+      },
+      {
+        "command": "ditfa.resumeThread",
+        "title": "Resume Thread…",
+        "category": "Ditfa",
+        "icon": "$(history)"
+      },
+      {
+        "command": "ditfa.interrupt",
+        "title": "Interrupt Current Turn",
+        "category": "Ditfa",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "ditfa.selectModel",
+        "title": "Select Model…",
+        "category": "Ditfa",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "ditfa.selectProvider",
+        "title": "Select Provider…",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.selectApprovalMode",
+        "title": "Select Approval Mode…",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.signIn",
+        "title": "Sign In to Ditfa",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.signOut",
+        "title": "Sign Out",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.showAccount",
+        "title": "Show Account & Usage",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.addSelectionToChat",
+        "title": "Add Selection to Chat",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.explainSelection",
+        "title": "Explain Selection",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.reviewChanges",
+        "title": "Review Uncommitted Changes",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.openTerminal",
+        "title": "Open Ditfa in Terminal",
+        "category": "Ditfa",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "ditfa.restartServer",
+        "title": "Restart Ditfa Server",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.showLogs",
+        "title": "Show Logs",
+        "category": "Ditfa",
+        "icon": "$(output)"
+      },
+      {
+        "command": "ditfa.locateBinary",
+        "title": "Locate ditfa Binary…",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.openSettings",
+        "title": "Open Settings",
+        "category": "Ditfa",
+        "icon": "$(gear)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "ditfa.newThread",
+          "when": "view == ditfa.chatView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "ditfa.resumeThread",
+          "when": "view == ditfa.chatView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "ditfa.selectModel",
+          "when": "view == ditfa.chatView",
+          "group": "navigation@3"
+        },
+        {
+          "command": "ditfa.openTerminal",
+          "when": "view == ditfa.chatView",
+          "group": "1_ditfa@1"
+        },
+        {
+          "command": "ditfa.showAccount",
+          "when": "view == ditfa.chatView",
+          "group": "1_ditfa@2"
+        },
+        {
+          "command": "ditfa.selectApprovalMode",
+          "when": "view == ditfa.chatView",
+          "group": "1_ditfa@3"
+        },
+        {
+          "command": "ditfa.restartServer",
+          "when": "view == ditfa.chatView",
+          "group": "9_ditfa@1"
+        },
+        {
+          "command": "ditfa.showLogs",
+          "when": "view == ditfa.chatView",
+          "group": "9_ditfa@2"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "ditfa.addSelectionToChat",
+          "when": "editorHasSelection",
+          "group": "ditfa@1"
+        },
+        {
+          "command": "ditfa.explainSelection",
+          "when": "editorHasSelection",
+          "group": "ditfa@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "ditfa.locateBinary",
+          "when": "false"
+        },
+        {
+          "command": "ditfa.openSettings",
+          "when": "false"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "ditfa.openChat",
+        "key": "ctrl+shift+d",
+        "mac": "cmd+shift+d"
+      },
+      {
+        "command": "ditfa.addSelectionToChat",
+        "key": "ctrl+alt+d",
+        "mac": "cmd+alt+d",
+        "when": "editorHasSelection"
+      }
+    ],
+    "configuration": {
+      "title": "Ditfa Code",
+      "properties": {
+        "ditfa.executablePath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Absolute path to the `ditfa` executable. Leave empty to auto-detect (bundled binary, then `PATH`, then a local Cargo build).",
+          "scope": "machine-overridable"
+        },
+        "ditfa.ditfaHome": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Override `DITFA_HOME` (defaults to `~/.ditfa`). Determines where `config.toml`, credentials, and thread history live.",
+          "scope": "machine-overridable"
+        },
+        "ditfa.provider": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Model provider id from `config.toml` (for example `openai`, `anthropic`, `gemini`, `ollama`). Empty uses the ditfa default.",
+          "scope": "resource"
+        },
+        "ditfa.model": {
+          "type": "string",
+          "default": "",
+          "description": "Model to use. Empty uses the provider default.",
+          "scope": "resource"
+        },
+        "ditfa.reasoningEffort": {
+          "type": "string",
+          "enum": ["", "minimal", "low", "medium", "high", "xhigh"],
+          "enumDescriptions": [
+            "Use the model default",
+            "Minimal reasoning",
+            "Low reasoning",
+            "Medium reasoning",
+            "High reasoning",
+            "Extra-high reasoning"
+          ],
+          "default": "",
+          "description": "Reasoning effort for models that support it.",
+          "scope": "resource"
+        },
+        "ditfa.approvalPolicy": {
+          "type": "string",
+          "enum": ["untrusted", "on-request", "never"],
+          "enumDescriptions": [
+            "Ask before running anything not on the trusted list",
+            "Ask only when the agent requests escalation",
+            "Never ask (relies entirely on the sandbox)"
+          ],
+          "default": "on-request",
+          "description": "When Ditfa asks for approval before running commands.",
+          "scope": "resource"
+        },
+        "ditfa.sandboxMode": {
+          "type": "string",
+          "enum": ["read-only", "workspace-write", "danger-full-access"],
+          "enumDescriptions": [
+            "The agent can read files but not write or run network commands",
+            "The agent can write inside the workspace",
+            "No sandbox — the agent has full access to the machine"
+          ],
+          "default": "workspace-write",
+          "description": "Sandbox policy applied to agent-run commands.",
+          "scope": "resource"
+        },
+        "ditfa.showReasoning": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the model's reasoning summary in the chat transcript."
+        },
+        "ditfa.autoContext.activeFile": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically attach the active file path as context with each message."
+        },
+        "ditfa.logLevel": {
+          "type": "string",
+          "enum": ["error", "warn", "info", "debug", "trace"],
+          "default": "info",
+          "description": "Verbosity of the Ditfa Code output channel."
+        },
+        "ditfa.env": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": { "type": "string" },
+          "markdownDescription": "Extra environment variables passed to the `ditfa` process, for example `{ \"ANTHROPIC_API_KEY\": \"...\" }`. Prefer `config.toml` for secrets.",
+          "scope": "machine-overridable"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "sync-protocol": "node scripts/sync-protocol.mjs",
+    "compile": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "build": "pnpm run sync-protocol && node esbuild.mjs --production",
+    "typecheck": "tsc --noEmit",
+    "icon": "node scripts/generate-icon.mjs",
+    "test": "vitest run",
+    "package": "pnpm run build && vsce package --no-dependencies",
+    "publish:vsce": "vsce publish --no-dependencies",
+    "publish:ovsx": "ovsx publish --no-dependencies",
+    "vscode:prepublish": "pnpm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.18",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.2.2",
+    "esbuild": "0.28.1",
+    "ovsx": "^0.10.1",
+    "typescript": "^5.9.2",
+    "vitest": "^2.1.8"
+  }
+}
