@@ -1,0 +1,20 @@
+.vscode/**
+.github/**
+node_modules/**
+src/**
+webview/**
+scripts/**
+tests/**
+out/**
+esbuild.mjs
+tsconfig.json
+eslint.config.mjs
+vitest.config.ts
+**/*.map
+**/*.ts
+# Source art: only the generated tile and the activity icon ship.
+media/ditfa.png
+media/ditfa.svg
+!dist/**
+.gitignore
+pnpm-lock.yaml
