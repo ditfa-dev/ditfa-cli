@@ -1,0 +1,884 @@
+/*
+ * Everything is expressed in VS Code theme variables so the panel inherits the
+ * user's colour scheme rather than fighting it. No fixed colours, no web fonts.
+ */
+
+:root {
+  --ditfa-gap: 12px;
+  --ditfa-radius: 6px;
+  --ditfa-border: var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
+  --ditfa-muted: var(--vscode-descriptionForeground);
+  --ditfa-add: var(--vscode-gitDecoration-addedResourceForeground, #4caf50);
+  --ditfa-del: var(--vscode-gitDecoration-deletedResourceForeground, #f44336);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  color: var(--vscode-foreground);
+  background: transparent;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ---------------------------------------------------------------- header */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--ditfa-border);
+  flex: 0 0 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.header::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border: 1px solid var(--ditfa-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--vscode-foreground);
+  font-family: inherit;
+  font-size: 0.85em;
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip:hover {
+  background: var(--vscode-toolbar-hoverBackground);
+}
+
+.chip-icon {
+  opacity: 0.7;
+}
+
+.chip-right {
+  margin-left: auto;
+}
+
+.chip-usage {
+  opacity: 0.65;
+  font-variant-numeric: tabular-nums;
+}
+
+.header-error {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  background: var(--vscode-inputValidation-errorBackground);
+  border-bottom-color: var(--vscode-inputValidation-errorBorder);
+}
+
+.header-error-body {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.header-error-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* ------------------------------------------------------------ transcript */
+
+.scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--ditfa-gap);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ditfa-gap);
+}
+
+.transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.empty {
+  padding: 28px 8px;
+  color: var(--ditfa-muted);
+}
+
+.empty-title {
+  font-size: 1.3em;
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  margin-bottom: 8px;
+}
+
+.empty-hints {
+  margin: 14px 0 0;
+  padding-left: 18px;
+  line-height: 1.9;
+}
+
+.empty-hints kbd {
+  border: 1px solid var(--ditfa-border);
+  border-radius: 3px;
+  padding: 0 4px;
+  font-family: var(--vscode-editor-font-family);
+}
+
+.entry {
+  animation: fade-in 120ms ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry {
+    animation: none;
+  }
+}
+
+.entry-user {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.user-bubble {
+  background: var(--vscode-input-background);
+  border: 1px solid var(--ditfa-border);
+  border-radius: var(--ditfa-radius);
+  padding: 8px 10px;
+  max-width: 92%;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.mini-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.8em;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+}
+
+.mini-chip button {
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0 0 0 2px;
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+/* ----------------------------------------------------------- markdown */
+
+.markdown {
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.markdown > *:first-child {
+  margin-top: 0;
+}
+
+.markdown > *:last-child {
+  margin-bottom: 0;
+}
+
+.markdown p {
+  margin: 0 0 10px;
+}
+
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  margin: 16px 0 8px;
+  font-size: 1em;
+  font-weight: 600;
+}
+
+.markdown ul,
+.markdown ol {
+  margin: 0 0 10px;
+  padding-left: 20px;
+}
+
+.markdown li {
+  margin: 3px 0;
+}
+
+.markdown blockquote {
+  margin: 0 0 10px;
+  padding-left: 10px;
+  border-left: 2px solid var(--ditfa-border);
+  color: var(--ditfa-muted);
+}
+
+.markdown code {
+  font-family: var(--vscode-editor-font-family);
+  font-size: 0.92em;
+  background: var(--vscode-textCodeBlock-background);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.markdown a {
+  color: var(--vscode-textLink-foreground);
+}
+
+.markdown hr {
+  border: none;
+  border-top: 1px solid var(--ditfa-border);
+  margin: 14px 0;
+}
+
+.code-block {
+  border: 1px solid var(--ditfa-border);
+  border-radius: var(--ditfa-radius);
+  overflow: hidden;
+  margin: 0 0 10px;
+}
+
+.code-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 8px;
+  background: var(--vscode-editorWidget-background);
+  border-bottom: 1px solid var(--ditfa-border);
+  font-size: 0.8em;
+}
+
+.code-lang {
+  color: var(--ditfa-muted);
+  text-transform: lowercase;
+}
+
+.code-copy {
+  border: none;
+  background: transparent;
+  color: var(--ditfa-muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.code-copy:hover {
+  background: var(--vscode-toolbar-hoverBackground);
+  color: var(--vscode-foreground);
+}
+
+.code-block pre {
+  margin: 0;
+  padding: 8px 10px;
+  overflow-x: auto;
+  background: var(--vscode-textCodeBlock-background);
+}
+
+.code-block code {
+  background: none;
+  padding: 0;
+  font-family: var(--vscode-editor-font-family);
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+.cursor {
+  display: inline-block;
+  width: 7px;
+  height: 1em;
+  vertical-align: text-bottom;
+  background: var(--vscode-foreground);
+  opacity: 0.6;
+  animation: blink 1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+/* -------------------------------------------------------- reasoning */
+
+.reasoning-toggle {
+  border: none;
+  background: transparent;
+  color: var(--ditfa-muted);
+  font-family: inherit;
+  font-size: 0.88em;
+  cursor: pointer;
+  padding: 2px 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.reasoning-body {
+  margin-top: 4px;
+  padding-left: 14px;
+  border-left: 2px solid var(--ditfa-border);
+  color: var(--ditfa-muted);
+  font-size: 0.92em;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* ------------------------------------------------------- tool cards */
+
+.tool-card {
+  border: 1px solid var(--ditfa-border);
+  border-radius: var(--ditfa-radius);
+  overflow: hidden;
+}
+
+.tool-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 6px 9px;
+  border: none;
+  background: var(--vscode-editorWidget-background);
+  color: var(--vscode-foreground);
+  font-family: inherit;
+  font-size: 0.88em;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tool-head.static {
+  cursor: default;
+}
+
+.tool-head:not(.static):hover {
+  background: var(--vscode-toolbar-hoverBackground);
+}
+
+.tool-icon {
+  opacity: 0.6;
+  flex: 0 0 auto;
+  font-family: var(--vscode-editor-font-family);
+}
+
+.tool-title {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--vscode-editor-font-family);
+  background: none;
+}
+
+.tool-status {
+  flex: 0 0 auto;
+  color: var(--ditfa-muted);
+  font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
+}
+
+.tool-output {
+  margin: 0;
+  padding: 8px 10px;
+  max-height: 320px;
+  overflow: auto;
+  font-family: var(--vscode-editor-font-family);
+  font-size: 0.86em;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--vscode-textCodeBlock-background);
+  border-top: 1px solid var(--ditfa-border);
+}
+
+.status-failed .tool-head,
+.patch-failed .tool-head {
+  border-left: 2px solid var(--ditfa-del);
+}
+
+.status-running .tool-status {
+  color: var(--vscode-progressBar-background);
+}
+
+.caret {
+  opacity: 0.55;
+  flex: 0 0 auto;
+  width: 0.8em;
+}
+
+/* ------------------------------------------------------- file lists */
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 9px;
+  border: none;
+  border-top: 1px solid var(--ditfa-border);
+  background: transparent;
+  color: var(--vscode-foreground);
+  font-family: inherit;
+  font-size: 0.86em;
+  text-align: left;
+  cursor: pointer;
+}
+
+.file-row:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.file-kind {
+  flex: 0 0 auto;
+  width: 1.1em;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.85em;
+}
+
+.kind-add {
+  color: var(--ditfa-add);
+}
+
+.kind-delete {
+  color: var(--ditfa-del);
+}
+
+.kind-update {
+  color: var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d);
+}
+
+.file-name {
+  flex: 0 0 auto;
+  font-family: var(--vscode-editor-font-family);
+}
+
+.file-path {
+  flex: 1 1 auto;
+  color: var(--ditfa-muted);
+  font-size: 0.9em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+}
+
+.diffstat {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9em;
+}
+
+.diffstat .add {
+  color: var(--ditfa-add);
+}
+
+.diffstat .del {
+  color: var(--ditfa-del);
+}
+
+/* ------------------------------------------------------------ plan */
+
+.plan {
+  display: none;
+}
+
+.plan.visible {
+  display: block;
+  border: 1px solid var(--ditfa-border);
+  border-radius: var(--ditfa-radius);
+  padding: 8px 10px;
+  background: var(--vscode-editorWidget-background);
+}
+
+.plan-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ditfa-muted);
+  margin-bottom: 6px;
+}
+
+.plan-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.9em;
+}
+
+.plan-step {
+  display: flex;
+  gap: 7px;
+  padding: 2px 0;
+}
+
+.plan-marker {
+  flex: 0 0 auto;
+  opacity: 0.7;
+}
+
+.plan-completed {
+  color: var(--ditfa-muted);
+  text-decoration: line-through;
+}
+
+.plan-in_progress {
+  font-weight: 600;
+}
+
+.plan-note {
+  margin-top: 6px;
+  font-size: 0.86em;
+  color: var(--ditfa-muted);
+}
+
+/* ------------------------------------------------------- approvals */
+
+.approvals {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.approval {
+  border: 1px solid var(--vscode-focusBorder);
+  border-radius: var(--ditfa-radius);
+  padding: 10px;
+  background: var(--vscode-editorWidget-background);
+}
+
+.approval.answered {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.approval-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.approval-reason,
+.approval-cwd,
+.approval-diffstat {
+  color: var(--ditfa-muted);
+  font-size: 0.88em;
+  margin-bottom: 6px;
+}
+
+.approval-command {
+  margin: 0 0 8px;
+  padding: 7px 9px;
+  border-radius: 4px;
+  background: var(--vscode-textCodeBlock-background);
+  font-family: var(--vscode-editor-font-family);
+  font-size: 0.88em;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.approval-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.approval-freeform {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.approval-input {
+  flex: 1 1 auto;
+  padding: 4px 7px;
+  border: 1px solid var(--vscode-input-border, var(--ditfa-border));
+  border-radius: 4px;
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  font-family: inherit;
+}
+
+/* --------------------------------------------------- notices/errors */
+
+.notice {
+  font-size: 0.88em;
+  padding: 6px 9px;
+  border-radius: 4px;
+  color: var(--ditfa-muted);
+  background: var(--vscode-editorWidget-background);
+}
+
+.notice-warning {
+  color: var(--vscode-editorWarning-foreground);
+}
+
+.error-card {
+  border: 1px solid var(--vscode-inputValidation-errorBorder);
+  background: var(--vscode-inputValidation-errorBackground);
+  border-radius: var(--ditfa-radius);
+  padding: 9px 11px;
+}
+
+.error-title {
+  font-weight: 600;
+}
+
+.error-details {
+  margin: 6px 0 0;
+  font-family: var(--vscode-editor-font-family);
+  font-size: 0.85em;
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow: auto;
+}
+
+.error-retry {
+  margin-top: 6px;
+  font-size: 0.86em;
+  color: var(--ditfa-muted);
+}
+
+/* ---------------------------------------------------------- footer */
+
+.footer {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--ditfa-border);
+  padding: 8px var(--ditfa-gap) var(--ditfa-gap);
+}
+
+.usage {
+  font-size: 0.8em;
+  color: var(--ditfa-muted);
+}
+
+.usage-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.usage-bar {
+  flex: 1 1 auto;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--ditfa-border);
+  overflow: hidden;
+  max-width: 140px;
+}
+
+.usage-fill {
+  display: block;
+  height: 100%;
+  background: var(--vscode-progressBar-background);
+}
+
+.usage-fill.high {
+  background: var(--vscode-editorWarning-foreground);
+}
+
+.composer {
+  position: relative;
+  border: 1px solid var(--vscode-input-border, var(--ditfa-border));
+  border-radius: var(--ditfa-radius);
+  background: var(--vscode-input-background);
+  padding: 6px;
+}
+
+.composer:focus-within {
+  border-color: var(--vscode-focusBorder);
+}
+
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.attachments:not(:empty) {
+  margin-bottom: 6px;
+}
+
+#composer {
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--vscode-input-foreground);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.5;
+  min-height: 1.5em;
+  max-height: 220px;
+}
+
+#composer::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+}
+
+.composer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.composer-hint {
+  font-size: 0.78em;
+  color: var(--ditfa-muted);
+}
+
+button {
+  padding: 4px 11px;
+  border: 1px solid var(--vscode-button-border, transparent);
+  border-radius: 4px;
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  font-family: inherit;
+  font-size: 0.88em;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--vscode-button-secondaryHoverBackground);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.primary {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--vscode-button-hoverBackground);
+}
+
+button.primary.stop {
+  background: var(--vscode-inputValidation-errorBorder, #c74e39);
+  color: #fff;
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--ditfa-muted);
+  border-color: var(--ditfa-border);
+}
+
+/* ----------------------------------------------------- suggestions */
+
+.suggestions {
+  display: none;
+}
+
+.suggestions.visible {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--ditfa-border);
+  border-radius: var(--ditfa-radius);
+  background: var(--vscode-editorSuggestWidget-background, var(--vscode-editorWidget-background));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+  z-index: 10;
+}
+
+.suggestion {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 9px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--vscode-foreground);
+  text-align: left;
+  font-size: 0.88em;
+}
+
+.suggestion.selected,
+.suggestion:hover {
+  background: var(--vscode-list-activeSelectionBackground);
+  color: var(--vscode-list-activeSelectionForeground);
+}
+
+.suggestion-label {
+  font-family: var(--vscode-editor-font-family);
+}
+
+.suggestion-path {
+  flex: 1 1 auto;
+  color: var(--ditfa-muted);
+  font-size: 0.9em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
