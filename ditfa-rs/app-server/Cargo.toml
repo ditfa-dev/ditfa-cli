@@ -1,0 +1,142 @@
+[package]
+name = "ditfa-app-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "ditfa-app-server"
+path = "src/main.rs"
+
+[[bin]]
+name = "ditfa-app-server-test-notify-capture"
+path = "src/bin/notify_capture.rs"
+
+[[bin]]
+name = "exec-server"
+path = "src/bin/exec_server.rs"
+
+[lib]
+name = "ditfa_app_server"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+base64 = { workspace = true }
+axum = { workspace = true, default-features = false, features = [
+    "http1",
+    "json",
+    "tokio",
+    "ws",
+] }
+ditfa-analytics = { workspace = true }
+ditfa-agent-extension = { workspace = true }
+ditfa-arg0 = { workspace = true }
+ditfa-cloud-config = { workspace = true }
+ditfa-config = { workspace = true }
+ditfa-connectors = { workspace = true }
+ditfa-core = { workspace = true }
+ditfa-core-plugins = { workspace = true }
+ditfa-home = { workspace = true }
+ditfa-exec-server = { workspace = true }
+ditfa-extension-api = { workspace = true }
+ditfa-external-agent-migration = { workspace = true }
+ditfa-features = { workspace = true }
+ditfa-goal-extension = { workspace = true }
+ditfa-git-attribution = { workspace = true }
+ditfa-guardian = { workspace = true }
+ditfa-git-utils = { workspace = true }
+ditfa-file-watcher = { workspace = true }
+ditfa-hooks = { workspace = true }
+ditfa-http-client = { workspace = true }
+ditfa-otel = { workspace = true }
+ditfa-plugin = { workspace = true }
+ditfa-shell-command = { workspace = true }
+ditfa-skills = { workspace = true }
+ditfa-skills-extension = { workspace = true }
+ditfa-utils-cli = { workspace = true }
+ditfa-utils-pty = { workspace = true }
+ditfa-backend-client = { workspace = true }
+ditfa-file-search = { workspace = true }
+ditfa-chatgpt = { workspace = true }
+ditfa-login = { workspace = true }
+ditfa-image-generation-extension = { workspace = true }
+ditfa-memories-extension = { workspace = true }
+ditfa-web-search-extension = { workspace = true }
+ditfa-memories-write = { workspace = true }
+ditfa-mcp = { workspace = true }
+ditfa-mcp-extension = { workspace = true }
+ditfa-model-provider = { workspace = true }
+ditfa-models-manager = { workspace = true }
+ditfa-protocol = { workspace = true }
+ditfa-app-server-protocol = { workspace = true }
+ditfa-app-server-transport = { workspace = true }
+ditfa-feedback = { workspace = true }
+ditfa-rmcp-client = { workspace = true }
+ditfa-rollout = { workspace = true }
+ditfa-sandboxing = { workspace = true }
+ditfa-state = { workspace = true }
+ditfa-thread-store = { workspace = true }
+ditfa-tools = { workspace = true }
+ditfa-utils-absolute-path = { workspace = true }
+ditfa-utils-json-to-toml = { workspace = true }
+ditfa-utils-path-uri = { workspace = true }
+chrono = { workspace = true }
+clap = { workspace = true, features = ["derive"] }
+futures = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+time = { workspace = true }
+toml = { workspace = true }
+toml_edit = { workspace = true }
+tokio = { workspace = true, features = [
+    "io-std",
+    "macros",
+    "process",
+    "rt-multi-thread",
+    "signal",
+] }
+tokio-util = { workspace = true }
+tracing = { workspace = true, features = ["log"] }
+tracing-subscriber = { workspace = true, features = ["env-filter", "fmt", "json"] }
+uuid = { workspace = true, features = ["serde", "v7"] }
+
+[target.'cfg(windows)'.dependencies]
+ditfa-windows-sandbox = { workspace = true }
+
+[dev-dependencies]
+app_test_support = { workspace = true }
+axum = { workspace = true, default-features = false, features = [
+    "http1",
+    "json",
+    "tokio",
+] }
+base64 = { workspace = true }
+ditfa-model-provider-info = { workspace = true }
+ditfa-utils-cargo-bin = { workspace = true }
+core_test_support = { workspace = true }
+flate2 = { workspace = true }
+hmac = { workspace = true }
+opentelemetry = { workspace = true }
+opentelemetry_sdk = { workspace = true }
+pretty_assertions = { workspace = true }
+reqwest = { workspace = true, features = ["rustls-tls"] }
+rmcp = { workspace = true, default-features = false, features = [
+    "elicitation",
+    "server",
+    "transport-streamable-http-server",
+] }
+serial_test = { workspace = true }
+sha2 = { workspace = true }
+shlex = { workspace = true }
+tar = { workspace = true }
+tokio-tungstenite = { workspace = true }
+tracing-opentelemetry = { workspace = true }
+url = { workspace = true }
+wiremock = { workspace = true }
