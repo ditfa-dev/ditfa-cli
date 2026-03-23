@@ -1,0 +1,33 @@
+[package]
+name = "ditfa-arg0"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "ditfa_arg0"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+ditfa-apply-patch = { workspace = true }
+ditfa-exec-server = { workspace = true }
+ditfa-install-context = { workspace = true }
+ditfa-linux-sandbox = { workspace = true }
+ditfa-sandboxing = { workspace = true }
+ditfa-shell-escalation = { workspace = true }
+ditfa-utils-absolute-path = { workspace = true }
+ditfa-utils-home-dir = { workspace = true }
+dotenvy = { workspace = true }
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread"] }
+
+[target.'cfg(windows)'.dependencies]
+ditfa-windows-sandbox = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
