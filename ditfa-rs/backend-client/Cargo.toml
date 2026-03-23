@@ -1,0 +1,31 @@
+[package]
+name = "ditfa-backend-client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[lib]
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+http = { workspace = true }
+url = { workspace = true }
+ditfa-backend-openapi-models = { path = "../ditfa-backend-openapi-models" }
+ditfa-api = { workspace = true }
+ditfa-http-client = { workspace = true }
+ditfa-login = { workspace = true }
+ditfa-model-provider = { workspace = true }
+ditfa-protocol = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = "1"
+tokio = { workspace = true, features = ["macros", "rt"] }
+wiremock = { workspace = true }
