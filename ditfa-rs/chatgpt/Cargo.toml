@@ -1,0 +1,30 @@
+[package]
+name = "ditfa-chatgpt"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+clap = { workspace = true, features = ["derive"] }
+ditfa-connectors = { workspace = true }
+ditfa-core = { workspace = true }
+ditfa-git-utils = { workspace = true }
+ditfa-login = { workspace = true }
+ditfa-model-provider = { workspace = true }
+ditfa-plugin = { workspace = true }
+ditfa-utils-cli = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+tokio = { workspace = true, features = ["full"] }
+
+[dev-dependencies]
+ditfa-utils-cargo-bin = { workspace = true }
+pretty_assertions = { workspace = true }
+serde_json = { workspace = true }
+tempfile = { workspace = true }
+
+[lib]
+doctest = false
