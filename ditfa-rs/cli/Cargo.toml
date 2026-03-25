@@ -1,0 +1,115 @@
+[package]
+name = "ditfa-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+build = "build.rs"
+
+[[bin]]
+name = "ditfa"
+path = "src/main.rs"
+
+[lib]
+name = "ditfa_cli"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+clap = { workspace = true, features = ["derive", "env"] }
+clap_complete = { workspace = true }
+ditfa-app-server = { workspace = true }
+ditfa-app-server-daemon = { workspace = true }
+ditfa-app-server-protocol = { workspace = true }
+ditfa-app-server-test-client = { workspace = true }
+ditfa-arg0 = { workspace = true }
+ditfa-api = { workspace = true }
+ditfa-chatgpt = { workspace = true }
+ditfa-cloud-tasks = { path = "../cloud-tasks" }
+ditfa-utils-cli = { workspace = true }
+ditfa-config = { workspace = true }
+ditfa-core = { workspace = true }
+ditfa-core-plugins = { workspace = true }
+ditfa-home = { workspace = true }
+ditfa-http-client = { workspace = true }
+ditfa-exec = { workspace = true }
+ditfa-exec-server = { workspace = true }
+ditfa-execpolicy = { workspace = true }
+ditfa-extension-api = { workspace = true }
+ditfa-features = { workspace = true }
+ditfa-git-attribution = { workspace = true }
+ditfa-git-utils = { workspace = true }
+ditfa-install-context = { workspace = true }
+ditfa-login = { workspace = true }
+ditfa-memories-write = { workspace = true }
+ditfa-mcp = { workspace = true }
+ditfa-mcp-server = { workspace = true }
+ditfa-model-provider = { workspace = true }
+ditfa-models-manager = { workspace = true }
+ditfa-plugin = { workspace = true }
+ditfa-protocol = { workspace = true }
+ditfa-responses-api-proxy = { workspace = true }
+ditfa-rmcp-client = { workspace = true }
+ditfa-rollout = { workspace = true }
+ditfa-rollout-trace = { workspace = true }
+ditfa-sandboxing = { workspace = true }
+ditfa-state = { workspace = true }
+ditfa-stdio-to-uds = { workspace = true }
+ditfa-terminal-detection = { workspace = true }
+ditfa-tui = { workspace = true }
+ditfa-utils-absolute-path = { workspace = true }
+ditfa-utils-path = { workspace = true }
+crossterm = { workspace = true }
+http = { workspace = true }
+libc = { workspace = true }
+os_info = { workspace = true }
+owo-colors = { workspace = true }
+regex-lite = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+supports-color = { workspace = true }
+sys-locale = { workspace = true }
+tempfile = { workspace = true }
+tokio = { workspace = true, features = [
+    "io-std",
+    "macros",
+    "net",
+    "process",
+    "rt-multi-thread",
+    "signal",
+    "time",
+] }
+toml = { workspace = true }
+tracing = { workspace = true }
+tracing-appender = { workspace = true }
+tracing-subscriber = { workspace = true }
+unicode-segmentation = { workspace = true }
+url = { workspace = true }
+which = { workspace = true }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+ditfa_windows_sandbox = { package = "ditfa-windows-sandbox", path = "../windows-sandbox-rs" }
+windows-sys = { version = "0.52", features = [
+    "Win32_Foundation",
+    "Win32_System_Console",
+] }
+
+[dev-dependencies]
+app_test_support = { workspace = true }
+assert_cmd = { workspace = true }
+assert_matches = { workspace = true }
+ditfa-utils-cargo-bin = { workspace = true }
+insta = { workspace = true }
+predicates = { workspace = true }
+pretty_assertions = { workspace = true }
+sqlx = { workspace = true }
+wiremock = { workspace = true }
+zstd = { workspace = true }
+
+[package.metadata.cargo-shear]
+# These Rust sources are intentionally Bazel-only macrobenchmarks rather than
+# Cargo targets.
+ignored-paths = ["e2e_benches/*.rs"]
