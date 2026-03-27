@@ -1,0 +1,31 @@
+[package]
+name = "ditfa-code-mode-host"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "ditfa-code-mode-host"
+path = "src/main.rs"
+
+[lib]
+doctest = false
+name = "ditfa_code_mode_host"
+path = "src/lib.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+ditfa-code-mode = { workspace = true }
+ditfa-code-mode-protocol = { workspace = true }
+tokio = { workspace = true, features = ["io-std", "io-util", "macros", "rt", "sync", "time"] }
+tokio-util = { workspace = true, features = ["rt"] }
+
+[dev-dependencies]
+ditfa-protocol = { workspace = true }
+ditfa-utils-cargo-bin = { workspace = true }
+pretty_assertions = { workspace = true }
+serde_json = { workspace = true }
+tempfile = { workspace = true }
