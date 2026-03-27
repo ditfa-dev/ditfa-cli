@@ -1,0 +1,25 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-cloud-tasks-client"
+version.workspace = true
+
+[lib]
+name = "ditfa_cloud_tasks_client"
+path = "src/lib.rs"
+test = false
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+chrono = { workspace = true, features = ["serde"] }
+ditfa-api = { workspace = true }
+ditfa-backend-client = { workspace = true }
+ditfa-git-utils = { workspace = true }
+ditfa-http-client = { workspace = true }
+serde = { version = "1", features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }

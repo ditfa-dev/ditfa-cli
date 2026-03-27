@@ -1,0 +1,20 @@
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-cloud-tasks-mock-client"
+version.workspace = true
+
+[lib]
+name = "ditfa_cloud_tasks_mock_client"
+path = "src/lib.rs"
+test = false
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+chrono = { workspace = true }
+ditfa-cloud-tasks-client = { workspace = true }
+diffy = { workspace = true }
