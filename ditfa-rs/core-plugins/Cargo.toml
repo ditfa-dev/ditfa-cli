@@ -1,0 +1,65 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-core-plugins"
+version.workspace = true
+
+[lib]
+doctest = false
+name = "ditfa_core_plugins"
+path = "src/lib.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+ditfa-analytics = { workspace = true }
+ditfa-app-server-protocol = { workspace = true }
+ditfa-config = { workspace = true }
+ditfa-connectors = { workspace = true }
+ditfa-core-skills = { workspace = true }
+ditfa-exec-server = { workspace = true }
+ditfa-git-utils = { workspace = true }
+ditfa-hooks = { workspace = true }
+ditfa-http-client = { workspace = true }
+ditfa-login = { workspace = true }
+ditfa-mcp = { workspace = true }
+ditfa-model-provider = { workspace = true }
+ditfa-otel = { workspace = true }
+ditfa-plugin = { workspace = true }
+ditfa-protocol = { workspace = true }
+ditfa-skills = { workspace = true }
+ditfa-tools = { workspace = true }
+ditfa-utils-absolute-path = { workspace = true }
+ditfa-utils-path = { workspace = true }
+ditfa-utils-path-uri = { workspace = true }
+ditfa-utils-plugins = { workspace = true }
+chrono = { workspace = true }
+dirs = { workspace = true }
+flate2 = { workspace = true }
+http = { workspace = true }
+regex = { workspace = true }
+semver = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+tar = { workspace = true }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["fs", "macros", "rt", "time"] }
+toml = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }
+zip = { workspace = true }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+which = { workspace = true }
+
+[dev-dependencies]
+libc = { workspace = true }
+pretty_assertions = { workspace = true }
+tempfile = { workspace = true }
+tracing-subscriber = { workspace = true }
+tracing-test = { workspace = true, features = ["no-env-filter"] }
+wiremock = { workspace = true }

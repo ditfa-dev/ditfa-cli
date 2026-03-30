@@ -1,0 +1,31 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-core-api"
+version.workspace = true
+
+[lib]
+doctest = false
+name = "ditfa_core_api"
+path = "src/lib.rs"
+test = false
+
+[lints]
+workspace = true
+
+[dependencies]
+ditfa-app-server-protocol = { workspace = true }
+ditfa-arg0 = { workspace = true }
+ditfa-analytics = { workspace = true }
+ditfa-config = { workspace = true }
+ditfa-core = { workspace = true }
+ditfa-extension-api = { workspace = true }
+ditfa-home = { workspace = true }
+ditfa-image-generation-extension = { workspace = true }
+ditfa-exec-server = { workspace = true }
+ditfa-features = { workspace = true }
+ditfa-login = { workspace = true }
+ditfa-model-provider-info = { workspace = true }
+ditfa-models-manager = { workspace = true }
+ditfa-protocol = { workspace = true }
+ditfa-utils-absolute-path = { workspace = true }
