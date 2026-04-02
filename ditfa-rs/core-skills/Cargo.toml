@@ -1,0 +1,45 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-core-skills"
+version.workspace = true
+
+[lib]
+doctest = false
+name = "ditfa_core_skills"
+path = "src/lib.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+ditfa-analytics = { workspace = true }
+ditfa-config = { workspace = true }
+ditfa-context-fragments = { workspace = true }
+ditfa-exec-server = { workspace = true }
+ditfa-login = { workspace = true }
+ditfa-model-provider = { workspace = true }
+ditfa-otel = { workspace = true }
+ditfa-protocol = { workspace = true }
+ditfa-shell-command = { workspace = true }
+ditfa-skills = { workspace = true }
+ditfa-utils-absolute-path = { workspace = true }
+ditfa-utils-output-truncation = { workspace = true }
+ditfa-utils-path-uri = { workspace = true }
+ditfa-utils-plugins = { workspace = true }
+dirs = { workspace = true }
+dunce = { workspace = true }
+futures = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+shlex = { workspace = true }
+tokio = { workspace = true, features = ["fs", "macros", "rt"] }
+toml = { workspace = true }
+tracing = { workspace = true }
+zip = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+tempfile = { workspace = true }
