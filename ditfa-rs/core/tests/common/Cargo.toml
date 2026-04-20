@@ -1,0 +1,54 @@
+[package]
+name = "core_test_support"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+path = "lib.rs"
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+assert_cmd = { workspace = true }
+base64 = { workspace = true }
+ditfa-arg0 = { workspace = true }
+ditfa-config = { workspace = true }
+ditfa-core = { workspace = true }
+ditfa-extension-api = { workspace = true }
+ditfa-exec-server = { workspace = true }
+ditfa-home = { workspace = true }
+ditfa-features = { workspace = true }
+ditfa-hooks = { workspace = true }
+ditfa-login = { workspace = true }
+ditfa-model-provider-info = { workspace = true }
+ditfa-models-manager = { workspace = true }
+ditfa-protocol = { workspace = true }
+ditfa-utils-absolute-path = { workspace = true }
+ditfa-utils-cargo-bin = { workspace = true }
+ditfa-utils-path-uri = { workspace = true }
+ctor = { workspace = true }
+futures = { workspace = true }
+notify = { workspace = true }
+opentelemetry = { workspace = true }
+opentelemetry_sdk = { workspace = true }
+regex-lite = { workspace = true }
+serde_json = { workspace = true }
+similar = { workspace = true }
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["net", "test-util", "time"] }
+tokio-tungstenite = { workspace = true }
+tracing = { workspace = true }
+tracing-opentelemetry = { workspace = true }
+tracing-subscriber = { workspace = true }
+walkdir = { workspace = true }
+wiremock = { workspace = true }
+shlex = { workspace = true }
+zstd = { workspace = true }
+
+[dev-dependencies]
+ditfa-http-client = { workspace = true }
+pretty_assertions = { workspace = true }
