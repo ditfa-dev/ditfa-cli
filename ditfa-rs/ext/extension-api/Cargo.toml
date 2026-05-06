@@ -1,0 +1,28 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-extension-api"
+version.workspace = true
+
+[lib]
+name = "ditfa_extension_api"
+path = "src/lib.rs"
+test = false
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+ditfa-config = { workspace = true }
+ditfa-context-fragments = { workspace = true }
+ditfa-exec-server-protocol = { workspace = true }
+ditfa-mcp = { workspace = true }
+ditfa-protocol = { workspace = true }
+ditfa-tools = { workspace = true }
+ditfa-utils-absolute-path = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

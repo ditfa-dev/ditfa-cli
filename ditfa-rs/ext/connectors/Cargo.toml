@@ -1,0 +1,23 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-connectors-extension"
+version.workspace = true
+
+[lib]
+name = "ditfa_connectors_extension"
+path = "src/lib.rs"
+doctest = false
+test = false
+
+[lints]
+workspace = true
+
+[dependencies]
+ditfa-connectors = { workspace = true }
+ditfa-core-plugins = { workspace = true }
+ditfa-plugin = { workspace = true }
+ditfa-utils-path-uri = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
