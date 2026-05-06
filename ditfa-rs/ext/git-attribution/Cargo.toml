@@ -1,0 +1,25 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-git-attribution"
+version.workspace = true
+
+[lib]
+name = "ditfa_git_attribution"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+ditfa-backend-client = { workspace = true }
+ditfa-extension-api = { workspace = true }
+ditfa-http-client = { workspace = true }
+ditfa-login = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["time"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }
+wiremock = { workspace = true }
