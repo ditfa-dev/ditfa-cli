@@ -1,0 +1,19 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-guardian"
+version.workspace = true
+
+[lib]
+name = "ditfa_guardian"
+path = "src/lib.rs"
+test = false
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+ditfa-core = { workspace = true }
+ditfa-extension-api = { workspace = true }
+ditfa-protocol = { workspace = true }

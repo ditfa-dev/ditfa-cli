@@ -1,0 +1,38 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-image-generation-extension"
+version.workspace = true
+
+[lib]
+name = "ditfa_image_generation_extension"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+base64 = { workspace = true }
+ditfa-api = { workspace = true }
+ditfa-core = { workspace = true }
+ditfa-exec-server = { workspace = true }
+ditfa-extension-api = { workspace = true }
+ditfa-extension-items = { workspace = true }
+ditfa-login = { workspace = true }
+ditfa-model-provider = { workspace = true }
+ditfa-model-provider-info = { workspace = true }
+ditfa-protocol = { workspace = true }
+ditfa-tools = { workspace = true }
+ditfa-utils-absolute-path = { workspace = true }
+ditfa-utils-image = { workspace = true }
+ditfa-utils-path-uri = { workspace = true }
+http = { workspace = true }
+schemars = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt"] }
