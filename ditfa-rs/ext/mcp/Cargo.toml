@@ -1,0 +1,38 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-mcp-extension"
+version.workspace = true
+
+[lib]
+name = "ditfa_mcp_extension"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+ditfa-core = { workspace = true }
+ditfa-core-plugins = { workspace = true }
+ditfa-config = { workspace = true }
+ditfa-connectors = { workspace = true }
+ditfa-connectors-extension = { workspace = true }
+ditfa-exec-server = { workspace = true }
+ditfa-extension-api = { workspace = true }
+ditfa-features = { workspace = true }
+ditfa-mcp = { workspace = true }
+ditfa-plugin = { workspace = true }
+ditfa-protocol = { workspace = true }
+ditfa-utils-absolute-path = { workspace = true }
+ditfa-utils-path-uri = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true, features = ["sync"] }
+
+[dev-dependencies]
+ditfa-login = { workspace = true }
+pretty_assertions = { workspace = true }
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
