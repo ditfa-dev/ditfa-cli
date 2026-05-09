@@ -1,0 +1,32 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-web-search-extension"
+version.workspace = true
+
+[lib]
+name = "ditfa_web_search_extension"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+ditfa-api = { workspace = true }
+ditfa-core = { workspace = true }
+ditfa-extension-api = { workspace = true }
+ditfa-extension-items = { workspace = true }
+ditfa-login = { workspace = true }
+ditfa-model-provider = { workspace = true }
+ditfa-model-provider-info = { workspace = true }
+ditfa-otel = { workspace = true }
+ditfa-protocol = { workspace = true }
+ditfa-tools = { workspace = true }
+http = { workspace = true }
+schemars = { workspace = true }
+serde_json = { workspace = true }
+url = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
