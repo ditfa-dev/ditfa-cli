@@ -1,0 +1,24 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-features"
+version.workspace = true
+
+[lib]
+doctest = false
+name = "ditfa_features"
+path = "src/lib.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+ditfa-otel = { workspace = true }
+ditfa-protocol = { workspace = true }
+schemars = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+toml = { workspace = true }
+tracing = { workspace = true, features = ["log"] }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
