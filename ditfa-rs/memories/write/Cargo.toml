@@ -1,0 +1,49 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-memories-write"
+version.workspace = true
+
+[lib]
+name = "ditfa_memories_write"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+chrono = { workspace = true }
+ditfa-backend-client = { workspace = true }
+ditfa-core = { workspace = true }
+ditfa-config = { workspace = true }
+ditfa-features = { workspace = true }
+ditfa-git-utils = { workspace = true }
+ditfa-login = { workspace = true }
+ditfa-model-provider = { workspace = true }
+ditfa-otel = { workspace = true }
+ditfa-protocol = { workspace = true }
+ditfa-rollout = { workspace = true }
+ditfa-rollout-trace = { workspace = true }
+ditfa-secrets = { workspace = true }
+ditfa-state = { workspace = true }
+ditfa-terminal-detection = { workspace = true }
+ditfa-utils-absolute-path = { workspace = true }
+ditfa-utils-output-truncation = { workspace = true }
+ditfa-utils-template = { workspace = true }
+futures = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["fs", "rt", "sync", "time"] }
+tracing = { workspace = true, features = ["log"] }
+uuid = { workspace = true, features = ["v4", "v5"] }
+
+[dev-dependencies]
+ditfa-model-provider-info = { workspace = true }
+ditfa-models-manager = { workspace = true }
+core_test_support = { workspace = true }
+pretty_assertions = { workspace = true }
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["fs", "macros"] }
+wiremock = { workspace = true }
