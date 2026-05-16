@@ -1,0 +1,21 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-memories-read"
+version.workspace = true
+
+[lib]
+name = "ditfa_memories_read"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+ditfa-protocol = { workspace = true }
+ditfa-shell-command = { workspace = true }
+ditfa-utils-absolute-path = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
