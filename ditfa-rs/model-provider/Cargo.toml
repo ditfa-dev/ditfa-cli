@@ -1,0 +1,40 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-model-provider"
+version.workspace = true
+
+[lib]
+doctest = false
+name = "ditfa_model_provider"
+path = "src/lib.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+async-trait = { workspace = true }
+thiserror = { workspace = true }
+reqwest = { workspace = true, features = ["json", "stream"] }
+serde_json = { workspace = true }
+futures = { workspace = true }
+ditfa-api = { workspace = true }
+ditfa-agent-identity = { workspace = true }
+ditfa-aws-auth = { workspace = true }
+ditfa-http-client = { workspace = true }
+ditfa-feedback = { workspace = true }
+ditfa-login = { workspace = true }
+ditfa-model-provider-info = { workspace = true }
+ditfa-models-manager = { workspace = true }
+ditfa-otel = { workspace = true }
+ditfa-protocol = { workspace = true }
+ditfa-response-debug-context = { workspace = true }
+http = { workspace = true }
+tokio = { workspace = true, features = ["sync", "time"] }
+tracing = { workspace = true, features = ["log"] }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt"] }
+wiremock = { workspace = true }
