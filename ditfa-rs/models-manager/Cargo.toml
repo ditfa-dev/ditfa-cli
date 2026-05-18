@@ -1,0 +1,32 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-models-manager"
+version.workspace = true
+
+[lib]
+doctest = false
+name = "ditfa_models_manager"
+path = "src/lib.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+chrono = { workspace = true, features = ["serde"] }
+ditfa-collaboration-mode-templates = { workspace = true }
+ditfa-http-client = { workspace = true }
+ditfa-login = { workspace = true }
+ditfa-otel = { workspace = true }
+ditfa-protocol = { workspace = true }
+ditfa-utils-output-truncation = { workspace = true }
+ditfa-utils-template = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["fs", "sync", "time"] }
+tracing = { workspace = true, features = ["log"] }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+serde_json = { workspace = true }
+tempfile = { workspace = true }
