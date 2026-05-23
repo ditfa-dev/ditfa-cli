@@ -1,0 +1,25 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-prompts"
+version.workspace = true
+
+[lib]
+doctest = false
+name = "ditfa_prompts"
+path = "src/lib.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+ditfa-context-fragments = { workspace = true }
+ditfa-git-utils = { workspace = true }
+ditfa-execpolicy = { workspace = true }
+ditfa-protocol = { workspace = true }
+ditfa-utils-absolute-path = { workspace = true }
+ditfa-utils-template = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
