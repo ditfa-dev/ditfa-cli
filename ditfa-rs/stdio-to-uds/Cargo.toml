@@ -1,0 +1,33 @@
+[package]
+name = "ditfa-stdio-to-uds"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "ditfa-stdio-to-uds"
+path = "src/main.rs"
+
+[lib]
+name = "ditfa_stdio_to_uds"
+path = "src/lib.rs"
+test = false
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+ditfa-uds = { workspace = true }
+tokio = { workspace = true, features = [
+    "io-std",
+    "io-util",
+    "macros",
+    "rt-multi-thread",
+] }
+
+[dev-dependencies]
+ditfa-utils-cargo-bin = { workspace = true }
+pretty_assertions = { workspace = true }
+tempfile = { workspace = true }
