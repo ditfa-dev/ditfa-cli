@@ -1,0 +1,39 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-tools"
+version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+ditfa-code-mode = { workspace = true }
+ditfa-connectors = { workspace = true }
+ditfa-features = { workspace = true }
+ditfa-file-system = { workspace = true }
+ditfa-extension-items = { workspace = true }
+ditfa-protocol = { workspace = true }
+ditfa-utils-absolute-path = { workspace = true }
+ditfa-utils-output-truncation = { workspace = true }
+ditfa-utils-pty = { workspace = true }
+ditfa-utils-string = { workspace = true }
+jsonptr = { workspace = true }
+rmcp = { workspace = true, default-features = false, features = [
+    "base64",
+    "macros",
+    "schemars",
+    "server",
+] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true, features = ["raw_value"] }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+urlencoding = { workspace = true }
+
+[dev-dependencies]
+ditfa-utils-cargo-bin = { workspace = true }
+pretty_assertions = { workspace = true }
+
+[lib]
+doctest = false
