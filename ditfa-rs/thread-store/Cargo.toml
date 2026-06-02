@@ -1,0 +1,39 @@
+[package]
+edition.workspace = true
+license.workspace = true
+name = "ditfa-thread-store"
+version.workspace = true
+
+[lib]
+name = "ditfa_thread_store"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+chrono = { workspace = true, features = ["serde"] }
+ditfa-app-server-protocol = { workspace = true }
+ditfa-git-utils = { workspace = true }
+ditfa-install-context = { workspace = true }
+ditfa-otel = { workspace = true }
+ditfa-protocol = { workspace = true }
+ditfa-rollout = { workspace = true }
+ditfa-state = { workspace = true }
+ditfa-utils-absolute-path = { workspace = true }
+ditfa-utils-path = { workspace = true }
+futures = { workspace = true }
+pulldown-cmark = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+uuid = { workspace = true }
