@@ -1,0 +1,17 @@
+[package]
+name = "ditfa-utils-oss"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+ditfa-core = { workspace = true }
+ditfa-lmstudio = { workspace = true }
+ditfa-model-provider-info = { workspace = true }
+ditfa-ollama = { workspace = true }
+
+[lib]
+doctest = false
