@@ -1,0 +1,19 @@
+[package]
+name = "ditfa-utils-sandbox-summary"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+ditfa-protocol = { workspace = true }
+ditfa-utils-absolute-path = { workspace = true }
+
+[dev-dependencies]
+ditfa-utils-absolute-path = { workspace = true }
+pretty_assertions = { workspace = true }
+
+[lib]
+doctest = false
