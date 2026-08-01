@@ -1,7 +1,7 @@
 //! Cloud-hosted configuration data for Ditfa.
 //!
 //! This crate owns transport, caching, and refresh behavior for cloud-delivered
-//! config data. Parsing and composition remain in `codex-config`.
+//! config data. Parsing and composition remain in `ditfa-config`.
 
 mod backend;
 mod bundle_loader;

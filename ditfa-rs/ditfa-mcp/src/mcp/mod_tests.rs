@@ -4,7 +4,7 @@ use crate::McpServerRegistration;
 use ditfa_config::Constrained;
 use ditfa_config::types::AppToolApproval;
 use ditfa_config::types::AuthKeyringBackendKind;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_plugin::AppConnectorId;
 use ditfa_plugin::PluginCapabilitySummary;
 use ditfa_protocol::models::ManagedFileSystemPermissions;
@@ -271,7 +271,7 @@ fn ditfa_apps_server_config_uses_plugin_service_path() {
     );
     let url = match &config.transport {
         McpServerTransportConfig::StreamableHttp { url, .. } => url,
-        _ => panic!("expected streamable http transport for codex apps"),
+        _ => panic!("expected streamable http transport for ditfa apps"),
     };
 
     assert_eq!(url, "http://localhost:3000/api/ps/mcp");
@@ -295,7 +295,7 @@ fn ditfa_apps_server_config_forwards_thread_originator_header() {
                 http_headers,
                 &Some(HashMap::from([
                     ("originator".to_string(), "thread_originator".to_string()),
-                    ("X-OpenAI-Product-Sku".to_string(), "codex".to_string()),
+                    ("X-OpenAI-Product-Sku".to_string(), "ditfa".to_string()),
                 ]))
             );
             assert!(env_http_headers.is_none());
@@ -306,7 +306,7 @@ fn ditfa_apps_server_config_forwards_thread_originator_header() {
 
 #[test]
 fn ditfa_apps_server_config_sets_product_sku_header() {
-    for (configured_product_sku, expected_product_sku) in [(None, "codex"), (Some("tpp"), "tpp")] {
+    for (configured_product_sku, expected_product_sku) in [(None, "ditfa"), (Some("tpp"), "tpp")] {
         let config = ditfa_apps_mcp_server_config(
             "http://localhost:3000",
             configured_product_sku,
@@ -365,7 +365,7 @@ async fn effective_mcp_servers_preserve_runtime_servers() {
     let ditfa_home = tempfile::tempdir().expect("tempdir");
     let mut config = test_mcp_config(ditfa_home.path().to_path_buf());
     config.apps_enabled = true;
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
 
     let mut catalog = ResolvedMcpCatalog::builder();
     catalog.register(McpServerRegistration::from_config(
@@ -438,7 +438,7 @@ async fn effective_mcp_servers_preserve_runtime_servers() {
         .expect("configured server should exist");
     let ditfa_apps = effective
         .get(DITFA_APPS_MCP_SERVER_NAME)
-        .expect("codex apps server should exist");
+        .expect("ditfa apps server should exist");
 
     let sample = sample.config();
     let docs = docs.config();

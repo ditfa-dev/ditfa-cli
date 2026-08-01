@@ -77,7 +77,7 @@
   },
   "properties": {
     "callId": {
-      "description": "Use to correlate this with [codex_protocol::protocol::PatchApplyBeginEvent] and [codex_protocol::protocol::PatchApplyEndEvent].",
+      "description": "Use to correlate this with [ditfa_protocol::protocol::PatchApplyBeginEvent] and [ditfa_protocol::protocol::PatchApplyEndEvent].",
       "type": "string"
     },
     "conversationId": {

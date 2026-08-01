@@ -1,7 +1,7 @@
 #[cfg(unix)]
 use std::process::Command;
 
-pub const DITFA_ARG0_EXEC_HELPER_ARG1: &str = "--codex-run-as-arg0-exec-helper";
+pub const DITFA_ARG0_EXEC_HELPER_ARG1: &str = "--ditfa-run-as-arg0-exec-helper";
 
 #[cfg(unix)]
 pub fn main() -> ! {

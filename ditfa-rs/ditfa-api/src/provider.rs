@@ -10,7 +10,7 @@ use url::Url;
 
 /// High-level retry configuration for a provider.
 ///
-/// This is converted into a `RetryPolicy` used by `codex-client` to drive
+/// This is converted into a `RetryPolicy` used by `ditfa-client` to drive
 /// transport-level retries for both unary and streaming calls.
 #[derive(Debug, Clone)]
 pub struct RetryConfig {

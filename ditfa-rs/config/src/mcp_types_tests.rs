@@ -321,7 +321,7 @@ fn deserialize_streamable_http_server_config_with_oauth_client_id() {
             url = "https://example.com/mcp"
 
             [oauth]
-            client_id = "eci-prd-pub-codex-123"
+            client_id = "eci-prd-pub-ditfa-123"
         "#,
     )
     .expect("should deserialize http config with oauth client id");
@@ -329,7 +329,7 @@ fn deserialize_streamable_http_server_config_with_oauth_client_id() {
     assert_eq!(
         cfg.oauth,
         Some(McpServerOAuthConfig {
-            client_id: Some("eci-prd-pub-codex-123".to_string()),
+            client_id: Some("eci-prd-pub-ditfa-123".to_string()),
         })
     );
 }
@@ -495,7 +495,7 @@ fn deserialize_rejects_headers_for_stdio() {
     let err = toml::from_str::<McpServerConfig>(
         r#"
             command = "echo"
-            oauth = { client_id = "eci-prd-pub-codex-123" }
+            oauth = { client_id = "eci-prd-pub-ditfa-123" }
         "#,
     )
     .expect_err("should reject oauth for stdio transport");

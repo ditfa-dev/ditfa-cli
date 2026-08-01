@@ -1,4 +1,4 @@
-//! Codex Apps support for the host-owned apps MCP server.
+//! Ditfa Apps support for the host-owned apps MCP server.
 //!
 //! This module owns the normalization that turns ChatGPT-hosted app
 //! connector/tool metadata into model-visible MCP callable names.
@@ -10,7 +10,7 @@ mod file_params;
 pub use file_params::declared_openai_file_input_param_names;
 pub(crate) use file_params::prepare_openai_file_params_for_model;
 
-pub(crate) fn normalize_codex_apps_tool_title(connector_name: Option<&str>, value: &str) -> String {
+pub(crate) fn normalize_ditfa_apps_tool_title(connector_name: Option<&str>, value: &str) -> String {
     let Some(connector_name) = connector_name
         .map(str::trim)
         .filter(|name| !name.is_empty())
@@ -28,7 +28,7 @@ pub(crate) fn normalize_codex_apps_tool_title(connector_name: Option<&str>, valu
     value.to_string()
 }
 
-pub(crate) fn normalize_codex_apps_callable_name(
+pub(crate) fn normalize_ditfa_apps_callable_name(
     tool_name: &str,
     connector_id: Option<&str>,
     connector_name: Option<&str>,
@@ -58,7 +58,7 @@ pub(crate) fn normalize_codex_apps_callable_name(
     tool_name
 }
 
-pub(crate) fn normalize_codex_apps_callable_namespace(
+pub(crate) fn normalize_ditfa_apps_callable_namespace(
     server_name: &str,
     connector_name: Option<&str>,
 ) -> String {

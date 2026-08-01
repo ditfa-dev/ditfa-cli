@@ -77,7 +77,7 @@ impl ListMcpResourceTemplatesHandler {
         let cursor = normalize_optional_string(cursor);
 
         let invocation = McpInvocation {
-            server: server.clone().unwrap_or_else(|| "codex".to_string()),
+            server: server.clone().unwrap_or_else(|| "ditfa".to_string()),
             tool: "list_mcp_resource_templates".to_string(),
             arguments: arguments.clone(),
         };

@@ -24,7 +24,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
 
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::Result;
 use ditfa_protocol::permissions::is_protected_metadata_name;
 use ditfa_protocol::protocol::FileSystemAccessMode;
@@ -732,7 +732,7 @@ fn expand_unreadable_globs_with_ripgrep(
             }
             expanded_paths.insert(path);
             if expanded_paths.len() > MAX_UNREADABLE_GLOB_MATCHES {
-                return Err(CodexErr::Fatal(format!(
+                return Err(DitfaErr::Fatal(format!(
                     "unreadable glob expansion for {} matched more than {MAX_UNREADABLE_GLOB_MATCHES} paths",
                     search_root.display()
                 )));
@@ -851,7 +851,7 @@ fn ripgrep_files(
         }
 
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(CodexErr::Fatal(format!(
+        return Err(DitfaErr::Fatal(format!(
             "ripgrep unreadable glob scan failed for {}: {stderr}",
             search_root.display()
         )));
@@ -886,7 +886,7 @@ fn glob_files(
             .allow_unclosed_class(true)
             .build()
             .map_err(|err| {
-                CodexErr::Fatal(format!(
+                DitfaErr::Fatal(format!(
                     "unreadable glob pattern is invalid for {}: {err}",
                     search_root.display()
                 ))
@@ -894,7 +894,7 @@ fn glob_files(
         builder.add(glob);
     }
     let glob_set = builder.build().map_err(|err| {
-        CodexErr::Fatal(format!(
+        DitfaErr::Fatal(format!(
             "unreadable glob matcher failed for {}: {err}",
             search_root.display()
         ))
@@ -1030,7 +1030,7 @@ fn append_read_only_subpath_args(
          * only protect a startup-time snapshot; the sandboxed process could
          * replace the writable symlink before it reads through the logical path.
          */
-        return Err(CodexErr::Fatal(format!(
+        return Err(DitfaErr::Fatal(format!(
             "cannot enforce sandbox read-only path {} because it crosses writable symlink {}",
             subpath.display(),
             symlink.display()
@@ -1151,7 +1151,7 @@ fn append_unreadable_root_args(
          * protect the old target while the logical path could later point
          * somewhere else.
          */
-        return Err(CodexErr::Fatal(format!(
+        return Err(DitfaErr::Fatal(format!(
             "cannot enforce sandbox deny-read path {} because it crosses writable symlink {}",
             unreadable_root.display(),
             symlink.display()
@@ -1582,14 +1582,14 @@ mod tests {
     fn writable_roots_under_symlinked_ancestors_bind_real_target() {
         let temp_dir = TempDir::new().expect("temp dir");
         let logical_home = temp_dir.path().join("home");
-        let real_codex = temp_dir.path().join("real-codex");
-        let logical_codex = logical_home.join(".ditfa");
-        let real_memories = real_codex.join("memories");
-        let logical_memories = logical_codex.join("memories");
+        let real_ditfa = temp_dir.path().join("real-ditfa");
+        let logical_ditfa = logical_home.join(".ditfa");
+        let real_memories = real_ditfa.join("memories");
+        let logical_memories = logical_ditfa.join("memories");
         std::fs::create_dir_all(&logical_home).expect("create logical home");
         std::fs::create_dir_all(&real_memories).expect("create memories dir");
-        std::os::unix::fs::symlink(&real_codex, &logical_codex)
-            .expect("create symlinked codex home");
+        std::os::unix::fs::symlink(&real_ditfa, &logical_ditfa)
+            .expect("create symlinked ditfa home");
 
         let logical_memories_root =
             AbsolutePathBuf::from_absolute_path(&logical_memories).expect("absolute memories");
@@ -1966,16 +1966,16 @@ mod tests {
                 .expect("filesystem args");
         let dot_git = path_to_string(&temp_dir.path().join(".git"));
         let dot_agents = path_to_string(&temp_dir.path().join(".agents"));
-        let dot_codex = path_to_string(&temp_dir.path().join(".ditfa"));
+        let dot_ditfa = path_to_string(&temp_dir.path().join(".ditfa"));
 
         assert_empty_directory_mounted_read_only(&args.args, Path::new(&dot_git));
         assert_empty_directory_mounted_read_only(&args.args, Path::new(&dot_agents));
-        assert_empty_directory_mounted_read_only(&args.args, Path::new(&dot_codex));
+        assert_empty_directory_mounted_read_only(&args.args, Path::new(&dot_ditfa));
         assert!(args.preserved_files.is_empty());
         let synthetic_targets = synthetic_mount_target_paths(&args);
         assert!(synthetic_targets.contains(&PathBuf::from(&dot_git)));
         assert!(synthetic_targets.contains(&PathBuf::from(&dot_agents)));
-        assert!(synthetic_targets.contains(&PathBuf::from(&dot_codex)));
+        assert!(synthetic_targets.contains(&PathBuf::from(&dot_ditfa)));
         assert_eq!(
             protected_create_target_paths(&args),
             Vec::<PathBuf>::new(),

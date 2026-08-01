@@ -8,7 +8,7 @@ use super::*;
 #[tokio::test]
 async fn sqlite_sink_drops_low_level_opentelemetry_sdk_logs() {
     let ditfa_home =
-        std::env::temp_dir().join(format!("codex-state-log-db-filter-{}", Uuid::new_v4()));
+        std::env::temp_dir().join(format!("ditfa-state-log-db-filter-{}", Uuid::new_v4()));
     let runtime = StateRuntime::init(ditfa_home.clone(), "test-provider".to_string())
         .await
         .expect("initialize runtime");

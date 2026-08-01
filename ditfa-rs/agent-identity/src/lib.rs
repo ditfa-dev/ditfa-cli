@@ -37,13 +37,13 @@ use sha2::Sha512;
 
 const AGENT_TASK_REGISTRATION_TIMEOUT: Duration = Duration::from_secs(30);
 const AGENT_IDENTITY_JWKS_TIMEOUT: Duration = Duration::from_secs(10);
-const AGENT_IDENTITY_JWT_AUDIENCE: &str = "codex-app-server";
+const AGENT_IDENTITY_JWT_AUDIENCE: &str = "ditfa-app-server";
 const AGENT_IDENTITY_JWT_ISSUER: &str = "http://localhost:3000/ditfa-backend/agent-identity";
 const AGENT_REGISTRATION_TIMEOUT: Duration = Duration::from_secs(15);
 const PROD_AGENT_IDENTITY_AUTHAPI_BASE_URL: &str = "http://localhost:3000/auth/api/accounts";
 const STAGING_AGENT_IDENTITY_AUTHAPI_BASE_URL: &str = "https://auth.api.openai.org/api/accounts";
 const AGENT_IDENTITY_KEY_SEED_BYTES: usize = 64;
-const AGENT_IDENTITY_KEY_DERIVATION_CONTEXT: &[u8] = b"codex-agent-identity-ed25519-v1";
+const AGENT_IDENTITY_KEY_DERIVATION_CONTEXT: &[u8] = b"ditfa-agent-identity-ed25519-v1";
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum ChatGptEnvironment {
@@ -65,7 +65,7 @@ impl ChatGptEnvironment {
             | "https://chat.openai.com/backend-api/codex" => Ok(Self::Production),
             "https://localhost:3000"
             | "https://localhost:3000/backend-api"
-            | "https://localhost:3000/codex"
+            | "https://localhost:3000/ditfa"
             | "https://localhost:3000/backend-api/codex" => Ok(Self::Staging),
             _ => anyhow::bail!(
                 "Agent Identity only supports production and staging ChatGPT environments"
@@ -91,7 +91,7 @@ impl ChatGptEnvironment {
 /// Borrowed durable signing material for a registered agent identity.
 ///
 /// This intentionally does not include a task id. Task ids are scoped to a
-/// single Codex run, while the agent runtime id and private key are the
+/// single Ditfa run, while the agent runtime id and private key are the
 /// reusable identity material used to register and sign that run task.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct AgentIdentityKey<'a> {
@@ -498,14 +498,14 @@ pub fn build_abom(session_source: SessionSource) -> AgentBillOfMaterials {
     AgentBillOfMaterials {
         agent_version: env!("CARGO_PKG_VERSION").to_string(),
         agent_harness_id: match &session_source {
-            SessionSource::VSCode => "codex-app".to_string(),
+            SessionSource::VSCode => "ditfa-app".to_string(),
             SessionSource::Cli
             | SessionSource::Exec
             | SessionSource::Mcp
             | SessionSource::Custom(_)
             | SessionSource::Internal(_)
             | SessionSource::SubAgent(_)
-            | SessionSource::Unknown => "codex-cli".to_string(),
+            | SessionSource::Unknown => "ditfa-cli".to_string(),
         },
         running_location: format!("{}-{}", session_source, std::env::consts::OS),
     }

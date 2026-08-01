@@ -8,7 +8,7 @@ use serde_json::json;
 use tempfile::TempDir;
 
 fn ditfa_command(ditfa_home: &Path) -> Result<assert_cmd::Command> {
-    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("codex")?);
+    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa")?);
     cmd.env("DITFA_HOME", ditfa_home);
     Ok(cmd)
 }
@@ -35,7 +35,7 @@ foo = "bar"
 #[test]
 fn app_server_emits_json_info_events() -> Result<()> {
     let ditfa_home = TempDir::new()?;
-    let event = app_server_json_shutdown_event("codex", &["app-server"], ditfa_home.path())?;
+    let event = app_server_json_shutdown_event("ditfa", &["app-server"], ditfa_home.path())?;
 
     assert_eq!(
         event,

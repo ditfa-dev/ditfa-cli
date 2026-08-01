@@ -31,7 +31,7 @@ const DEFAULT_TIMEOUT: Duration = Duration::from_secs(10);
 async fn mock_experimental_method_requires_experimental_api_capability() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -67,7 +67,7 @@ async fn mock_experimental_method_requires_experimental_api_capability() -> Resu
 async fn realtime_conversation_start_requires_experimental_api_capability() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -120,7 +120,7 @@ async fn realtime_conversation_start_requires_experimental_api_capability() -> R
 async fn thread_memory_mode_set_requires_experimental_api_capability() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -159,7 +159,7 @@ async fn thread_memory_mode_set_requires_experimental_api_capability() -> Result
 async fn thread_settings_update_requires_experimental_api_capability() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -198,7 +198,7 @@ async fn thread_settings_update_requires_experimental_api_capability() -> Result
 async fn realtime_webrtc_start_requires_experimental_api_capability() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -256,7 +256,7 @@ async fn thread_start_mock_field_requires_experimental_api_capability() -> Resul
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build()
         .await?;
     let init = mcp
@@ -298,7 +298,7 @@ async fn thread_start_without_dynamic_tools_allows_without_experimental_api_capa
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build()
         .await?;
     let init = mcp
@@ -339,7 +339,7 @@ async fn thread_start_granular_approval_policy_requires_experimental_api_capabil
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build()
         .await?;
     let init = mcp

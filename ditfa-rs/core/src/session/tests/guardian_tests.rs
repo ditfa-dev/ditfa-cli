@@ -667,7 +667,7 @@ async fn shell_command_allows_sticky_turn_permissions_without_inline_request_per
 
 #[tokio::test]
 async fn guardian_subagent_does_not_inherit_parent_exec_policy_rules() {
-    let ditfa_home = tempdir().expect("create codex home");
+    let ditfa_home = tempdir().expect("create ditfa home");
     let project_dir = tempdir().expect("create project dir");
     let rules_dir = project_dir.path().join("rules");
     fs::create_dir_all(&rules_dir).expect("create rules dir");
@@ -682,7 +682,7 @@ async fn guardian_subagent_does_not_inherit_parent_exec_policy_rules() {
     config.config_layer_stack = ConfigLayerStack::new(
         vec![ConfigLayerEntry::new(
             ConfigLayerSource::Project {
-                dot_codex_folder: project_dir.path().abs(),
+                dot_ditfa_folder: project_dir.path().abs(),
             },
             toml::Value::Table(Default::default()),
         )],
@@ -710,7 +710,7 @@ async fn guardian_subagent_does_not_inherit_parent_exec_policy_rules() {
         }
     );
 
-    let auth_manager = AuthManager::from_auth_for_testing(CodexAuth::from_api_key("Test API Key"));
+    let auth_manager = AuthManager::from_auth_for_testing(DitfaAuth::from_api_key("Test API Key"));
     let models_manager = models_manager_with_provider(
         config.ditfa_home.to_path_buf(),
         auth_manager.clone(),

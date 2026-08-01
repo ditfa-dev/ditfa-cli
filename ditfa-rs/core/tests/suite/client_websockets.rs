@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used)]
 use ditfa_api::WS_REQUEST_HEADER_TRACEPARENT_CLIENT_METADATA_KEY;
 use ditfa_api::WS_REQUEST_HEADER_TRACESTATE_CLIENT_METADATA_KEY;
-use ditfa_core::CodexResponsesMetadata;
+use ditfa_core::DitfaResponsesMetadata;
 use ditfa_core::ModelClient;
 use ditfa_core::ModelClientSession;
 use ditfa_core::Prompt;
@@ -9,7 +9,7 @@ use ditfa_core::ResponseEvent;
 use ditfa_core::X_RESPONSESAPI_INCLUDE_TIMING_METRICS_HEADER;
 use ditfa_features::Feature;
 use ditfa_http_client::OutboundProxyPolicy;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::auth::AgentIdentityAuthPolicy;
 use ditfa_model_provider_info::ModelProviderInfo;
 use ditfa_model_provider_info::WireApi;
@@ -39,7 +39,7 @@ use ditfa_rollout_trace::InferenceTraceContext;
 use ditfa_rollout_trace::RawTraceEventPayload;
 use ditfa_rollout_trace::TraceWriter;
 use ditfa_rollout_trace::replay_bundle;
-use core_test_support::TestCodexResponsesRequestKind;
+use core_test_support::TestDitfaResponsesRequestKind;
 use core_test_support::load_default_config_for_test;
 use core_test_support::responses::WebSocketConnectionConfig;
 use core_test_support::responses::WebSocketTestServer;
@@ -50,7 +50,7 @@ use core_test_support::responses::start_websocket_server;
 use core_test_support::responses::start_websocket_server_with_headers;
 use core_test_support::responses_metadata as test_responses_metadata;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::tracing::install_test_tracing;
 use core_test_support::wait_for_event;
 use futures::StreamExt;
@@ -69,11 +69,11 @@ const USER_AGENT_HEADER: &str = "user-agent";
 const WS_V2_BETA_HEADER_VALUE: &str = "responses_websockets=2026-02-06";
 const X_CLIENT_REQUEST_ID_HEADER: &str = "x-client-request-id";
 const WS_REQUEST_HEADER_RESPONSES_LITE_CLIENT_METADATA_KEY: &str =
-    "ws_request_header_x_openai_internal_codex_responses_lite";
+    "ws_request_header_x_openai_internal_ditfa_responses_lite";
 const TEST_INSTALLATION_ID: &str = "11111111-1111-4111-8111-111111111111";
 const TEST_WINDOW_ID: &str = "test-thread:0";
 const X_DITFA_WS_STREAM_REQUEST_START_MS_CLIENT_METADATA_KEY: &str =
-    "x-codex-ws-stream-request-start-ms";
+    "x-ditfa-ws-stream-request-start-ms";
 
 fn assert_request_trace_matches(body: &serde_json::Value, expected_trace: &W3cTraceContext) {
     let client_metadata = body["client_metadata"]
@@ -102,7 +102,7 @@ fn assert_request_trace_matches(body: &serde_json::Value, expected_trace: &W3cTr
 }
 
 struct WebsocketTestHarness {
-    _codex_home: TempDir,
+    _ditfa_home: TempDir,
     client: ModelClient,
     outbound_proxy_policy: OutboundProxyPolicy,
     session_id: SessionId,
@@ -116,8 +116,8 @@ struct WebsocketTestHarness {
 fn responses_metadata(
     harness: &WebsocketTestHarness,
     turn_id: Option<&str>,
-    request_kind: TestCodexResponsesRequestKind,
-) -> CodexResponsesMetadata {
+    request_kind: TestDitfaResponsesRequestKind,
+) -> DitfaResponsesMetadata {
     test_responses_metadata(
         TEST_INSTALLATION_ID,
         &harness.session_id.to_string(),
@@ -130,22 +130,22 @@ fn responses_metadata(
     )
 }
 
-fn turn_metadata(harness: &WebsocketTestHarness, turn_id: Option<&str>) -> CodexResponsesMetadata {
-    responses_metadata(harness, turn_id, TestCodexResponsesRequestKind::Turn)
+fn turn_metadata(harness: &WebsocketTestHarness, turn_id: Option<&str>) -> DitfaResponsesMetadata {
+    responses_metadata(harness, turn_id, TestDitfaResponsesRequestKind::Turn)
 }
 
 fn prewarm_metadata(
     harness: &WebsocketTestHarness,
     turn_id: Option<&str>,
-) -> CodexResponsesMetadata {
-    responses_metadata(harness, turn_id, TestCodexResponsesRequestKind::Prewarm)
+) -> DitfaResponsesMetadata {
+    responses_metadata(harness, turn_id, TestDitfaResponsesRequestKind::Prewarm)
 }
 
-fn websocket_connection_metadata(harness: &WebsocketTestHarness) -> CodexResponsesMetadata {
+fn websocket_connection_metadata(harness: &WebsocketTestHarness) -> DitfaResponsesMetadata {
     responses_metadata(
         harness,
         /*turn_id*/ None,
-        TestCodexResponsesRequestKind::WebsocketConnection,
+        TestDitfaResponsesRequestKind::WebsocketConnection,
     )
 }
 
@@ -192,10 +192,10 @@ async fn responses_websocket_streams_request() {
     );
     assert_eq!(
         handshake.header(USER_AGENT_HEADER),
-        Some(ditfa_login::default_client::get_codex_user_agent())
+        Some(ditfa_login::default_client::get_ditfa_user_agent())
     );
     assert_eq!(
-        body["client_metadata"]["x-codex-installation-id"].as_str(),
+        body["client_metadata"]["x-ditfa-installation-id"].as_str(),
         Some(TEST_INSTALLATION_ID)
     );
     let stream_request_start_ms = body["client_metadata"]
@@ -359,7 +359,7 @@ async fn responses_websocket_reuses_connection_with_per_turn_trace_payloads() {
     assert_eq!(server.handshakes().len(), 1);
     assert_eq!(
         server.single_handshake().header(USER_AGENT_HEADER),
-        Some(ditfa_login::default_client::get_codex_user_agent())
+        Some(ditfa_login::default_client::get_ditfa_user_agent())
     );
     let connection = server.single_connection();
     assert_eq!(connection.len(), 2);
@@ -450,7 +450,7 @@ async fn responses_websocket_preconnect_reuses_connection() {
     assert_eq!(server.handshakes().len(), 1);
     assert_eq!(
         server.single_handshake().header(USER_AGENT_HEADER),
-        Some(ditfa_login::default_client::get_codex_user_agent())
+        Some(ditfa_login::default_client::get_ditfa_user_agent())
     );
     assert_eq!(
         server.single_handshake().header("x-codex-window-id"),
@@ -501,7 +501,7 @@ async fn responses_websocket_request_prewarm_reuses_connection() {
     assert_eq!(server.handshakes().len(), 1);
     assert_eq!(
         server.single_handshake().header(USER_AGENT_HEADER),
-        Some(ditfa_login::default_client::get_codex_user_agent())
+        Some(ditfa_login::default_client::get_ditfa_user_agent())
     );
     let connection = server.single_connection();
     assert_eq!(connection.len(), 2);
@@ -631,7 +631,7 @@ async fn responses_websocket_request_prewarm_traces_logical_request() {
         })
         .expect("thread started");
     writer
-        .append(RawTraceEventPayload::CodexTurnStarted {
+        .append(RawTraceEventPayload::DitfaTurnStarted {
             ditfa_turn_id: "turn-1".to_string(),
             thread_id: harness.thread_id.to_string(),
         })
@@ -1371,7 +1371,7 @@ async fn responses_websocket_emits_rate_limit_events() {
     skip_if_no_network!();
 
     let rate_limit_event = json!({
-        "type": "codex.rate_limits",
+        "type": "ditfa.rate_limits",
         "plan_type": "plus",
         "rate_limits": {
             "allowed": true,
@@ -1477,15 +1477,15 @@ async fn responses_websocket_usage_limit_error_emits_rate_limit_event() {
             "resets_in_seconds": 1234
         },
         "headers": {
-            "x-codex-primary-used-percent": "100.0",
-            "x-codex-secondary-used-percent": "87.5",
-            "x-codex-primary-over-secondary-limit-percent": "95.0",
-            "x-codex-primary-window-minutes": "15",
-            "x-codex-secondary-window-minutes": "60",
-            "x-codex-credits-has-credits": "true",
-            "x-codex-credits-unlimited": "false",
-            "x-codex-credits-balance": "",
-            "x-codex-rate-limit-reached-type": "workspace_member_usage_limit_reached"
+            "x-ditfa-primary-used-percent": "100.0",
+            "x-ditfa-secondary-used-percent": "87.5",
+            "x-ditfa-primary-over-secondary-limit-percent": "95.0",
+            "x-ditfa-primary-window-minutes": "15",
+            "x-ditfa-secondary-window-minutes": "60",
+            "x-ditfa-credits-has-credits": "true",
+            "x-ditfa-credits-unlimited": "false",
+            "x-ditfa-credits-balance": "",
+            "x-ditfa-rate-limit-reached-type": "workspace_member_usage_limit_reached"
         }
     });
 
@@ -1497,14 +1497,14 @@ async fn responses_websocket_usage_limit_error_emits_rate_limit_event() {
         vec![usage_limit_error],
     ]])
     .await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.model_provider.request_max_retries = Some(0);
         config.model_provider.stream_max_retries = Some(0);
     });
     let test = builder
         .build_with_websocket_server(&server)
         .await
-        .expect("build websocket codex");
+        .expect("build websocket ditfa");
 
     let submission_id = test
         .ditfa
@@ -1533,7 +1533,7 @@ async fn responses_websocket_usage_limit_error_emits_rate_limit_event() {
         json!({
             "info": null,
             "rate_limits": {
-                "limit_id": "codex",
+                "limit_id": "ditfa",
                 "limit_name": null,
                 "primary": {
                     "used_percent": 100.0,
@@ -1592,14 +1592,14 @@ async fn responses_websocket_invalid_request_error_with_status_is_forwarded() {
         vec![invalid_request_error],
     ]])
     .await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.model_provider.request_max_retries = Some(0);
         config.model_provider.stream_max_retries = Some(0);
     });
     let test = builder
         .build_with_websocket_server(&server)
         .await
-        .expect("build websocket codex");
+        .expect("build websocket ditfa");
 
     let submission_id = test
         .ditfa
@@ -1651,14 +1651,14 @@ async fn responses_websocket_connection_limit_error_reconnects_and_completes() {
         vec![vec![ev_response_created("resp-1"), ev_completed("resp-1")]],
     ])
     .await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.model_provider.request_max_retries = Some(0);
         config.model_provider.stream_max_retries = Some(1);
     });
     let test = builder
         .build_with_websocket_server(&server)
         .await
-        .expect("build websocket codex");
+        .expect("build websocket ditfa");
 
     test.submit_turn("hello")
         .await
@@ -1674,8 +1674,8 @@ async fn responses_websocket_connection_limit_error_reconnects_and_completes() {
     assert_eq!(
         handshake_user_agents,
         vec![
-            Some(ditfa_login::default_client::get_codex_user_agent()),
-            Some(ditfa_login::default_client::get_codex_user_agent()),
+            Some(ditfa_login::default_client::get_ditfa_user_agent()),
+            Some(ditfa_login::default_client::get_ditfa_user_agent()),
         ]
     );
 
@@ -2355,10 +2355,10 @@ async fn websocket_harness_with_provider_options(
     let thread_id = ThreadId::new();
     let session_id = SessionId::new();
     let auth_manager =
-        ditfa_core::test_support::auth_manager_from_auth(CodexAuth::from_api_key("Test API Key"));
+        ditfa_core::test_support::auth_manager_from_auth(DitfaAuth::from_api_key("Test API Key"));
     let exporter = InMemoryMetricExporter::default();
     let metrics = MetricsClient::new(
-        MetricsConfig::in_memory("test", "codex-core", env!("CARGO_PKG_VERSION"), exporter)
+        MetricsConfig::in_memory("test", "ditfa-core", env!("CARGO_PKG_VERSION"), exporter)
             .with_runtime_reader(),
     )
     .expect("in-memory metrics client");
@@ -2397,7 +2397,7 @@ async fn websocket_harness_with_provider_options(
     );
 
     WebsocketTestHarness {
-        _codex_home: ditfa_home,
+        _ditfa_home: ditfa_home,
         client,
         outbound_proxy_policy,
         session_id,
@@ -2478,7 +2478,7 @@ async fn stream_until_complete_with_metadata(
     harness: &WebsocketTestHarness,
     prompt: &Prompt,
     service_tier: Option<ServiceTier>,
-    responses_metadata: &CodexResponsesMetadata,
+    responses_metadata: &DitfaResponsesMetadata,
 ) {
     let mut stream = client_session
         .stream(

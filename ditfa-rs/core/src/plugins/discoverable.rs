@@ -2,7 +2,7 @@ use crate::config::Config;
 use ditfa_config::types::ToolSuggestDiscoverableType;
 use ditfa_core_plugins::PluginsManager;
 use ditfa_core_plugins::ToolSuggestPluginDiscoveryInput;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_tools::DiscoverablePluginInfo;
 use std::collections::HashSet;
 use tracing::instrument;
@@ -11,7 +11,7 @@ use tracing::instrument;
 pub(crate) async fn list_tool_suggest_discoverable_plugins(
     config: &Config,
     plugins_manager: &PluginsManager,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     loaded_plugin_app_connector_ids: &[String],
 ) -> anyhow::Result<Vec<DiscoverablePluginInfo>> {
     let input = ToolSuggestPluginDiscoveryInput {

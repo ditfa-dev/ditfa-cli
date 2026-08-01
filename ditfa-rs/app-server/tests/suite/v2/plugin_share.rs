@@ -101,7 +101,7 @@ async fn plugin_share_save_uploads_local_plugin() -> Result<()> {
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -248,7 +248,7 @@ async fn plugin_share_save_forwards_access_policy() -> Result<()> {
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -300,7 +300,7 @@ async fn plugin_share_save_rejects_listed_discoverability() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -357,7 +357,7 @@ plugin_sharing = false
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -405,7 +405,7 @@ async fn plugin_share_rejects_workspace_targets_from_client() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -486,7 +486,7 @@ async fn plugin_share_save_rejects_access_policy_for_existing_plugin() -> Result
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -562,7 +562,7 @@ async fn plugin_share_list_returns_created_workspace_plugins() -> Result<()> {
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -635,7 +635,7 @@ async fn plugin_share_checkout_adds_personal_marketplace_entry() -> Result<()> {
 
     let home_env = home.path().to_string_lossy().into_owned();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("HOME", Some(home_env.as_str())),
@@ -663,10 +663,10 @@ async fn plugin_share_checkout_adds_personal_marketplace_entry() -> Result<()> {
         response,
         PluginShareCheckoutResponse {
             remote_plugin_id: "plugins_123".to_string(),
-            plugin_id: "demo-plugin@codex-curated".to_string(),
+            plugin_id: "demo-plugin@ditfa-curated".to_string(),
             plugin_name: "demo-plugin".to_string(),
             plugin_path: plugin_path.clone(),
-            marketplace_name: "codex-curated".to_string(),
+            marketplace_name: "ditfa-curated".to_string(),
             marketplace_path: marketplace_path.clone(),
             remote_version: Some("1.2.3".to_string()),
         }
@@ -683,7 +683,7 @@ async fn plugin_share_checkout_adds_personal_marketplace_entry() -> Result<()> {
     assert_eq!(
         marketplace,
         json!({
-            "name": "codex-curated",
+            "name": "ditfa-curated",
             "interface": {
                 "displayName": "Personal",
             },
@@ -729,7 +729,7 @@ async fn plugin_share_checkout_adds_personal_marketplace_entry() -> Result<()> {
     let response: PluginListResponse =
         timeout(DEFAULT_TIMEOUT, mcp.read_response(request_id)).await??;
     assert_eq!(response.marketplaces.len(), 1);
-    assert_eq!(response.marketplaces[0].name, "codex-curated");
+    assert_eq!(response.marketplaces[0].name, "ditfa-curated");
     assert_eq!(response.marketplaces[0].plugins[0].name, "demo-plugin");
     assert_eq!(
         response.marketplaces[0].plugins[0]
@@ -787,7 +787,7 @@ async fn plugin_share_checkout_rejects_non_share_remote_plugin() -> Result<()> {
 
     let home_env = home.path().to_string_lossy().into_owned();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("HOME", Some(home_env.as_str())),
@@ -847,7 +847,7 @@ async fn plugin_share_checkout_cleans_up_path_when_marketplace_update_fails() ->
     std::fs::write(
         &marketplace_path,
         serde_json::to_string_pretty(&json!({
-            "name": "codex-curated",
+            "name": "ditfa-curated",
             "plugins": [
                 {
                     "name": "demo-plugin",
@@ -878,7 +878,7 @@ async fn plugin_share_checkout_cleans_up_path_when_marketplace_update_fails() ->
 
     let home_env = home.path().to_string_lossy().into_owned();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("HOME", Some(home_env.as_str())),
@@ -981,7 +981,7 @@ async fn plugin_share_update_targets_updates_share_targets() -> Result<()> {
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1072,7 +1072,7 @@ async fn plugin_share_update_targets_publishes_workspace_plugin() -> Result<()> 
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1132,7 +1132,7 @@ plugin_sharing = false
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1184,7 +1184,7 @@ async fn plugin_share_delete_removes_created_workspace_plugin() -> Result<()> {
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;

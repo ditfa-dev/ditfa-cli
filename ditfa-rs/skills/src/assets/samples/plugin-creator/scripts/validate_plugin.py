@@ -26,7 +26,7 @@ HEX_COLOR_RE = re.compile(r"^#[0-9A-F]{6}$", re.IGNORECASE)
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Validate a local Codex plugin.")
+    parser = argparse.ArgumentParser(description="Validate a local Ditfa plugin.")
     parser.add_argument("plugin_path", help="Path to the plugin root directory")
     return parser.parse_args()
 
@@ -45,7 +45,7 @@ def main() -> None:
 
 def validate_plugin(plugin_root: Path) -> list[str]:
     errors: list[str] = []
-    manifest_path = plugin_root / ".codex-plugin" / "plugin.json"
+    manifest_path = plugin_root / ".ditfa-plugin" / "plugin.json"
     manifest = load_json_object(manifest_path, errors)
     if manifest is None:
         return errors
@@ -57,18 +57,18 @@ def validate_plugin(plugin_root: Path) -> list[str]:
 
 def load_json_object(path: Path, errors: list[str]) -> dict[str, Any] | None:
     if not path.is_file():
-        errors.append("missing `.codex-plugin/plugin.json`")
+        errors.append("missing `.ditfa-plugin/plugin.json`")
         return None
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except OSError:
-        errors.append("unable to read `.codex-plugin/plugin.json`")
+        errors.append("unable to read `.ditfa-plugin/plugin.json`")
         return None
     except json.JSONDecodeError:
-        errors.append("`.codex-plugin/plugin.json` must be valid JSON")
+        errors.append("`.ditfa-plugin/plugin.json` must be valid JSON")
         return None
     if not isinstance(payload, dict):
-        errors.append("`.codex-plugin/plugin.json` must contain a JSON object")
+        errors.append("`.ditfa-plugin/plugin.json` must contain a JSON object")
         return None
     return payload
 

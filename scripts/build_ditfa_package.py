@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a canonical Codex package directory and optional archive."""
+"""Build a canonical Ditfa Code package directory and optional archive."""
 
 from pathlib import Path
 import sys
@@ -10,7 +10,7 @@ import sys
 # package remains importable when this executable is launched from any cwd.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from codex_package.cli import main
+from ditfa_package.cli import main
 
 if __name__ == "__main__":
     raise SystemExit(main())

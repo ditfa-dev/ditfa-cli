@@ -186,7 +186,7 @@ fn dynamic_network_policy_allows_tls_without_darwin_user_cache_write() {
 
 #[test]
 fn explicit_unreadable_paths_are_excluded_from_full_disk_read_and_write_access() {
-    let unreadable = absolute_path("/tmp/codex-unreadable");
+    let unreadable = absolute_path("/tmp/ditfa-unreadable");
     let file_system_policy = FileSystemSandboxPolicy::restricted(vec![
         FileSystemSandboxEntry {
             path: FileSystemPath::Special {
@@ -295,8 +295,8 @@ fn prepared_managed_network_context_allows_only_its_proxy_ports() {
 
 #[test]
 fn explicit_unreadable_paths_are_excluded_from_readable_roots() {
-    let root = absolute_path("/tmp/codex-readable");
-    let unreadable = absolute_path("/tmp/codex-readable/private");
+    let root = absolute_path("/tmp/ditfa-readable");
+    let unreadable = absolute_path("/tmp/ditfa-readable/private");
     let file_system_policy = FileSystemSandboxPolicy::restricted(vec![
         FileSystemSandboxEntry {
             path: FileSystemPath::Path { path: root },
@@ -617,7 +617,7 @@ fn create_seatbelt_args_allowlists_explicit_unix_socket_paths_without_proxy() {
         &SandboxPolicy::new_read_only_policy(),
         cwd.path(),
     );
-    let extra_allow_unix_sockets = vec![absolute_path("/tmp/codex-browser-use")];
+    let extra_allow_unix_sockets = vec![absolute_path("/tmp/ditfa-browser-use")];
     let args = create_seatbelt_command_args(CreateSeatbeltCommandArgsParams {
         command: vec!["/usr/bin/true".to_string()],
         file_system_sandbox_policy: &file_system_policy,
@@ -642,7 +642,7 @@ fn create_seatbelt_args_allowlists_explicit_unix_socket_paths_without_proxy() {
         ),
         "policy should allow outbound AF_UNIX traffic for explicit socket paths:\n{policy}"
     );
-    let expected_socket_root = normalize_path_for_sandbox(Path::new("/tmp/codex-browser-use"))
+    let expected_socket_root = normalize_path_for_sandbox(Path::new("/tmp/ditfa-browser-use"))
         .expect("socket root should normalize")
         .to_string_lossy()
         .into_owned();
@@ -660,8 +660,8 @@ async fn create_seatbelt_args_merges_proxy_and_explicit_unix_socket_paths() -> a
         &SandboxPolicy::new_read_only_policy(),
         cwd.path(),
     );
-    let network_socket = "/tmp/codex-proxy-use";
-    let explicit_socket = "/tmp/codex-browser-use";
+    let network_socket = "/tmp/ditfa-proxy-use";
+    let explicit_socket = "/tmp/ditfa-browser-use";
     let mut network_config = NetworkProxyConfig {
         enabled: true,
         mode: NetworkMode::Full,
@@ -674,7 +674,7 @@ async fn create_seatbelt_args_merges_proxy_and_explicit_unix_socket_paths() -> a
             state,
             Arc::new(TestConfigReloader),
         )))
-        .managed_by_codex(/*managed_by_codex*/ false)
+        .managed_by_ditfa(/*managed_by_ditfa*/ false)
         .build()
         .await?;
     let extra_allow_unix_sockets = vec![absolute_path(explicit_socket)];
@@ -722,7 +722,7 @@ fn create_seatbelt_args_preserves_full_network_with_explicit_unix_socket_paths()
         &SandboxPolicy::new_read_only_policy(),
         cwd.path(),
     );
-    let extra_allow_unix_sockets = vec![absolute_path("/tmp/codex-browser-use")];
+    let extra_allow_unix_sockets = vec![absolute_path("/tmp/ditfa-browser-use")];
     let args = create_seatbelt_command_args(CreateSeatbeltCommandArgsParams {
         command: vec!["/usr/bin/true".to_string()],
         file_system_sandbox_policy: &file_system_policy,
@@ -873,7 +873,7 @@ fn create_seatbelt_args_full_network_with_proxy_is_still_proxy_only() {
 }
 
 #[test]
-fn create_seatbelt_args_with_read_only_git_and_codex_subpaths() {
+fn create_seatbelt_args_with_read_only_git_and_ditfa_subpaths() {
     // Create a temporary workspace with two writable roots: one containing
     // top-level workspace metadata paths and one without them.
     let tmp = TempDir::new().expect("tempdir");
@@ -882,7 +882,7 @@ fn create_seatbelt_args_with_read_only_git_and_codex_subpaths() {
         vulnerable_root_canonical,
         dot_git_canonical,
         dot_agents_canonical: _,
-        dot_codex_canonical,
+        dot_ditfa_canonical,
         empty_root,
         empty_root_canonical,
     } = populate_tmpdir(tmp.path());
@@ -908,7 +908,7 @@ fn create_seatbelt_args_with_read_only_git_and_codex_subpaths() {
         "-c",
         "echo 'sandbox_mode = \"danger-full-access\"' > \"$1\"",
         "bash",
-        dot_codex_canonical
+        dot_ditfa_canonical
             .join("config.toml")
             .to_string_lossy()
             .as_ref(),
@@ -1001,7 +1001,7 @@ fn create_seatbelt_args_with_read_only_git_and_codex_subpaths() {
         ),
         format!(
             "-DWRITABLE_ROOT_1_EXCLUDED_1={}",
-            dot_codex_canonical.to_string_lossy()
+            dot_ditfa_canonical.to_string_lossy()
         ),
         format!(
             "-DWRITABLE_ROOT_2={}",
@@ -1025,7 +1025,7 @@ fn create_seatbelt_args_with_read_only_git_and_codex_subpaths() {
 
     // Verify that .ditfa/config.toml cannot be modified under the generated
     // Seatbelt policy.
-    let config_toml = dot_codex_canonical.join("config.toml");
+    let config_toml = dot_ditfa_canonical.join("config.toml");
     let output = Command::new(MACOS_PATH_TO_SEATBELT_EXECUTABLE)
         .args(&args)
         .current_dir(&cwd)
@@ -1126,7 +1126,7 @@ fn create_seatbelt_args_with_read_only_git_and_codex_subpaths() {
 }
 
 #[test]
-fn create_seatbelt_args_block_first_time_dot_codex_creation_with_metadata_name_regex() {
+fn create_seatbelt_args_block_first_time_dot_ditfa_creation_with_metadata_name_regex() {
     let tmp = TempDir::new().expect("tempdir");
     let repo_root = tmp.path().join("repo");
     fs::create_dir_all(&repo_root).expect("create repo root");
@@ -1138,8 +1138,8 @@ fn create_seatbelt_args_block_first_time_dot_codex_creation_with_metadata_name_r
         .output()
         .expect("git init .");
 
-    let dot_codex = repo_root.join(".ditfa");
-    let config_toml = dot_codex.join("config.toml");
+    let dot_ditfa = repo_root.join(".ditfa");
+    let config_toml = dot_ditfa.join("config.toml");
     let policy = SandboxPolicy::WorkspaceWrite {
         writable_roots: vec![repo_root.as_path().try_into().expect("absolute repo root")],
         network_access: false,
@@ -1152,7 +1152,7 @@ fn create_seatbelt_args_block_first_time_dot_codex_creation_with_metadata_name_r
         "-c",
         "mkdir -p \"$1\" && echo 'sandbox_mode = \"danger-full-access\"' > \"$2\"",
         "bash",
-        dot_codex.to_string_lossy().as_ref(),
+        dot_ditfa.to_string_lossy().as_ref(),
         config_toml.to_string_lossy().as_ref(),
     ]
     .iter()
@@ -1285,7 +1285,7 @@ fn create_seatbelt_args_for_cwd_as_git_repo() {
         vulnerable_root_canonical,
         dot_git_canonical,
         dot_agents_canonical,
-        dot_codex_canonical,
+        dot_ditfa_canonical,
         ..
     } = populate_tmpdir(tmp.path());
 
@@ -1304,7 +1304,7 @@ fn create_seatbelt_args_for_cwd_as_git_repo() {
         "-c",
         "echo 'sandbox_mode = \"danger-full-access\"' > \"$1\"",
         "bash",
-        dot_codex_canonical
+        dot_ditfa_canonical
             .join("config.toml")
             .to_string_lossy()
             .as_ref(),
@@ -1364,13 +1364,13 @@ fn create_seatbelt_args_for_cwd_as_git_repo() {
         args.contains(&expected_dot_git),
         "missing {expected_dot_git}: {args:#?}"
     );
-    let expected_dot_codex = format!(
+    let expected_dot_ditfa = format!(
         "-DWRITABLE_ROOT_0_EXCLUDED_1={}",
-        dot_codex_canonical.to_string_lossy()
+        dot_ditfa_canonical.to_string_lossy()
     );
     assert!(
-        args.contains(&expected_dot_codex),
-        "missing {expected_dot_codex}: {args:#?}"
+        args.contains(&expected_dot_ditfa),
+        "missing {expected_dot_ditfa}: {args:#?}"
     );
     let unexpected_dot_agents = format!(
         "-DWRITABLE_ROOT_0_EXCLUDED_1={}",
@@ -1404,7 +1404,7 @@ struct PopulatedTmp {
     vulnerable_root_canonical: PathBuf,
     dot_git_canonical: PathBuf,
     dot_agents_canonical: PathBuf,
-    dot_codex_canonical: PathBuf,
+    dot_ditfa_canonical: PathBuf,
 
     /// Path without protected metadata subfolders.
     empty_root: PathBuf,
@@ -1441,14 +1441,14 @@ fn populate_tmpdir(tmp: &Path) -> PopulatedTmp {
         .expect("canonicalize vulnerable_root");
     let dot_git_canonical = vulnerable_root_canonical.join(".git");
     let dot_agents_canonical = vulnerable_root_canonical.join(".agents");
-    let dot_codex_canonical = vulnerable_root_canonical.join(".ditfa");
+    let dot_ditfa_canonical = vulnerable_root_canonical.join(".ditfa");
     let empty_root_canonical = empty_root.canonicalize().expect("canonicalize empty_root");
     PopulatedTmp {
         vulnerable_root,
         vulnerable_root_canonical,
         dot_git_canonical,
         dot_agents_canonical,
-        dot_codex_canonical,
+        dot_ditfa_canonical,
         empty_root,
         empty_root_canonical,
     }

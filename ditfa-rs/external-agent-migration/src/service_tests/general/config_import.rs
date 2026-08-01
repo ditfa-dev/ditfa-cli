@@ -23,7 +23,7 @@ async fn import_repo_mcp_preserves_existing_same_named_server() {
         }"#,
     )
     .expect("write mcp");
-    fs::create_dir_all(repo_root.join(".ditfa")).expect("create codex dir");
+    fs::create_dir_all(repo_root.join(".ditfa")).expect("create ditfa dir");
     let existing_config = r#"[mcp_servers.mixedTransport]
 url = "https://example.com/mixed-transport"
 "#;
@@ -79,7 +79,7 @@ async fn detect_repo_mcp_lists_only_missing_servers() {
         }"#,
     )
     .expect("write mcp");
-    fs::create_dir_all(repo_root.join(".ditfa")).expect("create codex dir");
+    fs::create_dir_all(repo_root.join(".ditfa")).expect("create ditfa dir");
     fs::write(
         repo_root.join(".ditfa").join("config.toml"),
         r#"[mcp_servers.mixedTransport]
@@ -130,7 +130,7 @@ async fn import_home_migrates_supported_config_fields_skills_and_agents_md() {
     fs::create_dir_all(external_agent_home.join("skills").join("skill-a")).expect("create skills");
     fs::write(
             external_agent_home.join("settings.json"),
-            format!(r#"{{"model":"{SOURCE_EXTERNAL_AGENT_NAME}","permissions":{{"ask":["git push"]}},"env":{{"FOO":"bar","CI":false,"MAX_RETRIES":3,"MY_TEAM":"codex","IGNORED":null,"LIST":["a","b"],"MAP":{{"x":1}}}},"sandbox":{{"enabled":true,"network":{{"allowLocalBinding":true}}}}}}"#),
+            format!(r#"{{"model":"{SOURCE_EXTERNAL_AGENT_NAME}","permissions":{{"ask":["git push"]}},"env":{{"FOO":"bar","CI":false,"MAX_RETRIES":3,"MY_TEAM":"ditfa","IGNORED":null,"LIST":["a","b"],"MAP":{{"x":1}}}},"sandbox":{{"enabled":true,"network":{{"allowLocalBinding":true}}}}}}"#),
         )
         .expect("write settings");
     fs::write(
@@ -174,7 +174,7 @@ async fn import_home_migrates_supported_config_fields_skills_and_agents_md() {
 
     assert_eq!(
         fs::read_to_string(ditfa_home.join("AGENTS.md")).expect("read agents"),
-        "Codex guidance"
+        "Ditfa guidance"
     );
 
     let config: TomlValue =
@@ -191,7 +191,7 @@ inherit = "core"
 CI = "false"
 FOO = "bar"
 MAX_RETRIES = "3"
-MY_TEAM = "codex"
+MY_TEAM = "ditfa"
 "#,
     )
     .expect("parse expected config");
@@ -199,7 +199,7 @@ MY_TEAM = "codex"
     assert_eq!(
         fs::read_to_string(agents_skills.join("skill-a").join("SKILL.md"))
             .expect("read copied skill"),
-        "Use Codex and Codex utilities."
+        "Use Ditfa and Ditfa utilities."
     );
 }
 
@@ -319,7 +319,7 @@ async fn import_local_plugins_returns_completed_status() {
     fs::create_dir_all(marketplace_root.join(EXTERNAL_AGENT_PLUGIN_MANIFEST_DIR))
         .expect("create marketplace manifest dir");
     fs::create_dir_all(plugin_root.join(".ditfa-plugin")).expect("create plugin manifest dir");
-    fs::create_dir_all(&ditfa_home).expect("create codex home");
+    fs::create_dir_all(&ditfa_home).expect("create ditfa home");
 
     fs::write(
         external_agent_home.join("settings.json"),
@@ -466,7 +466,7 @@ async fn import_git_plugins_returns_pending_async_status() {
 async fn detect_home_skips_config_when_target_already_has_supported_fields() {
     let (_root, external_agent_home, ditfa_home) = fixture_paths();
     fs::create_dir_all(&external_agent_home).expect("create external agent home");
-    fs::create_dir_all(&ditfa_home).expect("create codex home");
+    fs::create_dir_all(&ditfa_home).expect("create ditfa home");
     fs::write(
         external_agent_home.join("settings.json"),
         r#"{"env":{"FOO":"bar"},"sandbox":{"enabled":true}}"#,

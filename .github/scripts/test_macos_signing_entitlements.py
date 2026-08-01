@@ -22,13 +22,13 @@ class MacosSigningEntitlementsTest(unittest.TestCase):
             ALLOW_JIT: True,
             ALLOW_UNSIGNED_EXECUTABLE_MEMORY: True,
         }
-        for binary in ["codex", "codex-app-server", "codex-code-mode-host"]:
+        for binary in ["ditfa", "ditfa-app-server", "ditfa-code-mode-host"]:
             with self.subTest(binary=binary):
                 self.assertEqual(self.load(binary), expected)
 
     def test_responses_proxy_keeps_existing_entitlements(self) -> None:
         self.assertEqual(
-            self.load("codex-responses-api-proxy"),
+            self.load("ditfa-responses-api-proxy"),
             {ALLOW_JIT: True},
         )
 

@@ -3,7 +3,7 @@
 use ditfa_config::CONFIG_TOML_FILE;
 use ditfa_core::NewThread;
 use ditfa_features::Feature;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::InitialHistory;
 use ditfa_protocol::protocol::WarningEvent;
@@ -35,11 +35,11 @@ async fn emits_warning_when_unstable_features_enabled_via_config() {
         .expect("feature user config should be valid");
 
     let thread_manager = ditfa_core::test_support::thread_manager_with_models_provider(
-        CodexAuth::from_api_key("test"),
+        DitfaAuth::from_api_key("test"),
         config.model_provider.clone(),
     );
     let auth_manager =
-        ditfa_core::test_support::auth_manager_from_auth(CodexAuth::from_api_key("test"));
+        ditfa_core::test_support::auth_manager_from_auth(DitfaAuth::from_api_key("test"));
 
     let NewThread {
         thread: conversation,
@@ -85,11 +85,11 @@ async fn suppresses_warning_when_configured() {
         .expect("feature user config should be valid");
 
     let thread_manager = ditfa_core::test_support::thread_manager_with_models_provider(
-        CodexAuth::from_api_key("test"),
+        DitfaAuth::from_api_key("test"),
         config.model_provider.clone(),
     );
     let auth_manager =
-        ditfa_core::test_support::auth_manager_from_auth(CodexAuth::from_api_key("test"));
+        ditfa_core::test_support::auth_manager_from_auth(DitfaAuth::from_api_key("test"));
 
     let NewThread {
         thread: conversation,

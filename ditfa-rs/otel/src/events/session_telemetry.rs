@@ -236,7 +236,7 @@ impl SessionTelemetry {
         log_and_trace_event!(
             self,
             common: {
-                event.name = "codex.startup_phase",
+                event.name = "ditfa.startup_phase",
                 startup.phase = phase,
                 startup.status = status,
                 duration_ms = %duration.as_millis(),
@@ -252,7 +252,7 @@ impl SessionTelemetry {
         log_and_trace_event!(
             self,
             common: {
-                event.name = "codex.turn_ttft",
+                event.name = "ditfa.turn_ttft",
                 duration_ms = %duration.as_millis(),
             },
             log: {},
@@ -275,7 +275,7 @@ impl SessionTelemetry {
         log_and_trace_event!(
             self,
             common: {
-                event.name = "codex.plugin_install_elicitation_sent",
+                event.name = "ditfa.plugin_install_elicitation_sent",
                 plugin_install.tool_type = tool_type,
                 plugin_install.tool_id = tool_id,
                 plugin_install.tool_name = tool_name,
@@ -308,7 +308,7 @@ impl SessionTelemetry {
         log_and_trace_event!(
             self,
             common: {
-                event.name = "codex.plugin_install_suggestion",
+                event.name = "ditfa.plugin_install_suggestion",
                 plugin_install.tool_type = tool_type,
                 plugin_install.tool_id = tool_id,
                 plugin_install.tool_name = tool_name,
@@ -461,10 +461,10 @@ impl SessionTelemetry {
                 handle_responses_span
                     .record("gen_ai.usage.output_tokens", token_usage.output_tokens);
                 handle_responses_span.record(
-                    "codex.usage.reasoning_output_tokens",
+                    "ditfa.usage.reasoning_output_tokens",
                     token_usage.reasoning_output_tokens,
                 );
-                handle_responses_span.record("codex.usage.total_tokens", token_usage.total_tokens);
+                handle_responses_span.record("ditfa.usage.total_tokens", token_usage.total_tokens);
             }
             _ => {}
         }
@@ -485,11 +485,11 @@ impl SessionTelemetry {
         log_and_trace_event!(
             self,
             common: {
-                event.name = "codex.conversation_starts",
+                event.name = "ditfa.conversation_starts",
                 provider_name = %provider_name,
                 auth.env_openai_api_key_present = self.metadata.auth_env.openai_api_key_env_present,
-                auth.env_codex_api_key_present = self.metadata.auth_env.ditfa_api_key_env_present,
-                auth.env_codex_api_key_enabled = self.metadata.auth_env.ditfa_api_key_env_enabled,
+                auth.env_ditfa_api_key_present = self.metadata.auth_env.ditfa_api_key_env_present,
+                auth.env_ditfa_api_key_enabled = self.metadata.auth_env.ditfa_api_key_env_enabled,
                 auth.env_provider_key_name = self.metadata.auth_env.provider_env_key_name.as_deref(),
                 auth.env_provider_key_present = self.metadata.auth_env.provider_env_key_present,
                 auth.env_refresh_token_url_override_present = self.metadata.auth_env.refresh_token_url_override_present,
@@ -580,7 +580,7 @@ impl SessionTelemetry {
         log_and_trace_event!(
             self,
             common: {
-                event.name = "codex.api_request",
+                event.name = "ditfa.api_request",
                 duration_ms = %duration.as_millis(),
                 http.response.status_code = status,
                 error.message = error,
@@ -592,8 +592,8 @@ impl SessionTelemetry {
                 auth.recovery_phase = recovery_phase,
                 endpoint = endpoint,
                 auth.env_openai_api_key_present = self.metadata.auth_env.openai_api_key_env_present,
-                auth.env_codex_api_key_present = self.metadata.auth_env.ditfa_api_key_env_present,
-                auth.env_codex_api_key_enabled = self.metadata.auth_env.ditfa_api_key_env_enabled,
+                auth.env_ditfa_api_key_present = self.metadata.auth_env.ditfa_api_key_env_present,
+                auth.env_ditfa_api_key_enabled = self.metadata.auth_env.ditfa_api_key_env_enabled,
                 auth.env_provider_key_name = self.metadata.auth_env.provider_env_key_name.as_deref(),
                 auth.env_provider_key_present = self.metadata.auth_env.provider_env_key_present,
                 auth.env_refresh_token_url_override_present = self.metadata.auth_env.refresh_token_url_override_present,
@@ -636,7 +636,7 @@ impl SessionTelemetry {
         log_and_trace_event!(
             self,
             common: {
-                event.name = "codex.websocket_connect",
+                event.name = "ditfa.websocket_connect",
                 duration_ms = %duration.as_millis(),
                 http.response.status_code = status,
                 success = success_str,
@@ -648,8 +648,8 @@ impl SessionTelemetry {
                 auth.recovery_phase = recovery_phase,
                 endpoint = endpoint,
                 auth.env_openai_api_key_present = self.metadata.auth_env.openai_api_key_env_present,
-                auth.env_codex_api_key_present = self.metadata.auth_env.ditfa_api_key_env_present,
-                auth.env_codex_api_key_enabled = self.metadata.auth_env.ditfa_api_key_env_enabled,
+                auth.env_ditfa_api_key_present = self.metadata.auth_env.ditfa_api_key_env_present,
+                auth.env_ditfa_api_key_enabled = self.metadata.auth_env.ditfa_api_key_env_enabled,
                 auth.env_provider_key_name = self.metadata.auth_env.provider_env_key_name.as_deref(),
                 auth.env_provider_key_present = self.metadata.auth_env.provider_env_key_present,
                 auth.env_refresh_token_url_override_present = self.metadata.auth_env.refresh_token_url_override_present,
@@ -687,13 +687,13 @@ impl SessionTelemetry {
         log_and_trace_event!(
             self,
             common: {
-                event.name = "codex.websocket_request",
+                event.name = "ditfa.websocket_request",
                 duration_ms = %duration.as_millis(),
                 success = success_str,
                 error.message = error,
                 auth.env_openai_api_key_present = self.metadata.auth_env.openai_api_key_env_present,
-                auth.env_codex_api_key_present = self.metadata.auth_env.ditfa_api_key_env_present,
-                auth.env_codex_api_key_enabled = self.metadata.auth_env.ditfa_api_key_env_enabled,
+                auth.env_ditfa_api_key_present = self.metadata.auth_env.ditfa_api_key_env_present,
+                auth.env_ditfa_api_key_enabled = self.metadata.auth_env.ditfa_api_key_env_enabled,
                 auth.env_provider_key_name = self.metadata.auth_env.provider_env_key_name.as_deref(),
                 auth.env_provider_key_present = self.metadata.auth_env.provider_env_key_present,
                 auth.env_refresh_token_url_override_present = self.metadata.auth_env.refresh_token_url_override_present,
@@ -722,7 +722,7 @@ impl SessionTelemetry {
         log_and_trace_event!(
             self,
             common: {
-                event.name = "codex.auth_recovery",
+                event.name = "ditfa.auth_recovery",
                 auth.mode = mode,
                 auth.step = step,
                 auth.outcome = outcome,
@@ -862,7 +862,7 @@ impl SessionTelemetry {
         );
         log_event!(
             self,
-            event.name = "codex.sse_event",
+            event.name = "ditfa.sse_event",
             event.kind = %kind,
             duration_ms = %duration.as_millis(),
         );
@@ -886,21 +886,21 @@ impl SessionTelemetry {
         match kind {
             Some(kind) => log_event!(
                 self,
-                event.name = "codex.sse_event",
+                event.name = "ditfa.sse_event",
                 event.kind = %kind,
                 duration_ms = %duration.as_millis(),
                 error.message = %error,
             ),
             None => log_event!(
                 self,
-                event.name = "codex.sse_event",
+                event.name = "ditfa.sse_event",
                 duration_ms = %duration.as_millis(),
                 error.message = %error,
             ),
         }
         trace_event!(
             self,
-            event.name = "codex.sse_event",
+            event.name = "ditfa.sse_event",
             event.kind = %kind_str,
             duration_ms = %duration.as_millis(),
             error.message = %error,
@@ -914,7 +914,7 @@ impl SessionTelemetry {
         log_and_trace_event!(
             self,
             common: {
-                event.name = "codex.sse_event",
+                event.name = "ditfa.sse_event",
                 event.kind = %"response.completed",
                 error.message = %error,
             },
@@ -927,7 +927,7 @@ impl SessionTelemetry {
         log_and_trace_event!(
             self,
             common: {
-                event.name = "codex.sse_event",
+                event.name = "ditfa.sse_event",
                 event.kind = %"response.completed",
                 input_token_count = %usage.input_tokens,
                 output_token_count = %usage.output_tokens,
@@ -973,13 +973,13 @@ impl SessionTelemetry {
 
         log_event!(
             self,
-            event.name = "codex.user_prompt",
+            event.name = "ditfa.user_prompt",
             prompt_length = %prompt.chars().count(),
             prompt = %prompt_to_log,
         );
         trace_event!(
             self,
-            event.name = "codex.user_prompt",
+            event.name = "ditfa.user_prompt",
             prompt_length = %prompt.chars().count(),
             text_input_count = text_input_count as i64,
             image_input_count = image_input_count as i64,
@@ -996,7 +996,7 @@ impl SessionTelemetry {
     ) {
         log_event!(
             self,
-            event.name = "codex.tool_decision",
+            event.name = "ditfa.tool_decision",
             tool_name = %tool_name,
             call_id = %call_id,
             decision = %decision.clone().to_string().to_lowercase(),
@@ -1017,7 +1017,7 @@ impl SessionTelemetry {
             escalated_duration.map(|duration| duration.as_millis().min(i64::MAX as u128) as i64);
         log_event!(
             self,
-            event.name = "codex.sandbox_outcome",
+            event.name = "ditfa.sandbox_outcome",
             tool_name = %tool_name,
             call_id = %call_id,
             outcome = %outcome,
@@ -1026,7 +1026,7 @@ impl SessionTelemetry {
         );
         trace_event!(
             self,
-            event.name = "codex.sandbox_outcome",
+            event.name = "ditfa.sandbox_outcome",
             tool_name = %tool_name,
             call_id = %call_id,
             outcome = %outcome,
@@ -1076,7 +1076,7 @@ impl SessionTelemetry {
     pub fn log_tool_failed(&self, tool_name: &str, error: &str) {
         log_event!(
             self,
-            event.name = "codex.tool_result",
+            event.name = "ditfa.tool_result",
             tool_name = %tool_name,
             duration_ms = %Duration::ZERO.as_millis(),
             success = %false,
@@ -1086,7 +1086,7 @@ impl SessionTelemetry {
         );
         trace_event!(
             self,
-            event.name = "codex.tool_result",
+            event.name = "ditfa.tool_result",
             tool_name = %tool_name,
             duration_ms = %Duration::ZERO.as_millis(),
             success = %false,
@@ -1121,7 +1121,7 @@ impl SessionTelemetry {
             trace_field_value(extra_trace_fields, "mcp_server_origin").unwrap_or("");
         log_event!(
             self,
-            event.name = "codex.tool_result",
+            event.name = "ditfa.tool_result",
             tool_name = %tool_name,
             call_id = %call_id,
             arguments = %arguments,
@@ -1133,7 +1133,7 @@ impl SessionTelemetry {
         );
         trace_event!(
             self,
-            event.name = "codex.tool_result",
+            event.name = "ditfa.tool_result",
             tool_name = %tool_name,
             call_id = %call_id,
             duration_ms = %duration.as_millis(),

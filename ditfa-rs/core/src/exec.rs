@@ -24,7 +24,7 @@ use crate::spawn::SpawnChildRequest;
 use crate::spawn::StdioPolicy;
 use crate::spawn::spawn_child_async;
 use ditfa_network_proxy::NetworkProxy;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::Result;
 use ditfa_protocol::error::SandboxErr;
 use ditfa_protocol::exec_output::ExecToolCallOutput;
@@ -132,9 +132,9 @@ fn select_process_exec_tool_sandbox_type(
 fn network_proxy_environment_error(
     network_environment_id: Option<&str>,
     err: impl std::fmt::Display,
-) -> CodexErr {
+) -> DitfaErr {
     let environment_id = network_environment_id.unwrap_or("default");
-    CodexErr::Io(io::Error::other(format!(
+    DitfaErr::Io(io::Error::other(format!(
         "failed to prepare network proxy for environment `{environment_id}`: {err}"
     )))
 }
@@ -363,7 +363,7 @@ pub fn build_exec_request(
             })?;
     }
     let (program, args) = command.split_first().ok_or_else(|| {
-        CodexErr::Io(io::Error::new(
+        DitfaErr::Io(io::Error::new(
             io::ErrorKind::InvalidInput,
             "command args are empty",
         ))
@@ -410,7 +410,7 @@ pub fn build_exec_request(
                 windows_sandbox_workspace_roots,
             )
         })
-        .map_err(CodexErr::from)?;
+        .map_err(DitfaErr::from)?;
     let use_windows_elevated_backend = windows_sandbox_uses_elevated_backend(
         exec_req.windows_sandbox_level,
         exec_req.network.is_some(),
@@ -430,7 +430,7 @@ pub fn build_exec_request(
             exec_req.windows_sandbox_level,
         )
     }
-    .map_err(CodexErr::UnsupportedOperation)?;
+    .map_err(DitfaErr::UnsupportedOperation)?;
     Ok(exec_req)
 }
 
@@ -467,11 +467,11 @@ pub(crate) async fn execute_exec_request(
     // TODO(anp): Keep PathUri through the local process launch boundary.
     let cwd = cwd
         .to_abs_path()
-        .map_err(|err| CodexErr::InvalidRequest(format!("invalid exec cwd: {err}")))?;
+        .map_err(|err| DitfaErr::InvalidRequest(format!("invalid exec cwd: {err}")))?;
     // TODO(anp): Keep PathUri through the Windows sandbox launch boundary.
     let windows_sandbox_policy_cwd = windows_sandbox_policy_cwd
         .to_abs_path()
-        .map_err(|err| CodexErr::InvalidRequest(format!("invalid sandbox cwd: {err}")))?;
+        .map_err(|err| DitfaErr::InvalidRequest(format!("invalid sandbox cwd: {err}")))?;
 
     let params = ExecParams {
         command,
@@ -589,7 +589,7 @@ fn record_windows_sandbox_spawn_failure(
     };
     if let Some(metrics) = ditfa_otel::global() {
         let _ = metrics.counter(
-            "codex.windows_sandbox.createprocessasuserw_failed",
+            "ditfa.windows_sandbox.createprocessasuserw_failed",
             /*inc*/ 1,
             &[
                 ("error_code", error_code.as_str()),
@@ -609,7 +609,7 @@ async fn exec_windows_sandbox(
     windows_sandbox_workspace_roots: &[AbsolutePathBuf],
     windows_sandbox_filesystem_overrides: Option<&WindowsSandboxFilesystemOverrides>,
 ) -> Result<RawExecToolCallOutput> {
-    use crate::config::find_codex_home;
+    use crate::config::find_ditfa_home;
     use ditfa_windows_sandbox::run_windows_sandbox_capture_for_permission_profile_elevated;
     use ditfa_windows_sandbox::run_windows_sandbox_capture_with_filesystem_overrides;
 
@@ -638,7 +638,7 @@ async fn exec_windows_sandbox(
             network
                 .network_proxy_restricting_sid(network_environment_id.as_deref())
                 .ok_or_else(|| {
-                    CodexErr::Io(io::Error::other(
+                    DitfaErr::Io(io::Error::other(
                         "managed Windows proxy route is missing its restricting SID",
                     ))
                 })
@@ -663,8 +663,8 @@ async fn exec_windows_sandbox(
         windows_sandbox_workspace_roots.to_vec()
     };
     let permission_profile = permission_profile.clone();
-    let ditfa_home = find_codex_home().map_err(|err| {
-        CodexErr::Io(io::Error::other(format!(
+    let ditfa_home = find_ditfa_home().map_err(|err| {
+        DitfaErr::Io(io::Error::other(format!(
             "windows sandbox: failed to resolve ditfa_home: {err}"
         )))
     })?;
@@ -733,12 +733,12 @@ async fn exec_windows_sandbox(
                 sandbox_level,
                 &err.to_string(),
             );
-            return Err(CodexErr::Io(io::Error::other(format!(
+            return Err(DitfaErr::Io(io::Error::other(format!(
                 "windows sandbox: {err}"
             ))));
         }
         Err(join_err) => {
-            return Err(CodexErr::Io(io::Error::other(format!(
+            return Err(DitfaErr::Io(io::Error::other(format!(
                 "windows sandbox join error: {join_err}"
             ))));
         }
@@ -777,7 +777,7 @@ async fn exec_windows_sandbox(
 }
 
 fn finalize_exec_result(
-    raw_output_result: std::result::Result<RawExecToolCallOutput, CodexErr>,
+    raw_output_result: std::result::Result<RawExecToolCallOutput, DitfaErr>,
     sandbox_type: SandboxType,
     duration: Duration,
 ) -> Result<ExecToolCallOutput> {
@@ -792,7 +792,7 @@ fn finalize_exec_result(
                     if signal == TIMEOUT_CODE {
                         timed_out = true;
                     } else {
-                        return Err(CodexErr::Sandbox(SandboxErr::Signal(signal)));
+                        return Err(DitfaErr::Sandbox(SandboxErr::Signal(signal)));
                     }
                 }
             }
@@ -815,13 +815,13 @@ fn finalize_exec_result(
             };
 
             if timed_out {
-                return Err(CodexErr::Sandbox(SandboxErr::Timeout {
+                return Err(DitfaErr::Sandbox(SandboxErr::Timeout {
                     output: Box::new(exec_output),
                 }));
             }
 
             if is_likely_sandbox_denied(sandbox_type, &exec_output) {
-                return Err(CodexErr::Sandbox(SandboxErr::Denied {
+                return Err(DitfaErr::Sandbox(SandboxErr::Denied {
                     output: Box::new(exec_output),
                     network_policy_decision: None,
                 }));
@@ -944,7 +944,7 @@ async fn exec(
     }
 
     let (program, args) = command.split_first().ok_or_else(|| {
-        CodexErr::Io(io::Error::new(
+        DitfaErr::Io(io::Error::new(
             io::ErrorKind::InvalidInput,
             "command args are empty",
         ))
@@ -983,12 +983,12 @@ async fn consume_output(
     // we treat it as an exceptional I/O error
 
     let stdout_reader = child.stdout.take().ok_or_else(|| {
-        CodexErr::Io(io::Error::other(
+        DitfaErr::Io(io::Error::other(
             "stdout pipe was unexpectedly not available",
         ))
     })?;
     let stderr_reader = child.stderr.take().ok_or_else(|| {
-        CodexErr::Io(io::Error::other(
+        DitfaErr::Io(io::Error::other(
             "stderr pipe was unexpectedly not available",
         ))
     })?;

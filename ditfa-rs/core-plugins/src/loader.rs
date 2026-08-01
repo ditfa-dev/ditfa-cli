@@ -669,7 +669,7 @@ fn configured_plugins_from_user_config_value(
     }
 }
 
-fn configured_plugins_from_codex_home(
+fn configured_plugins_from_ditfa_home(
     ditfa_home: &Path,
     read_error_message: &str,
     parse_error_message: &str,
@@ -737,8 +737,8 @@ fn curated_plugin_ids_from_config_keys(
     configured_curated_plugin_ids
 }
 
-pub fn configured_curated_plugin_ids_from_codex_home(ditfa_home: &Path) -> Vec<PluginId> {
-    curated_plugin_ids_from_config_keys(configured_plugins_from_codex_home(
+pub fn configured_curated_plugin_ids_from_ditfa_home(ditfa_home: &Path) -> Vec<PluginId> {
+    curated_plugin_ids_from_config_keys(configured_plugins_from_ditfa_home(
         ditfa_home,
         "failed to read user config while refreshing curated plugin cache",
         "failed to parse user config while refreshing curated plugin cache",

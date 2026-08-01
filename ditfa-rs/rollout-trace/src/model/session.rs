@@ -5,7 +5,7 @@ use crate::raw_event::RawEventSeq;
 
 use super::AgentPath;
 use super::AgentThreadId;
-use super::CodexTurnId;
+use super::DitfaTurnId;
 use super::ConversationItemId;
 use super::EdgeId;
 
@@ -23,7 +23,7 @@ pub enum RolloutStatus {
     Aborted,
 }
 
-/// One Codex thread/session participating in the rollout.
+/// One Ditfa thread/session participating in the rollout.
 ///
 /// Threads are agents in the multi-agent sense, but the root interactive
 /// session is represented by the same object. Runtime objects live in top-level
@@ -49,7 +49,7 @@ pub struct AgentThread {
     pub conversation_item_ids: Vec<ConversationItemId>,
 }
 
-/// Provenance for a traced Codex thread.
+/// Provenance for a traced Ditfa thread.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum AgentOrigin {
@@ -95,14 +95,14 @@ pub enum ExecutionStatus {
     Aborted,
 }
 
-/// One activation of the Codex runtime for one thread.
+/// One activation of the Ditfa runtime for one thread.
 ///
-/// A Codex turn groups protocol/runtime work for one thread activation.
+/// A Ditfa turn groups protocol/runtime work for one thread activation.
 /// It is not a user/assistant message pair; conversation belongs in
 /// `ConversationItem`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct CodexTurn {
-    pub ditfa_turn_id: CodexTurnId,
+pub struct DitfaTurn {
+    pub ditfa_turn_id: DitfaTurnId,
     pub thread_id: AgentThreadId,
     pub execution: ExecutionWindow,
     /// Conversation items that directly triggered this activation, when known.

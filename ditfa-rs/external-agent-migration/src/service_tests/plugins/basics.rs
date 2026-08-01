@@ -141,7 +141,7 @@ async fn detect_home_uses_materialized_known_marketplace_for_inline_npm_source()
 
 #[test]
 fn marketplace_import_sources_prefers_scoped_source_over_registry_name_collision() {
-    let (root, external_agent_home, _codex_home) = fixture_paths();
+    let (root, external_agent_home, _ditfa_home) = fixture_paths();
     let source_root = root.path().join("repo");
     let scoped_marketplace = source_root.join("repo-marketplace");
     let cached_marketplace = external_agent_home.join("plugins/marketplaces/debug");
@@ -186,7 +186,7 @@ fn marketplace_import_sources_prefers_scoped_source_over_registry_name_collision
 
 #[test]
 fn marketplace_import_sources_prefers_supported_declaration_over_materialization() {
-    let (_root, external_agent_home, _codex_home) = fixture_paths();
+    let (_root, external_agent_home, _ditfa_home) = fixture_paths();
     let cached_marketplace = external_agent_home.join("plugins/marketplaces/acme-tools");
     fs::create_dir_all(&cached_marketplace).expect("create cached marketplace");
     fs::write(
@@ -280,14 +280,14 @@ async fn detect_home_plugins_uses_local_settings_over_project_settings() {
 }
 
 #[tokio::test]
-async fn detect_repo_skips_plugins_that_are_already_configured_in_codex() {
+async fn detect_repo_skips_plugins_that_are_already_configured_in_ditfa() {
     let root = TempDir::new().expect("create tempdir");
     let external_agent_home = root.path().join(EXTERNAL_AGENT_DIR);
     let ditfa_home = root.path().join(".ditfa");
     let repo_root = root.path().join("repo");
     fs::create_dir_all(repo_root.join(".git")).expect("create git dir");
     fs::create_dir_all(repo_root.join(EXTERNAL_AGENT_DIR)).expect("create repo external agent dir");
-    fs::create_dir_all(&ditfa_home).expect("create codex home");
+    fs::create_dir_all(&ditfa_home).expect("create ditfa home");
     fs::write(
         repo_root.join(EXTERNAL_AGENT_DIR).join("settings.json"),
         r#"{
@@ -310,7 +310,7 @@ async fn detect_repo_skips_plugins_that_are_already_configured_in_codex() {
 enabled = true
 "#,
     )
-    .expect("write codex config");
+    .expect("write ditfa config");
 
     let items = service_for_paths(external_agent_home, ditfa_home)
         .detect(ExternalAgentConfigDetectOptions {
@@ -345,14 +345,14 @@ enabled = true
 }
 
 #[tokio::test]
-async fn detect_repo_skips_plugins_that_are_disabled_in_codex() {
+async fn detect_repo_skips_plugins_that_are_disabled_in_ditfa() {
     let root = TempDir::new().expect("create tempdir");
     let external_agent_home = root.path().join(EXTERNAL_AGENT_DIR);
     let ditfa_home = root.path().join(".ditfa");
     let repo_root = root.path().join("repo");
     fs::create_dir_all(repo_root.join(".git")).expect("create git dir");
     fs::create_dir_all(repo_root.join(EXTERNAL_AGENT_DIR)).expect("create repo external agent dir");
-    fs::create_dir_all(&ditfa_home).expect("create codex home");
+    fs::create_dir_all(&ditfa_home).expect("create ditfa home");
     fs::write(
         repo_root.join(EXTERNAL_AGENT_DIR).join("settings.json"),
         r#"{
@@ -374,7 +374,7 @@ async fn detect_repo_skips_plugins_that_are_disabled_in_codex() {
 enabled = false
 "#,
     )
-    .expect("write codex config");
+    .expect("write ditfa config");
 
     let items = service_for_paths(external_agent_home, ditfa_home)
         .detect(ExternalAgentConfigDetectOptions {
@@ -389,14 +389,14 @@ enabled = false
 }
 
 #[tokio::test]
-async fn detect_repo_skips_plugins_without_explicit_enabled_in_codex() {
+async fn detect_repo_skips_plugins_without_explicit_enabled_in_ditfa() {
     let root = TempDir::new().expect("create tempdir");
     let external_agent_home = root.path().join(EXTERNAL_AGENT_DIR);
     let ditfa_home = root.path().join(".ditfa");
     let repo_root = root.path().join("repo");
     fs::create_dir_all(repo_root.join(".git")).expect("create git dir");
     fs::create_dir_all(repo_root.join(EXTERNAL_AGENT_DIR)).expect("create repo external agent dir");
-    fs::create_dir_all(&ditfa_home).expect("create codex home");
+    fs::create_dir_all(&ditfa_home).expect("create ditfa home");
     fs::write(
         repo_root.join(EXTERNAL_AGENT_DIR).join("settings.json"),
         r#"{
@@ -417,7 +417,7 @@ async fn detect_repo_skips_plugins_without_explicit_enabled_in_codex() {
 [plugins."formatter@acme-tools"]
 "#,
     )
-    .expect("write codex config");
+    .expect("write ditfa config");
 
     let items = service_for_paths(external_agent_home, ditfa_home)
         .detect(ExternalAgentConfigDetectOptions {
@@ -445,15 +445,15 @@ async fn import_plugins_requires_details() {
 }
 
 #[tokio::test]
-async fn detect_repo_does_not_skip_plugins_only_configured_in_project_codex() {
+async fn detect_repo_does_not_skip_plugins_only_configured_in_project_ditfa() {
     let root = TempDir::new().expect("create tempdir");
     let external_agent_home = root.path().join(EXTERNAL_AGENT_DIR);
     let ditfa_home = root.path().join(".ditfa");
     let repo_root = root.path().join("repo");
     fs::create_dir_all(repo_root.join(".git")).expect("create git dir");
     fs::create_dir_all(repo_root.join(EXTERNAL_AGENT_DIR)).expect("create repo external agent dir");
-    fs::create_dir_all(repo_root.join(".ditfa")).expect("create repo codex dir");
-    fs::create_dir_all(&ditfa_home).expect("create codex home");
+    fs::create_dir_all(repo_root.join(".ditfa")).expect("create repo ditfa dir");
+    fs::create_dir_all(&ditfa_home).expect("create ditfa home");
     fs::write(
         repo_root.join(EXTERNAL_AGENT_DIR).join("settings.json"),
         r#"{
@@ -475,7 +475,7 @@ async fn detect_repo_does_not_skip_plugins_only_configured_in_project_codex() {
 enabled = true
 "#,
     )
-    .expect("write project codex config");
+    .expect("write project ditfa config");
 
     let items = service_for_paths(external_agent_home, ditfa_home)
         .detect(ExternalAgentConfigDetectOptions {
@@ -615,7 +615,7 @@ source_type = "git"
 source = "owner/debug-marketplace"
 "#,
     )
-    .expect("write codex config");
+    .expect("write ditfa config");
     fs::write(
         marketplace_root
             .join(".agents")

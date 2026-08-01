@@ -1490,9 +1490,9 @@ mod tests {
     #[test]
     fn display_path_prefers_cwd_without_git_repo() {
         let cwd = if cfg!(windows) {
-            PathBuf::from(r"C:\workspace\codex")
+            PathBuf::from(r"C:\workspace\ditfa")
         } else {
-            PathBuf::from("/workspace/codex")
+            PathBuf::from("/workspace/ditfa")
         };
         let path = cwd.join("tui").join("example.png");
 

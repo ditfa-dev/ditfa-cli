@@ -3,7 +3,7 @@ use anyhow::Result;
 use anyhow::bail;
 use clap::Parser;
 use ditfa_core::config::Config;
-use ditfa_core::config::find_codex_home;
+use ditfa_core::config::find_ditfa_home;
 use ditfa_core_plugins::ConfiguredMarketplace;
 use ditfa_core_plugins::OPENAI_BUNDLED_MARKETPLACE_NAME;
 use ditfa_core_plugins::PluginInstallOutcome;
@@ -18,8 +18,8 @@ use ditfa_core_plugins::marketplace::MarketplacePluginAuthPolicy;
 use ditfa_core_plugins::marketplace::MarketplacePluginInstallPolicy;
 use ditfa_core_plugins::marketplace::MarketplacePluginSource;
 use ditfa_core_plugins::marketplace::find_marketplace_manifest_path;
-use ditfa_login::CodexAuth;
-use ditfa_login::auth::read_codex_api_key_from_env;
+use ditfa_login::DitfaAuth;
+use ditfa_login::auth::read_ditfa_api_key_from_env;
 use ditfa_plugin::PluginId;
 use ditfa_plugin::validate_plugin_segment;
 use ditfa_protocol::auth::AuthMode;
@@ -35,7 +35,7 @@ const OPENAI_BUNDLED_ALPHA_MARKETPLACE_NAME: &str = "openai-bundled-alpha";
 const OPENAI_PRIMARY_RUNTIME_MARKETPLACE_NAME: &str = "openai-primary-runtime";
 
 #[derive(Debug, Parser)]
-#[command(bin_name = "codex plugin")]
+#[command(bin_name = "ditfa plugin")]
 pub struct PluginCli {
     #[clap(flatten)]
     pub config_overrides: CliConfigOverrides,
@@ -67,8 +67,8 @@ pub enum PluginSubcommand {
 
 #[derive(Debug, Parser)]
 #[command(
-    bin_name = "codex plugin add",
-    after_help = "Examples:\n  codex plugin add sample@debug\n  codex plugin add sample --marketplace debug"
+    bin_name = "ditfa plugin add",
+    after_help = "Examples:\n  ditfa plugin add sample@debug\n  ditfa plugin add sample --marketplace debug"
 )]
 pub struct AddPluginArgs {
     /// Plugin selector to install: either PLUGIN@MARKETPLACE or PLUGIN with --marketplace.
@@ -86,8 +86,8 @@ pub struct AddPluginArgs {
 
 #[derive(Debug, Parser)]
 #[command(
-    bin_name = "codex plugin list",
-    after_help = "Examples:\n  codex plugin list\n  codex plugin list --marketplace debug\n  codex plugin list --json\n  codex plugin list --available --json"
+    bin_name = "ditfa plugin list",
+    after_help = "Examples:\n  ditfa plugin list\n  ditfa plugin list --marketplace debug\n  ditfa plugin list --json\n  ditfa plugin list --available --json"
 )]
 pub struct ListPluginsArgs {
     /// Only list plugins from this configured marketplace name.
@@ -105,8 +105,8 @@ pub struct ListPluginsArgs {
 
 #[derive(Debug, Parser)]
 #[command(
-    bin_name = "codex plugin remove",
-    after_help = "Examples:\n  codex plugin remove sample@debug\n  codex plugin remove sample --marketplace debug"
+    bin_name = "ditfa plugin remove",
+    after_help = "Examples:\n  ditfa plugin remove sample@debug\n  ditfa plugin remove sample --marketplace debug"
 )]
 pub struct RemovePluginArgs {
     /// Plugin selector to remove: either PLUGIN@MARKETPLACE or PLUGIN with --marketplace.
@@ -585,7 +585,7 @@ struct PluginCommandContext {
 async fn load_plugin_command_context(
     overrides: Vec<(String, toml::Value)>,
 ) -> Result<PluginCommandContext> {
-    let ditfa_home = find_codex_home().context("failed to resolve DITFA_HOME")?;
+    let ditfa_home = find_ditfa_home().context("failed to resolve DITFA_HOME")?;
     let config = Config::load_with_cli_overrides(overrides)
         .await
         .context("failed to load configuration")?;
@@ -600,12 +600,12 @@ async fn load_plugin_command_context(
 }
 
 pub(crate) async fn load_cli_auth_mode(config: &Config) -> Option<AuthMode> {
-    if let Some(api_key) = read_codex_api_key_from_env() {
-        return Some(CodexAuth::from_api_key(&api_key).api_auth_mode());
+    if let Some(api_key) = read_ditfa_api_key_from_env() {
+        return Some(DitfaAuth::from_api_key(&api_key).api_auth_mode());
     }
 
     let auth_route_config = config.auth_route_config();
-    CodexAuth::from_auth_storage(
+    DitfaAuth::from_auth_storage(
         &config.ditfa_home,
         config.cli_auth_credentials_store_mode,
         Some(&config.chatgpt_base_url),
@@ -832,7 +832,7 @@ pub(crate) fn configured_marketplace_snapshot_issues(
 
 fn is_implicit_system_marketplace_root(
     marketplace_name: &str,
-    _codex_home: &Path,
+    _ditfa_home: &Path,
     root: &Path,
 ) -> bool {
     if matches!(
@@ -847,8 +847,8 @@ fn is_implicit_system_marketplace_root(
         && path_ends_with(
             root,
             &[
-                "codex-runtimes",
-                "codex-primary-runtime",
+                "ditfa-runtimes",
+                "ditfa-primary-runtime",
                 "plugins",
                 marketplace_name,
             ],

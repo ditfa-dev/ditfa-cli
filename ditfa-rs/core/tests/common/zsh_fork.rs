@@ -9,9 +9,9 @@ use ditfa_protocol::models::PermissionProfile;
 use ditfa_protocol::permissions::NetworkSandboxPolicy;
 use ditfa_protocol::protocol::AskForApproval;
 
-use crate::test_codex::TestCodex;
-use crate::test_codex::TestCodexBuilder;
-use crate::test_codex::test_codex;
+use crate::test_ditfa::TestDitfa;
+use crate::test_ditfa::TestDitfaBuilder;
+use crate::test_ditfa::test_ditfa;
 
 #[derive(Clone)]
 pub struct ZshForkRuntime {
@@ -56,9 +56,9 @@ pub fn zsh_fork_runtime(test_name: &str) -> Result<Option<ZshForkRuntime>> {
         );
         return Ok(None);
     }
-    let Ok(main_execve_wrapper_exe) = ditfa_utils_cargo_bin::cargo_bin("codex-execve-wrapper")
+    let Ok(main_execve_wrapper_exe) = ditfa_utils_cargo_bin::cargo_bin("ditfa-execve-wrapper")
     else {
-        eprintln!("skipping {test_name}: unable to resolve `codex-execve-wrapper` binary");
+        eprintln!("skipping {test_name}: unable to resolve `ditfa-execve-wrapper` binary");
         return Ok(None);
     };
 
@@ -74,7 +74,7 @@ pub async fn build_zsh_fork_test<F>(
     approval_policy: AskForApproval,
     permission_profile: PermissionProfile,
     pre_build_hook: F,
-) -> Result<TestCodex>
+) -> Result<TestDitfa>
 where
     F: FnOnce(&Path) + Send + 'static,
 {
@@ -95,7 +95,7 @@ pub async fn build_unified_exec_zsh_fork_test<F>(
     approval_policy: AskForApproval,
     permission_profile: PermissionProfile,
     pre_build_hook: F,
-) -> Result<TestCodex>
+) -> Result<TestDitfa>
 where
     F: FnOnce(&Path) + Send + 'static,
 {
@@ -122,15 +122,15 @@ where
 pub fn zsh_fork_test_builder(
     runtime: ZshForkRuntime,
     approval_policy: AskForApproval,
-) -> TestCodexBuilder {
-    test_codex().with_config(move |config| {
+) -> TestDitfaBuilder {
+    test_ditfa().with_config(move |config| {
         runtime.apply_to_config(config, approval_policy);
     })
 }
 
 fn find_test_zsh_path() -> Result<Option<PathBuf>> {
     let repo_root = ditfa_utils_cargo_bin::repo_root()?;
-    let dotslash_zsh = repo_root.join("codex-rs/app-server/tests/suite/zsh");
+    let dotslash_zsh = repo_root.join("ditfa-rs/app-server/tests/suite/zsh");
     if !dotslash_zsh.is_file() {
         eprintln!(
             "skipping zsh-fork test: shared zsh DotSlash file not found at {}",

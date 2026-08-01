@@ -391,9 +391,9 @@ async fn enqueue_primary_thread_session_replays_turns_before_initial_prompt_subm
         ),
         enhanced_keys_supported: false,
         has_chatgpt_account: false,
-        has_codex_backend_auth: false,
+        has_ditfa_backend_auth: false,
         model_catalog: app.model_catalog.clone(),
-        feedback: ditfa_feedback::CodexFeedback::new(),
+        feedback: ditfa_feedback::DitfaFeedback::new(),
         is_first_run: false,
         status_account_display: None,
         runtime_model_provider_base_url: None,
@@ -439,7 +439,7 @@ async fn enqueue_primary_thread_session_replays_turns_before_initial_prompt_subm
                 assert_eq!(op_thread_id, thread_id);
                 submitted_items = Some(items);
             }
-            AppEvent::CodexOp(Op::UserTurn { items, .. }) => {
+            AppEvent::DitfaOp(Op::UserTurn { items, .. }) => {
                 assert!(
                     saw_optimistic_prompt,
                     "expected optimistic prompt before turn submission"
@@ -1808,7 +1808,7 @@ fn selected_and_resumed_threads_use_server_capability_for_v1_and_v2_children() -
                 parent_thread_id: Some(root_thread_id),
                 timestamp: timestamp.clone(),
                 cwd: app.config.cwd.to_path_buf(),
-                originator: "codex-tui-test".to_string(),
+                originator: "ditfa-tui-test".to_string(),
                 cli_version: "0.0.0".to_string(),
                 source: RolloutSessionSource::SubAgent(SubAgentSource::ThreadSpawn {
                     parent_thread_id: root_thread_id,
@@ -1878,7 +1878,7 @@ fn selected_and_resumed_threads_use_server_capability_for_v1_and_v2_children() -
             .handle_key_event(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
         assert!(
             std::iter::from_fn(|| app_event_rx.try_recv().ok())
-                .any(|event| matches!(event, AppEvent::CodexOp(Op::UserTurn { .. })))
+                .any(|event| matches!(event, AppEvent::DitfaOp(Op::UserTurn { .. })))
         );
 
         app.select_agent_thread(&mut tui, &mut app_server, child_thread_ids[1])
@@ -1893,7 +1893,7 @@ fn selected_and_resumed_threads_use_server_capability_for_v1_and_v2_children() -
         assert_eq!(app.chat_widget.composer_text_with_pending(), draft);
         assert!(
             !std::iter::from_fn(|| app_event_rx.try_recv().ok())
-                .any(|event| matches!(event, AppEvent::CodexOp(Op::UserTurn { .. })))
+                .any(|event| matches!(event, AppEvent::DitfaOp(Op::UserTurn { .. })))
         );
 
         let resumed = app_server
@@ -1921,7 +1921,7 @@ fn selected_and_resumed_threads_use_server_capability_for_v1_and_v2_children() -
         assert_eq!(app.chat_widget.composer_text_with_pending(), draft);
         assert!(
             !std::iter::from_fn(|| app_event_rx.try_recv().ok())
-                .any(|event| matches!(event, AppEvent::CodexOp(Op::UserTurn { .. })))
+                .any(|event| matches!(event, AppEvent::DitfaOp(Op::UserTurn { .. })))
         );
         Ok(())
     })
@@ -2366,8 +2366,8 @@ default_permissions = "locked-down"
         Some(RuntimePermissionProfileOverride::from_config(&app.config))
     );
     let op = match app_event_rx.try_recv() {
-        Ok(AppEvent::CodexOp(op)) => op,
-        other => panic!("expected CodexOp event, got {other:?}"),
+        Ok(AppEvent::DitfaOp(op)) => op,
+        other => panic!("expected DitfaOp event, got {other:?}"),
     };
     assert_eq!(
         op,
@@ -4649,7 +4649,7 @@ async fn make_test_app() -> App {
         skill_load_warnings: SkillLoadWarningState::default(),
         backtrack: BacktrackState::default(),
         backtrack_render_pending: false,
-        feedback: ditfa_feedback::CodexFeedback::new(),
+        feedback: ditfa_feedback::DitfaFeedback::new(),
         feedback_audience: FeedbackAudience::External,
         environment_manager: Arc::new(EnvironmentManager::default_for_tests()),
         app_server_target: crate::AppServerTarget::Embedded,
@@ -4716,7 +4716,7 @@ async fn make_test_app_with_channels() -> (
             skill_load_warnings: SkillLoadWarningState::default(),
             backtrack: BacktrackState::default(),
             backtrack_render_pending: false,
-            feedback: ditfa_feedback::CodexFeedback::new(),
+            feedback: ditfa_feedback::DitfaFeedback::new(),
             feedback_audience: FeedbackAudience::External,
             environment_manager: Arc::new(EnvironmentManager::default_for_tests()),
             app_server_target: crate::AppServerTarget::Embedded,
@@ -4774,7 +4774,7 @@ async fn set_thread_goal_draft_materializes_long_objective_and_confirms_before_p
     let saved_objective = goal.objective.clone();
     let ditfa_home = app_server
         .ditfa_home_path(&app.chat_widget.config_ref().ditfa_home)
-        .expect("codex home");
+        .expect("ditfa home");
     assert!(goal_files::objective_file_path(&goal.objective, Some(&ditfa_home)).is_some());
     assert_eq!(
         goal_files::objective_text_for_edit(&mut app_server, Some(&ditfa_home), &goal.objective)
@@ -4796,11 +4796,11 @@ async fn set_thread_goal_draft_materializes_long_objective_and_confirms_before_p
         assert!(!is_managed(&ditfa_home, &path));
     }
     assert!(!is_managed(
-        &AppServerPath::from_app_server("/tmp/codex\\home"),
-        &format!("/tmp/codex/home/{suffix}")
+        &AppServerPath::from_app_server("/tmp/ditfa\\home"),
+        &format!("/tmp/ditfa/home/{suffix}")
     ));
-    let unix_path = AppServerPath::from_app_server("/tmp/codex\\").join("a");
-    assert_eq!(unix_path.as_str(), "/tmp/codex\\/a");
+    let unix_path = AppServerPath::from_app_server("/tmp/ditfa\\").join("a");
+    assert_eq!(unix_path.as_str(), "/tmp/ditfa\\/a");
     let attachments_dir = app.chat_widget.config_ref().ditfa_home.join("attachments");
     let attachment_count = std::fs::read_dir(&attachments_dir)?.count();
     let placeholder = "[Pasted Content 5 chars]";
@@ -5586,7 +5586,7 @@ fn test_session_telemetry(config: &Config, model: &str) -> SessionTelemetry {
 fn active_turn_not_steerable_turn_error_extracts_structured_server_error() {
     let turn_error = AppServerTurnError {
         message: "cannot steer a review turn".to_string(),
-        ditfa_error_info: Some(AppServerCodexErrorInfo::ActiveTurnNotSteerable {
+        ditfa_error_info: Some(AppServerDitfaErrorInfo::ActiveTurnNotSteerable {
             turn_kind: AppServerNonSteerableTurnKind::Review,
         }),
         additional_details: None,
@@ -5617,7 +5617,7 @@ fn session_start_error_surfaces_archived_guidance_without_rollout_path() {
         thread_id,
     };
     let expected = format!(
-        "session {thread_id} is archived. Run `codex unarchive {thread_id}` to unarchive it first."
+        "session {thread_id} is archived. Run `ditfa unarchive {thread_id}` to unarchive it first."
     );
 
     for action in ["resume", "fork"] {
@@ -6084,7 +6084,7 @@ async fn in_app_resume_uses_configured_or_explicit_cwd() -> Result<()> {
         ("session", true, true, "explicit"),
     ] {
         let temp_dir = tempdir()?;
-        let ditfa_home = temp_dir.path().join("codex-home");
+        let ditfa_home = temp_dir.path().join("ditfa-home");
         let launch_cwd = temp_dir.path().join("launch");
         let active_cwd = temp_dir.path().join("active");
         let session_cwd = temp_dir.path().join("session");
@@ -6212,7 +6212,7 @@ async fn in_app_resume_uses_configured_or_explicit_cwd() -> Result<()> {
 #[tokio::test]
 async fn remembered_current_cwd_stays_at_launch_across_in_app_resumes() -> Result<()> {
     let temp_dir = tempdir()?;
-    let ditfa_home = temp_dir.path().join("codex-home");
+    let ditfa_home = temp_dir.path().join("ditfa-home");
     let launch_cwd = temp_dir.path().join("launch");
     let active_cwd = temp_dir.path().join("active");
     let first_session_cwd = temp_dir.path().join("first-session");
@@ -6650,7 +6650,7 @@ async fn replace_chat_widget_reseeds_collab_agent_metadata_for_replay() {
         initial_user_message: None,
         enhanced_keys_supported: app.enhanced_keys_supported,
         has_chatgpt_account: app.chat_widget.has_chatgpt_account(),
-        has_codex_backend_auth: app.chat_widget.has_codex_backend_auth(),
+        has_ditfa_backend_auth: app.chat_widget.has_ditfa_backend_auth(),
         model_catalog: app.model_catalog.clone(),
         feedback: app.feedback.clone(),
         is_first_run: false,

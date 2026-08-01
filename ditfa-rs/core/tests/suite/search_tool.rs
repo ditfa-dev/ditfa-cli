@@ -5,7 +5,7 @@ use anyhow::Result;
 use ditfa_config::types::McpServerConfig;
 use ditfa_config::types::McpServerTransportConfig;
 use ditfa_core::StartThreadOptions;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_protocol::dynamic_tools::DynamicToolCallOutputContentItem;
 use ditfa_protocol::dynamic_tools::DynamicToolFunctionSpec;
 use ditfa_protocol::dynamic_tools::DynamicToolNamespaceSpec;
@@ -48,7 +48,7 @@ use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
 use core_test_support::stdio_server_bin;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_mcp_server;
 use pretty_assertions::assert_eq;
@@ -320,8 +320,8 @@ async fn app_search_sources_are_hidden_for_api_key_auth() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::from_api_key("Test API Key"))
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::from_api_key("Test API Key"))
         .with_config(move |config| {
             configure_search_capable_apps(config, apps_server.chatgpt_base_url.as_str())
         });
@@ -586,7 +586,7 @@ async fn tool_search_returns_deferred_tools_without_follow_up_tool_injection() -
             .expect("tool call should succeed")
             .structured_content,
         Some(json!({
-            "_codex_apps": {
+            "_ditfa_apps": {
                 "call_id": "calendar-call-1",
                 "resource_uri": CALENDAR_CREATE_EVENT_RESOURCE_URI,
                 "contains_mcp_source": true,
@@ -607,7 +607,7 @@ async fn tool_search_returns_deferred_tools_without_follow_up_tool_injection() -
     let apps_tool_call = recorded_apps_tool_call_by_call_id(&server, "calendar-call-1").await;
 
     assert_eq!(
-        apps_tool_call.pointer("/params/_meta/_codex_apps"),
+        apps_tool_call.pointer("/params/_meta/_ditfa_apps"),
         Some(&json!({
             "call_id": "calendar-call-1",
             "resource_uri": CALENDAR_CREATE_EVENT_RESOURCE_URI,
@@ -793,7 +793,7 @@ async fn tool_search_returns_deferred_v1_multi_agent_tools() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex().with_config(configure_search_capable_model);
+    let mut builder = test_ditfa().with_config(configure_search_capable_model);
     let test = builder.build(&server).await?;
     test.submit_turn_with_approval_and_permission_profile(
         "Find the spawn agent tool",
@@ -936,7 +936,7 @@ async fn tool_search_returns_deferred_dynamic_tool_and_routes_follow_up_call() -
         )],
     });
 
-    let mut builder = test_codex().with_config(configure_search_capable_model);
+    let mut builder = test_ditfa().with_config(configure_search_capable_model);
     let base_test = builder.build(&server).await?;
     let new_thread = base_test
         .thread_manager
@@ -1571,7 +1571,7 @@ async fn tool_search_matches_dynamic_tools_by_name_description_namespace_and_sch
         )],
     });
 
-    let mut builder = test_codex().with_config(configure_search_capable_model);
+    let mut builder = test_ditfa().with_config(configure_search_capable_model);
     let base_test = builder.build(&server).await?;
     let new_thread = base_test
         .thread_manager

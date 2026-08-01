@@ -35,8 +35,8 @@ use crate::mentions::collect_explicit_app_ids;
 use crate::mentions::collect_explicit_plugin_mentions;
 use crate::mentions::collect_tool_mentions_from_messages;
 use crate::plugins::build_plugin_injections;
-use crate::responses_metadata::CodexResponsesMetadata;
-use crate::responses_metadata::CodexResponsesRequestKind;
+use crate::responses_metadata::DitfaResponsesMetadata;
+use crate::responses_metadata::DitfaResponsesRequestKind;
 use crate::responses_retry::ResponsesStreamRequest;
 use crate::responses_retry::handle_retryable_response_stream_error;
 use crate::session::PreviousTurnSettings;
@@ -86,8 +86,8 @@ use ditfa_protocol::ResponseItemId;
 use ditfa_protocol::config_types::AutoCompactTokenLimitScope;
 use ditfa_protocol::config_types::ModeKind;
 use ditfa_protocol::config_types::ServiceTier;
-use ditfa_protocol::error::CodexErr;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::DitfaErr;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::items::PlanItem;
 use ditfa_protocol::items::TurnItem;
 use ditfa_protocol::items::build_hook_prompt_message;
@@ -98,7 +98,7 @@ use ditfa_protocol::models::ResponseInputItem;
 use ditfa_protocol::models::ResponseItem;
 use ditfa_protocol::protocol::AgentMessageContentDeltaEvent;
 use ditfa_protocol::protocol::AgentReasoningSectionBreakEvent;
-use ditfa_protocol::protocol::CodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::ErrorEvent;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::PlanDeltaEvent;
@@ -153,7 +153,7 @@ pub(crate) async fn run_turn(
     input: Vec<TurnInput>,
     prewarmed_client_session: Option<ModelClientSession>,
     cancellation_token: CancellationToken,
-) -> CodexResult<Option<String>> {
+) -> DitfaResult<Option<String>> {
     let mut client_session =
         prewarmed_client_session.unwrap_or_else(|| sess.services.model_client.new_session());
     // TODO(ccunningham): Pre-turn compaction runs before context updates and the
@@ -168,11 +168,11 @@ pub(crate) async fn run_turn(
     )
     .await
     {
-        if matches!(err, CodexErr::TurnAborted) {
+        if matches!(err, DitfaErr::TurnAborted) {
             run_hooks_and_record_inputs(&sess, &turn_context, &input).await;
             return Err(err);
         }
-        let error = err.to_codex_protocol_error();
+        let error = err.to_ditfa_protocol_error();
         sess.emit_turn_error_lifecycle(turn_context.as_ref(), error.clone())
             .await;
         error!("Failed to run pre-sampling compact");
@@ -185,7 +185,7 @@ pub(crate) async fn run_turn(
         .await
     {
         Ok(step_context) => step_context,
-        Err(err @ CodexErr::TurnAborted) => {
+        Err(err @ DitfaErr::TurnAborted) => {
             run_hooks_and_record_inputs(&sess, &turn_context, &input).await;
             return Err(err);
         }
@@ -233,7 +233,7 @@ pub(crate) async fn run_turn(
 
     let mut last_agent_message: Option<String> = None;
     let mut stop_hook_active = false;
-    // Although from the perspective of codex.rs, TurnDiffTracker has the lifecycle of a Task which contains
+    // Although from the perspective of ditfa.rs, TurnDiffTracker has the lifecycle of a Task which contains
     // many turns, from the perspective of the user, it is a single turn.
     let turn_diff_tracker = Arc::new(tokio::sync::Mutex::new(
         TurnDiffTracker::with_environment_display_roots(display_roots),
@@ -277,7 +277,7 @@ pub(crate) async fn run_turn(
                     .await?
             }
         };
-        let sampling_request_result: CodexResult<_> = async {
+        let sampling_request_result: DitfaResult<_> = async {
             super::time_reminder::maybe_record_current_time_reminder(
                 sess.as_ref(),
                 turn_context.as_ref(),
@@ -301,7 +301,7 @@ pub(crate) async fn run_turn(
             let responses_metadata = turn_context.turn_metadata_state.to_responses_metadata(
                 sess.installation_id.clone(),
                 window_id,
-                CodexResponsesRequestKind::Turn,
+                DitfaResponsesRequestKind::Turn,
             );
             run_sampling_request(
                 Arc::clone(&sess),
@@ -405,10 +405,10 @@ pub(crate) async fn run_turn(
                     )
                     .await
                     {
-                        if matches!(err, CodexErr::TurnAborted) {
+                        if matches!(err, DitfaErr::TurnAborted) {
                             return Err(err);
                         }
-                        let error = err.to_codex_protocol_error();
+                        let error = err.to_ditfa_protocol_error();
                         sess.emit_turn_error_lifecycle(turn_context.as_ref(), error.clone())
                             .await;
                         return Ok(None);
@@ -473,12 +473,12 @@ pub(crate) async fn run_turn(
                 }
                 continue;
             }
-            Err(err @ CodexErr::TurnAborted) => {
+            Err(err @ DitfaErr::TurnAborted) => {
                 return Err(err);
             }
-            Err(ditfa_error @ CodexErr::InvalidImageRequest()) => {
-                sess.track_turn_codex_error(turn_context.as_ref(), &ditfa_error);
-                let error = CodexErrorInfo::BadRequest;
+            Err(ditfa_error @ DitfaErr::InvalidImageRequest()) => {
+                sess.track_turn_ditfa_error(turn_context.as_ref(), &ditfa_error);
+                let error = DitfaErrorInfo::BadRequest;
                 sess.emit_turn_error_lifecycle(turn_context.as_ref(), error.clone())
                     .await;
                 let event = EventMsg::Error(ErrorEvent {
@@ -491,10 +491,10 @@ pub(crate) async fn run_turn(
             }
             Err(e) => {
                 info!("Turn error: {e:#}");
-                let error = e.to_codex_protocol_error();
+                let error = e.to_ditfa_protocol_error();
                 sess.emit_turn_error_lifecycle(turn_context.as_ref(), error.clone())
                     .await;
-                sess.track_turn_codex_error(turn_context.as_ref(), &e);
+                sess.track_turn_ditfa_error(turn_context.as_ref(), &e);
                 let event = EventMsg::Error(e.to_error_event(/*message_prefix*/ None));
                 sess.send_event(&turn_context, event).await;
                 // let the user continue the conversation
@@ -841,7 +841,7 @@ async fn run_pre_sampling_compact(
     turn_context: &Arc<TurnContext>,
     client_session: &mut ModelClientSession,
     cancellation_token: &CancellationToken,
-) -> CodexResult<()> {
+) -> DitfaResult<()> {
     maybe_run_previous_model_inline_compact(sess, turn_context, client_session, cancellation_token)
         .await?;
     let token_status =
@@ -877,19 +877,19 @@ fn comp_hash_changed(previous: Option<&str>, current: Option<&str>) -> bool {
 
 /// Captures the current model's request-scoped state for retrying previous-model compaction.
 ///
-/// Returns `None` when the active authentication does not use the Codex backend, the provider is
+/// Returns `None` when the active authentication does not use the Ditfa backend, the provider is
 /// not OpenAI, or the previous and current model are the same.
 async fn capture_current_model_fallback_step_context(
     sess: &Arc<Session>,
     turn_context: &Arc<TurnContext>,
     previous_model: &str,
     cancellation_token: &CancellationToken,
-) -> CodexResult<Option<Arc<StepContext>>> {
-    let uses_codex_backend = turn_context
+) -> DitfaResult<Option<Arc<StepContext>>> {
+    let uses_ditfa_backend = turn_context
         .auth_manager
         .as_deref()
-        .is_some_and(ditfa_login::AuthManager::current_auth_uses_codex_backend);
-    if !uses_codex_backend
+        .is_some_and(ditfa_login::AuthManager::current_auth_uses_ditfa_backend);
+    if !uses_ditfa_backend
         || !turn_context.provider.info().is_openai()
         || previous_model == turn_context.model_info.slug
     {
@@ -909,7 +909,7 @@ async fn maybe_run_previous_model_inline_compact(
     turn_context: &Arc<TurnContext>,
     client_session: &mut ModelClientSession,
     cancellation_token: &CancellationToken,
-) -> CodexResult<()> {
+) -> DitfaResult<()> {
     let Some(previous_turn_settings) = sess.previous_turn_settings().await else {
         return Ok(());
     };
@@ -1010,7 +1010,7 @@ async fn run_auto_compact(
     initial_context_injection: InitialContextInjection,
     reason: CompactionReason,
     phase: CompactionPhase,
-) -> CodexResult<()> {
+) -> DitfaResult<()> {
     let turn_context = &step_context.turn;
     let _profile_guard = turn_context.turn_timing_state.begin_compaction();
     if turn_context.config.features.enabled(Feature::TokenBudget) {
@@ -1167,10 +1167,10 @@ async fn run_sampling_request(
     turn_store: Arc<ditfa_extension_api::ExtensionData>,
     turn_diff_tracker: SharedTurnDiffTracker,
     client_session: &mut ModelClientSession,
-    responses_metadata: &CodexResponsesMetadata,
+    responses_metadata: &DitfaResponsesMetadata,
     input: Vec<ResponseItem>,
     cancellation_token: CancellationToken,
-) -> CodexResult<(SamplingRequestResult, Vec<ResponseItem>)> {
+) -> DitfaResult<(SamplingRequestResult, Vec<ResponseItem>)> {
     let turn_context = Arc::clone(&step_context.turn);
     let router = Arc::clone(&step_context.tool_router);
 
@@ -1222,16 +1222,16 @@ async fn run_sampling_request(
             Ok(output) => {
                 return Ok((output, original_input.unwrap_or(prompt.input)));
             }
-            Err(CodexErr::ContextWindowExceeded) => {
+            Err(DitfaErr::ContextWindowExceeded) => {
                 sess.set_total_tokens_full(&turn_context).await;
-                return Err(CodexErr::ContextWindowExceeded);
+                return Err(DitfaErr::ContextWindowExceeded);
             }
-            Err(CodexErr::UsageLimitReached(e)) => {
+            Err(DitfaErr::UsageLimitReached(e)) => {
                 let rate_limits = e.rate_limits.clone();
                 if let Some(rate_limits) = rate_limits {
                     sess.update_rate_limits(&turn_context, *rate_limits).await;
                 }
-                return Err(CodexErr::UsageLimitReached(e));
+                return Err(DitfaErr::UsageLimitReached(e));
             }
             Err(err) => err,
         };
@@ -1940,10 +1940,10 @@ async fn handle_assistant_item_done_in_plan_mode(
 
 #[instrument(level = "trace", skip_all)]
 async fn drain_in_flight(
-    in_flight: &mut FuturesOrdered<BoxFuture<'static, CodexResult<ResponseInputItem>>>,
+    in_flight: &mut FuturesOrdered<BoxFuture<'static, DitfaResult<ResponseInputItem>>>,
     sess: Arc<Session>,
     turn_context: Arc<TurnContext>,
-) -> CodexResult<()> {
+) -> DitfaResult<()> {
     while let Some(res) = in_flight.next().await {
         match res {
             Ok(response_input) => {
@@ -1994,11 +1994,11 @@ async fn try_run_sampling_request(
     turn_context: Arc<TurnContext>,
     turn_store: Arc<ditfa_extension_api::ExtensionData>,
     client_session: &mut ModelClientSession,
-    responses_metadata: &CodexResponsesMetadata,
+    responses_metadata: &DitfaResponsesMetadata,
     turn_diff_tracker: SharedTurnDiffTracker,
     prompt: &Prompt,
     cancellation_token: CancellationToken,
-) -> CodexResult<SamplingRequestResult> {
+) -> DitfaResult<SamplingRequestResult> {
     feedback_tags!(
         model = turn_context.model_info.slug.clone(),
         approval_policy = turn_context.approval_policy.value(),
@@ -2032,7 +2032,7 @@ async fn try_run_sampling_request(
         .instrument(trace_span!("stream_request"))
         .or_cancel(&cancellation_token)
         .await??;
-    let mut in_flight: FuturesOrdered<BoxFuture<'static, CodexResult<ResponseInputItem>>> =
+    let mut in_flight: FuturesOrdered<BoxFuture<'static, DitfaResult<ResponseInputItem>>> =
         FuturesOrdered::new();
     let mut needs_follow_up = false;
     let mut last_agent_message: Option<String> = None;
@@ -2051,20 +2051,20 @@ async fn try_run_sampling_request(
         !sess.services.extensions.turn_item_contributors().is_empty();
     let mut active_item_is_streaming_to_client = false;
     let receiving_span = trace_span!("receiving_stream");
-    let outcome: CodexResult<SamplingRequestResult> = loop {
+    let outcome: DitfaResult<SamplingRequestResult> = loop {
         let handle_responses = trace_span!(
             parent: &receiving_span,
             "handle_responses",
             otel.name = field::Empty,
             tool_name = field::Empty,
             from = field::Empty,
-            codex.request.reasoning_effort = %reasoning_effort,
+            ditfa.request.reasoning_effort = %reasoning_effort,
             gen_ai.usage.input_tokens = field::Empty,
             gen_ai.usage.cache_read.input_tokens = field::Empty,
             gen_ai.usage.cache_write.input_tokens = field::Empty,
             gen_ai.usage.output_tokens = field::Empty,
-            codex.usage.reasoning_output_tokens = field::Empty,
-            codex.usage.total_tokens = field::Empty,
+            ditfa.usage.reasoning_output_tokens = field::Empty,
+            ditfa.usage.total_tokens = field::Empty,
         );
 
         let event = match stream
@@ -2074,14 +2074,14 @@ async fn try_run_sampling_request(
             .await
         {
             Ok(event) => event,
-            Err(ditfa_async_utils::CancelErr::Cancelled) => break Err(CodexErr::TurnAborted),
+            Err(ditfa_async_utils::CancelErr::Cancelled) => break Err(DitfaErr::TurnAborted),
         };
 
         let event = match event {
             Some(Ok(event)) => event,
             Some(Err(err)) => break Err(err),
             None => {
-                break Err(CodexErr::Stream(
+                break Err(DitfaErr::Stream(
                     "stream closed before response.completed".into(),
                     None,
                 ));
@@ -2535,7 +2535,7 @@ async fn try_run_sampling_request(
     }
 
     if cancellation_token.is_cancelled() {
-        return Err(CodexErr::TurnAborted);
+        return Err(DitfaErr::TurnAborted);
     }
 
     if should_emit_turn_diff {

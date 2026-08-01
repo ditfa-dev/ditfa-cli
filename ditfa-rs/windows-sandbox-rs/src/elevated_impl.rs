@@ -47,7 +47,7 @@ mod windows_impl {
     use crate::resolved_permissions::ResolvedWindowsSandboxPermissions;
     use crate::runner_client::retry_runner_spawn_once;
     use crate::runner_client::spawn_runner_transport;
-    use crate::sandbox_utils::ensure_codex_home_exists;
+    use crate::sandbox_utils::ensure_ditfa_home_exists;
     use crate::sandbox_utils::inject_git_safe_directory;
     use crate::setup::effective_write_roots_for_permissions;
     use crate::token::LocalSid;
@@ -137,7 +137,7 @@ mod windows_impl {
         inject_git_safe_directory(&mut env_map, cwd);
         // Use a temp-based log dir that the sandbox user can write.
         let sandbox_base = ditfa_home.join(".sandbox");
-        ensure_codex_home_exists(&sandbox_base)?;
+        ensure_ditfa_home_exists(&sandbox_base)?;
 
         let logs_base_dir: Option<&Path> = Some(sandbox_base.as_path());
         log_start(&command, logs_base_dir);
@@ -190,7 +190,7 @@ mod windows_impl {
                 permission_profile: permission_profile.clone(),
                 workspace_roots: workspace_roots.to_vec(),
                 ditfa_home: sandbox_base.clone(),
-                real_codex_home: ditfa_home.to_path_buf(),
+                real_ditfa_home: ditfa_home.to_path_buf(),
                 cap_sids,
                 network_proxy_restricting_sid,
                 timeout_ms,

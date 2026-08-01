@@ -1,6 +1,6 @@
 use super::*;
 use crate::tools::handlers::multi_agents_spec::create_close_agent_tool_v1;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_tools::ToolSpec;
 
 pub(crate) struct Handler;
@@ -66,7 +66,7 @@ async fn handle_close_agent(
         .await
     {
         Ok(mut status_rx) => status_rx.borrow_and_update().clone(),
-        Err(CodexErr::ThreadNotFound(_)) if known_agent => {
+        Err(DitfaErr::ThreadNotFound(_)) if known_agent => {
             session.services.agent_control.get_status(agent_id).await
         }
         Err(err) => {

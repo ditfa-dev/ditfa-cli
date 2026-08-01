@@ -20,7 +20,7 @@ test_suite(
     name = "e2e-benchmarks",
     tags = ["manual"],
     tests = [
-        "//codex-rs/cli:codex-help-bench",
+        "//ditfa-rs/cli:ditfa-help-bench",
     ],
     visibility = ["//visibility:public"],
 )

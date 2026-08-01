@@ -3,8 +3,8 @@
 //! The session layer already emits protocol events for turn lifecycle, terminal
 //! sessions, patch application, MCP calls, and collaboration tools. Rollout
 //! tracing reuses those observations instead of adding another set of hooks in
-//! `codex-core`: this module translates the protocol surface into the smaller
-//! trace vocabulary and keeps the mapping isolated inside `codex-rollout-trace`.
+//! `ditfa-core`: this module translates the protocol surface into the smaller
+//! trace vocabulary and keeps the mapping isolated inside `ditfa-rollout-trace`.
 //!
 //! The long explicit `EventMsg` matches are intentional. Most protocol events
 //! are not trace runtime boundaries, but spelling them out makes new protocol
@@ -27,12 +27,12 @@ use serde::Serialize;
 use std::time::Duration;
 
 use crate::AgentThreadId;
-use crate::CodexTurnId;
+use crate::DitfaTurnId;
 use crate::ExecutionStatus;
 use crate::RawTraceEventPayload;
 
-pub(crate) struct CodexTurnTraceEvent {
-    pub context_turn_id: CodexTurnId,
+pub(crate) struct DitfaTurnTraceEvent {
+    pub context_turn_id: DitfaTurnId,
     pub payload: RawTraceEventPayload,
 }
 
@@ -40,13 +40,13 @@ pub(crate) fn ditfa_turn_trace_event(
     thread_id: AgentThreadId,
     default_turn_id: &str,
     event: &EventMsg,
-) -> Option<CodexTurnTraceEvent> {
+) -> Option<DitfaTurnTraceEvent> {
     match event {
         EventMsg::TurnStarted(event) => {
             let ditfa_turn_id = event.turn_id.clone();
-            Some(CodexTurnTraceEvent {
+            Some(DitfaTurnTraceEvent {
                 context_turn_id: ditfa_turn_id.clone(),
-                payload: RawTraceEventPayload::CodexTurnStarted {
+                payload: RawTraceEventPayload::DitfaTurnStarted {
                     ditfa_turn_id,
                     thread_id,
                 },
@@ -54,9 +54,9 @@ pub(crate) fn ditfa_turn_trace_event(
         }
         EventMsg::TurnComplete(event) => {
             let ditfa_turn_id = event.turn_id.clone();
-            Some(CodexTurnTraceEvent {
+            Some(DitfaTurnTraceEvent {
                 context_turn_id: ditfa_turn_id.clone(),
-                payload: RawTraceEventPayload::CodexTurnEnded {
+                payload: RawTraceEventPayload::DitfaTurnEnded {
                     ditfa_turn_id,
                     status: ExecutionStatus::Completed,
                 },
@@ -67,9 +67,9 @@ pub(crate) fn ditfa_turn_trace_event(
                 .turn_id
                 .clone()
                 .unwrap_or_else(|| default_turn_id.to_string());
-            Some(CodexTurnTraceEvent {
+            Some(DitfaTurnTraceEvent {
                 context_turn_id: ditfa_turn_id.clone(),
-                payload: RawTraceEventPayload::CodexTurnEnded {
+                payload: RawTraceEventPayload::DitfaTurnEnded {
                     ditfa_turn_id,
                     status: execution_status_for_abort_reason(&event.reason),
                 },

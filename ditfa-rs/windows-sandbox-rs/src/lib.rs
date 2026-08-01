@@ -236,7 +236,7 @@ pub use ipc_framed::write_frame;
 #[cfg(target_os = "windows")]
 pub use logging::current_log_file_path;
 #[cfg(target_os = "windows")]
-pub use logging::current_log_file_path_for_codex_home;
+pub use logging::current_log_file_path_for_ditfa_home;
 #[cfg(target_os = "windows")]
 pub use logging::log_file_path_for_utc_date;
 #[cfg(target_os = "windows")]
@@ -368,7 +368,7 @@ mod windows_impl {
     use super::logging::log_success;
     use super::process::ConsoleMode;
     use super::process::create_process_as_user;
-    use super::sandbox_utils::ensure_codex_home_exists;
+    use super::sandbox_utils::ensure_ditfa_home_exists;
     use super::spawn_prep::LegacyAclSids;
     use super::spawn_prep::SpawnPrepOptions;
     use super::spawn_prep::allow_null_device_for_workspace_write;
@@ -745,7 +745,7 @@ mod windows_impl {
             return Ok(());
         }
 
-        ensure_codex_home_exists(ditfa_home)?;
+        ensure_ditfa_home_exists(ditfa_home)?;
         let current_dir = cwd.to_path_buf();
         let capability_roots =
             legacy_session_capability_roots(&permissions, &current_dir, env_map, ditfa_home);
@@ -855,7 +855,7 @@ mod stub {
     pub fn run_windows_sandbox_capture(
         _permission_profile: &PermissionProfile,
         _workspace_roots: &[AbsolutePathBuf],
-        _codex_home: &Path,
+        _ditfa_home: &Path,
         _command: Vec<String>,
         _cwd: &Path,
         _env_map: HashMap<String, String>,
@@ -869,7 +869,7 @@ mod stub {
     pub fn run_windows_sandbox_legacy_preflight(
         _permission_profile: &PermissionProfile,
         _workspace_roots: &[AbsolutePathBuf],
-        _codex_home: &Path,
+        _ditfa_home: &Path,
         _cwd: &Path,
         _env_map: &HashMap<String, String>,
     ) -> Result<()> {

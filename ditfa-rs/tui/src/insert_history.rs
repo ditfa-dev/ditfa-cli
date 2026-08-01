@@ -1,6 +1,6 @@
 //! Inserts finalized history rows into terminal scrollback.
 //!
-//! Codex uses the terminal scrollback itself for finalized chat history, so inserting a history
+//! Ditfa uses the terminal scrollback itself for finalized chat history, so inserting a history
 //! cell is an escape-sequence operation rather than a normal ratatui render.
 
 use std::fmt;
@@ -906,7 +906,7 @@ mod tests {
         assert!(
             rows.iter()
                 .any(|row| row.trim_end() == "alpha beta gamma del"),
-            "expected terminal soft-wrap instead of Codex word pre-wrap, rows: {rows:?}"
+            "expected terminal soft-wrap instead of Ditfa word pre-wrap, rows: {rows:?}"
         );
     }
 

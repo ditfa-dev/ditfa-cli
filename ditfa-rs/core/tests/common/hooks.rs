@@ -9,7 +9,7 @@ use ditfa_utils_absolute_path::AbsolutePathBuf;
 pub fn trust_discovered_hooks(config: &mut Config) {
     config
         .features
-        .enable(Feature::CodexHooks)
+        .enable(Feature::DitfaHooks)
         .expect("test config should allow feature update");
 
     let listed = ditfa_hooks::list_hooks(ditfa_hooks::HooksConfig {

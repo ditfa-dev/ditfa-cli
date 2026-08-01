@@ -162,7 +162,7 @@ impl App {
             }
             AppEvent::ForkCurrentSession => {
                 self.session_telemetry.counter(
-                    "codex.thread.fork",
+                    "ditfa.thread.fork",
                     /*inc*/ 1,
                     &[("source", "slash_command")],
                 );
@@ -240,7 +240,7 @@ impl App {
                     return Ok(AppRunControl::Continue);
                 }
                 self.session_telemetry.counter(
-                    "codex.thread.fork",
+                    "ditfa.thread.fork",
                     /*inc*/ 1,
                     &[("source", "transcript")],
                 );
@@ -412,7 +412,7 @@ impl App {
             AppEvent::FatalExitRequest(message) => {
                 return Ok(AppRunControl::Exit(ExitReason::Fatal(message)));
             }
-            AppEvent::CodexOp(op) => {
+            AppEvent::DitfaOp(op) => {
                 let is_user_turn = matches!(&op, AppCommand::UserTurn { .. });
                 if is_user_turn {
                     self.handle_draw_pre_render(tui)?;
@@ -1223,14 +1223,14 @@ impl App {
                 profile_selection,
             } => {
                 self.session_telemetry.counter(
-                    "codex.windows_sandbox.fallback_prompt_shown",
+                    "ditfa.windows_sandbox.fallback_prompt_shown",
                     /*inc*/ 1,
                     &[],
                 );
                 self.chat_widget.clear_windows_sandbox_setup_status();
                 if let Some(started_at) = self.windows_sandbox.setup_started_at.take() {
                     self.session_telemetry.record_duration(
-                        "codex.windows_sandbox.elevated_setup_duration_ms",
+                        "ditfa.windows_sandbox.elevated_setup_duration_ms",
                         started_at.elapsed(),
                         &[("result", "failure")],
                     );
@@ -1306,7 +1306,7 @@ impl App {
                         let event = match result {
                             Ok(()) => {
                                 session_telemetry.counter(
-                                    "codex.windows_sandbox.elevated_setup_success",
+                                    "ditfa.windows_sandbox.elevated_setup_success",
                                     /*inc*/ 1,
                                     &[],
                                 );
@@ -1413,7 +1413,7 @@ impl App {
                             )
                         {
                             session_telemetry.counter(
-                                "codex.windows_sandbox.legacy_setup_preflight_failed",
+                                "ditfa.windows_sandbox.legacy_setup_preflight_failed",
                                 /*inc*/ 1,
                                 &[],
                             );
@@ -1501,7 +1501,7 @@ impl App {
                     self.chat_widget.clear_windows_sandbox_setup_status();
                     if let Some(started_at) = self.windows_sandbox.setup_started_at.take() {
                         self.session_telemetry.record_duration(
-                            "codex.windows_sandbox.elevated_setup_duration_ms",
+                            "ditfa.windows_sandbox.elevated_setup_duration_ms",
                             started_at.elapsed(),
                             &[("result", "success")],
                         );
@@ -1553,7 +1553,7 @@ impl App {
                             if let Some((sample_paths, extra_count, failed_scan)) =
                                 self.chat_widget.world_writable_warning_details()
                             {
-                                self.app_event_tx.send(AppEvent::CodexOp(
+                                self.app_event_tx.send(AppEvent::DitfaOp(
                                     AppCommand::override_turn_context(
                                         /*cwd*/ None,
                                         /*approval_policy*/ None,
@@ -1580,7 +1580,7 @@ impl App {
                                     },
                                 );
                             } else if let Some(selection) = profile_selection {
-                                self.app_event_tx.send(AppEvent::CodexOp(
+                                self.app_event_tx.send(AppEvent::DitfaOp(
                                     AppCommand::override_turn_context(
                                         /*cwd*/ None,
                                         /*approval_policy*/ None,
@@ -1604,12 +1604,12 @@ impl App {
                                     Line::from(vec!["• ".dim(), "Sandbox ready".into()]),
                                     Line::from(vec![
                                         "  ".into(),
-                                        "Codex can now safely edit files and execute commands in your computer"
+                                        "Ditfa can now safely edit files and execute commands in your computer"
                                             .dark_gray(),
                                     ]),
                                 ]);
                             } else {
-                                self.app_event_tx.send(AppEvent::CodexOp(
+                                self.app_event_tx.send(AppEvent::DitfaOp(
                                     AppCommand::override_turn_context(
                                         /*cwd*/ None,
                                         Some(AskForApproval::from(preset.approval)),
@@ -1637,7 +1637,7 @@ impl App {
                                     Line::from(vec!["• ".dim(), "Sandbox ready".into()]),
                                     Line::from(vec![
                                         "  ".into(),
-                                        "Codex can now safely edit files and execute commands in your computer"
+                                        "Ditfa can now safely edit files and execute commands in your computer"
                                             .dark_gray(),
                                     ]),
                                 ]);

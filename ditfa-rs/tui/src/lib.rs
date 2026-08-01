@@ -1,5 +1,5 @@
 // Forbid accidental stdout/stderr writes in the *library* portion of the TUI.
-// The standalone `codex-tui` binary prints a short help message before the
+// The standalone `ditfa-tui` binary prints a short help message before the
 // alternate‑screen mode starts; that file opts‑out locally via `allow`.
 #![deny(clippy::print_stdout, clippy::print_stderr)]
 #![deny(clippy::disallowed_methods)]
@@ -61,7 +61,7 @@ use ditfa_rollout::state_db;
 use ditfa_state::log_db;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
 use ditfa_utils_absolute_path::canonicalize_existing_preserving_symlinks;
-use ditfa_utils_home_dir::find_codex_home;
+use ditfa_utils_home_dir::find_ditfa_home;
 use ditfa_utils_oss::ensure_oss_provider_ready;
 use ditfa_utils_oss::get_default_model_for_oss_provider;
 use color_eyre::eyre::WrapErr;
@@ -227,7 +227,7 @@ pub use public_widgets::composer_input::ComposerAction;
 pub use public_widgets::composer_input::ComposerInput;
 // (tests access modules directly within the crate)
 
-const TUI_LOG_FILE_NAME: &str = "codex-tui.log";
+const TUI_LOG_FILE_NAME: &str = "ditfa-tui.log";
 
 #[cfg(unix)]
 const AUTO_CONNECT_DAEMON_CONNECT_TIMEOUT: std::time::Duration =
@@ -241,7 +241,7 @@ async fn start_embedded_app_server(
     loader_overrides: LoaderOverrides,
     strict_config: bool,
     cloud_config_bundle: CloudConfigBundleLoader,
-    feedback: ditfa_feedback::CodexFeedback,
+    feedback: ditfa_feedback::DitfaFeedback,
     log_db: Option<log_db::LogDbLayer>,
     state_db: Option<StateDbHandle>,
     environment_manager: Arc<EnvironmentManager>,
@@ -359,7 +359,7 @@ fn websocket_url_supports_auth_token(parsed: &Url) -> bool {
 pub fn resolve_remote_addr(addr: &str) -> color_eyre::Result<RemoteAppServerEndpoint> {
     if let Some(socket_path) = addr.strip_prefix("unix://") {
         let socket_path = if socket_path.is_empty() {
-            let ditfa_home = find_codex_home().wrap_err("failed to resolve DITFA_HOME")?;
+            let ditfa_home = find_ditfa_home().wrap_err("failed to resolve DITFA_HOME")?;
             ditfa_app_server_client::app_server_control_socket_path(&ditfa_home)
                 .map_err(color_eyre::Report::new)?
         } else {
@@ -409,7 +409,7 @@ async fn connect_remote_app_server(
 ) -> color_eyre::Result<AppServerClient> {
     let app_server = RemoteAppServerClient::connect(RemoteAppServerConnectArgs {
         endpoint,
-        client_name: "codex-tui".to_string(),
+        client_name: "ditfa-tui".to_string(),
         client_version: env!("CARGO_PKG_VERSION").to_string(),
         experimental_api: true,
         mcp_server_openai_form_elicitation: false,
@@ -451,7 +451,7 @@ async fn maybe_probe_default_daemon_socket(ditfa_home: &Path) -> Option<Absolute
 }
 
 #[cfg(not(unix))]
-async fn maybe_probe_default_daemon_socket(_codex_home: &Path) -> Option<AbsolutePathBuf> {
+async fn maybe_probe_default_daemon_socket(_ditfa_home: &Path) -> Option<AbsolutePathBuf> {
     None
 }
 
@@ -464,7 +464,7 @@ async fn start_app_server(
     loader_overrides: LoaderOverrides,
     strict_config: bool,
     cloud_config_bundle: CloudConfigBundleLoader,
-    feedback: ditfa_feedback::CodexFeedback,
+    feedback: ditfa_feedback::DitfaFeedback,
     log_db: Option<log_db::LogDbLayer>,
     state_db: Option<StateDbHandle>,
     environment_manager: Arc<EnvironmentManager>,
@@ -504,7 +504,7 @@ pub(crate) async fn start_app_server_for_picker(
         LoaderOverrides::default(),
         /*strict_config*/ false,
         CloudConfigBundleLoader::default(),
-        ditfa_feedback::CodexFeedback::new(),
+        ditfa_feedback::DitfaFeedback::new(),
         /*log_db*/ None,
         state_db,
         environment_manager,
@@ -538,7 +538,7 @@ async fn start_embedded_app_server_with<F, Fut>(
     loader_overrides: LoaderOverrides,
     strict_config: bool,
     cloud_config_bundle: CloudConfigBundleLoader,
-    feedback: ditfa_feedback::CodexFeedback,
+    feedback: ditfa_feedback::DitfaFeedback,
     log_db: Option<log_db::LogDbLayer>,
     state_db: Option<StateDbHandle>,
     environment_manager: Arc<EnvironmentManager>,
@@ -572,8 +572,8 @@ where
         config_warnings,
         session_source: serde_json::from_value(serde_json::json!("cli"))
             .unwrap_or_else(|err| panic!("cli session source should deserialize: {err}")),
-        enable_codex_api_key_env: false,
-        client_name: "codex-tui".to_string(),
+        enable_ditfa_api_key_env: false,
+        client_name: "ditfa-tui".to_string(),
         client_version: env!("CARGO_PKG_VERSION").to_string(),
         experimental_api: true,
         mcp_server_openai_form_elicitation: false,
@@ -958,10 +958,10 @@ pub async fn run_main(
 
     // we load config.toml here to determine project state.
     #[allow(clippy::print_stderr)]
-    let ditfa_home = match find_codex_home() {
+    let ditfa_home = match find_ditfa_home() {
         Ok(ditfa_home) => ditfa_home.to_path_buf(),
         Err(err) => {
-            eprintln!("Error finding codex home: {err}");
+            eprintln!("Error finding ditfa home: {err}");
             std::process::exit(1);
         }
     };
@@ -999,7 +999,7 @@ pub async fn run_main(
     )?;
     let environment_manager =
         if should_load_configured_environments(&loader_overrides, &app_server_target) {
-            EnvironmentManager::from_codex_home(ditfa_home.clone(), Some(local_runtime_paths)).await
+            EnvironmentManager::from_ditfa_home(ditfa_home.clone(), Some(local_runtime_paths)).await
         } else {
             EnvironmentManager::from_env(Some(local_runtime_paths)).await
         }
@@ -1040,7 +1040,7 @@ pub async fn run_main(
     )?;
     let cloud_config_bundle = cloud_config_bundle_loader_for_storage(
         ditfa_home.to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         bootstrap_config_toml
             .cli_auth_credentials_store
             .unwrap_or_default(),
@@ -1250,7 +1250,7 @@ pub async fn run_main(
         (None, None)
     };
 
-    let feedback = ditfa_feedback::CodexFeedback::new();
+    let feedback = ditfa_feedback::DitfaFeedback::new();
     let feedback_layer = feedback.logger_layer();
     let feedback_metadata_layer = feedback.metadata_layer();
 
@@ -1321,7 +1321,7 @@ async fn run_ratatui_app(
     overrides: ConfigOverrides,
     cli_kv_overrides: Vec<(String, toml::Value)>,
     mut cloud_config_bundle: CloudConfigBundleLoader,
-    feedback: ditfa_feedback::CodexFeedback,
+    feedback: ditfa_feedback::DitfaFeedback,
     log_db: Option<log_db::LogDbLayer>,
     state_db: Option<StateDbHandle>,
     environment_manager: Arc<EnvironmentManager>,
@@ -1471,7 +1471,7 @@ async fn run_ratatui_app(
         if show_login_screen && !uses_remote_workspace {
             cloud_config_bundle = cloud_config_bundle_loader_for_storage(
                 initial_config.ditfa_home.to_path_buf(),
-                /*enable_codex_api_key_env*/ false,
+                /*enable_ditfa_api_key_env*/ false,
                 initial_config.cli_auth_credentials_store_mode,
                 initial_config.auth_keyring_backend_kind(),
                 initial_config.chatgpt_base_url.clone(),
@@ -1511,7 +1511,7 @@ async fn run_ratatui_app(
             resume_hint: None,
             update_action: None,
             exit_reason: ExitReason::Fatal(format!(
-                "No saved session found with ID {id_str}. Run `codex {action}` without an ID to choose from existing sessions."
+                "No saved session found with ID {id_str}. Run `ditfa {action}` without an ID to choose from existing sessions."
             )),
         })
     };
@@ -1703,7 +1703,7 @@ async fn run_ratatui_app(
     // this must happen after the last possible reload.
     if let Some(w) = crate::render::highlight::set_theme_override(
         config.tui_theme.clone(),
-        find_codex_home().ok().map(AbsolutePathBuf::into_path_buf),
+        find_ditfa_home().ok().map(AbsolutePathBuf::into_path_buf),
     ) {
         config.startup_warnings.push(w);
     }
@@ -2079,7 +2079,7 @@ mod tests {
             id: thread_id,
             timestamp: meta_rfc3339.to_string(),
             cwd: cwd.to_path_buf(),
-            originator: "codex".to_string(),
+            originator: "ditfa".to_string(),
             cli_version: "0.0.0".to_string(),
             source: ditfa_protocol::protocol::SessionSource::Cli,
             model_provider: Some(model_provider.to_string()),
@@ -2155,7 +2155,7 @@ mod tests {
             LoaderOverrides::default(),
             /*strict_config*/ false,
             CloudConfigBundleLoader::default(),
-            ditfa_feedback::CodexFeedback::new(),
+            ditfa_feedback::DitfaFeedback::new(),
             /*log_db*/ None,
             state_db,
             Arc::new(EnvironmentManager::default_for_tests()),
@@ -2174,7 +2174,7 @@ mod tests {
             (CwdPromptAction::Fork, "session", true, "explicit"),
         ] {
             let temp_dir = TempDir::new()?;
-            let ditfa_home = temp_dir.path().join("codex-home");
+            let ditfa_home = temp_dir.path().join("ditfa-home");
             let launch_cwd = temp_dir.path().join("launch");
             let session_cwd = temp_dir.path().join("session");
             let explicit_cwd = temp_dir.path().join("explicit");
@@ -2406,7 +2406,7 @@ mod tests {
 
     #[test]
     fn resolve_remote_addr_accepts_default_socket() -> color_eyre::Result<()> {
-        let ditfa_home = find_codex_home().wrap_err("failed to resolve DITFA_HOME")?;
+        let ditfa_home = find_ditfa_home().wrap_err("failed to resolve DITFA_HOME")?;
         assert_eq!(
             resolve_remote_addr("unix://")?,
             RemoteAppServerEndpoint::UnixSocket {
@@ -2419,9 +2419,9 @@ mod tests {
     #[test]
     fn resolve_remote_addr_accepts_relative_socket_path() -> color_eyre::Result<()> {
         assert_eq!(
-            resolve_remote_addr("unix://codex.sock")?,
+            resolve_remote_addr("unix://ditfa.sock")?,
             RemoteAppServerEndpoint::UnixSocket {
-                socket_path: AbsolutePathBuf::relative_to_current_dir("codex.sock")?,
+                socket_path: AbsolutePathBuf::relative_to_current_dir("ditfa.sock")?,
             }
         );
         Ok(())
@@ -2430,7 +2430,7 @@ mod tests {
     #[test]
     fn resolve_remote_addr_accepts_absolute_socket_path() -> color_eyre::Result<()> {
         let temp_dir = TempDir::new()?;
-        let socket_path = temp_dir.path().join("codex.sock");
+        let socket_path = temp_dir.path().join("ditfa.sock");
         assert_eq!(
             resolve_remote_addr(&format!("unix://{}", socket_path.display()))?,
             RemoteAppServerEndpoint::UnixSocket {
@@ -2485,7 +2485,7 @@ mod tests {
     #[test]
     fn app_server_target_for_launch_uses_local_daemon_for_default_socket() -> color_eyre::Result<()>
     {
-        let socket_path = AbsolutePathBuf::relative_to_current_dir("codex.sock")?;
+        let socket_path = AbsolutePathBuf::relative_to_current_dir("ditfa.sock")?;
         let target = app_server_target_for_launch(
             /*explicit_remote_endpoint*/ None,
             Some(socket_path.clone()),
@@ -2528,7 +2528,7 @@ mod tests {
     #[test]
     fn app_server_target_for_launch_skips_local_daemon_when_launch_config_is_not_replayable()
     -> color_eyre::Result<()> {
-        let socket_path = AbsolutePathBuf::relative_to_current_dir("codex.sock")?;
+        let socket_path = AbsolutePathBuf::relative_to_current_dir("ditfa.sock")?;
         let target = app_server_target_for_launch(
             /*explicit_remote_endpoint*/ None,
             Some(socket_path),
@@ -2582,7 +2582,7 @@ mod tests {
     fn should_load_configured_environments_for_local_daemon() -> color_eyre::Result<()> {
         let target = AppServerTarget::LocalDaemon {
             endpoint: RemoteAppServerEndpoint::UnixSocket {
-                socket_path: AbsolutePathBuf::relative_to_current_dir("codex.sock")?,
+                socket_path: AbsolutePathBuf::relative_to_current_dir("ditfa.sock")?,
             },
         };
 
@@ -2637,7 +2637,7 @@ mod tests {
         let cwd = temp_dir.path().join("project");
         let target = AppServerTarget::LocalDaemon {
             endpoint: RemoteAppServerEndpoint::UnixSocket {
-                socket_path: AbsolutePathBuf::relative_to_current_dir("codex.sock")?,
+                socket_path: AbsolutePathBuf::relative_to_current_dir("ditfa.sock")?,
             },
         };
 
@@ -2878,7 +2878,7 @@ mod tests {
         };
         let target = AppServerTarget::Remote {
             endpoint: RemoteAppServerEndpoint::UnixSocket {
-                socket_path: AbsolutePathBuf::relative_to_current_dir("codex.sock")?,
+                socket_path: AbsolutePathBuf::relative_to_current_dir("ditfa.sock")?,
             },
         };
         let environment_manager = EnvironmentManager::default_for_tests();
@@ -2915,7 +2915,7 @@ mod tests {
         let temp_dir = TempDir::new()?;
         let target = AppServerTarget::LocalDaemon {
             endpoint: RemoteAppServerEndpoint::UnixSocket {
-                socket_path: AbsolutePathBuf::relative_to_current_dir("codex.sock")?,
+                socket_path: AbsolutePathBuf::relative_to_current_dir("ditfa.sock")?,
             },
         };
         let environment_manager = EnvironmentManager::default_for_tests();
@@ -3085,7 +3085,7 @@ mod tests {
             LoaderOverrides::default(),
             /*strict_config*/ false,
             CloudConfigBundleLoader::default(),
-            ditfa_feedback::CodexFeedback::new(),
+            ditfa_feedback::DitfaFeedback::new(),
             /*log_db*/ None,
             /*state_db*/ None,
             Arc::new(EnvironmentManager::default_for_tests()),

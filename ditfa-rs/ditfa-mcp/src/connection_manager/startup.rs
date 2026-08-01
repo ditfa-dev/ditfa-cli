@@ -29,7 +29,7 @@ pub(super) fn chatgpt_auth_provider_for_server(
     chatgpt_auth_provider
 }
 
-pub(super) fn should_share_codex_apps_tools_cache(
+pub(super) fn should_share_ditfa_apps_tools_cache(
     server_name: &str,
     uses_env_bearer_token: bool,
 ) -> bool {
@@ -93,7 +93,7 @@ pub(super) fn mcp_init_error_display(
         StartupOutcomeError::Failed { error, .. } if error.contains("Auth required")
     ) {
         format!(
-            "The {server_name} MCP server is not logged in. Run `codex mcp login {server_name}`."
+            "The {server_name} MCP server is not logged in. Run `ditfa mcp login {server_name}`."
         )
     } else if matches!(
         error,

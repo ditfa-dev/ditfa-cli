@@ -1,5 +1,5 @@
 use ditfa_protocol::config_types::CollaborationMode;
-use ditfa_protocol::protocol::CodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::TokenUsage;
 use ditfa_protocol::protocol::TurnAbortReason;
 
@@ -48,7 +48,7 @@ pub struct TurnErrorInput<'a> {
     /// Stable host-owned turn identifier.
     pub turn_id: &'a str,
     /// Error surfaced by the host for this turn.
-    pub error: CodexErrorInfo,
+    pub error: DitfaErrorInfo,
     /// Store scoped to the host session runtime.
     pub session_store: &'a ExtensionData,
     /// Store scoped to this thread runtime.

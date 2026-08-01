@@ -193,7 +193,7 @@ mod tests {
             agent_path: "/root".to_string(),
             metadata_payload: Some(metadata_payload.clone()),
         })?;
-        writer.append(RawTraceEventPayload::CodexTurnStarted {
+        writer.append(RawTraceEventPayload::DitfaTurnStarted {
             ditfa_turn_id: "turn-1".to_string(),
             thread_id: "thread-root".to_string(),
         })?;
@@ -229,7 +229,7 @@ mod tests {
             upstream_request_id: Some("req-1".to_string()),
             response_payload: inference_response.clone(),
         })?;
-        writer.append(RawTraceEventPayload::CodexTurnEnded {
+        writer.append(RawTraceEventPayload::DitfaTurnEnded {
             ditfa_turn_id: "turn-1".to_string(),
             status: ExecutionStatus::Completed,
         })?;

@@ -16,7 +16,7 @@ use crate::test_support::write_file;
 use crate::test_support::write_openai_api_curated_marketplace;
 use crate::test_support::write_openai_curated_marketplace;
 use ditfa_config::CONFIG_TOML_FILE;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_protocol::auth::AuthMode;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
 use pretty_assertions::assert_eq;
@@ -35,7 +35,7 @@ use wiremock::matchers::path;
 use wiremock::matchers::query_param;
 
 #[tokio::test]
-async fn returns_fallback_plugins_when_remote_disabled_for_codex_auth() {
+async fn returns_fallback_plugins_when_remote_disabled_for_ditfa_auth() {
     let ditfa_home = tempdir().expect("tempdir should succeed");
     write_file(
         &ditfa_home.path().join(CONFIG_TOML_FILE),
@@ -50,7 +50,7 @@ remote_plugin = false
     let plugins = load_plugins_config(ditfa_home.path(), ditfa_home.path()).await;
     let plugins_manager = PluginsManager::new(ditfa_home.path().to_path_buf());
     plugins_manager.set_auth_mode(Some(AuthMode::Chatgpt));
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let discoverable_plugins = list_discoverable_plugins(
         &plugins_manager,
         discovery_input(plugins, &[], &[], &[]),
@@ -79,7 +79,7 @@ async fn returns_api_curated_fallback_plugins_for_direct_provider_auth() {
     let plugins = load_plugins_config(ditfa_home.path(), ditfa_home.path()).await;
     let plugins_manager = PluginsManager::new(ditfa_home.path().to_path_buf());
     plugins_manager.set_auth_mode(Some(AuthMode::ApiKey));
-    let auth = CodexAuth::from_api_key("test-api-key");
+    let auth = DitfaAuth::from_api_key("test-api-key");
     let discoverable_plugins = list_discoverable_plugins(
         &plugins_manager,
         discovery_input(plugins, &[], &[], &[]),
@@ -132,7 +132,7 @@ async fn returns_microsoft_fallback_plugins() {
 }
 
 #[tokio::test]
-async fn omits_openai_curated_but_keeps_configured_marketplaces_for_remote_codex_auth() {
+async fn omits_openai_curated_but_keeps_configured_marketplaces_for_remote_ditfa_auth() {
     let ditfa_home = tempdir().expect("tempdir should succeed");
     let curated_root = curated_plugins_repo_path(ditfa_home.path());
     write_openai_curated_marketplace(&curated_root, &["slack"]);
@@ -170,7 +170,7 @@ source = "/tmp/{bundled_marketplace_name}"
     let plugins = load_plugins_config(ditfa_home.path(), ditfa_home.path()).await;
     let plugins_manager = PluginsManager::new(ditfa_home.path().to_path_buf());
     plugins_manager.set_auth_mode(Some(AuthMode::Chatgpt));
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let discoverable_plugins = list_discoverable_plugins(
         &plugins_manager,
         discovery_input(plugins, &[], &[], &[]),
@@ -845,7 +845,7 @@ plugins = true
         .mount(&server)
         .await;
 
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let mut plugins = load_plugins_config(ditfa_home.path(), ditfa_home.path()).await;
     plugins.chatgpt_base_url = format!("{}/backend-api", server.uri());
     let plugins_manager = PluginsManager::new(ditfa_home.path().to_path_buf());
@@ -922,7 +922,7 @@ fn discovery_input(
 async fn list_discoverable_plugins(
     plugins_manager: &PluginsManager,
     input: ToolSuggestPluginDiscoveryInput,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
 ) -> Vec<ToolSuggestDiscoverablePlugin> {
     plugins_manager
         .list_tool_suggest_discoverable_plugins(&input, auth)

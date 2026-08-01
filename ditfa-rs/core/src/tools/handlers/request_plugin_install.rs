@@ -135,10 +135,10 @@ impl RequestPluginInstallHandler {
         }
         if (requested_tool_type == Some(DiscoverableToolType::Plugin)
             || self.presentation == ToolSuggestPresentation::RecommendationContext)
-            && turn.app_server_client_name.as_deref() == Some("codex-tui")
+            && turn.app_server_client_name.as_deref() == Some("ditfa-tui")
         {
             return Err(FunctionCallError::RespondToModel(
-                "plugin install requests are not available in codex-tui yet".to_string(),
+                "plugin install requests are not available in ditfa-tui yet".to_string(),
             ));
         }
 
@@ -351,7 +351,7 @@ async fn verify_request_plugin_install_completed(
     turn: &crate::session::turn_context::TurnContext,
     mcp: &ditfa_mcp::McpBinding,
     tool: &DiscoverableTool,
-    auth: Option<&ditfa_login::CodexAuth>,
+    auth: Option<&ditfa_login::DitfaAuth>,
 ) -> bool {
     match tool {
         DiscoverableTool::Connector(connector) => refresh_missing_requested_connectors(
@@ -416,7 +416,7 @@ async fn verify_request_plugin_install_completed(
 async fn refresh_remote_installed_plugins_cache_after_install(
     session: &crate::session::session::Session,
     turn: &crate::session::turn_context::TurnContext,
-    auth: Option<&ditfa_login::CodexAuth>,
+    auth: Option<&ditfa_login::DitfaAuth>,
     tool_id: &str,
 ) {
     let plugins_manager = &session.services.plugins_manager;
@@ -446,7 +446,7 @@ async fn refresh_missing_requested_connectors(
     session: &Arc<crate::session::session::Session>,
     turn: &crate::session::turn_context::TurnContext,
     mcp: &ditfa_mcp::McpBinding,
-    auth: Option<&ditfa_login::CodexAuth>,
+    auth: Option<&ditfa_login::DitfaAuth>,
     expected_connector_ids: &[String],
     tool_id: &str,
 ) -> Option<Vec<AppInfo>> {
@@ -463,7 +463,7 @@ async fn refresh_missing_requested_connectors(
         return Some(accessible_connectors);
     }
 
-    match session.hard_refresh_latest_codex_apps_tools().await {
+    match session.hard_refresh_latest_ditfa_apps_tools().await {
         Ok(mcp_tools) => {
             let accessible_connectors = connectors::with_app_enabled_state(
                 connectors::accessible_connectors_from_mcp_tools(&mcp_tools),
@@ -478,7 +478,7 @@ async fn refresh_missing_requested_connectors(
         }
         Err(err) => {
             warn!(
-                "failed to refresh codex apps tools cache after plugin install request for {tool_id}: {err:#}"
+                "failed to refresh ditfa apps tools cache after plugin install request for {tool_id}: {err:#}"
             );
             None
         }

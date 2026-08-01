@@ -7,7 +7,7 @@ use ditfa_analytics::GuardianReviewTrackContext;
 use ditfa_analytics::GuardianReviewedAction;
 use ditfa_protocol::config_types::ApprovalsReviewer;
 use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::CodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::GuardianAssessmentDecisionSource;
 use ditfa_protocol::protocol::GuardianAssessmentEvent;
@@ -84,7 +84,7 @@ pub(super) enum GuardianReviewError {
     },
     Session {
         message: String,
-        error_info: Option<CodexErrorInfo>,
+        error_info: Option<DitfaErrorInfo>,
     },
     Parse {
         message: String,
@@ -107,7 +107,7 @@ impl GuardianReviewError {
         }
     }
 
-    fn session_with_error_info(err: anyhow::Error, error_info: CodexErrorInfo) -> Self {
+    fn session_with_error_info(err: anyhow::Error, error_info: DitfaErrorInfo) -> Self {
         Self::Session {
             message: err.to_string(),
             error_info: Some(error_info),
@@ -622,7 +622,7 @@ pub(crate) fn spawn_approval_request_review(
 ) -> oneshot::Receiver<ReviewDecision> {
     let (tx, rx) = oneshot::channel();
     let spawn_result = std::thread::Builder::new()
-        .name("codex-approval-review".to_string())
+        .name("ditfa-approval-review".to_string())
         .spawn(move || {
             let Ok(runtime) = tokio::runtime::Builder::new_current_thread()
                 .enable_all()
@@ -923,11 +923,11 @@ fn should_retry_guardian_review(outcome: &GuardianReviewOutcome) -> bool {
         GuardianReviewOutcome::Error(
             GuardianReviewError::Session {
                 error_info: Some(
-                    CodexErrorInfo::ServerOverloaded
-                        | CodexErrorInfo::HttpConnectionFailed { .. }
-                        | CodexErrorInfo::ResponseStreamConnectionFailed { .. }
-                        | CodexErrorInfo::InternalServerError
-                        | CodexErrorInfo::ResponseStreamDisconnected { .. }
+                    DitfaErrorInfo::ServerOverloaded
+                        | DitfaErrorInfo::HttpConnectionFailed { .. }
+                        | DitfaErrorInfo::ResponseStreamConnectionFailed { .. }
+                        | DitfaErrorInfo::InternalServerError
+                        | DitfaErrorInfo::ResponseStreamDisconnected { .. }
                 ),
                 ..
             } | GuardianReviewError::Parse { .. }
@@ -948,7 +948,7 @@ mod review_tests {
             GuardianReviewError::session(anyhow::anyhow!("guardian runtime failed"));
         let structured_session_error = GuardianReviewError::session_with_error_info(
             anyhow::anyhow!("temporary guardian failure"),
-            CodexErrorInfo::ServerOverloaded,
+            DitfaErrorInfo::ServerOverloaded,
         );
 
         assert!(matches!(
@@ -978,15 +978,15 @@ mod review_tests {
             rationale: "deny".to_string(),
         };
         let transient_error_info = [
-            CodexErrorInfo::ServerOverloaded,
-            CodexErrorInfo::HttpConnectionFailed {
+            DitfaErrorInfo::ServerOverloaded,
+            DitfaErrorInfo::HttpConnectionFailed {
                 http_status_code: Some(502),
             },
-            CodexErrorInfo::ResponseStreamConnectionFailed {
+            DitfaErrorInfo::ResponseStreamConnectionFailed {
                 http_status_code: Some(503),
             },
-            CodexErrorInfo::InternalServerError,
-            CodexErrorInfo::ResponseStreamDisconnected {
+            DitfaErrorInfo::InternalServerError,
+            DitfaErrorInfo::ResponseStreamDisconnected {
                 http_status_code: None,
             },
         ];
@@ -1019,7 +1019,7 @@ mod review_tests {
             (
                 GuardianReviewOutcome::Error(GuardianReviewError::session_with_error_info(
                     anyhow::anyhow!("bad request"),
-                    CodexErrorInfo::BadRequest,
+                    DitfaErrorInfo::BadRequest,
                 )),
                 false,
             ),

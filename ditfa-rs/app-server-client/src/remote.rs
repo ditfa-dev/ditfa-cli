@@ -604,7 +604,7 @@ impl RemoteAppServerClient {
             event_rx,
             pending_events: _pending_events,
             server_version: _server_version,
-            ditfa_home: _codex_home,
+            ditfa_home: _ditfa_home,
             worker_handle,
         } = self;
         let mut worker_handle = worker_handle;
@@ -840,7 +840,7 @@ where
                                 });
                             ditfa_home = response
                                 .result
-                                .get("codexHome")
+                                .get("ditfaHome")
                                 .and_then(serde_json::Value::as_str)
                                 .filter(|ditfa_home| !ditfa_home.is_empty())
                                 .map(str::to_string);

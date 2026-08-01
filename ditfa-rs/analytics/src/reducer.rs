@@ -3,43 +3,43 @@ use crate::accepted_lines::accepted_line_fingerprint_event_requests;
 use crate::accepted_lines::accepted_line_fingerprints_from_unified_diff;
 use crate::accepted_lines::accepted_line_repo_hash_for_cwd;
 use crate::events::AppServerRpcTransport;
-use crate::events::CodexAppMentionedEventRequest;
-use crate::events::CodexAppServerClientMetadata;
-use crate::events::CodexAppUsedEventRequest;
-use crate::events::CodexCollabAgentToolCallEventParams;
-use crate::events::CodexCollabAgentToolCallEventRequest;
-use crate::events::CodexCommandExecutionEventParams;
-use crate::events::CodexCommandExecutionEventRequest;
-use crate::events::CodexCompactionEventRequest;
-use crate::events::CodexDynamicToolCallEventParams;
-use crate::events::CodexDynamicToolCallEventRequest;
-use crate::events::CodexFileChangeEventParams;
-use crate::events::CodexFileChangeEventRequest;
-use crate::events::CodexGoalEventRequest;
-use crate::events::CodexHookRunEventRequest;
-use crate::events::CodexImageGenerationEventParams;
-use crate::events::CodexImageGenerationEventRequest;
-use crate::events::CodexMcpToolCallEventParams;
-use crate::events::CodexMcpToolCallEventRequest;
-use crate::events::CodexOnboardingExternalAgentImportCompleteEventRequest;
-use crate::events::CodexOnboardingExternalAgentImportCompleteMetadata;
-use crate::events::CodexOnboardingExternalAgentImportFailureEventRequest;
-use crate::events::CodexOnboardingExternalAgentImportFailureMetadata;
-use crate::events::CodexPluginEventRequest;
-use crate::events::CodexPluginInstallFailedEventRequest;
-use crate::events::CodexPluginInstallFailedMetadata;
-use crate::events::CodexPluginInstallRequestedEventRequest;
-use crate::events::CodexPluginUsedEventRequest;
-use crate::events::CodexReviewEventParams;
-use crate::events::CodexReviewEventRequest;
-use crate::events::CodexRuntimeMetadata;
-use crate::events::CodexToolItemEventBase;
-use crate::events::CodexTurnEventParams;
-use crate::events::CodexTurnEventRequest;
-use crate::events::CodexTurnSteerEventParams;
-use crate::events::CodexTurnSteerEventRequest;
-use crate::events::CodexWebSearchEventParams;
-use crate::events::CodexWebSearchEventRequest;
+use crate::events::DitfaAppMentionedEventRequest;
+use crate::events::DitfaAppServerClientMetadata;
+use crate::events::DitfaAppUsedEventRequest;
+use crate::events::DitfaCollabAgentToolCallEventParams;
+use crate::events::DitfaCollabAgentToolCallEventRequest;
+use crate::events::DitfaCommandExecutionEventParams;
+use crate::events::DitfaCommandExecutionEventRequest;
+use crate::events::DitfaCompactionEventRequest;
+use crate::events::DitfaDynamicToolCallEventParams;
+use crate::events::DitfaDynamicToolCallEventRequest;
+use crate::events::DitfaFileChangeEventParams;
+use crate::events::DitfaFileChangeEventRequest;
+use crate::events::DitfaGoalEventRequest;
+use crate::events::DitfaHookRunEventRequest;
+use crate::events::DitfaImageGenerationEventParams;
+use crate::events::DitfaImageGenerationEventRequest;
+use crate::events::DitfaMcpToolCallEventParams;
+use crate::events::DitfaMcpToolCallEventRequest;
+use crate::events::DitfaOnboardingExternalAgentImportCompleteEventRequest;
+use crate::events::DitfaOnboardingExternalAgentImportCompleteMetadata;
+use crate::events::DitfaOnboardingExternalAgentImportFailureEventRequest;
+use crate::events::DitfaOnboardingExternalAgentImportFailureMetadata;
+use crate::events::DitfaPluginEventRequest;
+use crate::events::DitfaPluginInstallFailedEventRequest;
+use crate::events::DitfaPluginInstallFailedMetadata;
+use crate::events::DitfaPluginInstallRequestedEventRequest;
+use crate::events::DitfaPluginUsedEventRequest;
+use crate::events::DitfaReviewEventParams;
+use crate::events::DitfaReviewEventRequest;
+use crate::events::DitfaRuntimeMetadata;
+use crate::events::DitfaToolItemEventBase;
+use crate::events::DitfaTurnEventParams;
+use crate::events::DitfaTurnEventRequest;
+use crate::events::DitfaTurnSteerEventParams;
+use crate::events::DitfaTurnSteerEventRequest;
+use crate::events::DitfaWebSearchEventParams;
+use crate::events::DitfaWebSearchEventRequest;
 use crate::events::FinalApprovalOutcome;
 use crate::events::GuardianReviewEventParams;
 use crate::events::GuardianReviewEventPayload;
@@ -71,8 +71,8 @@ use crate::facts::AnalyticsFact;
 use crate::facts::AnalyticsJsonRpcError;
 use crate::facts::AppMentionedInput;
 use crate::facts::AppUsedInput;
-use crate::facts::CodexCompactionEvent;
-use crate::facts::CodexGoalEvent;
+use crate::facts::DitfaCompactionEvent;
+use crate::facts::DitfaGoalEvent;
 use crate::facts::CustomAnalyticsFact;
 use crate::facts::ExternalAgentConfigImportCompletedInput;
 use crate::facts::ExternalAgentConfigImportFailureInput;
@@ -85,8 +85,8 @@ use crate::facts::PluginUsedInput;
 use crate::facts::SkillInvokedInput;
 use crate::facts::SubAgentThreadStartedInput;
 use crate::facts::ThreadInitializationMode;
-use crate::facts::TurnCodexError;
-use crate::facts::TurnCodexErrorFact;
+use crate::facts::TurnDitfaError;
+use crate::facts::TurnDitfaErrorFact;
 use crate::facts::TurnProfile;
 use crate::facts::TurnProfileFact;
 use crate::facts::TurnResolvedConfigFact;
@@ -100,7 +100,7 @@ use crate::serialize_enum_as_string;
 use crate::usize_to_u64;
 use ditfa_app_server_protocol::ClientRequest;
 use ditfa_app_server_protocol::ClientResponse;
-use ditfa_app_server_protocol::CodexErrorInfo;
+use ditfa_app_server_protocol::DitfaErrorInfo;
 use ditfa_app_server_protocol::CollabAgentStatus;
 use ditfa_app_server_protocol::CollabAgentTool;
 use ditfa_app_server_protocol::CollabAgentToolCallStatus;
@@ -157,8 +157,8 @@ pub(crate) struct AnalyticsReducer {
 }
 
 struct ConnectionState {
-    app_server_client: CodexAppServerClientMetadata,
-    runtime: CodexRuntimeMetadata,
+    app_server_client: DitfaAppServerClientMetadata,
+    runtime: DitfaRuntimeMetadata,
 }
 
 #[derive(Default)]
@@ -172,7 +172,7 @@ impl ThreadAnalyticsState {
     fn app_server_client(
         &self,
         connection_state: &ConnectionState,
-    ) -> CodexAppServerClientMetadata {
+    ) -> DitfaAppServerClientMetadata {
         let mut app_server_client = connection_state.app_server_client.clone();
         if let Some(originator) = self.originator.as_ref() {
             app_server_client.product_client_id.clone_from(originator);
@@ -211,7 +211,7 @@ impl<'a> AnalyticsDropSite<'a> {
         }
     }
 
-    fn compaction(input: &'a CodexCompactionEvent) -> Self {
+    fn compaction(input: &'a DitfaCompactionEvent) -> Self {
         Self {
             event_name: "compaction",
             thread_id: &input.thread_id,
@@ -221,7 +221,7 @@ impl<'a> AnalyticsDropSite<'a> {
         }
     }
 
-    fn goal(input: &'a CodexGoalEvent) -> Self {
+    fn goal(input: &'a DitfaGoalEvent) -> Self {
         Self {
             event_name: "goal",
             thread_id: &input.thread_id,
@@ -352,7 +352,7 @@ struct PendingTurnSteerState {
 #[derive(Clone)]
 struct CompletedTurnState {
     status: Option<TurnStatus>,
-    turn_error: Option<CodexErrorInfo>,
+    turn_error: Option<DitfaErrorInfo>,
     completed_at: u64,
     duration_ms: Option<u64>,
 }
@@ -367,7 +367,7 @@ struct TurnState {
     token_usage: Option<TokenUsage>,
     profile: Option<TurnProfile>,
     completed: Option<CompletedTurnState>,
-    ditfa_error: Option<TurnCodexError>,
+    ditfa_error: Option<TurnDitfaError>,
     latest_diff: Option<String>,
     steer_count: usize,
     tool_counts: TurnToolCounts,
@@ -518,8 +518,8 @@ impl AnalyticsReducer {
                 CustomAnalyticsFact::TurnProfile(input) => {
                     self.ingest_turn_profile(*input, out).await;
                 }
-                CustomAnalyticsFact::TurnCodexError(input) => {
-                    self.ingest_turn_codex_error(*input);
+                CustomAnalyticsFact::TurnDitfaError(input) => {
+                    self.ingest_turn_ditfa_error(*input);
                 }
                 CustomAnalyticsFact::SkillInvoked(input) => {
                     self.ingest_skill_invoked(input, out).await;
@@ -560,13 +560,13 @@ impl AnalyticsReducer {
         connection_id: u64,
         params: InitializeParams,
         product_client_id: String,
-        runtime: CodexRuntimeMetadata,
+        runtime: DitfaRuntimeMetadata,
         rpc_transport: AppServerRpcTransport,
     ) {
         self.connections.insert(
             connection_id,
             ConnectionState {
-                app_server_client: CodexAppServerClientMetadata {
+                app_server_client: DitfaAppServerClientMetadata {
                     product_client_id,
                     client_name: Some(params.client_info.name),
                     client_version: Some(params.client_info.version),
@@ -703,8 +703,8 @@ impl AnalyticsReducer {
         self.maybe_emit_turn_event(&turn_id, out).await;
     }
 
-    fn ingest_turn_codex_error(&mut self, input: TurnCodexErrorFact) {
-        let TurnCodexErrorFact {
+    fn ingest_turn_ditfa_error(&mut self, input: TurnDitfaErrorFact) {
+        let TurnDitfaErrorFact {
             turn_id,
             thread_id,
             error,
@@ -768,7 +768,7 @@ impl AnalyticsReducer {
         let AppMentionedInput { tracking, mentions } = input;
         out.extend(mentions.into_iter().map(|mention| {
             let event_params = ditfa_app_metadata(&tracking, mention);
-            TrackEventRequest::AppMentioned(CodexAppMentionedEventRequest {
+            TrackEventRequest::AppMentioned(DitfaAppMentionedEventRequest {
                 event_type: "ditfa_app_mentioned",
                 event_params,
             })
@@ -778,7 +778,7 @@ impl AnalyticsReducer {
     fn ingest_app_used(&mut self, input: AppUsedInput, out: &mut Vec<TrackEventRequest>) {
         let AppUsedInput { tracking, app } = input;
         let event_params = ditfa_app_metadata(&tracking, app);
-        out.push(TrackEventRequest::AppUsed(CodexAppUsedEventRequest {
+        out.push(TrackEventRequest::AppUsed(DitfaAppUsedEventRequest {
             event_type: "ditfa_app_used",
             event_params,
         }));
@@ -786,7 +786,7 @@ impl AnalyticsReducer {
 
     fn ingest_hook_run(&mut self, input: HookRunInput, out: &mut Vec<TrackEventRequest>) {
         let HookRunInput { tracking, hook } = input;
-        out.push(TrackEventRequest::HookRun(CodexHookRunEventRequest {
+        out.push(TrackEventRequest::HookRun(DitfaHookRunEventRequest {
             event_type: "ditfa_hook_run",
             event_params: ditfa_hook_run_metadata(&tracking, hook),
         }));
@@ -794,7 +794,7 @@ impl AnalyticsReducer {
 
     fn ingest_plugin_used(&mut self, input: PluginUsedInput, out: &mut Vec<TrackEventRequest>) {
         let PluginUsedInput { tracking, plugin } = input;
-        out.push(TrackEventRequest::PluginUsed(CodexPluginUsedEventRequest {
+        out.push(TrackEventRequest::PluginUsed(DitfaPluginUsedEventRequest {
             event_type: "ditfa_plugin_used",
             event_params: ditfa_plugin_used_metadata(&tracking, plugin),
         }));
@@ -807,7 +807,7 @@ impl AnalyticsReducer {
     ) {
         let PluginInstallRequestedInput { tracking, request } = input;
         out.push(TrackEventRequest::PluginInstallRequested(
-            CodexPluginInstallRequestedEventRequest {
+            DitfaPluginInstallRequestedEventRequest {
                 event_type: "ditfa_plugin_install_requested",
                 event_params: ditfa_plugin_install_requested_metadata(&tracking, request),
             },
@@ -820,7 +820,7 @@ impl AnalyticsReducer {
         out: &mut Vec<TrackEventRequest>,
     ) {
         let PluginStateChangedInput { plugin, state } = input;
-        let event = CodexPluginEventRequest {
+        let event = DitfaPluginEventRequest {
             event_type: plugin_state_event_type(state),
             event_params: ditfa_plugin_metadata(plugin),
         };
@@ -844,9 +844,9 @@ impl AnalyticsReducer {
             sub_error_type,
         } = input;
         out.push(TrackEventRequest::PluginInstallFailed(
-            CodexPluginInstallFailedEventRequest {
+            DitfaPluginInstallFailedEventRequest {
                 event_type: "ditfa_plugin_install_failed",
-                event_params: CodexPluginInstallFailedMetadata {
+                event_params: DitfaPluginInstallFailedMetadata {
                     plugin: ditfa_plugin_metadata(plugin),
                     source,
                     error_type,
@@ -862,9 +862,9 @@ impl AnalyticsReducer {
         out: &mut Vec<TrackEventRequest>,
     ) {
         out.push(TrackEventRequest::ExternalAgentConfigImportCompleted(
-            CodexOnboardingExternalAgentImportCompleteEventRequest {
+            DitfaOnboardingExternalAgentImportCompleteEventRequest {
                 event_type: "ditfa_onboarding_external_agent_import_complete",
-                event_params: CodexOnboardingExternalAgentImportCompleteMetadata {
+                event_params: DitfaOnboardingExternalAgentImportCompleteMetadata {
                     import_id: input.import_id,
                     source: input.source,
                     provider_id: input.provider_id,
@@ -883,9 +883,9 @@ impl AnalyticsReducer {
         out: &mut Vec<TrackEventRequest>,
     ) {
         out.push(TrackEventRequest::ExternalAgentConfigImportFailure(
-            CodexOnboardingExternalAgentImportFailureEventRequest {
+            DitfaOnboardingExternalAgentImportFailureEventRequest {
                 event_type: "ditfa_onboarding_external_agent_import_failure",
-                event_params: CodexOnboardingExternalAgentImportFailureMetadata {
+                event_params: DitfaOnboardingExternalAgentImportFailureMetadata {
                     import_id: input.import_id,
                     source: input.source,
                     provider_id: input.provider_id,
@@ -1396,14 +1396,14 @@ impl AnalyticsReducer {
         ));
     }
 
-    fn ingest_compaction(&mut self, input: CodexCompactionEvent, out: &mut Vec<TrackEventRequest>) {
+    fn ingest_compaction(&mut self, input: DitfaCompactionEvent, out: &mut Vec<TrackEventRequest>) {
         let Some((connection_state, thread_state, thread_metadata)) =
             self.thread_context_or_warn(AnalyticsDropSite::compaction(&input))
         else {
             return;
         };
         out.push(TrackEventRequest::Compaction(Box::new(
-            CodexCompactionEventRequest {
+            DitfaCompactionEventRequest {
                 event_type: "ditfa_compaction_event",
                 event_params: ditfa_compaction_event_params(
                     input,
@@ -1418,13 +1418,13 @@ impl AnalyticsReducer {
         )));
     }
 
-    fn ingest_goal(&mut self, input: CodexGoalEvent, out: &mut Vec<TrackEventRequest>) {
+    fn ingest_goal(&mut self, input: DitfaGoalEvent, out: &mut Vec<TrackEventRequest>) {
         let Some((connection_state, thread_state, thread_metadata)) =
             self.thread_context_or_warn(AnalyticsDropSite::goal(&input))
         else {
             return;
         };
-        out.push(TrackEventRequest::Goal(Box::new(CodexGoalEventRequest {
+        out.push(TrackEventRequest::Goal(Box::new(DitfaGoalEventRequest {
             event_type: "ditfa_goal_event",
             event_params: ditfa_goal_event_params(
                 input,
@@ -1526,9 +1526,9 @@ impl AnalyticsReducer {
             warn_missing_analytics_context(&drop_site, MissingAnalyticsContext::ThreadMetadata);
             return;
         };
-        out.push(TrackEventRequest::TurnSteer(CodexTurnSteerEventRequest {
+        out.push(TrackEventRequest::TurnSteer(DitfaTurnSteerEventRequest {
             event_type: "ditfa_turn_steer_event",
-            event_params: CodexTurnSteerEventParams {
+            event_params: DitfaTurnSteerEventParams {
                 thread_id: pending_request.thread_id,
                 session_id: thread_metadata.session_id.clone(),
                 expected_turn_id: Some(pending_request.expected_turn_id),
@@ -1569,9 +1569,9 @@ impl AnalyticsReducer {
         else {
             return;
         };
-        out.push(TrackEventRequest::ReviewEvent(CodexReviewEventRequest {
+        out.push(TrackEventRequest::ReviewEvent(DitfaReviewEventRequest {
             event_type: "ditfa_review_event",
-            event_params: CodexReviewEventParams {
+            event_params: DitfaReviewEventParams {
                 thread_id: pending_review.thread_id,
                 turn_id: pending_review.turn_id,
                 item_id: pending_review.item_id,
@@ -1653,7 +1653,7 @@ impl AnalyticsReducer {
             warn_missing_analytics_context(&drop_site, MissingAnalyticsContext::ThreadMetadata);
             return;
         };
-        let turn_event = TrackEventRequest::TurnEvent(Box::new(CodexTurnEventRequest {
+        let turn_event = TrackEventRequest::TurnEvent(Box::new(DitfaTurnEventRequest {
             event_type: "ditfa_turn_event",
             event_params: ditfa_turn_event_params(
                 thread_state.app_server_client(connection_state),
@@ -1828,9 +1828,9 @@ fn tool_item_event(input: ToolItemEventInput<'_>) -> Option<TrackEventRequest> {
                 },
             );
             Some(TrackEventRequest::CommandExecution(
-                CodexCommandExecutionEventRequest {
+                DitfaCommandExecutionEventRequest {
                     event_type: "ditfa_command_execution_event",
-                    event_params: CodexCommandExecutionEventParams {
+                    event_params: DitfaCommandExecutionEventParams {
                         base,
                         command_execution_source: *source,
                         exit_code: *exit_code,
@@ -1869,9 +1869,9 @@ fn tool_item_event(input: ToolItemEventInput<'_>) -> Option<TrackEventRequest> {
                     review_summary,
                 },
             );
-            Some(TrackEventRequest::FileChange(CodexFileChangeEventRequest {
+            Some(TrackEventRequest::FileChange(DitfaFileChangeEventRequest {
                 event_type: "ditfa_file_change_event",
-                event_params: CodexFileChangeEventParams {
+                event_params: DitfaFileChangeEventParams {
                     base,
                     file_change_count: usize_to_u64(changes.len()),
                     file_add_count: counts.add,
@@ -1913,9 +1913,9 @@ fn tool_item_event(input: ToolItemEventInput<'_>) -> Option<TrackEventRequest> {
                 },
             );
             Some(TrackEventRequest::McpToolCall(
-                CodexMcpToolCallEventRequest {
+                DitfaMcpToolCallEventRequest {
                     event_type: "ditfa_mcp_tool_call_event",
-                    event_params: CodexMcpToolCallEventParams {
+                    event_params: DitfaMcpToolCallEventParams {
                         base,
                         mcp_server_name: server.clone(),
                         mcp_tool_name: tool.clone(),
@@ -1961,9 +1961,9 @@ fn tool_item_event(input: ToolItemEventInput<'_>) -> Option<TrackEventRequest> {
                 },
             );
             Some(TrackEventRequest::DynamicToolCall(
-                CodexDynamicToolCallEventRequest {
+                DitfaDynamicToolCallEventRequest {
                     event_type: "ditfa_dynamic_tool_call_event",
-                    event_params: CodexDynamicToolCallEventParams {
+                    event_params: DitfaDynamicToolCallEventParams {
                         base,
                         dynamic_tool_name: tool.clone(),
                         success: *success,
@@ -2007,9 +2007,9 @@ fn tool_item_event(input: ToolItemEventInput<'_>) -> Option<TrackEventRequest> {
                 },
             );
             Some(TrackEventRequest::CollabAgentToolCall(
-                CodexCollabAgentToolCallEventRequest {
+                DitfaCollabAgentToolCallEventRequest {
                     event_type: "ditfa_collab_agent_tool_call_event",
-                    event_params: CodexCollabAgentToolCallEventParams {
+                    event_params: DitfaCollabAgentToolCallEventParams {
                         base,
                         sender_thread_id: sender_thread_id.clone(),
                         receiver_thread_count: usize_to_u64(receiver_thread_ids.len()),
@@ -2062,9 +2062,9 @@ fn tool_item_event(input: ToolItemEventInput<'_>) -> Option<TrackEventRequest> {
                     review_summary,
                 },
             );
-            Some(TrackEventRequest::WebSearch(CodexWebSearchEventRequest {
+            Some(TrackEventRequest::WebSearch(DitfaWebSearchEventRequest {
                 event_type: "ditfa_web_search_event",
-                event_params: CodexWebSearchEventParams {
+                event_params: DitfaWebSearchEventParams {
                     base,
                     web_search_action: item.action.as_ref().map(web_search_action_kind),
                     query_present: !item.query.trim().is_empty(),
@@ -2094,9 +2094,9 @@ fn tool_item_event(input: ToolItemEventInput<'_>) -> Option<TrackEventRequest> {
                 },
             );
             Some(TrackEventRequest::ImageGeneration(
-                CodexImageGenerationEventRequest {
+                DitfaImageGenerationEventRequest {
                     event_type: "ditfa_image_generation_event",
-                    event_params: CodexImageGenerationEventParams {
+                    event_params: DitfaImageGenerationEventParams {
                         base,
                         revised_prompt_present: item.revised_prompt.is_some(),
                         saved_path_present: item.saved_path.is_some(),
@@ -2156,10 +2156,10 @@ fn tool_item_base(
     tool_name: String,
     outcome: ToolItemOutcome,
     context: ToolItemContext<'_>,
-) -> CodexToolItemEventBase {
+) -> DitfaToolItemEventBase {
     let thread_metadata = context.thread_metadata;
     let review_summary = context.review_summary.cloned().unwrap_or_default();
-    CodexToolItemEventBase {
+    DitfaToolItemEventBase {
         thread_id: thread_id.to_string(),
         session_id: thread_metadata.session_id.clone(),
         turn_id: turn_id.to_string(),
@@ -2572,10 +2572,10 @@ fn accepted_line_event_input(
 
     Some((
         AcceptedLineFingerprintEventInput {
-            event_type: "codex.accepted_line_fingerprints",
+            event_type: "ditfa.accepted_line_fingerprints",
             turn_id: turn_id.to_string(),
             thread_id,
-            product_surface: Some("codex".to_string()),
+            product_surface: Some("ditfa".to_string()),
             model_slug: Some(resolved_config.model.clone()),
             completed_at: now_unix_seconds(),
             repo_hash: None,
@@ -2588,12 +2588,12 @@ fn accepted_line_event_input(
 }
 
 fn ditfa_turn_event_params(
-    app_server_client: CodexAppServerClientMetadata,
-    runtime: CodexRuntimeMetadata,
+    app_server_client: DitfaAppServerClientMetadata,
+    runtime: DitfaRuntimeMetadata,
     turn_id: String,
     turn_state: &TurnState,
     thread_metadata: &ThreadMetadataState,
-) -> CodexTurnEventParams {
+) -> DitfaTurnEventParams {
     let (
         Some(thread_id),
         Some(num_input_images),
@@ -2645,7 +2645,7 @@ fn ditfa_turn_event_params(
     } = profile;
     let token_usage = turn_state.token_usage.clone();
     let ditfa_error = turn_state.ditfa_error.as_ref();
-    CodexTurnEventParams {
+    DitfaTurnEventParams {
         thread_id,
         session_id: thread_metadata.session_id.clone(),
         turn_id,

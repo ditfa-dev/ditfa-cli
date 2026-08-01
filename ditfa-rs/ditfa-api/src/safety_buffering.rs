@@ -1,9 +1,9 @@
 use crate::common::SafetyBufferingTreatment;
 use http::HeaderMap;
 
-pub(crate) const X_DITFA_SAFETY_BUFFERING_ENABLED_HEADER: &str = "x-codex-safety-buffering-enabled";
+pub(crate) const X_DITFA_SAFETY_BUFFERING_ENABLED_HEADER: &str = "x-ditfa-safety-buffering-enabled";
 pub(crate) const X_DITFA_SAFETY_BUFFERING_FASTER_MODEL_HEADER: &str =
-    "x-codex-safety-buffering-faster-model";
+    "x-ditfa-safety-buffering-faster-model";
 
 pub(crate) fn treatment_from_headers(headers: &HeaderMap) -> Option<SafetyBufferingTreatment> {
     if !headers.contains_key(X_DITFA_SAFETY_BUFFERING_ENABLED_HEADER)

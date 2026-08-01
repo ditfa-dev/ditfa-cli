@@ -12,7 +12,7 @@ use ditfa_config::types::AuthKeyringBackendKind;
 use ditfa_config::types::OAuthCredentialsStoreMode;
 use ditfa_connectors::ConnectorRuntimeContextKey;
 use ditfa_exec_server::Environment;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_rmcp_client::StoredOAuthTokens;
 use ditfa_rmcp_client::stored_oauth_credentials;
 use rmcp::model::ElicitationCapability;
@@ -55,7 +55,7 @@ pub(crate) struct McpServerConnectionIdentity {
     resolved_environment: Result<Option<Arc<Environment>>, String>,
     local_stdio_fallback_cwd: Option<PathBuf>,
     referenced_environment_variables: Vec<(String, Option<OsString>)>,
-    runtime_auth: Option<CodexAuth>,
+    runtime_auth: Option<DitfaAuth>,
     runtime_auth_token: Option<String>,
     ditfa_apps_cache_identity: Option<(PathBuf, ConnectorRuntimeContextKey)>,
     client_elicitation_capability: ElicitationCapability,
@@ -72,7 +72,7 @@ impl McpServerConnectionIdentity {
         resolved_environment: &Result<Option<Arc<Environment>>, String>,
         runtime_context: &McpRuntimeContext,
         runtime_auth_provider: Option<&SharedAuthProvider>,
-        auth: Option<&CodexAuth>,
+        auth: Option<&DitfaAuth>,
         ditfa_apps_cache_identity: Option<(PathBuf, ConnectorRuntimeContextKey)>,
         client_elicitation_capability: ElicitationCapability,
         supports_openai_form_elicitation: bool,
@@ -132,7 +132,7 @@ impl McpServerConnectionIdentity {
 
     pub(crate) fn has_same_connection_config(&self, other: &Self) -> bool {
         let same_runtime_auth = match (&self.runtime_auth, &other.runtime_auth) {
-            (Some(CodexAuth::AgentIdentity(left)), Some(CodexAuth::AgentIdentity(right))) => {
+            (Some(DitfaAuth::AgentIdentity(left)), Some(DitfaAuth::AgentIdentity(right))) => {
                 left.record() == right.record()
             }
             (Some(left), Some(right)) => {

@@ -1,4 +1,4 @@
-use core_test_support::test_codex::local_selections;
+use core_test_support::test_ditfa::local_selections;
 use std::fs;
 
 use anyhow::Result;
@@ -7,7 +7,7 @@ use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use ditfa_core::StartThreadOptions;
 use ditfa_core::compact::SUMMARY_PREFIX;
 use ditfa_features::Feature;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::auth::AgentIdentityAuth;
 use ditfa_login::auth::AgentIdentityAuthRecord;
 use ditfa_protocol::account::PlanType as AccountPlanType;
@@ -46,9 +46,9 @@ use core_test_support::responses::mount_sse_once;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_websocket_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::TestCodexBuilder;
-use core_test_support::test_codex::TestCodexHarness;
-use core_test_support::test_codex::test_codex as base_test_codex;
+use core_test_support::test_ditfa::TestDitfaBuilder;
+use core_test_support::test_ditfa::TestDitfaHarness;
+use core_test_support::test_ditfa::test_ditfa as base_test_ditfa;
 use core_test_support::test_path_buf;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_event_match;
@@ -166,7 +166,7 @@ fn canonical_json(value: &Value) -> Value {
 
 const PRETURN_CONTEXT_DIFF_CWD: &str = "/tmp/PRETURN_CONTEXT_DIFF_CWD";
 const DUMMY_FUNCTION_NAME: &str = "test_tool";
-const TURN_STATE_HEADER: &str = "x-codex-turn-state";
+const TURN_STATE_HEADER: &str = "x-ditfa-turn-state";
 const REMOTE_COMPACT_TURN_COMPLETE_TIMEOUT: Duration = Duration::from_secs(30);
 const TEST_AGENT_IDENTITY_PRIVATE_KEY: &str =
     "MC4CAQAwBQYDK2VwBCIEIJ7kFBaOujmoz1gvBNEC+BeM2IX87FFB0xmISOZ/XO0c";
@@ -200,18 +200,18 @@ fn compacted_summary_only_output(summary: &str) -> Vec<ResponseItem> {
     }]
 }
 
-fn test_codex() -> TestCodexBuilder {
-    base_test_codex().with_config(|config| {
+fn test_ditfa() -> TestDitfaBuilder {
+    base_test_ditfa().with_config(|config| {
         let _ = config.features.disable(Feature::RemoteCompactionV2);
     })
 }
 
-fn remote_realtime_test_codex_builder(
+fn remote_realtime_test_ditfa_builder(
     realtime_server: &responses::WebSocketTestServer,
-) -> TestCodexBuilder {
+) -> TestDitfaBuilder {
     let realtime_base_url = realtime_server.uri().to_string();
-    test_codex()
-        .with_auth(CodexAuth::from_api_key("dummy"))
+    test_ditfa()
+        .with_auth(DitfaAuth::from_api_key("dummy"))
         .with_config(move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
         })
@@ -237,15 +237,15 @@ async fn start_remote_realtime_server() -> responses::WebSocketTestServer {
     .await
 }
 
-async fn start_realtime_conversation(codex: &ditfa_core::CodexThread) -> Result<()> {
-    codex
+async fn start_realtime_conversation(ditfa: &ditfa_core::DitfaThread) -> Result<()> {
+    ditfa
         .submit(Op::RealtimeConversationStart(ConversationStartParams {
             client_managed_handoffs: false,
             flush_transcript_tail_on_session_end: false,
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -259,7 +259,7 @@ async fn start_realtime_conversation(codex: &ditfa_core::CodexThread) -> Result<
         }))
         .await?;
 
-    wait_for_event_match(codex, |msg| match msg {
+    wait_for_event_match(ditfa, |msg| match msg {
         EventMsg::RealtimeConversationStarted(started) => Some(Ok(started.clone())),
         EventMsg::Error(err) => Some(Err(err.clone())),
         _ => None,
@@ -267,7 +267,7 @@ async fn start_realtime_conversation(codex: &ditfa_core::CodexThread) -> Result<
     .await
     .expect("conversation start failed");
 
-    wait_for_event_match(codex, |msg| match msg {
+    wait_for_event_match(ditfa, |msg| match msg {
         EventMsg::RealtimeConversationRealtime(RealtimeConversationRealtimeEvent {
             payload:
                 RealtimeEvent::SessionUpdated {
@@ -282,9 +282,9 @@ async fn start_realtime_conversation(codex: &ditfa_core::CodexThread) -> Result<
     Ok(())
 }
 
-async fn close_realtime_conversation(codex: &ditfa_core::CodexThread) -> Result<()> {
-    codex.submit(Op::RealtimeConversationClose).await?;
-    wait_for_event_match(codex, |msg| match msg {
+async fn close_realtime_conversation(ditfa: &ditfa_core::DitfaThread) -> Result<()> {
+    ditfa.submit(Op::RealtimeConversationClose).await?;
+    wait_for_event_match(ditfa, |msg| match msg {
         EventMsg::RealtimeConversationClosed(closed) => Some(closed.clone()),
         _ => None,
     })
@@ -335,9 +335,9 @@ fn assert_request_contains_realtime_end(request: &responses::ResponsesRequest) {
     );
 }
 
-async fn wait_for_turn_complete(codex: &ditfa_core::CodexThread) {
+async fn wait_for_turn_complete(ditfa: &ditfa_core::DitfaThread) {
     wait_for_event_with_timeout(
-        codex,
+        ditfa,
         |ev| matches!(ev, EventMsg::TurnComplete(_)),
         REMOTE_COMPACT_TURN_COMPLETE_TIMEOUT,
     )
@@ -348,11 +348,11 @@ async fn wait_for_turn_complete(codex: &ditfa_core::CodexThread) {
 async fn remote_compact_replaces_history_for_followups() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex().with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing()),
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa().with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing()),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
     let session_id = harness.test().session_configured.session_id.to_string();
     let thread_id = harness.test().session_configured.thread_id.to_string();
 
@@ -382,7 +382,7 @@ async fn remote_compact_replaces_history_for_followups() -> Result<()> {
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello remote compact".into(),
@@ -394,12 +394,12 @@ async fn remote_compact_replaces_history_for_followups() -> Result<()> {
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
-    codex.submit(Op::Compact).await?;
-    wait_for_turn_complete(&codex).await;
+    ditfa.submit(Op::Compact).await?;
+    wait_for_turn_complete(&ditfa).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "after compact".into(),
@@ -411,7 +411,7 @@ async fn remote_compact_replaces_history_for_followups() -> Result<()> {
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
     let compact_request = compact_mock.single_request();
     assert_eq!(compact_request.path(), "/v1/responses/compact");
@@ -438,7 +438,7 @@ async fn remote_compact_replaces_history_for_followups() -> Result<()> {
     )
     .expect("remote compact turn metadata should be valid json");
     assert_eq!(
-        compact_request.header("x-codex-installation-id").as_deref(),
+        compact_request.header("x-ditfa-installation-id").as_deref(),
         compact_metadata["installation_id"].as_str()
     );
     assert!(
@@ -577,8 +577,8 @@ async fn remote_compact_replaces_history_for_followups() -> Result<()> {
 async fn remote_compact_uses_agent_identity_assertion() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex().with_auth(CodexAuth::AgentIdentity(
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa().with_auth(DitfaAuth::AgentIdentity(
             AgentIdentityAuth::from_record(
                 AgentIdentityAuthRecord {
                     agent_runtime_id: "agent-runtime-compact".to_string(),
@@ -597,7 +597,7 @@ async fn remote_compact_uses_agent_identity_assertion() -> Result<()> {
         )),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     let _responses_mock = responses::mount_sse_once(
         harness.server(),
@@ -613,7 +613,7 @@ async fn remote_compact_uses_agent_identity_assertion() -> Result<()> {
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello remote compact".into(),
@@ -625,10 +625,10 @@ async fn remote_compact_uses_agent_identity_assertion() -> Result<()> {
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
-    codex.submit(Op::Compact).await?;
-    wait_for_turn_complete(&codex).await;
+    ditfa.submit(Op::Compact).await?;
+    wait_for_turn_complete(&ditfa).await;
 
     let compact_request = compact_mock.single_request();
     assert_eq!(compact_request.path(), "/v1/responses/compact");
@@ -647,20 +647,20 @@ async fn remote_compact_uses_agent_identity_assertion() -> Result<()> {
 }
 
 async fn assert_remote_manual_compact_request_parity(
-    auth: CodexAuth,
+    auth: DitfaAuth,
     configured_service_tier: Option<ServiceTier>,
     expected_service_tier: Option<&str>,
     snapshot_name: &str,
     scenario: &str,
 ) -> Result<()> {
-    let mut builder = test_codex().with_auth(auth);
+    let mut builder = test_ditfa().with_auth(auth);
     if let Some(service_tier) = configured_service_tier {
         builder = builder.with_config(move |config| {
             config.service_tier = Some(service_tier.request_value().to_string());
         });
     }
-    let harness = TestCodexHarness::with_builder(builder).await?;
-    let codex = harness.test().ditfa.clone();
+    let harness = TestDitfaHarness::with_builder(builder).await?;
+    let ditfa = harness.test().ditfa.clone();
     let image_url =
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
             .to_string();
@@ -718,7 +718,7 @@ async fn assert_remote_manual_compact_request_parity(
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "TURN_ONE_USER".to_string(),
@@ -730,9 +730,9 @@ async fn assert_remote_manual_compact_request_parity(
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![
                 UserInput::Text {
@@ -750,9 +750,9 @@ async fn assert_remote_manual_compact_request_parity(
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "TURN_THREE_TOOL_USER".to_string(),
@@ -764,9 +764,9 @@ async fn assert_remote_manual_compact_request_parity(
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![
                 UserInput::Image {
@@ -784,9 +784,9 @@ async fn assert_remote_manual_compact_request_parity(
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "TURN_FIVE_USER".to_string(),
@@ -798,10 +798,10 @@ async fn assert_remote_manual_compact_request_parity(
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
-    codex.submit(Op::Compact).await?;
-    wait_for_turn_complete(&codex).await;
+    ditfa.submit(Op::Compact).await?;
+    wait_for_turn_complete(&ditfa).await;
 
     let response_requests = responses_mock.requests();
     assert_eq!(
@@ -887,7 +887,7 @@ async fn remote_manual_compact_api_auth_omits_service_tier_and_reuses_prompt_cac
     skip_if_no_network!(Ok(()));
 
     assert_remote_manual_compact_request_parity(
-        CodexAuth::from_api_key("dummy"),
+        DitfaAuth::from_api_key("dummy"),
         Some(ServiceTier::Fast),
         /*expected_service_tier*/ None,
         "remote_manual_compact_api_auth_prompt_cache_key_request_diff",
@@ -904,7 +904,7 @@ async fn remote_manual_compact_chatgpt_auth_reuses_service_tier_and_prompt_cache
     skip_if_no_network!(Ok(()));
 
     assert_remote_manual_compact_request_parity(
-        CodexAuth::create_dummy_chatgpt_auth_for_testing(),
+        DitfaAuth::create_dummy_chatgpt_auth_for_testing(),
         Some(ServiceTier::Fast),
         Some("priority"),
         "remote_manual_compact_chatgpt_auth_service_tier_prompt_cache_key_request_diff",
@@ -919,15 +919,15 @@ async fn remote_manual_compact_chatgpt_auth_reuses_service_tier_and_prompt_cache
 async fn remote_compact_v2_reuses_compaction_trigger_for_followups() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config(|config| {
                 let _ = config.features.enable(Feature::RemoteCompactionV2);
             }),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     let responses_mock = responses::mount_sse_sequence(
         harness.server(),
@@ -954,7 +954,7 @@ async fn remote_compact_v2_reuses_compaction_trigger_for_followups() -> Result<(
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello remote compact".into(),
@@ -966,12 +966,12 @@ async fn remote_compact_v2_reuses_compaction_trigger_for_followups() -> Result<(
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
-    codex.submit(Op::Compact).await?;
-    wait_for_turn_complete(&codex).await;
+    ditfa.submit(Op::Compact).await?;
+    wait_for_turn_complete(&ditfa).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "after compact".into(),
@@ -983,13 +983,13 @@ async fn remote_compact_v2_reuses_compaction_trigger_for_followups() -> Result<(
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
     let response_requests = responses_mock.requests();
     let compact_request = &response_requests[1];
     assert!(
         compact_request
-            .header("x-codex-beta-features")
+            .header("x-ditfa-beta-features")
             .as_deref()
             .is_some_and(|value| value
                 .split(',')
@@ -1057,9 +1057,9 @@ async fn remote_compact_v2_reuses_compaction_trigger_for_followups() -> Result<(
 async fn remote_compact_v2_retries_failures_with_stream_retry_budget() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config(|config| {
                 let _ = config.features.enable(Feature::RemoteCompactionV2);
                 config.model_provider.request_max_retries = Some(0);
@@ -1067,7 +1067,7 @@ async fn remote_compact_v2_retries_failures_with_stream_retry_budget() -> Result
             }),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     let responses_mock = responses::mount_response_sequence(
         harness.server(),
@@ -1102,7 +1102,7 @@ async fn remote_compact_v2_retries_failures_with_stream_retry_budget() -> Result
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello remote compact".into(),
@@ -1114,12 +1114,12 @@ async fn remote_compact_v2_retries_failures_with_stream_retry_budget() -> Result
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
-    codex.submit(Op::Compact).await?;
-    wait_for_turn_complete(&codex).await;
+    ditfa.submit(Op::Compact).await?;
+    wait_for_turn_complete(&ditfa).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "after compact".into(),
@@ -1131,7 +1131,7 @@ async fn remote_compact_v2_retries_failures_with_stream_retry_budget() -> Result
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
     let response_requests = responses_mock.requests();
     assert_eq!(
@@ -1169,15 +1169,15 @@ async fn remote_compact_v2_retries_failures_with_stream_retry_budget() -> Result
 async fn remote_compact_v2_accepts_additional_output_items_before_compaction() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config(|config| {
                 let _ = config.features.enable(Feature::RemoteCompactionV2);
             }),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     let responses_mock = responses::mount_sse_sequence(
         harness.server(),
@@ -1205,7 +1205,7 @@ async fn remote_compact_v2_accepts_additional_output_items_before_compaction() -
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello remote compact".into(),
@@ -1217,12 +1217,12 @@ async fn remote_compact_v2_accepts_additional_output_items_before_compaction() -
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
-    codex.submit(Op::Compact).await?;
-    wait_for_turn_complete(&codex).await;
+    ditfa.submit(Op::Compact).await?;
+    wait_for_turn_complete(&ditfa).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "after compact".into(),
@@ -1234,7 +1234,7 @@ async fn remote_compact_v2_accepts_additional_output_items_before_compaction() -
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
     let response_requests = responses_mock.requests();
     let follow_up_request = response_requests.last().expect("follow-up request missing");
@@ -1260,7 +1260,7 @@ async fn remote_compact_filters_deferred_dynamic_tools() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let mut builder = test_codex().with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+    let mut builder = test_ditfa().with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let mut test = builder.build(&server).await?;
     let hidden_tool = "hidden_dynamic_tool";
     let visible_tool = "visible_dynamic_tool";
@@ -1271,7 +1271,7 @@ async fn remote_compact_filters_deferred_dynamic_tools() -> Result<()> {
     });
     let dynamic_tools = vec![DynamicToolSpec::Namespace(DynamicToolNamespaceSpec {
         name: "ditfa_app".to_string(),
-        description: "Codex app tools.".to_string(),
+        description: "Ditfa app tools.".to_string(),
         tools: vec![
             DynamicToolNamespaceTool::Function(DynamicToolFunctionSpec {
                 name: hidden_tool.to_string(),
@@ -1296,7 +1296,7 @@ async fn remote_compact_filters_deferred_dynamic_tools() -> Result<()> {
         .await?;
     test.ditfa = new_thread.thread;
     test.session_configured = new_thread.session_configured;
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
 
     let responses_mock = mount_sse_once(
         &server,
@@ -1314,7 +1314,7 @@ async fn remote_compact_filters_deferred_dynamic_tools() -> Result<()> {
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello remote compact".into(),
@@ -1326,10 +1326,10 @@ async fn remote_compact_filters_deferred_dynamic_tools() -> Result<()> {
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
-    codex.submit(Op::Compact).await?;
-    wait_for_turn_complete(&codex).await;
+    ditfa.submit(Op::Compact).await?;
+    wait_for_turn_complete(&ditfa).await;
 
     let first_response_body = responses_mock.single_request().body_json();
     let compact_body = compact_mock.single_request().body_json();
@@ -1381,8 +1381,8 @@ async fn remote_compact_does_not_charge_inline_audio_payload_as_text() -> Result
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_model_info_override("gpt-5.5", |model_info| {
             model_info.input_modalities.push(InputModality::Audio);
         })
@@ -1475,11 +1475,11 @@ async fn remote_compact_does_not_charge_inline_audio_payload_as_text() -> Result
 async fn remote_compact_runs_automatically() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex().with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing()),
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa().with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing()),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
     let session_id = harness.test().session_configured.session_id.to_string();
     let thread_id = harness.test().session_configured.thread_id.to_string();
 
@@ -1506,7 +1506,7 @@ async fn remote_compact_runs_automatically() -> Result<()> {
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello remote compact".into(),
@@ -1519,12 +1519,12 @@ async fn remote_compact_runs_automatically() -> Result<()> {
         })
         .await?;
 
-    let message = wait_for_event_match(&codex, |event| match event {
+    let message = wait_for_event_match(&ditfa, |event| match event {
         EventMsg::ContextCompacted(_) => Some(true),
         _ => None,
     })
     .await;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
     assert!(message);
     assert_eq!(compact_mock.requests().len(), 1);
     assert_eq!(
@@ -1613,16 +1613,16 @@ async fn remote_compact_trims_function_call_history_to_fit_context_window() -> R
     let retained_command = "echo retained-shell-output";
     let trimmed_command = "yes x | head -n 3000";
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config(|config| {
                 config.model_context_window = Some(2_000);
                 config.model_auto_compact_token_limit = Some(200_000);
             }),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     responses::mount_sse_sequence(
         harness.server(),
@@ -1643,7 +1643,7 @@ async fn remote_compact_trims_function_call_history_to_fit_context_window() -> R
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: first_user_message.into(),
@@ -1655,9 +1655,9 @@ async fn remote_compact_trims_function_call_history_to_fit_context_window() -> R
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: second_user_message.into(),
@@ -1669,7 +1669,7 @@ async fn remote_compact_trims_function_call_history_to_fit_context_window() -> R
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
     let compact_mock = responses::mount_compact_user_history_with_summary_once(
         harness.server(),
@@ -1677,8 +1677,8 @@ async fn remote_compact_trims_function_call_history_to_fit_context_window() -> R
     )
     .await;
 
-    codex.submit(Op::Compact).await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    ditfa.submit(Op::Compact).await?;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
     let compact_request = compact_mock.single_request();
     let user_messages = compact_request.message_input_texts("user");
@@ -1740,16 +1740,16 @@ async fn remote_compact_rewrites_multiple_trailing_function_call_outputs() -> Re
     let first_trimmed_command = "yes x | head -n 3000";
     let second_trimmed_command = "yes y | head -n 3000";
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config(|config| {
                 config.model_context_window = Some(2_000);
                 config.model_auto_compact_token_limit = Some(200_000);
             }),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     responses::mount_sse_sequence(
         harness.server(),
@@ -1771,7 +1771,7 @@ async fn remote_compact_rewrites_multiple_trailing_function_call_outputs() -> Re
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: first_user_message.into(),
@@ -1783,9 +1783,9 @@ async fn remote_compact_rewrites_multiple_trailing_function_call_outputs() -> Re
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: second_user_message.into(),
@@ -1797,7 +1797,7 @@ async fn remote_compact_rewrites_multiple_trailing_function_call_outputs() -> Re
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
     let compact_mock = responses::mount_compact_user_history_with_summary_once(
         harness.server(),
@@ -1805,8 +1805,8 @@ async fn remote_compact_rewrites_multiple_trailing_function_call_outputs() -> Re
     )
     .await;
 
-    codex.submit(Op::Compact).await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    ditfa.submit(Op::Compact).await?;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
     let compact_request = compact_mock.single_request();
     assert!(
@@ -1857,16 +1857,16 @@ async fn auto_remote_compact_trims_function_call_history_to_fit_context_window()
     let trimmed_call_id = "trimmed-call";
     let retained_command = "echo retained-shell-output";
     let trimmed_command = "yes x | head -n 3000";
-    let harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config(|config| {
                 config.model_context_window = Some(2_000);
                 config.model_auto_compact_token_limit = Some(200_000);
             }),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     responses::mount_sse_sequence(
         harness.server(),
@@ -1897,7 +1897,7 @@ async fn auto_remote_compact_trims_function_call_history_to_fit_context_window()
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: first_user_message.into(),
@@ -1909,9 +1909,9 @@ async fn auto_remote_compact_trims_function_call_history_to_fit_context_window()
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: second_user_message.into(),
@@ -1923,7 +1923,7 @@ async fn auto_remote_compact_trims_function_call_history_to_fit_context_window()
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
     let compact_mock = responses::mount_compact_user_history_with_summary_once(
         harness.server(),
@@ -1931,7 +1931,7 @@ async fn auto_remote_compact_trims_function_call_history_to_fit_context_window()
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "turn that triggers auto compact".into(),
@@ -1943,7 +1943,7 @@ async fn auto_remote_compact_trims_function_call_history_to_fit_context_window()
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
     assert_eq!(
         compact_mock.requests().len(),
         1,
@@ -2033,7 +2033,7 @@ async fn remote_compact_trims_tool_search_output_to_empty_tools_array() -> Resul
     });
     let dynamic_tool = DynamicToolSpec::Namespace(DynamicToolNamespaceSpec {
         name: "ditfa_app".to_string(),
-        description: "Codex app tools.".to_string(),
+        description: "Ditfa app tools.".to_string(),
         tools: vec![DynamicToolNamespaceTool::Function(
             DynamicToolFunctionSpec {
                 name: tool_name.to_string(),
@@ -2044,8 +2044,8 @@ async fn remote_compact_trims_tool_search_output_to_empty_tools_array() -> Resul
         )],
     });
 
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(|config| {
             configure_search_capable_model(config);
             config.model_context_window = Some(2_000);
@@ -2060,9 +2060,9 @@ async fn remote_compact_trims_tool_search_output_to_empty_tools_array() -> Resul
         .await?;
     test.ditfa = new_thread.thread;
     test.session_configured = new_thread.session_configured;
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "Find the oversized deferred tool".to_string(),
@@ -2074,14 +2074,14 @@ async fn remote_compact_trims_tool_search_output_to_empty_tools_array() -> Resul
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
     let compact_mock =
         responses::mount_compact_user_history_with_summary_once(&server, "REMOTE_COMPACT_SUMMARY")
             .await;
 
-    codex.submit(Op::Compact).await?;
-    wait_for_turn_complete(&codex).await;
+    ditfa.submit(Op::Compact).await?;
+    wait_for_turn_complete(&ditfa).await;
 
     let compact_request = compact_mock.single_request();
     let compact_tools = compact_request
@@ -2109,15 +2109,15 @@ async fn remote_compact_trims_tool_search_output_to_empty_tools_array() -> Resul
 async fn auto_remote_compact_failure_stops_agent_loop() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config(|config| {
                 config.model_auto_compact_token_limit = Some(120);
             }),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     mount_sse_once(
         harness.server(),
@@ -2142,7 +2142,7 @@ async fn auto_remote_compact_failure_stops_agent_loop() -> Result<()> {
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "turn that exceeds token threshold".into(),
@@ -2154,9 +2154,9 @@ async fn auto_remote_compact_failure_stops_agent_loop() -> Result<()> {
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "turn that triggers auto compact".into(),
@@ -2169,12 +2169,12 @@ async fn auto_remote_compact_failure_stops_agent_loop() -> Result<()> {
         })
         .await?;
 
-    let error_message = wait_for_event_match(&codex, |event| match event {
+    let error_message = wait_for_event_match(&ditfa, |event| match event {
         EventMsg::Error(err) => Some(err.message.clone()),
         _ => None,
     })
     .await;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
     assert!(
         error_message.contains("Error running remote compact task"),
@@ -2218,15 +2218,15 @@ async fn remote_compact_trim_estimate_uses_session_base_instructions() -> Result
     let retained_command = "printf retained-shell-output";
     let trailing_command = "printf '%020000d' 0";
 
-    let baseline_harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let baseline_harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config(|config| {
                 config.model_context_window = Some(200_000);
             }),
     )
     .await?;
-    let baseline_codex = baseline_harness.test().ditfa.clone();
+    let baseline_ditfa = baseline_harness.test().ditfa.clone();
 
     responses::mount_sse_sequence(
         baseline_harness.server(),
@@ -2250,7 +2250,7 @@ async fn remote_compact_trim_estimate_uses_session_base_instructions() -> Result
     )
     .await;
 
-    baseline_codex
+    baseline_ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: first_user_message.into(),
@@ -2262,12 +2262,12 @@ async fn remote_compact_trim_estimate_uses_session_base_instructions() -> Result
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&baseline_codex, |event| {
+    wait_for_event(&baseline_ditfa, |event| {
         matches!(event, EventMsg::TurnComplete(_))
     })
     .await;
 
-    baseline_codex
+    baseline_ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: second_user_message.into(),
@@ -2279,7 +2279,7 @@ async fn remote_compact_trim_estimate_uses_session_base_instructions() -> Result
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&baseline_codex, |event| {
+    wait_for_event(&baseline_ditfa, |event| {
         matches!(event, EventMsg::TurnComplete(_))
     })
     .await;
@@ -2290,8 +2290,8 @@ async fn remote_compact_trim_estimate_uses_session_base_instructions() -> Result
     )
     .await;
 
-    baseline_codex.submit(Op::Compact).await?;
-    wait_for_event(&baseline_codex, |event| {
+    baseline_ditfa.submit(Op::Compact).await?;
+    wait_for_event(&baseline_ditfa, |event| {
         matches!(event, EventMsg::TurnComplete(_))
     })
     .await;
@@ -2322,9 +2322,9 @@ async fn remote_compact_trim_estimate_uses_session_base_instructions() -> Result
         "expected override instructions to push pre-trim estimate past the context window"
     );
 
-    let override_harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let override_harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config({
                 let override_base_instructions = override_base_instructions.clone();
                 move |config| {
@@ -2334,7 +2334,7 @@ async fn remote_compact_trim_estimate_uses_session_base_instructions() -> Result
             }),
     )
     .await?;
-    let override_codex = override_harness.test().ditfa.clone();
+    let override_ditfa = override_harness.test().ditfa.clone();
 
     responses::mount_sse_sequence(
         override_harness.server(),
@@ -2358,7 +2358,7 @@ async fn remote_compact_trim_estimate_uses_session_base_instructions() -> Result
     )
     .await;
 
-    override_codex
+    override_ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: first_user_message.into(),
@@ -2370,12 +2370,12 @@ async fn remote_compact_trim_estimate_uses_session_base_instructions() -> Result
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&override_codex, |event| {
+    wait_for_event(&override_ditfa, |event| {
         matches!(event, EventMsg::TurnComplete(_))
     })
     .await;
 
-    override_codex
+    override_ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: second_user_message.into(),
@@ -2387,7 +2387,7 @@ async fn remote_compact_trim_estimate_uses_session_base_instructions() -> Result
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&override_codex, |event| {
+    wait_for_event(&override_ditfa, |event| {
         matches!(event, EventMsg::TurnComplete(_))
     })
     .await;
@@ -2398,8 +2398,8 @@ async fn remote_compact_trim_estimate_uses_session_base_instructions() -> Result
     )
     .await;
 
-    override_codex.submit(Op::Compact).await?;
-    wait_for_event(&override_codex, |event| {
+    override_ditfa.submit(Op::Compact).await?;
+    wait_for_event(&override_ditfa, |event| {
         matches!(event, EventMsg::TurnComplete(_))
     })
     .await;
@@ -2430,11 +2430,11 @@ async fn remote_compact_trim_estimate_uses_session_base_instructions() -> Result
 async fn remote_manual_compact_emits_context_compaction_items() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex().with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing()),
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa().with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing()),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     mount_sse_once(
         harness.server(),
@@ -2451,7 +2451,7 @@ async fn remote_manual_compact_emits_context_compaction_items() -> Result<()> {
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "manual remote compact".into(),
@@ -2463,9 +2463,9 @@ async fn remote_manual_compact_emits_context_compaction_items() -> Result<()> {
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
-    codex.submit(Op::Compact).await?;
+    ditfa.submit(Op::Compact).await?;
 
     let mut started_item = None;
     let mut completed_item = None;
@@ -2474,7 +2474,7 @@ async fn remote_manual_compact_emits_context_compaction_items() -> Result<()> {
 
     while !saw_turn_complete || started_item.is_none() || completed_item.is_none() || !legacy_event
     {
-        let event = codex.next_event().await.unwrap();
+        let event = ditfa.next_event().await.unwrap();
         match event.msg {
             EventMsg::ItemStarted(ItemStartedEvent {
                 item: TurnItem::ContextCompaction(item),
@@ -2511,11 +2511,11 @@ async fn remote_manual_compact_emits_context_compaction_items() -> Result<()> {
 async fn remote_manual_compact_failure_emits_task_error_event() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex().with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing()),
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa().with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing()),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     mount_sse_once(
         harness.server(),
@@ -2532,7 +2532,7 @@ async fn remote_manual_compact_failure_emits_task_error_event() -> Result<()> {
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "manual remote compact".into(),
@@ -2544,11 +2544,11 @@ async fn remote_manual_compact_failure_emits_task_error_event() -> Result<()> {
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
-    codex.submit(Op::Compact).await?;
+    ditfa.submit(Op::Compact).await?;
 
-    let error_message = wait_for_event_match(&codex, |event| match event {
+    let error_message = wait_for_event_match(&ditfa, |event| match event {
         EventMsg::Error(err) => Some(err.message.clone()),
         _ => None,
     })
@@ -2562,7 +2562,7 @@ async fn remote_manual_compact_failure_emits_task_error_event() -> Result<()> {
             || error_message.contains("invalid type: string"),
         "expected invalid compact payload details, got {error_message}"
     );
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
     assert_eq!(compact_mock.requests().len(), 1);
 
@@ -2576,11 +2576,11 @@ async fn remote_manual_compact_failure_emits_task_error_event() -> Result<()> {
 async fn remote_compact_persists_replacement_history_in_rollout() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex().with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing()),
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa().with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing()),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
     let rollout_path = harness
         .test()
         .session_configured
@@ -2619,7 +2619,7 @@ async fn remote_compact_persists_replacement_history_in_rollout() -> Result<()> 
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "needs compaction".into(),
@@ -2631,13 +2631,13 @@ async fn remote_compact_persists_replacement_history_in_rollout() -> Result<()> 
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
-    codex.submit(Op::Compact).await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    ditfa.submit(Op::Compact).await?;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
-    codex.submit(Op::Shutdown).await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::ShutdownComplete)).await;
+    ditfa.submit(Op::Shutdown).await?;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::ShutdownComplete)).await;
 
     assert_eq!(responses_mock.requests().len(), 1);
     assert_eq!(compact_mock.requests().len(), 1);
@@ -2716,7 +2716,7 @@ async fn remote_compact_and_resume_refresh_stale_developer_instructions() -> Res
     let stale_developer_message = "STALE_DEVELOPER_INSTRUCTIONS_SHOULD_BE_REMOVED";
 
     let mut start_builder =
-        test_codex().with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        test_ditfa().with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let initial = start_builder.build(&server).await?;
     let home = initial.home.clone();
     let rollout_path = initial
@@ -2806,7 +2806,7 @@ async fn remote_compact_and_resume_refresh_stale_developer_instructions() -> Res
     .await;
 
     let mut resume_builder =
-        test_codex().with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        test_ditfa().with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let resumed = resume_builder.resume(&server, home, rollout_path).await?;
 
     resumed
@@ -2869,7 +2869,7 @@ async fn remote_compact_refreshes_stale_developer_instructions_without_resume() 
     let server = wiremock::MockServer::start().await;
     let stale_developer_message = "STALE_DEVELOPER_INSTRUCTIONS_SHOULD_BE_REMOVED";
 
-    let mut builder = test_codex().with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+    let mut builder = test_ditfa().with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let test = builder.build(&server).await?;
 
     let responses_mock = responses::mount_sse_sequence(
@@ -2967,7 +2967,7 @@ async fn snapshot_request_shape_remote_pre_turn_compaction_restates_realtime_sta
 
     let server = wiremock::MockServer::start().await;
     let realtime_server = start_remote_realtime_server().await;
-    let mut builder = remote_realtime_test_codex_builder(&realtime_server).with_config(|config| {
+    let mut builder = remote_realtime_test_ditfa_builder(&realtime_server).with_config(|config| {
         config.model_auto_compact_token_limit = Some(200);
     });
     let test = builder.build(&server).await?;
@@ -3060,7 +3060,7 @@ async fn remote_request_uses_custom_experimental_realtime_start_instructions() -
     let server = wiremock::MockServer::start().await;
     let realtime_server = start_remote_realtime_server().await;
     let custom_instructions = "custom realtime start instructions";
-    let mut builder = remote_realtime_test_codex_builder(&realtime_server).with_config({
+    let mut builder = remote_realtime_test_ditfa_builder(&realtime_server).with_config({
         let custom_instructions = custom_instructions.to_string();
         move |config| {
             config.experimental_realtime_start_instructions = Some(custom_instructions);
@@ -3110,7 +3110,7 @@ async fn active_realtime_does_not_diff_changed_start_instructions_after_resume()
     let server = wiremock::MockServer::start().await;
     let initial_realtime_server = start_remote_realtime_server().await;
     let initial_instructions = "initial custom realtime start instructions";
-    let mut initial_builder = remote_realtime_test_codex_builder(&initial_realtime_server)
+    let mut initial_builder = remote_realtime_test_ditfa_builder(&initial_realtime_server)
         .with_config({
             let initial_instructions = initial_instructions.to_string();
             move |config| {
@@ -3145,7 +3145,7 @@ async fn active_realtime_does_not_diff_changed_start_instructions_after_resume()
 
     let resumed_realtime_server = start_remote_realtime_server().await;
     let changed_instructions = "changed custom realtime start instructions";
-    let mut resume_builder = remote_realtime_test_codex_builder(&resumed_realtime_server)
+    let mut resume_builder = remote_realtime_test_ditfa_builder(&resumed_realtime_server)
         .with_config({
             let changed_instructions = changed_instructions.to_string();
             move |config| {
@@ -3181,7 +3181,7 @@ async fn snapshot_request_shape_remote_manual_compact_restates_realtime_start() 
 
     let server = wiremock::MockServer::start().await;
     let realtime_server = start_remote_realtime_server().await;
-    let mut builder = remote_realtime_test_codex_builder(&realtime_server);
+    let mut builder = remote_realtime_test_ditfa_builder(&realtime_server);
     let test = builder.build(&server).await?;
 
     let responses_mock = responses::mount_sse_sequence(
@@ -3275,7 +3275,7 @@ async fn snapshot_request_shape_remote_mid_turn_compaction_does_not_restate_real
 
     let server = wiremock::MockServer::start().await;
     let realtime_server = start_remote_realtime_server().await;
-    let mut builder = remote_realtime_test_codex_builder(&realtime_server).with_config(|config| {
+    let mut builder = remote_realtime_test_ditfa_builder(&realtime_server).with_config(|config| {
         config.model_auto_compact_token_limit = Some(200);
     });
     let test = builder.build(&server).await?;
@@ -3381,15 +3381,15 @@ async fn snapshot_request_shape_remote_pre_turn_compaction_including_incoming_us
 -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config(|config| {
                 config.model_auto_compact_token_limit = Some(200);
             }),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     let responses_mock = responses::mount_sse_sequence(
         harness.server(),
@@ -3419,7 +3419,7 @@ async fn snapshot_request_shape_remote_pre_turn_compaction_including_incoming_us
     for user in ["USER_ONE", "USER_TWO", "USER_THREE"] {
         if user == "USER_THREE" {
             core_test_support::submit_thread_settings(
-                &codex,
+                &ditfa,
                 ditfa_protocol::protocol::ThreadSettingsOverrides {
                     environments: Some(local_selections(
                         test_path_buf(PRETURN_CONTEXT_DIFF_CWD).abs(),
@@ -3429,7 +3429,7 @@ async fn snapshot_request_shape_remote_pre_turn_compaction_including_incoming_us
             )
             .await?;
         }
-        codex
+        ditfa
             .submit(Op::UserInput {
                 items: vec![UserInput::Text {
                     text: user.to_string(),
@@ -3441,7 +3441,7 @@ async fn snapshot_request_shape_remote_pre_turn_compaction_including_incoming_us
                 thread_settings: Default::default(),
             })
             .await?;
-        wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+        wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
     }
 
     assert_eq!(compact_mock.requests().len(), 1);
@@ -3483,16 +3483,16 @@ async fn snapshot_request_shape_remote_pre_turn_compaction_strips_incoming_model
 
     let previous_model = "gpt-5.4";
     let next_model = "gpt-5.2";
-    let harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_model(previous_model)
             .with_config(|config| {
                 config.model_auto_compact_token_limit = Some(200);
             }),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     let initial_turn_request_mock = responses::mount_sse_once(
         harness.server(),
@@ -3516,7 +3516,7 @@ async fn snapshot_request_shape_remote_pre_turn_compaction_strips_incoming_model
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "BEFORE_SWITCH_USER".to_string(),
@@ -3528,17 +3528,17 @@ async fn snapshot_request_shape_remote_pre_turn_compaction_strips_incoming_model
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     core_test_support::submit_thread_settings(
-        &codex,
+        &ditfa,
         ditfa_protocol::protocol::ThreadSettingsOverrides {
             model: Some(next_model.to_string()),
             ..Default::default()
         },
     )
     .await?;
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "AFTER_SWITCH_USER".to_string(),
@@ -3550,7 +3550,7 @@ async fn snapshot_request_shape_remote_pre_turn_compaction_strips_incoming_model
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     assert_eq!(
         compact_mock.requests().len(),
@@ -3619,15 +3619,15 @@ async fn snapshot_request_shape_remote_pre_turn_compaction_strips_incoming_model
 async fn snapshot_request_shape_remote_pre_turn_compaction_context_window_exceeded() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config(|config| {
                 config.model_auto_compact_token_limit = Some(200);
             }),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     let responses_mock = responses::mount_sse_sequence(
         harness.server(),
@@ -3657,7 +3657,7 @@ async fn snapshot_request_shape_remote_pre_turn_compaction_context_window_exceed
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "USER_ONE".to_string(),
@@ -3669,9 +3669,9 @@ async fn snapshot_request_shape_remote_pre_turn_compaction_context_window_exceed
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "USER_TWO".to_string(),
@@ -3683,12 +3683,12 @@ async fn snapshot_request_shape_remote_pre_turn_compaction_context_window_exceed
             thread_settings: Default::default(),
         })
         .await?;
-    let error_message = wait_for_event_match(&codex, |event| match event {
+    let error_message = wait_for_event_match(&ditfa, |event| match event {
         EventMsg::Error(err) => Some(err.message.clone()),
         _ => None,
     })
     .await;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     assert_eq!(compact_mock.requests().len(), 1);
     let requests = responses_mock.requests();
@@ -3725,15 +3725,15 @@ async fn snapshot_request_shape_remote_pre_turn_compaction_context_window_exceed
 async fn remote_pre_turn_compact_response_seeds_turn_state() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config(|config| {
                 config.model_auto_compact_token_limit = Some(200);
             }),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     let responses_mock = responses::mount_response_sequence(
         harness.server(),
@@ -3763,7 +3763,7 @@ async fn remote_pre_turn_compact_response_seeds_turn_state() -> Result<()> {
     // Phase 1: the first turn raises usage above the pre-turn compact threshold.
     // Phase 2: the next turn compacts before sampling and establishes turn state.
     for text in ["BEFORE_COMPACT_USER", "AFTER_COMPACT_USER"] {
-        codex
+        ditfa
             .submit(Op::UserInput {
                 items: vec![UserInput::Text {
                     text: text.to_string(),
@@ -3775,7 +3775,7 @@ async fn remote_pre_turn_compact_response_seeds_turn_state() -> Result<()> {
                 thread_settings: Default::default(),
             })
             .await?;
-        wait_for_turn_complete(&codex).await;
+        wait_for_turn_complete(&ditfa).await;
     }
 
     // Phase 3: compact starts empty, and its returned state is sent to the first sample.
@@ -3798,15 +3798,15 @@ async fn remote_pre_turn_compact_response_seeds_turn_state() -> Result<()> {
 async fn remote_mid_turn_compact_v1_sends_turn_state_over_http() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config(|config| {
                 config.model_auto_compact_token_limit = Some(200);
             }),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
     let responses_mock = responses::mount_response_sequence(
         harness.server(),
         vec![
@@ -3839,7 +3839,7 @@ async fn remote_mid_turn_compact_v1_sends_turn_state_over_http() -> Result<()> {
     .await;
 
     // Phase 1: sampling mints state and crosses the token limit with a pending tool follow-up.
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "RUN_WITH_MID_TURN_COMPACT".to_string(),
@@ -3851,7 +3851,7 @@ async fn remote_mid_turn_compact_v1_sends_turn_state_over_http() -> Result<()> {
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
     // Phase 2: v1 compact receives the state established by sampling.
     let compact_request = compact_mock.single_request();
@@ -3881,16 +3881,16 @@ async fn remote_mid_turn_compact_v1_sends_turn_state_over_http() -> Result<()> {
 async fn remote_mid_turn_compact_v2_sends_turn_state_over_http() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config(|config| {
                 let _ = config.features.enable(Feature::RemoteCompactionV2);
                 config.model_auto_compact_token_limit = Some(200);
             }),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
     let responses_mock = responses::mount_response_sequence(
         harness.server(),
         vec![
@@ -3924,7 +3924,7 @@ async fn remote_mid_turn_compact_v2_sends_turn_state_over_http() -> Result<()> {
     .await;
 
     // Phase 1: sampling mints state and schedules inline v2 compaction.
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "RUN_WITH_MID_TURN_COMPACT_V2".to_string(),
@@ -3936,7 +3936,7 @@ async fn remote_mid_turn_compact_v2_sends_turn_state_over_http() -> Result<()> {
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
     let requests = responses_mock.requests();
     assert_eq!(requests.len(), 4);
@@ -4017,8 +4017,8 @@ async fn remote_mid_turn_compact_v2_sends_turn_state_over_websocket() -> Result<
         ],
     ]])
     .await;
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(|config| {
             let _ = config.features.enable(Feature::RemoteCompactionV2);
             config.model_auto_compact_token_limit = Some(200);
@@ -4074,15 +4074,15 @@ async fn remote_mid_turn_compact_v2_sends_turn_state_over_websocket() -> Result<
 async fn snapshot_request_shape_remote_mid_turn_continuation_compaction() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config(|config| {
                 config.model_auto_compact_token_limit = Some(200);
             }),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     let responses_mock = responses::mount_sse_sequence(
         harness.server(),
@@ -4105,7 +4105,7 @@ async fn snapshot_request_shape_remote_mid_turn_continuation_compaction() -> Res
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "USER_ONE".to_string(),
@@ -4117,7 +4117,7 @@ async fn snapshot_request_shape_remote_mid_turn_continuation_compaction() -> Res
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     assert_eq!(compact_mock.requests().len(), 1);
     let requests = responses_mock.requests();
@@ -4147,15 +4147,15 @@ async fn snapshot_request_shape_remote_mid_turn_compaction_summary_only_reinject
 -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config(|config| {
                 config.model_auto_compact_token_limit = Some(200);
             }),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     let initial_turn_request_mock = responses::mount_sse_once(
         harness.server(),
@@ -4185,7 +4185,7 @@ async fn snapshot_request_shape_remote_mid_turn_compaction_summary_only_reinject
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "USER_ONE".to_string(),
@@ -4197,7 +4197,7 @@ async fn snapshot_request_shape_remote_mid_turn_compaction_summary_only_reinject
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     assert_eq!(compact_mock.requests().len(), 1);
     assert_eq!(
@@ -4235,15 +4235,15 @@ async fn snapshot_request_shape_remote_mid_turn_compaction_multi_summary_reinjec
 -> Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex()
-            .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa()
+            .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
             .with_config(|config| {
                 config.model_auto_compact_token_limit = Some(200);
             }),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     let setup_turn_request_mock = responses::mount_sse_once(
         harness.server(),
@@ -4271,7 +4271,7 @@ async fn snapshot_request_shape_remote_mid_turn_compaction_multi_summary_reinjec
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "USER_ONE".to_string(),
@@ -4283,12 +4283,12 @@ async fn snapshot_request_shape_remote_mid_turn_compaction_multi_summary_reinjec
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
-    codex.submit(Op::Compact).await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    ditfa.submit(Op::Compact).await?;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "USER_TWO".to_string(),
@@ -4300,7 +4300,7 @@ async fn snapshot_request_shape_remote_mid_turn_compaction_multi_summary_reinjec
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     assert_eq!(compact_mock.requests().len(), 2);
     assert_eq!(
@@ -4348,11 +4348,11 @@ async fn snapshot_request_shape_remote_manual_compact_without_previous_user_mess
 {
     skip_if_no_network!(Ok(()));
 
-    let harness = TestCodexHarness::with_builder(
-        test_codex().with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing()),
+    let harness = TestDitfaHarness::with_builder(
+        test_ditfa().with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing()),
     )
     .await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     let responses_mock = responses::mount_sse_once(
         harness.server(),
@@ -4367,10 +4367,10 @@ async fn snapshot_request_shape_remote_manual_compact_without_previous_user_mess
         responses::mount_compact_json_once(harness.server(), serde_json::json!({ "output": [] }))
             .await;
 
-    codex.submit(Op::Compact).await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    ditfa.submit(Op::Compact).await?;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "USER_ONE".to_string(),
@@ -4382,7 +4382,7 @@ async fn snapshot_request_shape_remote_manual_compact_without_previous_user_mess
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     assert_eq!(
         compact_mock.requests().len(),

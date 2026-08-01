@@ -24,7 +24,7 @@ use toml::Value as TomlValue;
 use tracing::instrument;
 use tracing::warn;
 
-/// Shared app-server entry point for loading effective Codex configuration.
+/// Shared app-server entry point for loading effective Ditfa configuration.
 #[derive(Clone)]
 pub(crate) struct ConfigManager {
     ditfa_home: PathBuf,
@@ -169,7 +169,7 @@ impl ConfigManager {
     }
 
     pub(crate) async fn load_default_config(&self) -> std::io::Result<Config> {
-        let mut config = Config::load_default_with_cli_overrides_for_codex_home(
+        let mut config = Config::load_default_with_cli_overrides_for_ditfa_home(
             self.ditfa_home.clone(),
             self.current_cli_overrides(),
         )

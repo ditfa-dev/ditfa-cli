@@ -8,7 +8,7 @@ from .targets import TargetSpec
 from .targets import resolve_input_path
 
 
-RG_MANIFEST = REPO_ROOT / "scripts" / "codex_package" / "rg"
+RG_MANIFEST = REPO_ROOT / "scripts" / "ditfa_package" / "rg"
 
 
 def resolve_rg_bin(spec: TargetSpec, rg_bin: Path | None) -> Path:

@@ -1,7 +1,7 @@
 use crate::types::AccountsCheckResponse;
 use crate::types::CodeTaskDetailsResponse;
-use crate::types::CodexUserSettingsResponse;
-use crate::types::CodexWorkspaceMessagesResponse;
+use crate::types::DitfaUserSettingsResponse;
+use crate::types::DitfaWorkspaceMessagesResponse;
 use crate::types::ConfigBundleResponse;
 use crate::types::PaginatedListTaskListItem;
 use crate::types::RateLimitReachedKind as BackendRateLimitReachedKind;
@@ -14,8 +14,8 @@ use ditfa_http_client::ClientRouteClass;
 use ditfa_http_client::HttpClientFactory;
 use ditfa_http_client::RouteAwareClientPool;
 use ditfa_http_client::RouteAwareRequestBuilder;
-use ditfa_login::CodexAuth;
-use ditfa_login::default_client::get_codex_user_agent;
+use ditfa_login::DitfaAuth;
+use ditfa_login::default_client::get_ditfa_user_agent;
 use ditfa_protocol::account::PlanType as AccountPlanType;
 use ditfa_protocol::protocol::CreditsSnapshot;
 use ditfa_protocol::protocol::RateLimitReachedType;
@@ -108,8 +108,8 @@ struct SendAddCreditsNudgeEmailRequest {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PathStyle {
-    /// /api/codex/…
-    CodexApi,
+    /// /api/ditfa/…
+    DitfaApi,
     /// /wham/…
     ChatGptApi,
 }
@@ -119,7 +119,7 @@ impl PathStyle {
         if base_url.contains("/backend-api") {
             PathStyle::ChatGptApi
         } else {
-            PathStyle::CodexApi
+            PathStyle::DitfaApi
         }
     }
 }
@@ -183,11 +183,11 @@ impl Client {
 
     pub fn from_auth(
         base_url: impl Into<String>,
-        auth: &CodexAuth,
+        auth: &DitfaAuth,
         http_client_factory: HttpClientFactory,
     ) -> Self {
         Self::new(base_url, http_client_factory)
-            .with_user_agent(get_codex_user_agent())
+            .with_user_agent(get_ditfa_user_agent())
             .with_auth_provider(ditfa_model_provider::auth_provider_from_auth(auth))
     }
 
@@ -223,7 +223,7 @@ impl Client {
         if let Some(ua) = &self.user_agent {
             h.insert(USER_AGENT, ua.clone());
         } else {
-            h.insert(USER_AGENT, HeaderValue::from_static("codex-cli"));
+            h.insert(USER_AGENT, HeaderValue::from_static("ditfa-cli"));
         }
         self.auth_provider.add_auth_headers(&mut h);
         if let Some(acc) = &self.chatgpt_account_id
@@ -305,7 +305,7 @@ impl Client {
         let snapshots = self.get_rate_limits_many().await?;
         let preferred = snapshots
             .iter()
-            .find(|snapshot| snapshot.limit_id.as_deref() == Some("codex"))
+            .find(|snapshot| snapshot.limit_id.as_deref() == Some("ditfa"))
             .cloned();
         Ok(preferred.unwrap_or_else(|| snapshots[0].clone()))
     }
@@ -316,7 +316,7 @@ impl Client {
 
     pub async fn get_accounts_check(&self) -> Result<AccountsCheckResponse> {
         let url = match self.path_style {
-            PathStyle::CodexApi => format!("{}/api/codex/accounts/check", self.base_url),
+            PathStyle::DitfaApi => format!("{}/api/codex/accounts/check", self.base_url),
             PathStyle::ChatGptApi => format!("{}/wham/accounts/check", self.base_url),
         };
         let req = self.request(Method::GET, &url).headers(self.headers());
@@ -333,7 +333,7 @@ impl Client {
 
     fn token_usage_profile_url(&self) -> String {
         match self.path_style {
-            PathStyle::CodexApi => format!("{}/api/codex/profiles/me", self.base_url),
+            PathStyle::DitfaApi => format!("{}/api/codex/profiles/me", self.base_url),
             PathStyle::ChatGptApi => format!("{}/wham/profiles/me", self.base_url),
         }
     }
@@ -373,7 +373,7 @@ impl Client {
         cursor: Option<&str>,
     ) -> Result<String> {
         let url = match self.path_style {
-            PathStyle::CodexApi => format!("{}/api/codex/tasks/list", self.base_url),
+            PathStyle::DitfaApi => format!("{}/api/codex/tasks/list", self.base_url),
             PathStyle::ChatGptApi => format!("{}/wham/tasks/list", self.base_url),
         };
         if limit.is_none() && task_filter.is_none() && environment_id.is_none() && cursor.is_none()
@@ -409,7 +409,7 @@ impl Client {
         task_id: &str,
     ) -> Result<(CodeTaskDetailsResponse, String, String)> {
         let url = match self.path_style {
-            PathStyle::CodexApi => format!("{}/api/codex/tasks/{}", self.base_url, task_id),
+            PathStyle::DitfaApi => format!("{}/api/codex/tasks/{}", self.base_url, task_id),
             PathStyle::ChatGptApi => format!("{}/wham/tasks/{}", self.base_url, task_id),
         };
         let req = self.request(Method::GET, &url).headers(self.headers());
@@ -424,7 +424,7 @@ impl Client {
         turn_id: &str,
     ) -> Result<TurnAttemptsSiblingTurnsResponse> {
         let url = match self.path_style {
-            PathStyle::CodexApi => format!(
+            PathStyle::DitfaApi => format!(
                 "{}/api/codex/tasks/{}/turns/{}/sibling_turns",
                 self.base_url, task_id, turn_id
             ),
@@ -438,15 +438,15 @@ impl Client {
         self.decode_json::<TurnAttemptsSiblingTurnsResponse>(&url, &ct, &body)
     }
 
-    /// Fetch the selected cloud-managed config bundle from codex-backend.
+    /// Fetch the selected cloud-managed config bundle from ditfa-backend.
     ///
-    /// `GET /api/codex/config/bundle` (Ditfa API style) or
+    /// `GET /api/ditfa/config/bundle` (Ditfa API style) or
     /// `GET /wham/config/bundle` (ChatGPT backend-api style).
     pub async fn get_config_bundle(
         &self,
     ) -> std::result::Result<ConfigBundleResponse, RequestError> {
         let url = match self.path_style {
-            PathStyle::CodexApi => format!("{}/api/codex/config/bundle", self.base_url),
+            PathStyle::DitfaApi => format!("{}/api/codex/config/bundle", self.base_url),
             PathStyle::ChatGptApi => format!("{}/wham/config/bundle", self.base_url),
         };
         let req = self.request(Method::GET, &url).headers(self.headers());
@@ -455,13 +455,13 @@ impl Client {
             .map_err(RequestError::from)
     }
 
-    /// Fetch authenticated Codex user settings from the active backend route.
+    /// Fetch authenticated Ditfa user settings from the active backend route.
     ///
-    /// Uses `GET /api/codex/settings/user` for Ditfa API hosts and
+    /// Uses `GET /api/ditfa/settings/user` for Ditfa API hosts and
     /// `GET /wham/settings/user` for ChatGPT `backend-api` hosts.
     pub async fn get_user_settings(
         &self,
-    ) -> std::result::Result<CodexUserSettingsResponse, RequestError> {
+    ) -> std::result::Result<DitfaUserSettingsResponse, RequestError> {
         let url = self.user_settings_url();
         let req = self
             .request(Method::GET, &url)
@@ -471,20 +471,20 @@ impl Client {
                 HeaderValue::from_static("no-cache, no-store"),
             );
         let (body, ct) = self.exec_request_detailed(req, "GET", &url).await?;
-        self.decode_json::<CodexUserSettingsResponse>(&url, &ct, &body)
+        self.decode_json::<DitfaUserSettingsResponse>(&url, &ct, &body)
             .map_err(RequestError::from)
     }
 
     pub async fn list_workspace_messages(
         &self,
-    ) -> std::result::Result<CodexWorkspaceMessagesResponse, RequestError> {
+    ) -> std::result::Result<DitfaWorkspaceMessagesResponse, RequestError> {
         let url = self.workspace_messages_url();
         let req = self
             .request(Method::GET, &url)
             .headers(self.headers())
             .header(CACHE_CONTROL, HeaderValue::from_static("no-store"));
         let (body, ct) = self.exec_request_detailed(req, "GET", &url).await?;
-        self.decode_json::<CodexWorkspaceMessagesResponse>(&url, &ct, &body)
+        self.decode_json::<DitfaWorkspaceMessagesResponse>(&url, &ct, &body)
             .map_err(RequestError::from)
     }
 
@@ -492,7 +492,7 @@ impl Client {
     /// based on `path_style`. Returns the created task id.
     pub async fn create_task(&self, request_body: serde_json::Value) -> Result<String> {
         let url = match self.path_style {
-            PathStyle::CodexApi => format!("{}/api/codex/tasks", self.base_url),
+            PathStyle::DitfaApi => format!("{}/api/codex/tasks", self.base_url),
             PathStyle::ChatGptApi => format!("{}/wham/tasks", self.base_url),
         };
         let req = self
@@ -532,7 +532,7 @@ impl Client {
             .flatten()
             .and_then(|details| Self::map_rate_limit_reached_type(details.kind));
         let mut snapshots = vec![Self::make_rate_limit_snapshot(
-            Some("codex".to_string()),
+            Some("ditfa".to_string()),
             /*limit_name*/ None,
             payload.rate_limit.flatten().map(|details| *details),
             payload.credits.flatten().map(|details| *details),
@@ -614,7 +614,7 @@ impl Client {
 
     fn send_add_credits_nudge_email_url(&self) -> String {
         match self.path_style {
-            PathStyle::CodexApi => format!(
+            PathStyle::DitfaApi => format!(
                 "{}/api/codex/accounts/send_add_credits_nudge_email",
                 self.base_url
             ),
@@ -629,14 +629,14 @@ impl Client {
 
     fn workspace_messages_url(&self) -> String {
         match self.path_style {
-            PathStyle::CodexApi => format!("{}/api/codex/workspace-messages", self.base_url),
+            PathStyle::DitfaApi => format!("{}/api/codex/workspace-messages", self.base_url),
             PathStyle::ChatGptApi => format!("{}/wham/workspace-messages", self.base_url),
         }
     }
 
     fn user_settings_url(&self) -> String {
         match self.path_style {
-            PathStyle::CodexApi => format!("{}/api/codex/settings/user", self.base_url),
+            PathStyle::DitfaApi => format!("{}/api/codex/settings/user", self.base_url),
             PathStyle::ChatGptApi => format!("{}/wham/settings/user", self.base_url),
         }
     }
@@ -806,7 +806,7 @@ mod tests {
         let snapshots = Client::rate_limit_snapshots_from_payload(payload);
         assert_eq!(snapshots.len(), 2);
 
-        assert_eq!(snapshots[0].limit_id.as_deref(), Some("codex"));
+        assert_eq!(snapshots[0].limit_id.as_deref(), Some("ditfa"));
         assert_eq!(snapshots[0].limit_name, None);
         assert_eq!(
             snapshots[0].primary.as_ref().map(|w| w.used_percent),
@@ -870,7 +870,7 @@ mod tests {
 
         let snapshots = Client::rate_limit_snapshots_from_payload(payload);
         assert_eq!(snapshots.len(), 2);
-        assert_eq!(snapshots[0].limit_id.as_deref(), Some("codex"));
+        assert_eq!(snapshots[0].limit_id.as_deref(), Some("ditfa"));
         assert_eq!(snapshots[0].limit_name, None);
         assert_eq!(snapshots[0].primary, None);
         assert_eq!(snapshots[1].limit_id.as_deref(), Some("ditfa_other"));
@@ -919,8 +919,8 @@ mod tests {
                 rate_limit_reached_type: None,
             },
             RateLimitSnapshot {
-                limit_id: Some("codex".to_string()),
-                limit_name: Some("codex".to_string()),
+                limit_id: Some("ditfa".to_string()),
+                limit_name: Some("ditfa".to_string()),
                 primary: Some(RateLimitWindow {
                     used_percent: 10.0,
                     window_minutes: Some(60),
@@ -937,10 +937,10 @@ mod tests {
 
         let preferred = snapshots
             .iter()
-            .find(|snapshot| snapshot.limit_id.as_deref() == Some("codex"))
+            .find(|snapshot| snapshot.limit_id.as_deref() == Some("ditfa"))
             .cloned()
             .unwrap_or_else(|| snapshots[0].clone());
-        assert_eq!(preferred.limit_id.as_deref(), Some("codex"));
+        assert_eq!(preferred.limit_id.as_deref(), Some("ditfa"));
     }
 
     #[test]
@@ -1001,7 +1001,7 @@ mod tests {
 
     #[test]
     fn add_credits_nudge_email_uses_expected_paths_and_bodies() {
-        let ditfa_client = test_client("https://example.test", PathStyle::CodexApi);
+        let ditfa_client = test_client("https://example.test", PathStyle::DitfaApi);
         assert_eq!(
             ditfa_client.send_add_credits_nudge_email_url(),
             "https://example.test/api/codex/accounts/send_add_credits_nudge_email"
@@ -1031,7 +1031,7 @@ mod tests {
 
     #[test]
     fn token_usage_profile_uses_expected_paths() {
-        let ditfa_client = test_client("https://example.test", PathStyle::CodexApi);
+        let ditfa_client = test_client("https://example.test", PathStyle::DitfaApi);
         assert_eq!(
             ditfa_client.token_usage_profile_url(),
             "https://example.test/api/codex/profiles/me"
@@ -1046,7 +1046,7 @@ mod tests {
 
     #[test]
     fn workspace_messages_uses_expected_paths() {
-        let ditfa_client = test_client("https://example.test", PathStyle::CodexApi);
+        let ditfa_client = test_client("https://example.test", PathStyle::DitfaApi);
         assert_eq!(
             ditfa_client.workspace_messages_url(),
             "https://example.test/api/codex/workspace-messages"
@@ -1095,10 +1095,10 @@ mod tests {
         assert_eq!(
             [ditfa_response, chatgpt_response],
             [
-                CodexUserSettingsResponse {
+                DitfaUserSettingsResponse {
                     commit_attribution_enabled: true,
                 },
-                CodexUserSettingsResponse {
+                DitfaUserSettingsResponse {
                     commit_attribution_enabled: false,
                 },
             ]
@@ -1108,8 +1108,8 @@ mod tests {
     #[test]
     fn user_settings_missing_attribution_policy_defaults_to_disabled() {
         assert_eq!(
-            serde_json::from_value::<CodexUserSettingsResponse>(serde_json::json!({})).unwrap(),
-            CodexUserSettingsResponse {
+            serde_json::from_value::<DitfaUserSettingsResponse>(serde_json::json!({})).unwrap(),
+            DitfaUserSettingsResponse {
                 commit_attribution_enabled: false,
             }
         );
@@ -1117,7 +1117,7 @@ mod tests {
 
     #[test]
     fn authenticated_user_settings_client_uses_active_workspace_headers() {
-        let auth = CodexAuth::from_external_chatgpt_tokens(
+        let auth = DitfaAuth::from_external_chatgpt_tokens(
             "e30.e30.c2ln",
             "workspace-123",
             Some("enterprise"),

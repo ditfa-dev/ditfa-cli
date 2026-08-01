@@ -10,7 +10,7 @@ use ditfa_exec_server::DITFA_ARG0_EXEC_HELPER_ARG1;
 use ditfa_exec_server::DITFA_FS_HELPER_ARG1;
 use ditfa_install_context::InstallContext;
 use ditfa_sandboxing::landlock::DITFA_LINUX_SANDBOX_ARG0;
-use ditfa_utils_home_dir::find_codex_home;
+use ditfa_utils_home_dir::find_ditfa_home;
 #[cfg(target_os = "windows")]
 use ditfa_windows_sandbox::DITFA_WINDOWS_SANDBOX_ARG1;
 #[cfg(unix)]
@@ -20,13 +20,13 @@ use tempfile::TempDir;
 const APPLY_PATCH_ARG0: &str = "apply_patch";
 const MISSPELLED_APPLY_PATCH_ARG0: &str = "applypatch";
 #[cfg(unix)]
-const EXECVE_WRAPPER_ARG0: &str = "codex-execve-wrapper";
+const EXECVE_WRAPPER_ARG0: &str = "ditfa-execve-wrapper";
 const LOCK_FILENAME: &str = ".lock";
 const TOKIO_WORKER_STACK_SIZE_BYTES: usize = 16 * 1024 * 1024;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Arg0DispatchPaths {
-    /// Stable path to the current Codex executable for child re-execs.
+    /// Stable path to the current Ditfa executable for child re-execs.
     ///
     /// Prefer this over [`std::env::current_exe()`] in code that may run under
     /// a test harness, where `current_exe()` can point at the harness binary
@@ -156,7 +156,7 @@ pub fn arg0_dispatch() -> Option<Arg0PathEntryGuard> {
     let (path_entry_guard, updated_path_env_var) = prepare_path_env_var_with_aliases(
         InstallContext::current(),
         std::env::var_os("PATH"),
-        prepare_path_entry_for_codex_aliases,
+        prepare_path_entry_for_ditfa_aliases,
     );
     if let Some(updated_path_env_var) = updated_path_env_var {
         // It is safe to call set_var() because our process is single-threaded at
@@ -179,7 +179,7 @@ fn prepare_path_env_var_with_aliases(
     match prepare_aliases(path_for_aliases) {
         Ok((path_entry, updated_path_env_var)) => (Some(path_entry), Some(updated_path_env_var)),
         Err(err) => {
-            // It is possible that Codex will proceed successfully even if
+            // It is possible that Ditfa will proceed successfully even if
             // creating helper aliases fails, so warn the user and move on.
             eprintln!("WARNING: proceeding, even though we could not create PATH aliases: {err}");
             (None, package_path)
@@ -194,14 +194,14 @@ fn prepare_path_env_var_with_aliases(
 /// Linux (but not Windows).
 ///
 /// When the current executable is invoked through the hard-link or alias named
-/// `codex-linux-sandbox` we *directly* execute
+/// `ditfa-linux-sandbox` we *directly* execute
 /// [`ditfa_linux_sandbox::run_main`] (which never returns). Otherwise we:
 ///
 /// 1.  Load `.env` values from `~/.ditfa/.env` before creating any threads.
 /// 2.  Spawn a main runtime thread with a controlled stack size.
 /// 3.  Construct a Tokio multi-thread runtime.
 /// 4.  Capture the current executable path and derive the
-///     `codex-linux-sandbox` helper path (falling back to the current
+///     `ditfa-linux-sandbox` helper path (falling back to the current
 ///     executable if needed) so children can re-invoke the sandbox when running
 ///     on Linux.
 /// 5.  Execute the provided async `main_fn` inside that runtime, forwarding any
@@ -226,7 +226,7 @@ where
     // stack budget as Tokio workers; `Runtime::block_on` otherwise runs the
     // top-level future on the caller's OS stack.
     let handle = std::thread::Builder::new()
-        .name("codex-main".to_string())
+        .name("ditfa-main".to_string())
         .stack_size(TOKIO_WORKER_STACK_SIZE_BYTES)
         .spawn(move || {
             let runtime = build_runtime()?;
@@ -274,7 +274,7 @@ fn linux_sandbox_exe_path(
     path_entry_guard: Option<&Arg0PathEntryGuard>,
     current_exe: Option<PathBuf>,
 ) -> Option<PathBuf> {
-    // Prefer the `codex-linux-sandbox` alias when available so callers can
+    // Prefer the `ditfa-linux-sandbox` alias when available so callers can
     // re-exec through a path whose basename still triggers arg0 dispatch on
     // bubblewrap builds that do not support `--argv0`.
     path_entry_guard
@@ -296,7 +296,7 @@ const ILLEGAL_ENV_VAR_PREFIX: &str = "DITFA_";
 /// Security: Do not allow `.env` files to create or modify any variables
 /// with names starting with `DITFA_`.
 fn load_dotenv() {
-    if let Ok(ditfa_home) = find_codex_home()
+    if let Ok(ditfa_home) = find_ditfa_home()
         && let Ok(iter) = dotenvy::from_path_iter(ditfa_home.join(".env"))
     {
         set_filtered(iter);
@@ -321,19 +321,19 @@ where
 ///
 /// - UNIX: `apply_patch` symlink to the current executable
 /// - WINDOWS: `apply_patch.bat` batch script to invoke the current executable
-///   with the hidden `--codex-run-as-apply-patch` flag.
+///   with the hidden `--ditfa-run-as-apply-patch` flag.
 ///
 /// Returns the temporary directory guard and the PATH value that prepends the
 /// temporary directory so `apply_patch` can be on the PATH without requiring the
-/// user to install a separate executable, simplifying the deployment of Codex
+/// user to install a separate executable, simplifying the deployment of Ditfa
 /// CLI.
 /// Note: In debug builds the temp-dir guard is disabled to ease local testing.
 ///
 /// IMPORTANT: Callers must update PATH before multiple threads are spawned.
-fn prepare_path_entry_for_codex_aliases(
+fn prepare_path_entry_for_ditfa_aliases(
     existing_path: Option<OsString>,
 ) -> std::io::Result<(Arg0PathEntryGuard, OsString)> {
-    let ditfa_home = find_codex_home()?;
+    let ditfa_home = find_ditfa_home()?;
     #[cfg(not(debug_assertions))]
     {
         // Guard against placing helpers in system temp directories outside debug builds.
@@ -366,7 +366,7 @@ fn prepare_path_entry_for_codex_aliases(
     }
 
     let temp_dir = tempfile::Builder::new()
-        .prefix("codex-arg0")
+        .prefix("ditfa-arg0")
         .tempdir_in(&temp_root)?;
     let path = temp_dir.path();
 
@@ -528,7 +528,7 @@ mod tests {
     use super::run_main_with_arg0_guard;
     #[cfg(unix)]
     use anyhow::ensure;
-    use ditfa_install_context::CodexPackageLayout;
+    use ditfa_install_context::DitfaPackageLayout;
     use ditfa_install_context::InstallContext;
     use ditfa_install_context::InstallMethod;
     use ditfa_utils_absolute_path::AbsolutePathBuf;
@@ -562,7 +562,7 @@ mod tests {
         let arg0_dir = temp_dir.path().join("arg0");
         let package_dir = temp_dir.path().join("package");
         let bin_dir = package_dir.join("bin");
-        let path_dir = package_dir.join("codex-path");
+        let path_dir = package_dir.join("ditfa-path");
         let existing_dir = temp_dir.path().join("existing-bin");
         fs::create_dir_all(&arg0_dir)?;
         fs::create_dir_all(&bin_dir)?;
@@ -571,7 +571,7 @@ mod tests {
         let path_dir = AbsolutePathBuf::from_absolute_path(path_dir.canonicalize()?)?;
         let install_context = InstallContext {
             method: InstallMethod::Other,
-            package_layout: Some(CodexPackageLayout {
+            package_layout: Some(DitfaPackageLayout {
                 package_dir: AbsolutePathBuf::from_absolute_path(package_dir.canonicalize()?)?,
                 bin_dir: AbsolutePathBuf::from_absolute_path(bin_dir.canonicalize()?)?,
                 resources_dir: None,
@@ -589,22 +589,22 @@ mod tests {
     }
 
     #[test]
-    fn linux_sandbox_exe_path_prefers_codex_linux_sandbox_alias() -> std::io::Result<()> {
+    fn linux_sandbox_exe_path_prefers_ditfa_linux_sandbox_alias() -> std::io::Result<()> {
         let temp_dir = TempDir::new()?;
         let lock_file = create_lock(temp_dir.path())?;
-        let alias_path = temp_dir.path().join("codex-linux-sandbox");
+        let alias_path = temp_dir.path().join("ditfa-linux-sandbox");
         let path_entry = Arg0PathEntryGuard::new(
             temp_dir,
             lock_file,
             Arg0DispatchPaths {
-                ditfa_self_exe: Some(PathBuf::from("/usr/bin/codex")),
+                ditfa_self_exe: Some(PathBuf::from("/usr/bin/ditfa")),
                 ditfa_linux_sandbox_exe: Some(alias_path.clone()),
                 main_execve_wrapper_exe: None,
             },
         );
 
         assert_eq!(
-            linux_sandbox_exe_path(Some(&path_entry), Some(PathBuf::from("/usr/bin/codex"))),
+            linux_sandbox_exe_path(Some(&path_entry), Some(PathBuf::from("/usr/bin/ditfa"))),
             Some(alias_path),
         );
         Ok(())
@@ -671,14 +671,14 @@ mod tests {
     #[test]
     fn run_main_with_arg0_guard_keeps_aliases_alive_until_main_returns() -> anyhow::Result<()> {
         let temp_dir = TempDir::new()?;
-        let alias_path = temp_dir.path().join("codex-helper-alias");
+        let alias_path = temp_dir.path().join("ditfa-helper-alias");
         fs::write(&alias_path, b"")?;
         let lock_file = create_lock(temp_dir.path())?;
         let path_entry = Arg0PathEntryGuard::new(
             temp_dir,
             lock_file,
             Arg0DispatchPaths {
-                ditfa_self_exe: Some(PathBuf::from("/usr/bin/codex")),
+                ditfa_self_exe: Some(PathBuf::from("/usr/bin/ditfa")),
                 ditfa_linux_sandbox_exe: Some(alias_path.clone()),
                 main_execve_wrapper_exe: Some(alias_path),
             },
@@ -686,7 +686,7 @@ mod tests {
 
         super::build_runtime()?.block_on(run_main_with_arg0_guard(
             /*path_entry_guard*/ Some(path_entry),
-            Some(PathBuf::from("/usr/bin/codex")),
+            Some(PathBuf::from("/usr/bin/ditfa")),
             |paths| async move {
                 let alias_path = paths
                     .ditfa_linux_sandbox_exe

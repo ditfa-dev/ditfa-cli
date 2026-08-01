@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::responses_metadata::CodexResponsesRequestKind;
+use crate::responses_metadata::DitfaResponsesRequestKind;
 use crate::responses_metadata::CompactionTurnMetadata;
 use crate::responses_metadata::INSTALLATION_ID_KEY;
 use crate::responses_metadata::WINDOW_ID_KEY;
@@ -35,7 +35,7 @@ fn test_mcp_turn_metadata_context() -> McpTurnMetadataContext<'static> {
 fn test_responses_metadata_json(
     state: &TurnMetadataState,
     window_id: &str,
-    request_kind: CodexResponsesRequestKind,
+    request_kind: DitfaResponsesRequestKind,
 ) -> String {
     state
         .to_responses_metadata(
@@ -48,7 +48,7 @@ fn test_responses_metadata_json(
 }
 
 fn test_turn_responses_metadata_json(state: &TurnMetadataState, window_id: &str) -> String {
-    test_responses_metadata_json(state, window_id, CodexResponsesRequestKind::Turn)
+    test_responses_metadata_json(state, window_id, DitfaResponsesRequestKind::Turn)
 }
 
 fn test_compaction_responses_metadata_json(
@@ -59,7 +59,7 @@ fn test_compaction_responses_metadata_json(
     test_responses_metadata_json(
         state,
         window_id,
-        CodexResponsesRequestKind::Compaction(compaction),
+        DitfaResponsesRequestKind::Compaction(compaction),
     )
 }
 
@@ -608,11 +608,11 @@ fn turn_metadata_state_merges_client_metadata_without_replacing_reserved_fields(
         ("thread_id".to_string(), "client-supplied".to_string()),
         ("installation_id".to_string(), "client-supplied".to_string()),
         (
-            "x-codex-installation-id".to_string(),
+            "x-ditfa-installation-id".to_string(),
             "client-supplied".to_string(),
         ),
         (
-            "x-codex-parent-thread-id".to_string(),
+            "x-ditfa-parent-thread-id".to_string(),
             "client-supplied".to_string(),
         ),
         (
@@ -652,8 +652,8 @@ fn turn_metadata_state_merges_client_metadata_without_replacing_reserved_fields(
     assert_eq!(json["session_id"].as_str(), Some("session-a"));
     assert_eq!(json["thread_id"].as_str(), Some("thread-a"));
     assert!(json.get(INSTALLATION_ID_KEY).is_none());
-    assert!(json.get("x-codex-installation-id").is_none());
-    assert!(json.get("x-codex-parent-thread-id").is_none());
+    assert!(json.get("x-ditfa-installation-id").is_none());
+    assert!(json.get("x-ditfa-parent-thread-id").is_none());
     assert!(json.get("x-openai-subagent").is_none());
     assert_eq!(
         json["forked_from_thread_id"].as_str(),

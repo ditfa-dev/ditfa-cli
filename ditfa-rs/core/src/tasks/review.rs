@@ -19,7 +19,7 @@ use ditfa_protocol::review_format::format_review_findings_block;
 use ditfa_protocol::review_format::render_review_output_text;
 use tokio_util::sync::CancellationToken;
 
-use crate::ditfa_delegate::run_codex_thread_one_shot;
+use crate::ditfa_delegate::run_ditfa_thread_one_shot;
 use crate::config::Constrained;
 use crate::session::TurnInput;
 use crate::session::session::Session;
@@ -58,7 +58,7 @@ impl SessionTask for ReviewTask {
         cancellation_token: CancellationToken,
     ) -> SessionTaskResult {
         session.session.services.session_telemetry.counter(
-            "codex.task.review",
+            "ditfa.task.review",
             /*inc*/ 1,
             &[],
         );
@@ -71,7 +71,7 @@ impl SessionTask for ReviewTask {
             }
         }
 
-        // Start sub-codex conversation and get the receiver for events.
+        // Start sub-ditfa conversation and get the receiver for events.
         let output = match start_review_conversation(
             session.clone(),
             ctx.clone(),
@@ -122,7 +122,7 @@ async fn start_review_conversation(
         .clone()
         .unwrap_or_else(|| ctx.model_info.slug.clone());
     sub_agent_config.model = Some(model);
-    (run_codex_thread_one_shot(
+    (run_ditfa_thread_one_shot(
         sub_agent_config,
         session.auth_manager(),
         session.models_manager(),

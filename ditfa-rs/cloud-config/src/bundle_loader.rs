@@ -60,7 +60,7 @@ pub fn cloud_config_bundle_loader(
 
 pub async fn cloud_config_bundle_loader_for_storage(
     ditfa_home: PathBuf,
-    enable_codex_api_key_env: bool,
+    enable_ditfa_api_key_env: bool,
     credentials_store_mode: AuthCredentialsStoreMode,
     keyring_backend_kind: AuthKeyringBackendKind,
     chatgpt_base_url: String,
@@ -69,7 +69,7 @@ pub async fn cloud_config_bundle_loader_for_storage(
     let http_client_factory = auth_route_config.http_client_factory().clone();
     let auth_manager = AuthManager::shared(
         ditfa_home.clone(),
-        enable_codex_api_key_env,
+        enable_ditfa_api_key_env,
         credentials_store_mode,
         /*forced_chatgpt_workspace_id*/ None,
         Some(chatgpt_base_url.clone()),

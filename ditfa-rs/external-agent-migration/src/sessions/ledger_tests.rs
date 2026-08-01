@@ -23,7 +23,7 @@ fn empty_ledger_does_not_read_source() {
 #[test]
 fn completed_imports_do_not_read_source_files() {
     let root = TempDir::new().expect("tempdir");
-    let ditfa_home = root.path().join("codex-home");
+    let ditfa_home = root.path().join("ditfa-home");
     let source_path = root.path().join("session.jsonl");
     let contents = b"session contents";
     std::fs::write(&source_path, contents).expect("source");
@@ -52,7 +52,7 @@ fn completed_imports_do_not_read_source_files() {
 #[test]
 fn completed_import_refreshes_existing_record_metadata() {
     let root = TempDir::new().expect("tempdir");
-    let ditfa_home = root.path().join("codex-home");
+    let ditfa_home = root.path().join("ditfa-home");
     let source_path = root.path().join("session.jsonl");
     let contents = b"session contents";
     std::fs::write(&source_path, contents).expect("source");
@@ -93,7 +93,7 @@ fn completed_import_refreshes_existing_record_metadata() {
 #[test]
 fn connector_candidates_use_latest_import_for_each_source() {
     let root = TempDir::new().expect("tempdir");
-    let ditfa_home = root.path().join("codex-home");
+    let ditfa_home = root.path().join("ditfa-home");
     let first_source = root.path().join("first.jsonl");
     let second_source = root.path().join("second.jsonl");
 

@@ -32,8 +32,8 @@ const CONNECT_RETRY_INTERVAL: Duration = Duration::from_millis(25);
 const EVENT_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub(crate) struct ExecServerHarness {
-    _codex_home: TempDir,
-    _helper_paths: TestCodexHelperPaths,
+    _ditfa_home: TempDir,
+    _helper_paths: TestDitfaHelperPaths,
     child: Child,
     websocket_url: String,
     websocket: tokio_tungstenite::WebSocketStream<
@@ -48,7 +48,7 @@ impl Drop for ExecServerHarness {
     }
 }
 
-pub(crate) struct TestCodexHelperPaths {
+pub(crate) struct TestDitfaHelperPaths {
     pub(crate) ditfa_exe: PathBuf,
     pub(crate) ditfa_linux_sandbox_exe: Option<PathBuf>,
 }
@@ -67,9 +67,9 @@ impl Drop for DisconnectableWebSocketProxy {
     }
 }
 
-pub(crate) fn test_codex_helper_paths() -> anyhow::Result<TestCodexHelperPaths> {
+pub(crate) fn test_ditfa_helper_paths() -> anyhow::Result<TestDitfaHelperPaths> {
     let (helper_binary, ditfa_linux_sandbox_exe) = super::current_test_binary_helper_paths()?;
-    Ok(TestCodexHelperPaths {
+    Ok(TestDitfaHelperPaths {
         ditfa_exe: helper_binary,
         ditfa_linux_sandbox_exe,
     })
@@ -85,7 +85,7 @@ where
     K: AsRef<std::ffi::OsStr>,
     V: AsRef<std::ffi::OsStr>,
 {
-    let helper_paths = test_codex_helper_paths()?;
+    let helper_paths = test_ditfa_helper_paths()?;
     let ditfa_home = TempDir::new()?;
     let mut child = Command::new(&helper_paths.ditfa_exe);
     child.args(["exec-server", "--listen", "ws://127.0.0.1:0"]);
@@ -100,7 +100,7 @@ where
     let websocket_url = read_listen_url_from_stdout(&mut child).await?;
     let (websocket, _) = connect_websocket_when_ready(&websocket_url).await?;
     Ok(ExecServerHarness {
-        _codex_home: ditfa_home,
+        _ditfa_home: ditfa_home,
         _helper_paths: helper_paths,
         child,
         websocket_url,

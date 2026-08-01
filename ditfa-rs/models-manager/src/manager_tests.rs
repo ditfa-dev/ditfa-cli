@@ -6,7 +6,7 @@ use ditfa_http_client::OutboundProxyPolicy;
 use ditfa_login::AuthCredentialsStoreMode;
 use ditfa_login::AuthKeyringBackendKind;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::ExternalAuth;
 use ditfa_login::ExternalAuthRefreshContext;
 use ditfa_login::TokenData;
@@ -77,7 +77,7 @@ fn assert_models_contain(actual: &[ModelInfo], expected: &[ModelInfo]) {
 #[derive(Debug)]
 struct TestModelsEndpoint {
     has_command_auth: bool,
-    uses_codex_backend: bool,
+    uses_ditfa_backend: bool,
     responses: Mutex<VecDeque<Vec<ModelInfo>>>,
     fetch_count: AtomicUsize,
     observed_proxy_policy: Mutex<Option<OutboundProxyPolicy>>,
@@ -87,7 +87,7 @@ impl TestModelsEndpoint {
     fn new(responses: Vec<Vec<ModelInfo>>) -> Arc<Self> {
         Arc::new(Self {
             has_command_auth: false,
-            uses_codex_backend: true,
+            uses_ditfa_backend: true,
             responses: Mutex::new(responses.into()),
             fetch_count: AtomicUsize::new(0),
             observed_proxy_policy: Mutex::new(None),
@@ -97,7 +97,7 @@ impl TestModelsEndpoint {
     fn without_refresh(responses: Vec<Vec<ModelInfo>>) -> Arc<Self> {
         Arc::new(Self {
             has_command_auth: false,
-            uses_codex_backend: false,
+            uses_ditfa_backend: false,
             responses: Mutex::new(responses.into()),
             fetch_count: AtomicUsize::new(0),
             observed_proxy_policy: Mutex::new(None),
@@ -131,15 +131,15 @@ impl TestModelsEndpoint {
 struct TestExternalApiKeyAuth;
 
 impl ExternalAuth for TestExternalApiKeyAuth {
-    fn resolve(&self) -> ditfa_login::ExternalAuthFuture<'_, CodexAuth> {
-        Box::pin(async { Ok(CodexAuth::from_api_key("test-external-api-key")) })
+    fn resolve(&self) -> ditfa_login::ExternalAuthFuture<'_, DitfaAuth> {
+        Box::pin(async { Ok(DitfaAuth::from_api_key("test-external-api-key")) })
     }
 
     fn refresh(
         &self,
         _context: ExternalAuthRefreshContext,
-    ) -> ditfa_login::ExternalAuthFuture<'_, CodexAuth> {
-        Box::pin(async { Ok(CodexAuth::from_api_key("test-external-api-key")) })
+    ) -> ditfa_login::ExternalAuthFuture<'_, DitfaAuth> {
+        Box::pin(async { Ok(DitfaAuth::from_api_key("test-external-api-key")) })
     }
 }
 
@@ -147,14 +147,14 @@ impl ExternalAuth for TestExternalApiKeyAuth {
 struct TestUnresolvedExternalApiKeyAuth;
 
 impl ExternalAuth for TestUnresolvedExternalApiKeyAuth {
-    fn resolve(&self) -> ditfa_login::ExternalAuthFuture<'_, CodexAuth> {
+    fn resolve(&self) -> ditfa_login::ExternalAuthFuture<'_, DitfaAuth> {
         Box::pin(async { Err(std::io::Error::other("unresolved test auth")) })
     }
 
     fn refresh(
         &self,
         _context: ExternalAuthRefreshContext,
-    ) -> ditfa_login::ExternalAuthFuture<'_, CodexAuth> {
+    ) -> ditfa_login::ExternalAuthFuture<'_, DitfaAuth> {
         Box::pin(async { Err(std::io::Error::other("unresolved test auth")) })
     }
 }
@@ -164,8 +164,8 @@ impl ModelsEndpointClient for TestModelsEndpoint {
         self.has_command_auth
     }
 
-    fn uses_codex_backend(&self) -> ModelsEndpointFuture<'_, bool> {
-        Box::pin(async { self.uses_codex_backend })
+    fn uses_ditfa_backend(&self) -> ModelsEndpointFuture<'_, bool> {
+        Box::pin(async { self.uses_ditfa_backend })
     }
 
     fn list_models<'a>(
@@ -192,7 +192,7 @@ fn openai_manager_for_tests(
         ditfa_home,
         endpoint_client,
         Some(AuthManager::from_auth_for_testing(
-            CodexAuth::create_dummy_chatgpt_auth_for_testing(),
+            DitfaAuth::create_dummy_chatgpt_auth_for_testing(),
         )),
     )
 }
@@ -216,7 +216,7 @@ async fn manager_without_cache_fetches_on_every_refresh() {
     let manager = OpenAiModelsManager::new_without_cache(
         endpoint.clone(),
         Some(AuthManager::from_auth_for_testing(
-            CodexAuth::create_dummy_chatgpt_auth_for_testing(),
+            DitfaAuth::create_dummy_chatgpt_auth_for_testing(),
         )),
     );
 
@@ -239,7 +239,7 @@ async fn manager_without_cache_fetches_on_every_refresh() {
     assert_eq!(endpoint.fetch_count(), 2);
 }
 
-async fn chatgpt_auth_tokens_for_tests(ditfa_home: &Path) -> CodexAuth {
+async fn chatgpt_auth_tokens_for_tests(ditfa_home: &Path) -> DitfaAuth {
     let auth_dot_json = ditfa_login::AuthDotJson {
         auth_mode: Some(AuthMode::ChatgptAuthTokens),
         openai_api_key: None,
@@ -259,14 +259,14 @@ c2ln",
         personal_access_token: None,
         bedrock_api_key: None,
     };
-    std::fs::create_dir_all(ditfa_home).expect("codex home should be created");
+    std::fs::create_dir_all(ditfa_home).expect("ditfa home should be created");
     std::fs::write(
         ditfa_home.join("auth.json"),
         serde_json::to_string(&auth_dot_json).expect("auth should serialize"),
     )
     .expect("auth.json should be written");
 
-    CodexAuth::from_auth_storage(
+    DitfaAuth::from_auth_storage(
         ditfa_home,
         AuthCredentialsStoreMode::File,
         /*chatgpt_base_url*/ None,
@@ -455,7 +455,7 @@ async fn get_model_info_matches_hyphenated_provider_namespace_suffix() {
     let manager = static_manager_for_tests(ModelsResponse {
         models: vec![remote],
     });
-    let namespaced_model = "openai-codex/gpt-image".to_string();
+    let namespaced_model = "openai-ditfa/gpt-image".to_string();
 
     let model_info = manager.get_model_info(&namespaced_model, &config).await;
 
@@ -671,7 +671,7 @@ async fn refresh_available_models_keeps_merging_for_api_auth() {
     let ditfa_home = tempdir().expect("temp dir");
     let endpoint = Arc::new(TestModelsEndpoint {
         has_command_auth: true,
-        uses_codex_backend: false,
+        uses_ditfa_backend: false,
         responses: Mutex::new(vec![remote_models.clone()].into()),
         fetch_count: AtomicUsize::new(0),
         observed_proxy_policy: Mutex::new(None),
@@ -679,7 +679,7 @@ async fn refresh_available_models_keeps_merging_for_api_auth() {
     let manager = openai_manager_for_tests_with_auth(
         ditfa_home.path().to_path_buf(),
         endpoint.clone(),
-        Some(AuthManager::from_auth_for_testing(CodexAuth::from_api_key(
+        Some(AuthManager::from_auth_for_testing(DitfaAuth::from_api_key(
             "test-api-key",
         ))),
     );
@@ -922,13 +922,13 @@ impl TestAuthAwareModelsEndpoint {
         self.fetch_count.load(Ordering::SeqCst)
     }
 
-    async fn uses_codex_backend(&self) -> bool {
+    async fn uses_ditfa_backend(&self) -> bool {
         match self.auth_manager.as_ref() {
             Some(auth_manager) => auth_manager
                 .auth()
                 .await
                 .as_ref()
-                .is_some_and(CodexAuth::uses_codex_backend),
+                .is_some_and(DitfaAuth::uses_ditfa_backend),
             None => false,
         }
     }
@@ -950,8 +950,8 @@ impl ModelsEndpointClient for TestAuthAwareModelsEndpoint {
         false
     }
 
-    fn uses_codex_backend(&self) -> ModelsEndpointFuture<'_, bool> {
-        Box::pin(TestAuthAwareModelsEndpoint::uses_codex_backend(self))
+    fn uses_ditfa_backend(&self) -> ModelsEndpointFuture<'_, bool> {
+        Box::pin(TestAuthAwareModelsEndpoint::uses_ditfa_backend(self))
     }
 
     fn list_models<'a>(
@@ -968,7 +968,7 @@ async fn refresh_available_models_skips_network_when_external_api_key_overrides_
     let dynamic_slug = "dynamic-model-only-for-test-external-api-key";
     let ditfa_home = tempdir().expect("temp dir");
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     auth_manager
         .set_external_auth(Arc::new(TestExternalApiKeyAuth))
         .await
@@ -1011,7 +1011,7 @@ async fn refresh_available_models_uses_cached_chatgpt_when_external_api_key_is_u
     let dynamic_slug = "dynamic-model-only-for-test-unresolved-external-api-key";
     let ditfa_home = tempdir().expect("temp dir");
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     auth_manager
         .set_external_auth(Arc::new(TestUnresolvedExternalApiKeyAuth))
         .await
@@ -1107,7 +1107,7 @@ fn build_available_models_picks_default_after_hiding_hidden_models() {
 #[tokio::test]
 async fn static_manager_reads_latest_auth_mode() {
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let chatgpt_only_model = {
         let mut model = remote_model("chatgpt-only", "ChatGPT Only", /*priority*/ 0);
         model.supported_in_api = false;

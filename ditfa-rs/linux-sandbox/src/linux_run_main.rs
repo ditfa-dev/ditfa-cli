@@ -25,7 +25,7 @@ use crate::launcher::exec_bwrap;
 use crate::launcher::preferred_bwrap_supports_argv0;
 use crate::proxy_routing::activate_proxy_routes_in_netns;
 use crate::proxy_routing::prepare_host_proxy_route_spec;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::models::PermissionProfile;
 use ditfa_protocol::protocol::FileSystemAccessMode;
 use ditfa_protocol::protocol::FileSystemPath;
@@ -379,7 +379,7 @@ fn build_bwrap_argv(
     sandbox_policy_cwd: &Path,
     command_cwd: &Path,
     options: BwrapOptions,
-) -> CodexResult<crate::bwrap::BwrapArgs> {
+) -> DitfaResult<crate::bwrap::BwrapArgs> {
     let bwrap_args = create_bwrap_command_args(
         inner,
         file_system_sandbox_policy,
@@ -398,7 +398,7 @@ fn build_bwrap_argv(
     })
 }
 
-fn exit_with_bwrap_build_error(err: ditfa_protocol::error::CodexErr) -> ! {
+fn exit_with_bwrap_build_error(err: ditfa_protocol::error::DitfaErr) -> ! {
     eprintln!("error building bubblewrap command: {err}");
     std::process::exit(1);
 }
@@ -443,7 +443,7 @@ fn current_process_argv0() -> String {
     }
 }
 
-fn preflight_proc_mount_support(network_mode: BwrapNetworkMode) -> CodexResult<bool> {
+fn preflight_proc_mount_support(network_mode: BwrapNetworkMode) -> DitfaResult<bool> {
     let preflight_argv = build_preflight_bwrap_argv(network_mode)?;
     let stderr = run_bwrap_in_child_capture_stderr(preflight_argv);
     Ok(!is_proc_mount_failure(stderr.as_str()))
@@ -451,7 +451,7 @@ fn preflight_proc_mount_support(network_mode: BwrapNetworkMode) -> CodexResult<b
 
 fn build_preflight_bwrap_argv(
     network_mode: BwrapNetworkMode,
-) -> CodexResult<crate::bwrap::BwrapArgs> {
+) -> DitfaResult<crate::bwrap::BwrapArgs> {
     let file_system_sandbox_policy =
         FileSystemSandboxPolicy::restricted(vec![FileSystemSandboxEntry {
             path: FileSystemPath::Special {
@@ -1241,7 +1241,7 @@ fn synthetic_mount_marker_dir(path: &Path) -> PathBuf {
 fn synthetic_mount_registry_root() -> PathBuf {
     let effective_uid = unsafe { libc::geteuid() };
     std::env::temp_dir().join(format!(
-        "codex-bwrap-synthetic-mount-targets-{effective_uid}"
+        "ditfa-bwrap-synthetic-mount-targets-{effective_uid}"
     ))
 }
 

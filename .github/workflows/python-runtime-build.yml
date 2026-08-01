@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-python-runtime:
-    if: github.repository == 'openai/codex'
+    if: github.repository == 'Teamtem-dev/ditfa-code'
     name: build-python-runtime
     runs-on: ubuntu-latest
     permissions:
@@ -43,11 +43,11 @@ jobs:
           mkdir -p dist/python-runtime dist/python-runtime-packages
           gh release download "$RELEASE_TAG" \
             --repo "${GITHUB_REPOSITORY}" \
-            --pattern "openai_codex_cli_bin-${PYTHON_RUNTIME_VERSION}-*.whl" \
+            --pattern "openai_ditfa_cli_bin-${PYTHON_RUNTIME_VERSION}-*.whl" \
             --dir dist/python-runtime
           gh release download "$RELEASE_TAG" \
             --repo "${GITHUB_REPOSITORY}" \
-            --pattern "codex-package-*-unknown-linux-musl.tar.gz" \
+            --pattern "ditfa-package-*-unknown-linux-musl.tar.gz" \
             --dir dist/python-runtime-packages
 
           shopt -s nullglob
@@ -72,12 +72,12 @@ jobs:
           "${RUNNER_TEMP}/python-runtime-build-venv/bin/python" -m pip install build
 
           while read -r target platform_tag; do
-            stage_dir="${RUNNER_TEMP}/openai-codex-cli-bin-${target}-${platform_tag}"
+            stage_dir="${RUNNER_TEMP}/openai-ditfa-cli-bin-${target}-${platform_tag}"
             python3 sdk/python/scripts/update_sdk_artifacts.py \
               stage-runtime \
               "$stage_dir" \
-              "dist/python-runtime-packages/codex-package-${target}.tar.gz" \
-              --codex-version "$RELEASE_TAG" \
+              "dist/python-runtime-packages/ditfa-package-${target}.tar.gz" \
+              --ditfa-version "$RELEASE_TAG" \
               --platform-tag "$platform_tag"
             "${RUNNER_TEMP}/python-runtime-build-venv/bin/python" -m build \
               --wheel \

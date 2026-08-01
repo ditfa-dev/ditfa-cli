@@ -1,4 +1,4 @@
-# What: restore explicit build-script dependency annotations used by Codex.
+# What: restore explicit build-script dependency annotations used by Ditfa Code.
 # Scope: rules_rs crate-universe annotation plumbing only.
 
 diff --git a/rs/extensions.bzl b/rs/extensions.bzl

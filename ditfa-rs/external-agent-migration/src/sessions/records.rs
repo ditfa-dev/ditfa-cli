@@ -520,13 +520,13 @@ mod tests {
     fn converts_tool_result_blocks_to_bounded_external_agent_tags() {
         let block = serde_json::json!({
             "type": "tool_result",
-            "content": "codex-rs/external-agent-migration/src/sessions/records.rs"
+            "content": "ditfa-rs/external-agent-migration/src/sessions/records.rs"
         });
 
         assert_eq!(
             tool_result_note(&block),
             "[external_agent_tool_result]\n\
-             codex-rs/external-agent-migration/src/sessions/records.rs\n\
+             ditfa-rs/external-agent-migration/src/sessions/records.rs\n\
              [/external_agent_tool_result]"
         );
     }

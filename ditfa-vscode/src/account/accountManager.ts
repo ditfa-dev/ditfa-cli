@@ -228,7 +228,7 @@ export class AccountManager implements vscode.Disposable {
   private async startBrowserLogin(): Promise<void> {
     const response = await this.client.request("account/login/start", {
       type: "chatgpt",
-      codexStreamlinedLogin: true,
+      ditfaStreamlinedLogin: true,
       useHostedLoginSuccessPage: true,
     });
     if (response.type !== "chatgpt") {

@@ -72,7 +72,7 @@ fn raw_markdown_bypasses_the_rich_render_cache() {
 #[test]
 fn visualization_directives_are_not_cached() {
     let cell = AgentMarkdownCell::new(
-        "::codex-inline-vis{file=\"chart.html\"}".to_string(),
+        "::ditfa-inline-vis{file=\"chart.html\"}".to_string(),
         Path::new("/tmp"),
     );
 

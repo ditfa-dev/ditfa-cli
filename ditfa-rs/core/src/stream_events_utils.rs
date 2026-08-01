@@ -16,7 +16,7 @@ use crate::tools::parallel::ToolCallRuntime;
 use crate::tools::router::ToolRouter;
 use ditfa_memories_read::citations::parse_memory_citation;
 use ditfa_memories_read::citations::thread_ids_from_memory_citation;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::Result;
 use ditfa_protocol::memory_citation::MemoryCitation;
 use ditfa_protocol::models::FunctionCallOutputBody;
@@ -381,7 +381,7 @@ pub(crate) async fn handle_output_item_done(
         }
         // A fatal error occurred; surface it back into history.
         Err(FunctionCallError::Fatal(message)) => {
-            return Err(CodexErr::Fatal(message));
+            return Err(DitfaErr::Fatal(message));
         }
     }
 

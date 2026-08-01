@@ -1,12 +1,12 @@
 use ditfa_login::AuthHeaders;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use core_test_support::responses::ev_completed;
 use core_test_support::responses::ev_response_created;
 use core_test_support::responses::mount_sse_once;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use reqwest::header::AUTHORIZATION;
 use reqwest::header::HeaderMap;
 use reqwest::header::HeaderValue;
@@ -24,7 +24,7 @@ async fn header_auth_is_attached_to_responses_requests() -> anyhow::Result<()> {
     let mut headers = HeaderMap::new();
     headers.insert(AUTHORIZATION, HeaderValue::from_static("Bearer external"));
     headers.insert("x-external-auth", HeaderValue::from_static("enabled"));
-    let mut builder = test_codex().with_auth(CodexAuth::Headers(AuthHeaders::new(headers)));
+    let mut builder = test_ditfa().with_auth(DitfaAuth::Headers(AuthHeaders::new(headers)));
     let test = builder.build_with_auto_env(&server).await?;
 
     test.submit_turn("hello").await?;

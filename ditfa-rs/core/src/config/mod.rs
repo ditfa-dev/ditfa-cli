@@ -135,7 +135,7 @@ use crate::config::permissions::builtin_permission_profile;
 use crate::config::permissions::compile_permission_profile_selection;
 use crate::config::permissions::compile_permission_profile_workspace_roots;
 use crate::config::permissions::default_builtin_permission_profile_name;
-use crate::config::permissions::get_readable_roots_required_for_codex_runtime;
+use crate::config::permissions::get_readable_roots_required_for_ditfa_runtime;
 use crate::config::permissions::network_proxy_config_for_profile_selection;
 use crate::config::permissions::validate_user_permission_profile_names;
 use crate::config_lock::config_without_lock_controls;
@@ -441,7 +441,7 @@ impl Permissions {
     }
 
     /// Workspace roots that came from user-visible configuration or runtime
-    /// selection. Internal Codex-only writable roots are intentionally excluded.
+    /// selection. Internal Ditfa-only writable roots are intentionally excluded.
     pub fn user_visible_workspace_roots(&self) -> &[AbsolutePathBuf] {
         &self.workspace_roots
     }
@@ -556,7 +556,7 @@ impl Permissions {
 }
 
 // A profile override only inherits the selected profile's proxy/allowlist config
-// when Codex is still responsible for the network policy. `Disabled` means no
+// when Ditfa is still responsible for the network policy. `Disabled` means no
 // outer sandbox, so starting the managed proxy would narrow the override.
 fn profile_allows_configured_network_proxy(permission_profile: &PermissionProfile) -> bool {
     match permission_profile {
@@ -714,23 +714,23 @@ pub struct Config {
     /// Compact prompt override.
     pub compact_prompt: Option<String>,
 
-    /// Optional external notifier command. When set, Codex will spawn this
+    /// Optional external notifier command. When set, Ditfa will spawn this
     /// program after each completed *turn* (i.e. when the agent finishes
     /// processing a user submission). The value must be the full command
-    /// broken into argv tokens **without** the trailing JSON argument - Codex
+    /// broken into argv tokens **without** the trailing JSON argument - Ditfa
     /// appends one extra argument containing a JSON payload describing the
     /// event.
     ///
     /// Example `~/.ditfa/config.toml` snippet:
     ///
     /// ```toml
-    /// notify = ["notify-send", "Codex"]
+    /// notify = ["notify-send", "Ditfa"]
     /// ```
     ///
     /// which will be invoked as:
     ///
     /// ```shell
-    /// notify-send Codex '{"type":"agent-turn-complete","turn-id":"12345"}'
+    /// notify-send Ditfa '{"type":"agent-turn-complete","turn-id":"12345"}'
     /// ```
     ///
     /// If unset the feature is disabled.
@@ -821,18 +821,18 @@ pub struct Config {
     pub workspace_roots_explicit: bool,
 
     /// Preferred store for CLI auth credentials.
-    /// file (default): Use a file in the Codex home directory.
+    /// file (default): Use a file in the Ditfa home directory.
     /// keyring: Use an OS-specific keyring service.
     /// auto: Use the OS-specific keyring service if available, otherwise use a file.
     pub cli_auth_credentials_store_mode: AuthCredentialsStoreMode,
 
-    /// Definition for MCP servers that Codex can reach out to for tool calls.
+    /// Definition for MCP servers that Ditfa can reach out to for tool calls.
     pub mcp_servers: Constrained<HashMap<String, McpServerConfig>>,
 
     /// Preferred store for MCP OAuth credentials.
     /// keyring: Use an OS-specific keyring service.
     ///          Credentials stored in the keyring will only be readable by Ditfa unless the user explicitly grants access via OS-level keyring access.
-    ///          https://github.com/openai/codex/blob/main/codex-rs/rmcp-client/src/oauth.rs#L2
+    ///          https://github.com/openai/codex/blob/main/ditfa-rs/rmcp-client/src/oauth.rs#L2
     /// file: DITFA_HOME/.credentials.json
     ///       This file will be readable to Ditfa and other applications running as the same user.
     /// auto (default): keyring if available, otherwise file.
@@ -840,7 +840,7 @@ pub struct Config {
 
     /// Optional fixed port to use for the local HTTP callback server used during MCP OAuth login.
     ///
-    /// When unset, Codex will bind to an ephemeral port chosen by the OS.
+    /// When unset, Ditfa will bind to an ephemeral port chosen by the OS.
     pub mcp_oauth_callback_port: Option<u16>,
 
     /// Optional redirect URI to use during MCP OAuth login.
@@ -886,22 +886,22 @@ pub struct Config {
     /// Memories subsystem settings.
     pub memories: MemoriesConfig,
 
-    /// Directory containing all Codex state (defaults to `~/.ditfa` but can be
+    /// Directory containing all Ditfa state (defaults to `~/.ditfa` but can be
     /// overridden by the `DITFA_HOME` environment variable).
     pub ditfa_home: AbsolutePathBuf,
 
-    /// Directory where Codex stores the SQLite state DB.
+    /// Directory where Ditfa stores the SQLite state DB.
     pub sqlite_home: PathBuf,
 
-    /// Directory where Codex writes log files (defaults to `$DITFA_HOME/log`).
+    /// Directory where Ditfa writes log files (defaults to `$DITFA_HOME/log`).
     pub log_dir: PathBuf,
 
-    /// Directory where Codex writes effective session config lock files.
+    /// Directory where Ditfa writes effective session config lock files.
     pub config_lock_export_dir: Option<AbsolutePathBuf>,
 
-    /// Whether config lock replay ignores Codex version drift between the
+    /// Whether config lock replay ignores Ditfa version drift between the
     /// lock metadata and the regenerated lock.
-    pub config_lock_allow_codex_version_mismatch: bool,
+    pub config_lock_allow_ditfa_version_mismatch: bool,
 
     /// Whether config lock creation saves values resolved from the model
     /// catalog/session configuration.
@@ -928,19 +928,19 @@ pub struct Config {
     /// output will be hyperlinked using the specified URI scheme.
     pub file_opener: UriBasedFileOpener,
 
-    /// Path to the current Codex executable. This cannot be set in the config
+    /// Path to the current Ditfa executable. This cannot be set in the config
     /// file: it must be set in code via [`ConfigOverrides`].
     pub ditfa_self_exe: Option<PathBuf>,
 
-    /// Path to the `codex-linux-sandbox` executable. This must be set if
+    /// Path to the `ditfa-linux-sandbox` executable. This must be set if
     /// [`ditfa_sandboxing::SandboxType::LinuxSeccomp`] is used. Note that this
     /// cannot be set in the config file: it must be set in code via
     /// [`ConfigOverrides`].
     ///
-    /// When this program is invoked, arg0 will be set to `codex-linux-sandbox`.
+    /// When this program is invoked, arg0 will be set to `ditfa-linux-sandbox`.
     pub ditfa_linux_sandbox_exe: Option<PathBuf>,
 
-    /// Path to the `codex-execve-wrapper` executable used for shell
+    /// Path to the `ditfa-execve-wrapper` executable used for shell
     /// escalation. This cannot be set in the config file: it must be set in
     /// code via [`ConfigOverrides`].
     pub main_execve_wrapper_exe: Option<PathBuf>,
@@ -973,7 +973,7 @@ pub struct Config {
     /// Base URL for requests to ChatGPT (as opposed to the OpenAI API).
     pub chatgpt_base_url: String,
 
-    /// Whether Codex-owned clients should respect host system proxy settings.
+    /// Whether Ditfa-owned clients should respect host system proxy settings.
     pub respect_system_proxy: bool,
 
     /// Optional product SKU forwarded to the host-owned apps MCP server.
@@ -1067,7 +1067,7 @@ pub struct Config {
     pub notices: Notice,
 
     /// When `true`, checks for Ditfa updates on startup and surfaces update prompts.
-    /// Set to `false` only if your Codex updates are centrally managed.
+    /// Set to `false` only if your Ditfa updates are centrally managed.
     /// Defaults to `true`.
     pub check_for_update_on_startup: bool,
 
@@ -1076,11 +1076,11 @@ pub struct Config {
     /// or placeholder replacement will occur for fast keypress bursts.
     pub disable_paste_burst: bool,
 
-    /// When `false`, disables analytics across Codex product surfaces in this machine.
+    /// When `false`, disables analytics across Ditfa product surfaces in this machine.
     /// Voluntarily left as Optional because the default value might depend on the client.
     pub analytics_enabled: Option<bool>,
 
-    /// When `false`, disables feedback collection across Codex product surfaces.
+    /// When `false`, disables feedback collection across Ditfa product surfaces.
     /// Defaults to `true`.
     pub feedback_enabled: bool,
 
@@ -1331,7 +1331,7 @@ impl ConfigBuilder {
         } = self;
         let ditfa_home = match ditfa_home {
             Some(ditfa_home) => AbsolutePathBuf::from_absolute_path(ditfa_home)?,
-            None => find_codex_home()?,
+            None => find_ditfa_home()?,
         };
         let cli_overrides = cli_overrides.unwrap_or_default();
         let mut harness_overrides = harness_overrides.unwrap_or_default();
@@ -1388,8 +1388,8 @@ impl ConfigBuilder {
         if let Some(config_lock_load_path) =
             config_lock_settings.and_then(|config_lock| config_lock.load_path.as_ref())
         {
-            let allow_codex_version_mismatch = config_lock_settings
-                .and_then(|config_lock| config_lock.allow_codex_version_mismatch)
+            let allow_ditfa_version_mismatch = config_lock_settings
+                .and_then(|config_lock| config_lock.allow_ditfa_version_mismatch)
                 .unwrap_or(false);
             let save_fields_resolved_from_model_catalog = config_lock_settings
                 .and_then(|config_lock| config_lock.save_fields_resolved_from_model_catalog)
@@ -1412,7 +1412,7 @@ impl ConfigBuilder {
             )
             .await?;
             config.config_lock_toml = Some(Arc::new(expected_lock_config));
-            config.config_lock_allow_codex_version_mismatch = allow_codex_version_mismatch;
+            config.config_lock_allow_ditfa_version_mismatch = allow_ditfa_version_mismatch;
             config.config_lock_save_fields_resolved_from_model_catalog =
                 save_fields_resolved_from_model_catalog;
             return Ok(config);
@@ -1740,17 +1740,17 @@ impl Config {
     pub async fn load_default_with_cli_overrides(
         cli_overrides: Vec<(String, TomlValue)>,
     ) -> std::io::Result<Self> {
-        let ditfa_home = find_codex_home()?;
-        Self::load_default_with_cli_overrides_for_codex_home(
+        let ditfa_home = find_ditfa_home()?;
+        Self::load_default_with_cli_overrides_for_ditfa_home(
             ditfa_home.to_path_buf(),
             cli_overrides,
         )
         .await
     }
 
-    /// Load a default configuration for a specific Codex home without reading
+    /// Load a default configuration for a specific Ditfa home without reading
     /// user, project, or system config layers.
-    pub async fn load_default_with_cli_overrides_for_codex_home(
+    pub async fn load_default_with_cli_overrides_for_ditfa_home(
         ditfa_home: PathBuf,
         cli_overrides: Vec<(String, TomlValue)>,
     ) -> std::io::Result<Self> {
@@ -1775,7 +1775,7 @@ impl Config {
     }
     /// This is a secondary way of creating [Config], which is appropriate when
     /// the harness is meant to be used with a specific configuration that
-    /// ignores user settings. For example, the `codex exec` subcommand is
+    /// ignores user settings. For example, the `ditfa exec` subcommand is
     /// designed to use [AskForApproval::Never] exclusively.
     ///
     /// Further, [ConfigOverrides] contains some options that are not supported
@@ -3844,7 +3844,7 @@ impl Config {
         {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
-                "`approval_policy = \"never\"` cannot be used because requirements do not allow `sandbox_mode = \"danger-full-access\"`; Codex would fall back to read-only permissions with approvals disabled. Choose an `approval_policy` based on what you need, such as `on-request`, or choose an allowed sandbox mode.",
+                "`approval_policy = \"never\"` cannot be used because requirements do not allow `sandbox_mode = \"danger-full-access\"`; Ditfa would fall back to read-only permissions with approvals disabled. Choose an `approval_policy` based on what you need, such as `on-request`, or choose an allowed sandbox mode.",
             ));
         }
         if permission_profile_was_constrained {
@@ -3869,7 +3869,7 @@ impl Config {
             network_requirements,
             &network_permission_profile,
         )?;
-        let mut helper_readable_roots = get_readable_roots_required_for_codex_runtime(
+        let mut helper_readable_roots = get_readable_roots_required_for_ditfa_runtime(
             &ditfa_home,
             zsh_path.as_ref(),
             main_execve_wrapper_exe.as_ref(),
@@ -4000,11 +4000,11 @@ impl Config {
                 .as_ref()
                 .and_then(|debug| debug.config_lockfile.as_ref())
                 .and_then(|config_lock| config_lock.export_dir.clone()),
-            config_lock_allow_codex_version_mismatch: cfg
+            config_lock_allow_ditfa_version_mismatch: cfg
                 .debug
                 .as_ref()
                 .and_then(|debug| debug.config_lockfile.as_ref())
-                .and_then(|config_lock| config_lock.allow_codex_version_mismatch)
+                .and_then(|config_lock| config_lock.allow_ditfa_version_mismatch)
                 .unwrap_or(false),
             config_lock_save_fields_resolved_from_model_catalog: cfg
                 .debug
@@ -4470,7 +4470,7 @@ fn normalize_guardian_policy_config(value: Option<&str>) -> Option<String> {
     })
 }
 
-/// Returns the path to the Codex configuration directory, which can be
+/// Returns the path to the Ditfa configuration directory, which can be
 /// specified by the `DITFA_HOME` environment variable. If not set, defaults to
 /// `~/.ditfa`.
 ///
@@ -4478,11 +4478,11 @@ fn normalize_guardian_policy_config(value: Option<&str>) -> Option<String> {
 ///   value will be canonicalized and this function will Err otherwise.
 /// - If `DITFA_HOME` is not set, this function does not verify that the
 ///   directory exists.
-pub fn find_codex_home() -> std::io::Result<AbsolutePathBuf> {
-    ditfa_utils_home_dir::find_codex_home()
+pub fn find_ditfa_home() -> std::io::Result<AbsolutePathBuf> {
+    ditfa_utils_home_dir::find_ditfa_home()
 }
 
-/// Returns the path to the folder where Codex logs are stored. Does not verify
+/// Returns the path to the folder where Ditfa logs are stored. Does not verify
 /// that the directory exists.
 pub fn log_dir(cfg: &Config) -> std::io::Result<PathBuf> {
     Ok(cfg.log_dir.clone())

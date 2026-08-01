@@ -2,7 +2,7 @@ use anyhow::Result;
 use ditfa_core::config::RolloutBudgetConfig;
 use ditfa_features::Feature;
 use ditfa_model_provider_info::built_in_model_providers;
-use ditfa_protocol::protocol::CodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::Op;
 use ditfa_protocol::user_input::UserInput;
@@ -17,7 +17,7 @@ use core_test_support::responses::mount_sse_sequence;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use serde_json::json;
@@ -82,7 +82,7 @@ async fn adds_weighted_initial_and_threshold_reminders() -> Result<()> {
         ],
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| {
             config.rollout_budget = Some(RolloutBudgetConfig {
                 sampling_token_weight: 2.0,
@@ -170,7 +170,7 @@ async fn subagent_usage_draws_from_the_shared_budget() -> Result<()> {
     )
     .await;
 
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| {
             config
                 .features
@@ -235,7 +235,7 @@ async fn exhausted_budget_fails_current_and_later_turns() -> Result<()> {
         ],
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| {
             config.rollout_budget = Some(RolloutBudgetConfig {
                 limit_tokens: 30,
@@ -264,7 +264,7 @@ async fn exhausted_budget_fails_current_and_later_turns() -> Result<()> {
             matches!(
                 event,
                 EventMsg::Error(error)
-                    if error.ditfa_error_info == Some(CodexErrorInfo::SessionBudgetExceeded)
+                    if error.ditfa_error_info == Some(DitfaErrorInfo::SessionBudgetExceeded)
             )
         })
         .await;
@@ -303,7 +303,7 @@ async fn compaction_budget_exhaustion_fails_without_retry(remote_v2: bool) -> Re
         ])
     };
     let responses = mount_sse_sequence(&server, vec![compact_response]).await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(move |config| {
             config.rollout_budget = Some(RolloutBudgetConfig {
                 limit_tokens: 10,
@@ -327,7 +327,7 @@ async fn compaction_budget_exhaustion_fails_without_retry(remote_v2: bool) -> Re
         matches!(
             event,
             EventMsg::Error(error)
-                if error.ditfa_error_info == Some(CodexErrorInfo::SessionBudgetExceeded)
+                if error.ditfa_error_info == Some(DitfaErrorInfo::SessionBudgetExceeded)
         )
     })
     .await;
@@ -365,7 +365,7 @@ async fn restates_the_current_remainder_after_compaction() -> Result<()> {
     model_provider.name = "OpenAI-compatible test provider".to_string();
     model_provider.base_url = Some(format!("{}/v1", server.uri()));
     model_provider.supports_websockets = false;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(move |config| {
             config.model_provider = model_provider;
             config.rollout_budget = Some(RolloutBudgetConfig {
@@ -421,7 +421,7 @@ async fn restates_the_current_remainder_after_rollback() -> Result<()> {
         ],
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| {
             config.rollout_budget = Some(RolloutBudgetConfig {
                 reminder_at_remaining_tokens: vec![50],

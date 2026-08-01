@@ -46,7 +46,7 @@ async fn review_start_rejects_detached_delivery_for_paginated_parent() -> Result
     create_config_toml(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -109,7 +109,7 @@ async fn review_start_runs_review_turn_and_emits_code_review_item() -> Result<()
     create_config_toml(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let thread_id = start_default_thread(&mut mcp).await?;
@@ -217,7 +217,7 @@ async fn review_start_exec_approval_item_id_matches_command_execution_item() -> 
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let thread_id = start_default_thread(&mut mcp).await?;
@@ -292,7 +292,7 @@ async fn review_start_rejects_empty_base_branch() -> Result<()> {
     create_config_toml(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let thread_id = start_default_thread(&mut mcp).await?;
@@ -352,8 +352,8 @@ async fn review_start_with_detached_delivery_returns_new_thread_id() -> Result<(
             "---\nname: review-agent\ndescription: Colliding user review skill.\n---\n\n{COLLIDING_REVIEW_SKILL_MARKER}\n"
         ),
     )?;
-    let canonical_codex_home = std::fs::canonicalize(ditfa_home.path())?.try_into()?;
-    let review_skill_path = system_cache_root_dir(&canonical_codex_home)
+    let canonical_ditfa_home = std::fs::canonicalize(ditfa_home.path())?.try_into()?;
+    let review_skill_path = system_cache_root_dir(&canonical_ditfa_home)
         .join("review-agent")
         .join("SKILL.md");
     let expected_prompt = format!(
@@ -362,7 +362,7 @@ async fn review_start_with_detached_delivery_returns_new_thread_id() -> Result<(
     );
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let thread_id = start_default_thread(&mut mcp).await?;
@@ -457,7 +457,7 @@ async fn review_start_rejects_empty_commit_sha() -> Result<()> {
     create_config_toml(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let thread_id = start_default_thread(&mut mcp).await?;
@@ -494,7 +494,7 @@ async fn review_start_rejects_empty_custom_instructions() -> Result<()> {
     create_config_toml(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let thread_id = start_default_thread(&mut mcp).await?;

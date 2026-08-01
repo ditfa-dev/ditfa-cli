@@ -17,7 +17,7 @@ use crate::sandbox_bin_dir;
 
 const DEV_BUILD_VERSION_SENTINEL: &str = "0.0.0";
 pub(crate) const BIN_DIRNAME: &str = "bin";
-pub(crate) const RESOURCES_DIRNAME: &str = "codex-resources";
+pub(crate) const RESOURCES_DIRNAME: &str = "ditfa-resources";
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub(crate) enum HelperExecutable {
@@ -27,7 +27,7 @@ pub(crate) enum HelperExecutable {
 impl HelperExecutable {
     fn file_name(self) -> &'static str {
         match self {
-            Self::CommandRunner => "codex-command-runner.exe",
+            Self::CommandRunner => "ditfa-command-runner.exe",
         }
     }
 
@@ -441,10 +441,10 @@ mod tests {
     #[test]
     fn copy_runner_into_shared_bin_dir() {
         let tmp = TempDir::new().expect("tempdir");
-        let ditfa_home = tmp.path().join("codex-home");
+        let ditfa_home = tmp.path().join("ditfa-home");
         let source_dir = tmp.path().join("sibling-source");
         fs::create_dir_all(&source_dir).expect("create source dir");
-        let runner_source = source_dir.join("codex-command-runner.exe");
+        let runner_source = source_dir.join("ditfa-command-runner.exe");
         fs::write(&runner_source, b"runner").expect("runner");
         let runner_suffix = helper_version_suffix(&runner_source).expect("runner suffix");
         let runner_destination = helper_bin_dir(&ditfa_home).join(materialized_file_name(
@@ -468,13 +468,13 @@ mod tests {
         let release_dir = tmp.path().join("release");
         let resources_dir = release_dir.join(RESOURCES_DIRNAME);
         fs::create_dir_all(&resources_dir).expect("create resources dir");
-        let exe = release_dir.join("codex.exe");
-        let helper = resources_dir.join("codex-command-runner.exe");
-        fs::write(&exe, b"codex").expect("write exe");
+        let exe = release_dir.join("ditfa.exe");
+        let helper = resources_dir.join("ditfa-command-runner.exe");
+        fs::write(&exe, b"ditfa").expect("write exe");
         fs::write(&helper, b"runner").expect("write helper");
 
         let resolved =
-            bundled_executable_path_for_exe(&exe, /*file_name*/ "codex-command-runner.exe")
+            bundled_executable_path_for_exe(&exe, /*file_name*/ "ditfa-command-runner.exe")
                 .expect("helper path");
 
         assert_eq!(resolved, helper);
@@ -488,13 +488,13 @@ mod tests {
         let resources_dir = package_dir.join(RESOURCES_DIRNAME);
         fs::create_dir_all(&bin_dir).expect("create bin dir");
         fs::create_dir_all(&resources_dir).expect("create resources dir");
-        let exe = bin_dir.join("codex.exe");
-        let helper = resources_dir.join("codex-command-runner.exe");
-        fs::write(&exe, b"codex").expect("write exe");
+        let exe = bin_dir.join("ditfa.exe");
+        let helper = resources_dir.join("ditfa-command-runner.exe");
+        fs::write(&exe, b"ditfa").expect("write exe");
         fs::write(&helper, b"runner").expect("write helper");
 
         let resolved =
-            bundled_executable_path_for_exe(&exe, /*file_name*/ "codex-command-runner.exe")
+            bundled_executable_path_for_exe(&exe, /*file_name*/ "ditfa-command-runner.exe")
                 .expect("helper path");
 
         assert_eq!(resolved, helper);
@@ -509,15 +509,15 @@ mod tests {
         let bin_resources_dir = bin_dir.join(RESOURCES_DIRNAME);
         fs::create_dir_all(&package_resources_dir).expect("create package resources dir");
         fs::create_dir_all(&bin_resources_dir).expect("create bin resources dir");
-        let exe = bin_dir.join("codex.exe");
-        let package_helper = package_resources_dir.join("codex-command-runner.exe");
-        let bin_helper = bin_resources_dir.join("codex-command-runner.exe");
-        fs::write(&exe, b"codex").expect("write exe");
+        let exe = bin_dir.join("ditfa.exe");
+        let package_helper = package_resources_dir.join("ditfa-command-runner.exe");
+        let bin_helper = bin_resources_dir.join("ditfa-command-runner.exe");
+        fs::write(&exe, b"ditfa").expect("write exe");
         fs::write(&package_helper, b"package runner").expect("write package helper");
         fs::write(&bin_helper, b"bin runner").expect("write bin helper");
 
         let resolved =
-            bundled_executable_path_for_exe(&exe, /*file_name*/ "codex-command-runner.exe")
+            bundled_executable_path_for_exe(&exe, /*file_name*/ "ditfa-command-runner.exe")
                 .expect("helper path");
 
         assert_eq!(resolved, package_helper);
@@ -529,15 +529,15 @@ mod tests {
         let release_dir = tmp.path().join("release");
         let resources_dir = release_dir.join(RESOURCES_DIRNAME);
         fs::create_dir_all(&resources_dir).expect("create resources dir");
-        let exe = release_dir.join("codex.exe");
-        let sibling_helper = release_dir.join("codex-command-runner.exe");
-        let resource_helper = resources_dir.join("codex-command-runner.exe");
-        fs::write(&exe, b"codex").expect("write exe");
+        let exe = release_dir.join("ditfa.exe");
+        let sibling_helper = release_dir.join("ditfa-command-runner.exe");
+        let resource_helper = resources_dir.join("ditfa-command-runner.exe");
+        fs::write(&exe, b"ditfa").expect("write exe");
         fs::write(&sibling_helper, b"sibling runner").expect("write sibling helper");
         fs::write(&resource_helper, b"resource runner").expect("write resource helper");
 
         let resolved =
-            bundled_executable_path_for_exe(&exe, /*file_name*/ "codex-command-runner.exe")
+            bundled_executable_path_for_exe(&exe, /*file_name*/ "ditfa-command-runner.exe")
                 .expect("helper path");
 
         assert_eq!(resolved, sibling_helper);
@@ -561,6 +561,6 @@ mod tests {
     fn materialized_file_name_adds_suffix_before_extension() {
         let file_name = materialized_file_name(HelperExecutable::CommandRunner, "test-suffix");
 
-        assert_eq!(file_name, "codex-command-runner-test-suffix.exe");
+        assert_eq!(file_name, "ditfa-command-runner-test-suffix.exe");
     }
 }

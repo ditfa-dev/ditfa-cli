@@ -14,7 +14,7 @@ const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 async fn read_default_provider_capabilities() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -43,7 +43,7 @@ async fn read_amazon_bedrock_provider_capabilities() -> Result<()> {
 "#,
     )?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;

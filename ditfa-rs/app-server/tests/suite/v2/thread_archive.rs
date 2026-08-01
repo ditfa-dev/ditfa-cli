@@ -39,7 +39,7 @@ async fn thread_archive_requires_materialized_rollout() -> Result<()> {
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -207,7 +207,7 @@ async fn thread_archive_archives_spawned_descendants() -> Result<()> {
         .await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -323,7 +323,7 @@ async fn thread_archive_succeeds_when_descendant_archive_fails() -> Result<()> {
     std::fs::create_dir_all(&archived_child_path)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -422,7 +422,7 @@ async fn thread_archive_succeeds_when_spawned_descendant_is_missing() -> Result<
         .await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -470,7 +470,7 @@ async fn thread_archive_clears_stale_subscriptions_before_resume() -> Result<()>
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut primary = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -503,7 +503,7 @@ async fn thread_archive_clears_stale_subscriptions_before_resume() -> Result<()>
     primary.clear_message_buffer();
 
     let mut secondary = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 

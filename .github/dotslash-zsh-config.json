@@ -1,30 +1,30 @@
 {
   "outputs": {
-    "codex-zsh": {
+    "ditfa-zsh": {
       "platforms": {
         "macos-aarch64": {
-          "name": "codex-zsh-aarch64-apple-darwin.tar.gz",
+          "name": "ditfa-zsh-aarch64-apple-darwin.tar.gz",
           "format": "tar.gz",
           "hash": "sha256",
-          "path": "codex-zsh/bin/zsh"
+          "path": "ditfa-zsh/bin/zsh"
         },
         "macos-x86_64": {
-          "name": "codex-zsh-x86_64-apple-darwin.tar.gz",
+          "name": "ditfa-zsh-x86_64-apple-darwin.tar.gz",
           "format": "tar.gz",
           "hash": "sha256",
-          "path": "codex-zsh/bin/zsh"
+          "path": "ditfa-zsh/bin/zsh"
         },
         "linux-x86_64": {
-          "name": "codex-zsh-x86_64-unknown-linux-musl.tar.gz",
+          "name": "ditfa-zsh-x86_64-unknown-linux-musl.tar.gz",
           "format": "tar.gz",
           "hash": "sha256",
-          "path": "codex-zsh/bin/zsh"
+          "path": "ditfa-zsh/bin/zsh"
         },
         "linux-aarch64": {
-          "name": "codex-zsh-aarch64-unknown-linux-musl.tar.gz",
+          "name": "ditfa-zsh-aarch64-unknown-linux-musl.tar.gz",
           "format": "tar.gz",
           "hash": "sha256",
-          "path": "codex-zsh/bin/zsh"
+          "path": "ditfa-zsh/bin/zsh"
         }
       }
     }

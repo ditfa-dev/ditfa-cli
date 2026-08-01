@@ -1,60 +1,60 @@
 # App Server Test Client
-Quickstart for running and hitting `codex app-server`.
+Quickstart for running and hitting `ditfa app-server`.
 
 ## Quickstart
 
-Run from `<reporoot>/codex-rs`.
+Run from `<reporoot>/ditfa-rs`.
 
 ```bash
-# 1) Build debug codex binary
-cargo build -p codex-cli --bin codex
+# 1) Build debug ditfa binary
+cargo build -p ditfa-cli --bin ditfa
 
 # 2) Start websocket app-server in background
-cargo run -p codex-app-server-test-client -- \
-  --codex-bin ./target/debug/codex \
+cargo run -p ditfa-app-server-test-client -- \
+  --ditfa-bin ./target/debug/ditfa \
   serve --listen ws://127.0.0.1:4222 --kill
 
 # 3) Call app-server (defaults to ws://127.0.0.1:4222)
-cargo run -p codex-app-server-test-client -- model-list
+cargo run -p ditfa-app-server-test-client -- model-list
 ```
 
 `send-message` and `send-message-v2` handle `request_user_input` server requests interactively.
-When Codex asks a question, choose a numbered option (or `o` for a free-form answer when offered)
+When Ditfa asks a question, choose a numbered option (or `o` for a free-form answer when offered)
 and the client will send the response and continue streaming the same turn.
 
-## Testing Codex-managed Amazon Bedrock login
+## Testing Ditfa-managed Amazon Bedrock login
 
 `test-login --amazon-bedrock` initializes the experimental app-server API, sends an
 `account/login/start` request with an Amazon Bedrock API key, and waits for the
 `account/login/completed` and `account/updated` notifications. Login replaces the current primary
-credential and sets `model_provider = "amazon-bedrock"`, so use an isolated `CODEX_HOME` when
+credential and sets `model_provider = "amazon-bedrock"`, so use an isolated `DITFA_HOME` when
 testing.
 
 ```bash
-export CODEX_HOME="$(mktemp -d)"
-printf 'cli_auth_credentials_store = "file"\n' > "$CODEX_HOME/config.toml"
+export DITFA_HOME="$(mktemp -d)"
+printf 'cli_auth_credentials_store = "file"\n' > "$DITFA_HOME/config.toml"
 
-cargo build -p codex-cli --bin codex
-cargo run -p codex-app-server-test-client -- \
-  --codex-bin ./target/debug/codex \
+cargo build -p ditfa-cli --bin ditfa
+cargo run -p ditfa-app-server-test-client -- \
+  --ditfa-bin ./target/debug/ditfa \
   test-login \
   --amazon-bedrock \
   --api-key "<BEDROCK_API_KEY>" \
   --region us-west-2
 ```
 
-The test client redacts `apiKey` from its outbound request log. After login, start a fresh Codex
-process with the same `CODEX_HOME` to verify that it uses the persisted managed credential.
+The test client redacts `apiKey` from its outbound request log. After login, start a fresh Ditfa
+process with the same `DITFA_HOME` to verify that it uses the persisted managed credential.
 
 ## Testing logout
 
 `test-logout` initializes the app-server, sends an `account/logout` request, and waits for the
-resulting `account/updated` notification. It uses the active `CODEX_HOME`, so point it at an
+resulting `account/updated` notification. It uses the active `DITFA_HOME`, so point it at an
 isolated directory when testing credential cleanup.
 
 ```bash
-cargo run -p codex-app-server-test-client -- \
-  --codex-bin ./target/debug/codex \
+cargo run -p ditfa-app-server-test-client -- \
+  --ditfa-bin ./target/debug/ditfa \
   test-logout
 ```
 
@@ -67,22 +67,22 @@ not sent to the analytics backend. The model turn uses a loopback Responses
 API server.
 
 The selected plugin must already be installed and enabled remotely, and the
-active Codex profile must be authenticated. On a fresh local cache, the command
+active Ditfa profile must be authenticated. On a fresh local cache, the command
 retries ephemeral turns while the installed remote bundle finishes syncing.
 
 ```bash
-# Build a debug Codex binary; analytics capture is unavailable in release builds.
-cargo build -p codex-cli --bin codex
+# Build a debug Ditfa binary; analytics capture is unavailable in release builds.
+cargo build -p ditfa-cli --bin ditfa
 
-cargo run -p codex-app-server-test-client -- \
-  --codex-bin ./target/debug/codex \
+cargo run -p ditfa-app-server-test-client -- \
+  --ditfa-bin ./target/debug/ditfa \
   plugin-analytics-smoke \
   --plugin-id linear@openai-curated-remote
 ```
 
 Use `--capture-file /tmp/plugin-analytics.jsonl` to select the output path.
-The command validates one `codex_plugin_disabled`, `codex_plugin_enabled`, and
-`codex_plugin_used` event with the expected local and remote plugin identities
+The command validates one `ditfa_plugin_disabled`, `ditfa_plugin_enabled`, and
+`ditfa_plugin_used` event with the expected local and remote plugin identities
 and capability metadata. Each event includes the local ID in `plugin_id` and the
 backend ID in `remote_plugin_id`. The enabled and disabled events come from
 successful writes to the temporary config; the command does not mutate the
@@ -99,19 +99,19 @@ or CI.
 
 Choose a remote plugin that is available to the active account and is not
 currently installed. The command refuses to run when the plugin is already
-installed, installs it, validates `codex_plugin_installed`, uninstalls it, and
-validates `codex_plugin_uninstalled`, and verifies that the original
+installed, installs it, validates `ditfa_plugin_installed`, uninstalls it, and
+validates `ditfa_plugin_uninstalled`, and verifies that the original
 uninstalled state was restored.
 
-The mutation events include the local Codex ID in `plugin_id` and the backend ID
+The mutation events include the local Ditfa ID in `plugin_id` and the backend ID
 in `remote_plugin_id`.
 
 `--remote-plugin-id` takes the backend ID, such as `plugins~Plugin_...`, not the
 local `<plugin>@<marketplace>` ID.
 
 ```bash
-cargo run -p codex-app-server-test-client -- \
-  --codex-bin ./target/debug/codex \
+cargo run -p ditfa-app-server-test-client -- \
+  --ditfa-bin ./target/debug/ditfa \
   plugin-analytics-mutation-smoke \
   --remote-plugin-id <REMOTE_PLUGIN_ID> \
   --confirm-account-mutation \
@@ -133,14 +133,14 @@ command prints one of these final states:
 For a dirty or uncertain result, retry cleanup with:
 
 ```bash
-cargo run -p codex-app-server-test-client -- \
-  --codex-bin ./target/debug/codex \
+cargo run -p ditfa-app-server-test-client -- \
+  --ditfa-bin ./target/debug/ditfa \
   plugin-remote-uninstall \
   --remote-plugin-id <REMOTE_PLUGIN_ID> \
   --confirm-account-mutation
 ```
 
-Cleanup does not require analytics capture or a debug Codex binary. When the
+Cleanup does not require analytics capture or a debug Ditfa binary. When the
 smoke uses global `--config` overrides, its printed recovery command preserves
 them so cleanup targets the same backend and account.
 
@@ -150,20 +150,20 @@ Initialize a connection, then print every inbound JSON-RPC message until you sto
 `Ctrl+C`:
 
 ```bash
-cargo run -p codex-app-server-test-client -- watch
+cargo run -p ditfa-app-server-test-client -- watch
 ```
 
 ## Testing Thread Rejoin Behavior
 
-Build and start an app server using commands above. The app-server log is written to `/tmp/codex-app-server-test-client/app-server.log`
+Build and start an app server using commands above. The app-server log is written to `/tmp/ditfa-app-server-test-client/app-server.log`
 
 ### 1) Get a thread id
 
 Create at least one thread, then list threads:
 
 ```bash
-cargo run -p codex-app-server-test-client -- send-message-v2 "seed thread for rejoin test"
-cargo run -p codex-app-server-test-client -- thread-list --limit 5
+cargo run -p ditfa-app-server-test-client -- send-message-v2 "seed thread for rejoin test"
+cargo run -p ditfa-app-server-test-client -- thread-list --limit 5
 ```
 
 Copy a thread id from the `thread-list` output.
@@ -173,12 +173,12 @@ Copy a thread id from the `thread-list` output.
 Terminal A:
 
 ```bash
-cargo run --bin codex-app-server-test-client -- \
+cargo run --bin ditfa-app-server-test-client -- \
   resume-message-v2 <THREAD_ID> "respond with thorough docs on the rust core"
 ```
 
 Terminal B (while Terminal A is still streaming):
 
 ```bash
-cargo run --bin codex-app-server-test-client -- thread-resume <THREAD_ID>
+cargo run --bin ditfa-app-server-test-client -- thread-resume <THREAD_ID>
 ```

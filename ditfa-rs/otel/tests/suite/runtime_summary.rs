@@ -17,7 +17,7 @@ use tokio_tungstenite::tungstenite::Message;
 fn runtime_metrics_summary_collects_tool_api_and_streaming_metrics() -> Result<()> {
     let exporter = InMemoryMetricExporter::default();
     let metrics = MetricsClient::new(
-        MetricsConfig::in_memory("test", "codex-cli", env!("CARGO_PKG_VERSION"), exporter)
+        MetricsConfig::in_memory("test", "ditfa-cli", env!("CARGO_PKG_VERSION"), exporter)
             .with_runtime_reader(),
     )?;
     let manager = SessionTelemetry::new(
@@ -95,12 +95,12 @@ fn runtime_metrics_summary_collects_tool_api_and_streaming_metrics() -> Result<(
     ))));
     manager.record_websocket_event(&ws_timing_response, Duration::from_millis(20));
     manager.record_duration(
-        "codex.turn.ttft.duration_ms",
+        "ditfa.turn.ttft.duration_ms",
         Duration::from_millis(95),
         &[],
     );
     manager.record_duration(
-        "codex.turn.ttfm.duration_ms",
+        "ditfa.turn.ttfm.duration_ms",
         Duration::from_millis(180),
         &[],
     );

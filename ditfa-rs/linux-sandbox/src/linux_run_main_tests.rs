@@ -66,7 +66,7 @@ fn inserts_bwrap_argv0_before_command_separator() {
     apply_inner_command_argv0_for_launcher(
         &mut argv,
         /*supports_argv0*/ true,
-        "/tmp/codex-arg0-session/codex-linux-sandbox".to_string(),
+        "/tmp/ditfa-arg0-session/ditfa-linux-sandbox".to_string(),
     );
     assert_eq!(
         argv,
@@ -84,7 +84,7 @@ fn inserts_bwrap_argv0_before_command_separator() {
             "--proc".to_string(),
             "/proc".to_string(),
             "--argv0".to_string(),
-            "codex-linux-sandbox".to_string(),
+            "ditfa-linux-sandbox".to_string(),
             "--".to_string(),
             "/bin/true".to_string(),
         ]
@@ -110,13 +110,13 @@ fn rewrites_inner_command_path_when_bwrap_lacks_argv0() {
     apply_inner_command_argv0_for_launcher(
         &mut argv,
         /*supports_argv0*/ false,
-        "/tmp/codex-arg0-session/codex-linux-sandbox".to_string(),
+        "/tmp/ditfa-arg0-session/ditfa-linux-sandbox".to_string(),
     );
 
     assert!(!argv.iter().any(|arg| arg == "--argv0"));
     assert!(
         argv.windows(2)
-            .any(|window| { window == ["--", "/tmp/codex-arg0-session/codex-linux-sandbox"] })
+            .any(|window| { window == ["--", "/tmp/ditfa-arg0-session/ditfa-linux-sandbox"] })
     );
 }
 
@@ -134,7 +134,7 @@ fn rewrites_bwrap_helper_command_not_nested_user_command_when_current_exe_appear
         "/tmp/cwd".to_string(),
         "--".to_string(),
         nested_current_exe.clone(),
-        "--codex-run-as-apply-patch".to_string(),
+        "--ditfa-run-as-apply-patch".to_string(),
         "patch".to_string(),
     ];
 
@@ -154,7 +154,7 @@ fn rewrites_bwrap_helper_command_not_nested_user_command_when_current_exe_appear
             "/tmp/cwd".to_string(),
             "--".to_string(),
             nested_current_exe,
-            "--codex-run-as-apply-patch".to_string(),
+            "--ditfa-run-as-apply-patch".to_string(),
             "patch".to_string(),
         ]
     );
@@ -324,7 +324,7 @@ fn synthetic_mount_registry_root_is_unique_to_effective_user() {
     assert_eq!(
         synthetic_mount_registry_root(),
         std::env::temp_dir().join(format!(
-            "codex-bwrap-synthetic-mount-targets-{effective_uid}"
+            "ditfa-bwrap-synthetic-mount-targets-{effective_uid}"
         ))
     );
 }

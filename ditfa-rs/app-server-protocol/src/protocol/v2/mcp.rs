@@ -296,7 +296,7 @@ impl From<rmcp::model::ElicitationAction> for McpServerElicitationAction {
 #[ts(export_to = "v2/")]
 pub struct McpServerElicitationRequestParams {
     pub thread_id: String,
-    /// Active Codex turn when this elicitation was observed, if app-server could correlate one.
+    /// Active Ditfa turn when this elicitation was observed, if app-server could correlate one.
     ///
     /// This is nullable because MCP models elicitation as a standalone server-to-client request
     /// identified by the MCP server request id. It may be triggered during a turn, but turn

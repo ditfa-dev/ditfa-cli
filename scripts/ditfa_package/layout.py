@@ -1,4 +1,4 @@
-"""Canonical Codex package directory layout."""
+"""Canonical Ditfa Code package directory layout."""
 
 import json
 import shutil
@@ -39,8 +39,8 @@ def build_package_dir(
     inputs: PackageInputs,
 ) -> None:
     bin_dir = package_dir / "bin"
-    resources_dir = package_dir / "codex-resources"
-    path_dir = package_dir / "codex-path"
+    resources_dir = package_dir / "ditfa-resources"
+    path_dir = package_dir / "ditfa-path"
     bin_dir.mkdir()
     resources_dir.mkdir()
     path_dir.mkdir()
@@ -53,7 +53,7 @@ def build_package_dir(
     )
     copy_executable(
         inputs.code_mode_host_bin,
-        bin_dir / f"codex-code-mode-host{spec.exe_suffix}",
+        bin_dir / f"ditfa-code-mode-host{spec.exe_suffix}",
         is_windows=spec.is_windows,
     )
     copy_executable(inputs.rg_bin, path_dir / spec.rg_name, is_windows=spec.is_windows)
@@ -68,17 +68,17 @@ def build_package_dir(
     if inputs.bwrap_bin is not None:
         copy_executable(inputs.bwrap_bin, resources_dir / "bwrap", is_windows=False)
 
-    if inputs.codex_command_runner_bin is not None:
+    if inputs.ditfa_command_runner_bin is not None:
         copy_executable(
-            inputs.codex_command_runner_bin,
-            resources_dir / "codex-command-runner.exe",
+            inputs.ditfa_command_runner_bin,
+            resources_dir / "ditfa-command-runner.exe",
             is_windows=True,
         )
 
-    if inputs.codex_windows_sandbox_setup_bin is not None:
+    if inputs.ditfa_windows_sandbox_setup_bin is not None:
         copy_executable(
-            inputs.codex_windows_sandbox_setup_bin,
-            resources_dir / "codex-windows-sandbox-setup.exe",
+            inputs.ditfa_windows_sandbox_setup_bin,
+            resources_dir / "ditfa-windows-sandbox-setup.exe",
             is_windows=True,
         )
 
@@ -88,10 +88,10 @@ def build_package_dir(
         "target": spec.target,
         "variant": variant.name,
         "entrypoint": f"bin/{entrypoint_name}",
-        "resourcesDir": "codex-resources",
-        "pathDir": "codex-path",
+        "resourcesDir": "ditfa-resources",
+        "pathDir": "ditfa-path",
     }
-    write_json(package_dir / "codex-package.json", metadata)
+    write_json(package_dir / "ditfa-package.json", metadata)
 
 
 def validate_package_dir(
@@ -103,17 +103,17 @@ def validate_package_dir(
 ) -> None:
     required_dirs = [
         Path("bin"),
-        Path("codex-resources"),
-        Path("codex-path"),
+        Path("ditfa-resources"),
+        Path("ditfa-path"),
     ]
     for relative_dir in required_dirs:
         path = package_dir / relative_dir
         if not path.is_dir():
             raise RuntimeError(f"Missing package directory: {relative_dir}")
 
-    metadata_path = package_dir / "codex-package.json"
+    metadata_path = package_dir / "ditfa-package.json"
     if not metadata_path.is_file():
-        raise RuntimeError("Missing package metadata: codex-package.json")
+        raise RuntimeError("Missing package metadata: ditfa-package.json")
 
     with open(metadata_path, encoding="utf-8") as fh:
         metadata = json.load(fh)
@@ -123,8 +123,8 @@ def validate_package_dir(
         "target": spec.target,
         "variant": variant.name,
         "entrypoint": f"bin/{variant.entrypoint_name(spec)}",
-        "resourcesDir": "codex-resources",
-        "pathDir": "codex-path",
+        "resourcesDir": "ditfa-resources",
+        "pathDir": "ditfa-path",
     }
     for key, expected in expected_metadata.items():
         actual = metadata.get(key)
@@ -135,25 +135,25 @@ def validate_package_dir(
 
     required_files = [
         Path("bin") / variant.entrypoint_name(spec),
-        Path("bin") / f"codex-code-mode-host{spec.exe_suffix}",
-        Path("codex-path") / spec.rg_name,
+        Path("bin") / f"ditfa-code-mode-host{spec.exe_suffix}",
+        Path("ditfa-path") / spec.rg_name,
     ]
     executable_files = list(required_files)
 
     if include_zsh:
-        zsh_path = Path("codex-resources") / ZSH_RESOURCE_PATH
+        zsh_path = Path("ditfa-resources") / ZSH_RESOURCE_PATH
         required_files.append(zsh_path)
         executable_files.append(zsh_path)
 
     if spec.is_linux:
-        required_files.append(Path("codex-resources") / "bwrap")
-        executable_files.append(Path("codex-resources") / "bwrap")
+        required_files.append(Path("ditfa-resources") / "bwrap")
+        executable_files.append(Path("ditfa-resources") / "bwrap")
 
     if spec.is_windows:
         required_files.extend(
             [
-                Path("codex-resources") / "codex-command-runner.exe",
-                Path("codex-resources") / "codex-windows-sandbox-setup.exe",
+                Path("ditfa-resources") / "ditfa-command-runner.exe",
+                Path("ditfa-resources") / "ditfa-windows-sandbox-setup.exe",
             ]
         )
 

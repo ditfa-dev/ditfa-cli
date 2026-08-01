@@ -18,7 +18,7 @@ use tracing::warn;
 
 use crate::model::AgentThreadId;
 use crate::model::CodeModeRuntimeToolId;
-use crate::model::CodexTurnId;
+use crate::model::DitfaTurnId;
 use crate::model::ExecutionStatus;
 use crate::model::ModelVisibleCallId;
 use crate::model::ToolCallId;
@@ -47,14 +47,14 @@ enum ToolDispatchTraceContextState {
 struct EnabledToolDispatchTraceContext {
     writer: Arc<TraceWriter>,
     thread_id: AgentThreadId,
-    ditfa_turn_id: CodexTurnId,
+    ditfa_turn_id: DitfaTurnId,
     tool_call_id: ToolCallId,
 }
 
-/// Core-facing request data for the canonical Codex tool boundary.
+/// Core-facing request data for the canonical Ditfa tool boundary.
 pub struct ToolDispatchInvocation {
     pub thread_id: AgentThreadId,
-    pub ditfa_turn_id: CodexTurnId,
+    pub ditfa_turn_id: DitfaTurnId,
     pub tool_call_id: ToolCallId,
     pub tool_name: String,
     pub tool_namespace: Option<String>,
@@ -103,7 +103,7 @@ pub enum ToolDispatchResult {
     CodeModeResponse { value: JsonValue },
 }
 
-/// Raw invocation payload for the canonical Codex tool boundary.
+/// Raw invocation payload for the canonical Ditfa tool boundary.
 #[derive(Serialize)]
 struct DispatchedToolTraceRequest<'a> {
     tool_name: &'a str,

@@ -1,4 +1,4 @@
-//! Shared command-line flags used by both interactive and non-interactive Codex entry points.
+//! Shared command-line flags used by both interactive and non-interactive Ditfa entry points.
 
 use crate::SandboxModeCliArg;
 use clap::Args;

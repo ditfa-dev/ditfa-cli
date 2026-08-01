@@ -35,9 +35,9 @@ fn write_plugin(root: &Path, dir_name: &str, manifest_name: &str) {
 }
 
 #[test]
-fn try_new_rejects_relative_codex_home() {
+fn try_new_rejects_relative_ditfa_home() {
     let err = PluginStore::try_new(PathBuf::from("relative"))
-        .expect_err("relative codex home should fail");
+        .expect_err("relative ditfa home should fail");
     let err = err.to_string().replace('\\', "/");
 
     assert_eq!(

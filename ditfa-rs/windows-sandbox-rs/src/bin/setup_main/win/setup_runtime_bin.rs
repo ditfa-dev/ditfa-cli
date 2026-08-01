@@ -14,7 +14,7 @@ use windows_sys::Win32::Storage::FileSystem::FILE_GENERIC_READ;
 #[path = "setup_runtime_bin_tests.rs"]
 mod tests;
 
-pub(super) fn ensure_codex_app_runtime_paths_readable(
+pub(super) fn ensure_ditfa_app_runtime_paths_readable(
     sandbox_group_psid: *mut c_void,
     refresh_errors: &mut Vec<String>,
     log: &mut dyn Write,
@@ -91,12 +91,12 @@ pub(super) fn ensure_codex_app_runtime_paths_readable(
 fn runtime_paths(local_app_data: Option<PathBuf>, user_profile: Option<PathBuf>) -> Vec<PathBuf> {
     let mut runtime_paths = Vec::new();
     if let Some(local_app_data) = local_app_data {
-        let ditfa_root = local_app_data.join("OpenAI").join("Codex");
+        let ditfa_root = local_app_data.join("OpenAI").join("Ditfa");
         runtime_paths.extend([ditfa_root.join("bin"), ditfa_root.join("runtimes")]);
     }
     // The managed primary runtime is installed outside the LocalAppData runtime roots.
     if let Some(user_profile) = user_profile {
-        runtime_paths.push(user_profile.join(".cache").join("codex-runtimes"));
+        runtime_paths.push(user_profile.join(".cache").join("ditfa-runtimes"));
     }
 
     runtime_paths

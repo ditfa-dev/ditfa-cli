@@ -15,7 +15,7 @@ const TEST_REWRITE_PROFILE: RewriteProfile = RewriteProfile::new(
 );
 
 #[test]
-fn command_skill_names_must_fit_codex_skill_loader_limit() {
+fn command_skill_names_must_fit_ditfa_skill_loader_limit() {
     let source_name = "this-is-a-deeply-nested-command-with-a-very-long-name";
     let file = Path::new("commands/this/is/a/deeply/nested/command/with/a/very/long/name.md");
     let document = parse_command_content("---\ndescription: Review PR\n---\nReview\n");

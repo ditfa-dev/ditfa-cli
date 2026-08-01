@@ -28,7 +28,7 @@ fn host_program_override_takes_precedence() {
     assert_eq!(
         resolve_host_program(
             Some("custom-code-mode-host".into()),
-            Ok(PathBuf::from("/opt/codex/bin/codex")),
+            Ok(PathBuf::from("/opt/ditfa/bin/ditfa")),
         ),
         PathBuf::from("custom-code-mode-host")
     );
@@ -37,26 +37,26 @@ fn host_program_override_takes_precedence() {
 #[test]
 fn host_program_is_next_to_the_main_executable_even_when_missing() {
     let executable_name = if cfg!(windows) {
-        "codex-code-mode-host.exe"
+        "ditfa-code-mode-host.exe"
     } else {
-        "codex-code-mode-host"
+        "ditfa-code-mode-host"
     };
 
     assert_eq!(
         resolve_host_program(
             /*override_path*/ None,
-            Ok(PathBuf::from("/opt/codex/bin/codex")),
+            Ok(PathBuf::from("/opt/ditfa/bin/ditfa")),
         ),
-        PathBuf::from("/opt/codex/bin").join(executable_name)
+        PathBuf::from("/opt/ditfa/bin").join(executable_name)
     );
 }
 
 #[test]
 fn host_program_falls_back_to_its_name_when_main_executable_is_unknown() {
     let executable_name = if cfg!(windows) {
-        "codex-code-mode-host.exe"
+        "ditfa-code-mode-host.exe"
     } else {
-        "codex-code-mode-host"
+        "ditfa-code-mode-host"
     };
 
     assert_eq!(
@@ -74,7 +74,7 @@ fn host_program_falls_back_to_its_name_when_main_executable_is_unknown() {
 #[tokio::test]
 async fn provider_falls_back_to_in_process_session_when_host_is_missing() {
     let provider = ProcessOwnedCodeModeSessionProvider::with_host_program(
-        "codex-code-mode-host-does-not-exist".into(),
+        "ditfa-code-mode-host-does-not-exist".into(),
     );
 
     let session = provider

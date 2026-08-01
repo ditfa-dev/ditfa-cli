@@ -2,14 +2,14 @@
 //!
 //! Each test sets up a mocked SSE conversation and drives the conversation through
 //! a specific sequence of operations. After every operation we capture the
-//! request payload that Codex would send to the model and assert that the
+//! request payload that Ditfa would send to the model and assert that the
 //! model-visible history matches the expected sequence of messages.
 
 use super::compact::COMPACT_WARNING_MESSAGE;
 use super::compact::FIRST_REPLY;
 use super::compact::SUMMARY_TEXT;
 use anyhow::Result;
-use ditfa_core::CodexThread;
+use ditfa_core::DitfaThread;
 use ditfa_core::ThreadManager;
 use ditfa_core::compact::SUMMARIZATION_PROMPT;
 use ditfa_core::config::Config;
@@ -32,8 +32,8 @@ use core_test_support::responses::ev_response_created;
 use core_test_support::responses::mount_sse_once_match;
 use core_test_support::responses::mount_sse_sequence;
 use core_test_support::responses::sse;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
@@ -753,10 +753,10 @@ async fn mount_second_compact_sequence(server: &MockServer) -> ResponseMock {
 async fn start_test_conversation(
     server: &MockServer,
     model: Option<&str>,
-) -> (Arc<TempDir>, Config, Arc<ThreadManager>, Arc<CodexThread>) {
+) -> (Arc<TempDir>, Config, Arc<ThreadManager>, Arc<DitfaThread>) {
     let base_url = format!("{}/v1", server.uri());
     let model = model.map(str::to_string);
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.model_provider.name = "Non-OpenAI Model provider".to_string();
         config.model_provider.base_url = Some(base_url);
         config.compact_prompt = Some(SUMMARIZATION_PROMPT.to_string());
@@ -770,7 +770,7 @@ async fn start_test_conversation(
     (test.home, test.config, test.thread_manager, test.ditfa)
 }
 
-async fn user_turn(conversation: &Arc<CodexThread>, text: &str) {
+async fn user_turn(conversation: &Arc<DitfaThread>, text: &str) {
     conversation
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
@@ -787,7 +787,7 @@ async fn user_turn(conversation: &Arc<CodexThread>, text: &str) {
     wait_for_event(conversation, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 }
 
-async fn compact_conversation(conversation: &Arc<CodexThread>) {
+async fn compact_conversation(conversation: &Arc<DitfaThread>) {
     conversation
         .submit(Op::Compact)
         .await
@@ -806,11 +806,11 @@ async fn compact_conversation(conversation: &Arc<CodexThread>) {
     wait_for_event(conversation, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 }
 
-fn fetch_conversation_path(conversation: &Arc<CodexThread>) -> std::path::PathBuf {
+fn fetch_conversation_path(conversation: &Arc<DitfaThread>) -> std::path::PathBuf {
     conversation.rollout_path().expect("rollout path")
 }
 
-async fn shutdown_conversation(conversation: &Arc<CodexThread>) {
+async fn shutdown_conversation(conversation: &Arc<DitfaThread>) {
     conversation
         .shutdown_and_wait()
         .await
@@ -821,9 +821,9 @@ async fn resume_conversation(
     manager: &ThreadManager,
     config: &Config,
     path: std::path::PathBuf,
-) -> Arc<CodexThread> {
+) -> Arc<DitfaThread> {
     let auth_manager = ditfa_core::test_support::auth_manager_from_auth(
-        ditfa_login::CodexAuth::from_api_key("dummy"),
+        ditfa_login::DitfaAuth::from_api_key("dummy"),
     );
     Box::pin(manager.resume_thread_from_rollout(
         config.clone(),
@@ -843,7 +843,7 @@ async fn fork_thread(
     config: &Config,
     path: std::path::PathBuf,
     nth_user_message: usize,
-) -> Arc<CodexThread> {
+) -> Arc<DitfaThread> {
     Box::pin(manager.fork_thread(
         nth_user_message,
         config.clone(),

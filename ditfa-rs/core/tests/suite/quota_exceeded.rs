@@ -7,7 +7,7 @@ use core_test_support::responses::mount_sse_once;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use serde_json::json;
@@ -17,7 +17,7 @@ async fn quota_exceeded_emits_single_error_event() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
 
     mount_sse_once(
         &server,
@@ -71,7 +71,7 @@ async fn quota_exceeded_emits_single_error_event() -> Result<()> {
         }
     }
 
-    assert_eq!(error_events, 1, "expected exactly one Codex:Error event");
+    assert_eq!(error_events, 1, "expected exactly one Ditfa:Error event");
 
     Ok(())
 }

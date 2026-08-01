@@ -33,7 +33,7 @@ use super::textarea::TextAreaState;
 const BASE_CLI_BUG_ISSUE_URL: &str =
     "https://github.com/openai/codex/issues/new?template=3-cli.yml";
 /// Internal routing link for employee feedback follow-ups. This must not be shown to external users.
-const DITFA_FEEDBACK_INTERNAL_URL: &str = "http://go/codex-feedback-internal";
+const DITFA_FEEDBACK_INTERNAL_URL: &str = "http://go/ditfa-feedback-internal";
 
 /// The target audience for feedback follow-up instructions.
 ///
@@ -324,7 +324,7 @@ pub(crate) fn feedback_success_cell(
     let issue_url = issue_url_for_category(category, thread_id, feedback_audience);
     let mut lines = vec![Line::from(match issue_url.as_ref() {
         Some(_) if feedback_audience == FeedbackAudience::OpenAiEmployee => {
-            format!("{prefix} Please report this in #codex-feedback:")
+            format!("{prefix} Please report this in #ditfa-feedback:")
         }
         Some(_) => format!("{prefix} Please open an issue using the following URL:"),
         None => format!("{prefix} Thanks for the feedback!"),
@@ -338,7 +338,7 @@ pub(crate) fn feedback_success_cell(
                 Line::from("  Share this and add some info about your problem:"),
                 Line::from(vec![
                     "    ".into(),
-                    format!("https://go/codex-feedback/{thread_id}").bold(),
+                    format!("https://go/ditfa-feedback/{thread_id}").bold(),
                 ]),
             ]);
         }
@@ -506,7 +506,7 @@ pub(crate) fn feedback_upload_consent_params(
         Line::from("Upload logs?".bold()).into(),
         Line::from("").into(),
         Line::from("The following files will be sent:".dim()).into(),
-        Line::from(vec!["  • ".into(), "codex-logs.log".into()]).into(),
+        Line::from(vec!["  • ".into(), "ditfa-logs.log".into()]).into(),
         Line::from(vec![
             "  • ".into(),
             DOCTOR_REPORT_ATTACHMENT_FILENAME.into(),
@@ -567,7 +567,7 @@ pub(crate) fn feedback_upload_consent_params(
             super::SelectionItem {
                 name: "Yes".to_string(),
                 description: Some(
-                    "Share the current Codex session logs and diagnostics with the team for troubleshooting."
+                    "Share the current Ditfa session logs and diagnostics with the team for troubleshooting."
                         .to_string(),
                 ),
                 actions: vec![yes_action],
@@ -833,7 +833,7 @@ mod tests {
             "thread-1",
             FeedbackAudience::OpenAiEmployee,
         );
-        let expected_slack_url = "http://go/codex-feedback-internal".to_string();
+        let expected_slack_url = "http://go/ditfa-feedback-internal".to_string();
         assert_eq!(bug_url.as_deref(), Some(expected_slack_url.as_str()));
 
         let bad_result_url = issue_url_for_category(
@@ -901,7 +901,7 @@ mod tests {
         );
         assert_eq!(
             rendered,
-            "• Feedback uploaded. Please report this in #codex-feedback:\n\n  http://go/codex-feedback-internal\n\n  Share this and add some info about your problem:\n    https://go/codex-feedback/thread-2"
+            "• Feedback uploaded. Please report this in #ditfa-feedback:\n\n  http://go/ditfa-feedback-internal\n\n  Share this and add some info about your problem:\n    https://go/ditfa-feedback/thread-2"
         );
     }
 

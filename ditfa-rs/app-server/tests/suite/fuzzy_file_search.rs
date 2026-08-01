@@ -47,7 +47,7 @@ shell_snapshot = false
 async fn initialized_mcp(ditfa_home: &TempDir) -> Result<TestAppServer> {
     create_config_toml(ditfa_home.path())?;
     TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await
@@ -218,7 +218,7 @@ async fn assert_no_session_updates_for(
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn test_fuzzy_file_search_sorts_and_includes_indices() -> Result<()> {
-    // Prepare a temporary Codex home and a separate root with test files.
+    // Prepare a temporary Ditfa home and a separate root with test files.
     let ditfa_home = TempDir::new()?;
     create_config_toml(ditfa_home.path())?;
     let root = TempDir::new()?;
@@ -239,7 +239,7 @@ async fn test_fuzzy_file_search_sorts_and_includes_indices() -> Result<()> {
 
     // Start MCP server and initialize.
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -308,7 +308,7 @@ async fn test_fuzzy_file_search_accepts_cancellation_token() -> Result<()> {
     std::fs::write(root.path().join("alpha.txt"), "contents")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;

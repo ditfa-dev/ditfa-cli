@@ -1,4 +1,4 @@
-use super::CodexClient;
+use super::DitfaClient;
 use super::loopback_responses_server::LoopbackResponsesServer;
 use anyhow::Context;
 use anyhow::Result;
@@ -44,7 +44,7 @@ pub(super) fn run(
     capture_file: Option<PathBuf>,
 ) -> Result<()> {
     let capture_path = capture_file.unwrap_or_else(|| {
-        std::env::temp_dir().join(format!("codex-plugin-analytics-{}.jsonl", process::id()))
+        std::env::temp_dir().join(format!("ditfa-plugin-analytics-{}.jsonl", process::id()))
     });
     prepare_capture_file(&capture_path)?;
 
@@ -63,7 +63,7 @@ pub(super) fn run(
             temporary_config.path().as_os_str().to_os_string(),
         ),
     ];
-    let mut client = CodexClient::spawn_stdio_with_env(ditfa_bin, &overrides, &child_environment)?;
+    let mut client = DitfaClient::spawn_stdio_with_env(ditfa_bin, &overrides, &child_environment)?;
     wait_until_capture_is_ready(&capture_path)?;
     client.initialize()?;
 
@@ -94,7 +94,7 @@ pub(super) fn run(
     Ok(())
 }
 
-fn run_plugin_turn(client: &mut CodexClient, expected: &ExpectedPlugin) -> Result<String> {
+fn run_plugin_turn(client: &mut DitfaClient, expected: &ExpectedPlugin) -> Result<String> {
     let thread = client.thread_start(ThreadStartParams {
         model: Some(MOCK_MODEL_SLUG.to_string()),
         model_provider: Some(MOCK_PROVIDER_ID.to_string()),
@@ -124,7 +124,7 @@ fn run_plugin_turn(client: &mut CodexClient, expected: &ExpectedPlugin) -> Resul
 }
 
 fn wait_for_plugin_usage(
-    client: &mut CodexClient,
+    client: &mut DitfaClient,
     capture_path: &Path,
     expected: &ExpectedPlugin,
 ) -> Result<()> {
@@ -164,7 +164,7 @@ struct ExpectedPlugin {
     marketplace_name: String,
 }
 
-fn plugin_installed(client: &mut CodexClient) -> Result<PluginInstalledResponse> {
+fn plugin_installed(client: &mut DitfaClient) -> Result<PluginInstalledResponse> {
     let request_id = client.request_id();
     client.send_request(
         ClientRequest::PluginInstalled {
@@ -224,7 +224,7 @@ fn expected_plugin(response: &PluginInstalledResponse, plugin_id: &str) -> Resul
 }
 
 fn write_plugin_enabled(
-    client: &mut CodexClient,
+    client: &mut DitfaClient,
     config_path: &Path,
     plugin_id: &str,
     enabled: bool,
@@ -318,7 +318,7 @@ pub(super) fn wait_until_capture_is_ready(path: &Path) -> Result<()> {
         }
         if Instant::now() >= deadline {
             bail!(
-                "analytics capture did not become ready at {}; use a debug Codex binary",
+                "analytics capture did not become ready at {}; use a debug Ditfa binary",
                 path.display()
             );
         }
@@ -484,7 +484,7 @@ struct TemporaryConfigFile {
 impl TemporaryConfigFile {
     fn create() -> Result<Self> {
         let path = std::env::temp_dir().join(format!(
-            "codex-plugin-analytics-config-{}.toml",
+            "ditfa-plugin-analytics-config-{}.toml",
             process::id()
         ));
         fs::write(&path, "")

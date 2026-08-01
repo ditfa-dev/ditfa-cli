@@ -127,7 +127,7 @@
         outline-offset: 3px;
       }
 
-      .codex-mark {
+      .ditfa-mark {
         flex: 0 0 20px;
         width: 20px;
         height: 20px;
@@ -162,9 +162,9 @@
     <main>
       <div class="content">
         <p class="message" id="status-message">You&rsquo;re signed in and may close this tab</p>
-        <button class="button" type="button" id="open-codex">
+        <button class="button" type="button" id="open-ditfa">
           <svg
-            class="codex-mark"
+            class="ditfa-mark"
             aria-hidden="true"
             fill="none"
             viewBox="0 0 32 32"
@@ -177,7 +177,7 @@
               stroke-width="2.484"
             />
           </svg>
-          <span>Open Codex</span>
+          <span>Open Ditfa</span>
         </button>
         <div class="setup-box" id="setup-box">
           <p class="setup-title">Finish setting up your API organization</p>
@@ -187,7 +187,7 @@
     </main>
     <script>
       (function () {
-        const CODEX_URL = "codex://threads/new";
+        const DITFA_URL = "ditfa://threads/new";
         const params = new URLSearchParams(window.location.search);
         const preview = params.get("preview") === "true";
         const needsSetup = params.get("needs_setup") === "true";
@@ -199,13 +199,13 @@
 
         window.history.replaceState(null, "", window.location.pathname);
 
-        function openCodex() {
-          window.location.href = CODEX_URL;
+        function openDitfa() {
+          window.location.href = DITFA_URL;
         }
 
-        document.getElementById("open-codex").addEventListener("click", openCodex);
+        document.getElementById("open-ditfa").addEventListener("click", openDitfa);
         if (!preview) {
-          setTimeout(openCodex, 250);
+          setTimeout(openDitfa, 250);
         }
 
         if (needsSetup) {

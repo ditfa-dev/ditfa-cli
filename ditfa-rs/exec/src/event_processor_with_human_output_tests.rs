@@ -178,7 +178,7 @@ fn summarizes_managed_read_only_permission_profile() {
 
 #[tokio::test]
 async fn config_summary_entries_include_runtime_workspace_roots() {
-    let ditfa_home = tempfile::tempdir().expect("create codex home");
+    let ditfa_home = tempfile::tempdir().expect("create ditfa home");
     let cwd = tempfile::tempdir().expect("create cwd");
     let extra_root = tempfile::tempdir().expect("create extra root");
     let mut config = ConfigBuilder::default()
@@ -330,7 +330,7 @@ fn turn_completed_recovers_final_message_from_turn_items() {
 
     assert_eq!(
         status,
-        crate::event_processor::CodexStatus::InitiateShutdown
+        crate::event_processor::DitfaStatus::InitiateShutdown
     );
     assert_eq!(processor.final_message.as_deref(), Some("final answer"));
 }
@@ -378,7 +378,7 @@ fn turn_completed_overwrites_stale_final_message_from_turn_items() {
 
     assert_eq!(
         status,
-        crate::event_processor::CodexStatus::InitiateShutdown
+        crate::event_processor::DitfaStatus::InitiateShutdown
     );
     assert_eq!(processor.final_message.as_deref(), Some("final answer"));
     assert!(!processor.final_message_rendered);
@@ -422,7 +422,7 @@ fn turn_completed_preserves_streamed_final_message_when_turn_items_are_empty() {
 
     assert_eq!(
         status,
-        crate::event_processor::CodexStatus::InitiateShutdown
+        crate::event_processor::DitfaStatus::InitiateShutdown
     );
     assert_eq!(processor.final_message.as_deref(), Some("streamed answer"));
     assert!(processor.emit_final_message_on_shutdown);
@@ -466,7 +466,7 @@ fn turn_failed_clears_stale_final_message() {
 
     assert_eq!(
         status,
-        crate::event_processor::CodexStatus::InitiateShutdown
+        crate::event_processor::DitfaStatus::InitiateShutdown
     );
     assert_eq!(processor.final_message, None);
     assert!(!processor.final_message_rendered);
@@ -511,7 +511,7 @@ fn turn_interrupted_clears_stale_final_message() {
 
     assert_eq!(
         status,
-        crate::event_processor::CodexStatus::InitiateShutdown
+        crate::event_processor::DitfaStatus::InitiateShutdown
     );
     assert_eq!(processor.final_message, None);
     assert!(!processor.final_message_rendered);

@@ -14,7 +14,7 @@ use ditfa_extension_api::UserInstructionsProvider;
 use ditfa_http_client::HttpClientFactory;
 use ditfa_http_client::OutboundProxyPolicy;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_model_provider::create_model_provider;
 use ditfa_model_provider_info::ModelProviderInfo;
 use ditfa_models_manager::bundled_models_response;
@@ -31,8 +31,8 @@ use once_cell::sync::Lazy;
 
 use crate::ThreadManager;
 use crate::config::Config;
-use crate::responses_metadata::CodexResponsesMetadata;
-use crate::responses_metadata::CodexResponsesRequestKind;
+use crate::responses_metadata::DitfaResponsesMetadata;
+use crate::responses_metadata::DitfaResponsesRequestKind;
 use crate::responses_metadata::subagent_header_value;
 use crate::responses_metadata::subagent_metadata_kind;
 use crate::thread_manager;
@@ -65,11 +65,11 @@ pub fn set_deterministic_process_ids(enabled: bool) {
     unified_exec::set_deterministic_process_ids_for_tests(enabled);
 }
 
-pub fn auth_manager_from_auth(auth: CodexAuth) -> Arc<AuthManager> {
+pub fn auth_manager_from_auth(auth: DitfaAuth) -> Arc<AuthManager> {
     AuthManager::from_auth_for_testing(auth)
 }
 
-pub fn auth_manager_from_auth_with_home(auth: CodexAuth, ditfa_home: PathBuf) -> Arc<AuthManager> {
+pub fn auth_manager_from_auth_with_home(auth: DitfaAuth, ditfa_home: PathBuf) -> Arc<AuthManager> {
     AuthManager::from_auth_for_testing_with_home(auth, ditfa_home)
 }
 
@@ -81,14 +81,14 @@ pub fn with_code_mode_host_program(
 }
 
 pub fn thread_manager_with_models_provider(
-    auth: CodexAuth,
+    auth: DitfaAuth,
     provider: ModelProviderInfo,
 ) -> ThreadManager {
     ThreadManager::with_models_provider_for_tests(auth, provider)
 }
 
 pub fn thread_manager_with_models_provider_and_home(
-    auth: CodexAuth,
+    auth: DitfaAuth,
     provider: ModelProviderInfo,
     ditfa_home: PathBuf,
     environment_manager: Arc<EnvironmentManager>,
@@ -157,7 +157,7 @@ pub fn construct_model_info_offline(model: &str, config: &Config) -> ModelInfo {
 }
 
 #[derive(Clone, Copy)]
-pub enum TestCodexResponsesRequestKind {
+pub enum TestDitfaResponsesRequestKind {
     Turn,
     Prewarm,
     WebsocketConnection,
@@ -172,20 +172,20 @@ pub fn responses_metadata(
     window_id: String,
     session_source: &SessionSource,
     parent_thread_id: Option<ThreadId>,
-    request_kind: TestCodexResponsesRequestKind,
-) -> CodexResponsesMetadata {
+    request_kind: TestDitfaResponsesRequestKind,
+) -> DitfaResponsesMetadata {
     let request_kind = match request_kind {
-        TestCodexResponsesRequestKind::Turn => Some(CodexResponsesRequestKind::Turn),
-        TestCodexResponsesRequestKind::Prewarm => Some(CodexResponsesRequestKind::Prewarm),
-        TestCodexResponsesRequestKind::WebsocketConnection => None,
+        TestDitfaResponsesRequestKind::Turn => Some(DitfaResponsesRequestKind::Turn),
+        TestDitfaResponsesRequestKind::Prewarm => Some(DitfaResponsesRequestKind::Prewarm),
+        TestDitfaResponsesRequestKind::WebsocketConnection => None,
     };
-    CodexResponsesMetadata {
+    DitfaResponsesMetadata {
         turn_id: request_kind.and(turn_id.map(ToString::to_string)),
         request_kind,
         parent_thread_id,
         subagent_header: subagent_header_value(session_source),
         subagent_kind: request_kind.and_then(|_| subagent_metadata_kind(session_source)),
-        ..CodexResponsesMetadata::new(
+        ..DitfaResponsesMetadata::new(
             installation_id.to_string(),
             session_id.to_string(),
             thread_id.to_string(),

@@ -1,5 +1,5 @@
 {
-  "name": "Codex",
+  "name": "Ditfa Code",
   "build": {
     "dockerfile": "Dockerfile",
     "context": "..",
@@ -16,7 +16,7 @@
 
   "containerEnv": {
     "RUST_BACKTRACE": "1",
-    "CARGO_TARGET_DIR": "${containerWorkspaceFolder}/codex-rs/target-arm64"
+    "CARGO_TARGET_DIR": "${containerWorkspaceFolder}/ditfa-rs/target-arm64"
   },
 
   "remoteUser": "ubuntu",

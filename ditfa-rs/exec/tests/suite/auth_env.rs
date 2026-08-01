@@ -3,12 +3,12 @@ use core_test_support::responses::ev_completed;
 use core_test_support::responses::mount_sse_once_match;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
-use core_test_support::test_codex_exec::test_codex_exec;
+use core_test_support::test_ditfa_exec::test_ditfa_exec;
 use wiremock::matchers::header;
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn exec_uses_codex_api_key_env_var() -> anyhow::Result<()> {
-    let test = test_codex_exec();
+async fn exec_uses_ditfa_api_key_env_var() -> anyhow::Result<()> {
+    let test = test_ditfa_exec();
     let server = start_mock_server().await;
     let repo_root = ditfa_utils_cargo_bin::repo_root()?;
 
@@ -23,7 +23,7 @@ async fn exec_uses_codex_api_key_env_var() -> anyhow::Result<()> {
         .arg("--skip-git-repo-check")
         .arg("-C")
         .arg(&repo_root)
-        .arg("echo testing codex api key")
+        .arg("echo testing ditfa api key")
         .assert()
         .success();
 

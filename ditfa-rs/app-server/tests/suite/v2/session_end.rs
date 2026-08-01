@@ -40,7 +40,7 @@ async fn run_removal_session_end_test(operation: &str) -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let log_path = write_config_and_hook(ditfa_home.path(), &server.uri())?;
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(READ_TIMEOUT)
         .await?;
     let thread_id = start_thread(&mut app_server).await?;
@@ -100,7 +100,7 @@ async fn app_server_shutdown_runs_session_end_for_all_loaded_threads() -> Result
     let ditfa_home = TempDir::new()?;
     let log_path = write_config_and_hook(ditfa_home.path(), &server.uri())?;
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(READ_TIMEOUT)
         .await?;
     let first = start_thread(&mut app_server).await?;
@@ -164,7 +164,7 @@ with Path(r"{}").open("a", encoding="utf-8") as handle:
     )?;
     MockResponsesConfig::new(server_uri)
         .with_sandbox_mode("danger-full-access")
-        .enable_feature(Feature::CodexHooks)
+        .enable_feature(Feature::DitfaHooks)
         .with_extra_config(&format!(
             r#"[[hooks.SessionEnd]]
 matcher = "other"

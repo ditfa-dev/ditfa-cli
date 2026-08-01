@@ -5,7 +5,7 @@ pub use crate::auth::RefreshTokenFailedError;
 pub use crate::auth::RefreshTokenFailedReason;
 use crate::exec_output::ExecToolCallOutput;
 use crate::network_policy::NetworkPolicyDecisionPayload;
-use crate::protocol::CodexErrorInfo;
+use crate::protocol::DitfaErrorInfo;
 use crate::protocol::ErrorEvent;
 use crate::protocol::RateLimitReachedType;
 use crate::protocol::RateLimitSnapshot;
@@ -24,7 +24,7 @@ use std::time::Duration;
 use thiserror::Error;
 use tokio::task::JoinError;
 
-pub type Result<T> = std::result::Result<T, CodexErr>;
+pub type Result<T> = std::result::Result<T, DitfaErr>;
 
 /// Limit UI error messages to a reasonable size while keeping useful context.
 const ERROR_MESSAGE_UI_MAX_BYTES: usize = 2 * 1024;
@@ -65,7 +65,7 @@ pub enum SandboxErr {
 }
 
 #[derive(Error, Debug)]
-pub enum CodexErr {
+pub enum DitfaErr {
     #[error("turn aborted. Something went wrong? Hit `/feedback` to report the issue.")]
     TurnAborted,
 
@@ -81,7 +81,7 @@ pub enum CodexErr {
     #[error("stream disconnected before completion: {0}")]
     Stream(String, Option<Duration>),
     #[error(
-        "Codex ran out of room in the model's context window. Start a new thread or clear earlier history before retrying."
+        "Ditfa ran out of room in the model's context window. Start a new thread or clear earlier history before retrying."
     )]
     ContextWindowExceeded,
     #[error("no thread with id: {0}")]
@@ -96,7 +96,7 @@ pub enum CodexErr {
     #[error("request timed out")]
     RequestTimeout,
     /// Returned by run_command_stream when the child could not be spawned (its stdout/stderr pipes
-    /// could not be captured). Analogous to the previous `CodexError::Spawn` variant.
+    /// could not be captured). Analogous to the previous `DitfaError::Spawn` variant.
     #[error("spawn failed: child stdout/stderr not captured")]
     Spawn,
     /// Returned by run_command_stream when the user pressed Ctrl-C (SIGINT). Session uses this to
@@ -139,7 +139,7 @@ pub enum CodexErr {
     /// Sandbox error
     #[error("sandbox error: {0}")]
     Sandbox(#[from] SandboxErr),
-    #[error("codex-linux-sandbox was required but not provided")]
+    #[error("ditfa-linux-sandbox was required but not provided")]
     LandlockSandboxExecutableNotProvided,
     #[error("unsupported operation: {0}")]
     UnsupportedOperation(String),
@@ -166,54 +166,54 @@ pub enum CodexErr {
     EnvVar(EnvVarError),
 }
 
-impl From<CancelErr> for CodexErr {
+impl From<CancelErr> for DitfaErr {
     fn from(_: CancelErr) -> Self {
-        CodexErr::TurnAborted
+        DitfaErr::TurnAborted
     }
 }
 
-impl CodexErr {
+impl DitfaErr {
     pub fn is_retryable(&self) -> bool {
         match self {
-            CodexErr::TurnAborted
-            | CodexErr::SessionBudgetExceeded
-            | CodexErr::Interrupted
-            | CodexErr::EnvVar(_)
-            | CodexErr::Fatal(_)
-            | CodexErr::UsageNotIncluded
-            | CodexErr::QuotaExceeded
-            | CodexErr::InvalidImageRequest()
-            | CodexErr::InvalidRequest(_)
-            | CodexErr::RefreshTokenFailed(_)
-            | CodexErr::UnsupportedOperation(_)
-            | CodexErr::Sandbox(_)
-            | CodexErr::LandlockSandboxExecutableNotProvided
-            | CodexErr::RetryLimit(_)
-            | CodexErr::ContextWindowExceeded
-            | CodexErr::ThreadNotFound(_)
-            | CodexErr::AgentLimitReached { .. }
-            | CodexErr::Spawn
-            | CodexErr::SessionConfiguredNotFirstEvent
-            | CodexErr::UsageLimitReached(_)
-            | CodexErr::ServerOverloaded
-            | CodexErr::CyberPolicy { .. } => false,
-            CodexErr::Stream(..)
-            | CodexErr::Timeout
-            | CodexErr::RequestTimeout
-            | CodexErr::UnexpectedStatus(_)
-            | CodexErr::ResponseStreamFailed(_)
-            | CodexErr::ConnectionFailed(_)
-            | CodexErr::InternalServerError
-            | CodexErr::InternalAgentDied
-            | CodexErr::Io(_)
-            | CodexErr::Json(_)
-            | CodexErr::TokioJoin(_) => true,
+            DitfaErr::TurnAborted
+            | DitfaErr::SessionBudgetExceeded
+            | DitfaErr::Interrupted
+            | DitfaErr::EnvVar(_)
+            | DitfaErr::Fatal(_)
+            | DitfaErr::UsageNotIncluded
+            | DitfaErr::QuotaExceeded
+            | DitfaErr::InvalidImageRequest()
+            | DitfaErr::InvalidRequest(_)
+            | DitfaErr::RefreshTokenFailed(_)
+            | DitfaErr::UnsupportedOperation(_)
+            | DitfaErr::Sandbox(_)
+            | DitfaErr::LandlockSandboxExecutableNotProvided
+            | DitfaErr::RetryLimit(_)
+            | DitfaErr::ContextWindowExceeded
+            | DitfaErr::ThreadNotFound(_)
+            | DitfaErr::AgentLimitReached { .. }
+            | DitfaErr::Spawn
+            | DitfaErr::SessionConfiguredNotFirstEvent
+            | DitfaErr::UsageLimitReached(_)
+            | DitfaErr::ServerOverloaded
+            | DitfaErr::CyberPolicy { .. } => false,
+            DitfaErr::Stream(..)
+            | DitfaErr::Timeout
+            | DitfaErr::RequestTimeout
+            | DitfaErr::UnexpectedStatus(_)
+            | DitfaErr::ResponseStreamFailed(_)
+            | DitfaErr::ConnectionFailed(_)
+            | DitfaErr::InternalServerError
+            | DitfaErr::InternalAgentDied
+            | DitfaErr::Io(_)
+            | DitfaErr::Json(_)
+            | DitfaErr::TokioJoin(_) => true,
             #[cfg(target_os = "linux")]
-            CodexErr::LandlockRuleset(_) | CodexErr::LandlockPathFd(_) => false,
+            DitfaErr::LandlockRuleset(_) | DitfaErr::LandlockPathFd(_) => false,
         }
     }
 
-    /// Minimal shim so that existing `e.downcast_ref::<CodexErr>()` checks continue to compile
+    /// Minimal shim so that existing `e.downcast_ref::<DitfaErr>()` checks continue to compile
     /// after replacing `anyhow::Error` in the return signature. This mirrors the behavior of
     /// `anyhow::Error::downcast_ref` but works directly on our concrete enum.
     pub fn downcast_ref<T: std::any::Any>(&self) -> Option<&T> {
@@ -221,33 +221,33 @@ impl CodexErr {
     }
 
     /// Translate core error to client-facing protocol error.
-    pub fn to_codex_protocol_error(&self) -> CodexErrorInfo {
+    pub fn to_ditfa_protocol_error(&self) -> DitfaErrorInfo {
         match self {
-            CodexErr::ContextWindowExceeded => CodexErrorInfo::ContextWindowExceeded,
-            CodexErr::SessionBudgetExceeded => CodexErrorInfo::SessionBudgetExceeded,
-            CodexErr::UsageLimitReached(_)
-            | CodexErr::QuotaExceeded
-            | CodexErr::UsageNotIncluded => CodexErrorInfo::UsageLimitExceeded,
-            CodexErr::ServerOverloaded => CodexErrorInfo::ServerOverloaded,
-            CodexErr::CyberPolicy { .. } => CodexErrorInfo::CyberPolicy,
-            CodexErr::RetryLimit(_) => CodexErrorInfo::ResponseTooManyFailedAttempts {
+            DitfaErr::ContextWindowExceeded => DitfaErrorInfo::ContextWindowExceeded,
+            DitfaErr::SessionBudgetExceeded => DitfaErrorInfo::SessionBudgetExceeded,
+            DitfaErr::UsageLimitReached(_)
+            | DitfaErr::QuotaExceeded
+            | DitfaErr::UsageNotIncluded => DitfaErrorInfo::UsageLimitExceeded,
+            DitfaErr::ServerOverloaded => DitfaErrorInfo::ServerOverloaded,
+            DitfaErr::CyberPolicy { .. } => DitfaErrorInfo::CyberPolicy,
+            DitfaErr::RetryLimit(_) => DitfaErrorInfo::ResponseTooManyFailedAttempts {
                 http_status_code: self.http_status_code_value(),
             },
-            CodexErr::ConnectionFailed(_) => CodexErrorInfo::HttpConnectionFailed {
+            DitfaErr::ConnectionFailed(_) => DitfaErrorInfo::HttpConnectionFailed {
                 http_status_code: self.http_status_code_value(),
             },
-            CodexErr::ResponseStreamFailed(_) => CodexErrorInfo::ResponseStreamConnectionFailed {
+            DitfaErr::ResponseStreamFailed(_) => DitfaErrorInfo::ResponseStreamConnectionFailed {
                 http_status_code: self.http_status_code_value(),
             },
-            CodexErr::RefreshTokenFailed(_) => CodexErrorInfo::Unauthorized,
-            CodexErr::SessionConfiguredNotFirstEvent
-            | CodexErr::InternalServerError
-            | CodexErr::InternalAgentDied => CodexErrorInfo::InternalServerError,
-            CodexErr::UnsupportedOperation(_)
-            | CodexErr::ThreadNotFound(_)
-            | CodexErr::AgentLimitReached { .. } => CodexErrorInfo::BadRequest,
-            CodexErr::Sandbox(_) => CodexErrorInfo::SandboxError,
-            _ => CodexErrorInfo::Other,
+            DitfaErr::RefreshTokenFailed(_) => DitfaErrorInfo::Unauthorized,
+            DitfaErr::SessionConfiguredNotFirstEvent
+            | DitfaErr::InternalServerError
+            | DitfaErr::InternalAgentDied => DitfaErrorInfo::InternalServerError,
+            DitfaErr::UnsupportedOperation(_)
+            | DitfaErr::ThreadNotFound(_)
+            | DitfaErr::AgentLimitReached { .. } => DitfaErrorInfo::BadRequest,
+            DitfaErr::Sandbox(_) => DitfaErrorInfo::SandboxError,
+            _ => DitfaErrorInfo::Other,
         }
     }
 
@@ -259,16 +259,16 @@ impl CodexErr {
         };
         ErrorEvent {
             message,
-            ditfa_error_info: Some(self.to_codex_protocol_error()),
+            ditfa_error_info: Some(self.to_ditfa_protocol_error()),
         }
     }
 
     pub fn http_status_code_value(&self) -> Option<u16> {
         let http_status_code = match self {
-            CodexErr::RetryLimit(err) => Some(err.status),
-            CodexErr::UnexpectedStatus(err) => Some(err.status),
-            CodexErr::ConnectionFailed(err) => err.source.status(),
-            CodexErr::ResponseStreamFailed(err) => err.source.status(),
+            DitfaErr::RetryLimit(err) => Some(err.status),
+            DitfaErr::UnexpectedStatus(err) => Some(err.status),
+            DitfaErr::ConnectionFailed(err) => err.source.status(),
+            DitfaErr::ResponseStreamFailed(err) => err.source.status(),
             _ => None,
         };
         http_status_code.as_ref().map(StatusCode::as_u16)
@@ -437,7 +437,7 @@ impl std::fmt::Display for UsageLimitReachedError {
             .and_then(|snapshot| snapshot.limit_name.as_deref())
             .map(str::trim)
             .filter(|name| !name.is_empty())
-            && !limit_name.eq_ignore_ascii_case("codex")
+            && !limit_name.eq_ignore_ascii_case("ditfa")
         {
             return write!(
                 f,
@@ -605,9 +605,9 @@ impl std::fmt::Display for EnvVarError {
     }
 }
 
-pub fn get_error_message_ui(e: &CodexErr) -> String {
+pub fn get_error_message_ui(e: &DitfaErr) -> String {
     let message = match e {
-        CodexErr::Sandbox(SandboxErr::Denied { output, .. }) => {
+        DitfaErr::Sandbox(SandboxErr::Denied { output, .. }) => {
             let aggregated = output.aggregated_output.text.trim();
             if !aggregated.is_empty() {
                 output.aggregated_output.text.clone()
@@ -626,7 +626,7 @@ pub fn get_error_message_ui(e: &CodexErr) -> String {
             }
         }
         // Timeouts are not sandbox errors from a UX perspective; present them plainly.
-        CodexErr::Sandbox(SandboxErr::Timeout { output }) => {
+        DitfaErr::Sandbox(SandboxErr::Timeout { output }) => {
             format!(
                 "error: command timed out after {} ms",
                 output.duration.as_millis()

@@ -81,7 +81,7 @@ pub(crate) enum ShellRuntimeBackend {
     ShellCommandClassic,
     /// zsh-fork backend for the `shell_command` tool.
     ///
-    /// On Unix, attempts to run via the zsh-fork + `codex-shell-escalation`
+    /// On Unix, attempts to run via the zsh-fork + `ditfa-shell-escalation`
     /// adapter, with fallback to the standard shell runtime flow if
     /// prerequisites are not met.
     ShellCommandZshFork,
@@ -332,10 +332,10 @@ impl ToolRuntime<ShellRequest, ExecToolCallOutput> for ShellRuntime {
                 managed_network,
                 Some(&req.turn_environment.environment_id),
             )
-            .map_err(ToolError::Codex)?;
+            .map_err(ToolError::Ditfa)?;
         let out = execute_env(env, Self::stdout_stream(ctx))
             .await
-            .map_err(ToolError::Codex)?;
+            .map_err(ToolError::Ditfa)?;
         Ok(out)
     }
 }

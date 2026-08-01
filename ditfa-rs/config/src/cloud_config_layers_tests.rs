@@ -25,7 +25,7 @@ fn toml(contents: &str) -> TomlValue {
 }
 
 fn base_dir() -> AbsolutePathBuf {
-    test_path_buf("/var/lib/codex").abs()
+    test_path_buf("/var/lib/ditfa").abs()
 }
 
 #[test]
@@ -84,7 +84,7 @@ fn enterprise_layers_precede_user_and_override_system() {
     let base_dir = base_dir();
     let mut layers = vec![ConfigLayerEntry::new(
         ConfigLayerSource::System {
-            file: test_path_buf("/etc/codex/config.toml").abs(),
+            file: test_path_buf("/etc/ditfa/config.toml").abs(),
         },
         toml(
             r#"
@@ -130,7 +130,7 @@ review_model = "system-review"
             .collect::<Vec<_>>(),
         vec![
             ConfigLayerSource::System {
-                file: test_path_buf("/etc/codex/config.toml").abs(),
+                file: test_path_buf("/etc/ditfa/config.toml").abs(),
             },
             ConfigLayerSource::EnterpriseManaged {
                 id: "low".to_string(),

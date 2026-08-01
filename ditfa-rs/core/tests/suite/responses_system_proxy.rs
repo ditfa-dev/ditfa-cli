@@ -4,7 +4,7 @@ use core_test_support::responses::ev_completed;
 use core_test_support::responses::ev_response_created;
 use core_test_support::responses::sse;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use pretty_assertions::assert_eq;
 use std::time::Duration;
 use tokio::io::AsyncReadExt;
@@ -104,7 +104,7 @@ async fn regular_responses_turn_honors_respect_system_proxy() -> Result<()> {
     }
 
     let server = MockServer::start().await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.model_provider.base_url = Some("http://responses-proxy.invalid/v1".to_string());
         config
             .features

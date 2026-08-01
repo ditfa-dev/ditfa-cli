@@ -13,7 +13,7 @@ use ditfa_extension_api::ExtensionDataInit;
 use ditfa_extension_api::ExtensionRegistry;
 use ditfa_extension_api::McpServerContribution;
 use ditfa_extension_api::McpServerContributionContext;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_mcp::DITFA_APPS_MCP_SERVER_NAME;
 use ditfa_mcp::EffectiveMcpServer;
 use ditfa_mcp::McpConfig;
@@ -27,7 +27,7 @@ use ditfa_mcp::effective_mcp_servers;
 use ditfa_plugin::AppConnectorId;
 use ditfa_protocol::capabilities::SelectedCapabilityRoot;
 
-const LEGACY_DITFA_APPS_REGISTRATION_ID: &str = "legacy_codex_apps";
+const LEGACY_DITFA_APPS_REGISTRATION_ID: &str = "legacy_ditfa_apps";
 
 /// MCP configuration and capability availability derived from the same inputs.
 #[derive(Clone)]
@@ -277,7 +277,7 @@ impl McpManager {
     pub async fn effective_servers(
         &self,
         config: &Config,
-        auth: Option<&CodexAuth>,
+        auth: Option<&DitfaAuth>,
     ) -> HashMap<String, EffectiveMcpServer> {
         let mcp_config = self.runtime_config(config).await;
         effective_mcp_servers(&mcp_config, auth)

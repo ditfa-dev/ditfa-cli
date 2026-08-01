@@ -41,7 +41,7 @@ async fn thread_settings_update_emits_notification_and_updates_future_turns() ->
     let (model_id, service_tier_id) = service_tier_model_and_tier_id()?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
     let thread = start_thread(&mut mcp).await?.thread;
@@ -107,7 +107,7 @@ async fn thread_settings_update_cwd_retargets_default_environment() -> Result<()
     create_config_toml(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
     let request_id = mcp
@@ -174,7 +174,7 @@ async fn thread_settings_update_while_turn_is_active_emits_notification() -> Res
     create_config_toml(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
     let thread = start_thread(&mut mcp).await?.thread;
@@ -219,7 +219,7 @@ async fn thread_settings_update_null_service_tier_uses_default() -> Result<()> {
     let (model_id, service_tier_id) = service_tier_model_and_tier_id()?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
     let thread = start_thread(&mut mcp).await?.thread;
@@ -287,7 +287,7 @@ async fn thread_settings_update_rejects_sandbox_policy_with_permissions() -> Res
     create_config_toml(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
     let thread = start_thread(&mut mcp).await?.thread;
@@ -323,7 +323,7 @@ async fn turn_start_settings_override_emits_thread_settings_updated() -> Result<
     create_config_toml(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
     let thread = start_thread(&mut mcp).await?.thread;

@@ -30,9 +30,9 @@ importers:
         specifier: ^3.5.3
         version: 3.5.3
 
-  codex-cli: {}
+  ditfa-cli: {}
 
-  codex-rs/responses-api-proxy/npm: {}
+  ditfa-rs/responses-api-proxy/npm: {}
 
   sdk/typescript:
     devDependencies:

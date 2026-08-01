@@ -7,7 +7,7 @@ from .targets import REPO_ROOT
 from .targets import TargetSpec
 
 
-ZSH_MANIFEST = REPO_ROOT / "scripts" / "codex_package" / "codex-zsh"
+ZSH_MANIFEST = REPO_ROOT / "scripts" / "ditfa_package" / "ditfa-zsh"
 ZSH_RESOURCE_PATH = Path("zsh") / "bin" / "zsh"
 
 
@@ -18,7 +18,7 @@ def resolve_zsh_bin(
     return fetch_dotslash_executable(
         spec,
         manifest_path=manifest_path or ZSH_MANIFEST,
-        artifact_label="codex-zsh",
+        artifact_label="ditfa-zsh",
         cache_key=f"{spec.target}-zsh",
         dest_name="zsh",
         missing_ok=True,

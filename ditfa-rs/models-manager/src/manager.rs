@@ -36,7 +36,7 @@ pub trait ModelsEndpointClient: fmt::Debug + Send + Sync {
     fn has_command_auth(&self) -> bool;
 
     /// Returns whether the currently resolved auth can use Ditfa backend-only models.
-    fn uses_codex_backend(&self) -> ModelsEndpointFuture<'_, bool>;
+    fn uses_ditfa_backend(&self) -> ModelsEndpointFuture<'_, bool>;
 
     /// Fetches the latest remote model catalog and optional ETag.
     fn list_models<'a>(
@@ -124,10 +124,10 @@ pub trait ModelsManager: fmt::Debug + Send + Sync {
         remote_models.sort_by_key(|model| model.priority);
 
         let mut presets: Vec<ModelPreset> = remote_models.into_iter().map(Into::into).collect();
-        let uses_codex_backend = self
+        let uses_ditfa_backend = self
             .auth_manager()
-            .is_some_and(AuthManager::current_auth_uses_codex_backend);
-        presets = ModelPreset::filter_by_auth(presets, uses_codex_backend);
+            .is_some_and(AuthManager::current_auth_uses_ditfa_backend);
+        presets = ModelPreset::filter_by_auth(presets, uses_ditfa_backend);
 
         ModelPreset::mark_default_by_picker_visibility(&mut presets);
 
@@ -411,7 +411,7 @@ impl OpenAiModelsManager {
     }
 
     async fn should_refresh_models(&self) -> bool {
-        self.endpoint_client.uses_codex_backend().await || self.endpoint_client.has_command_auth()
+        self.endpoint_client.uses_ditfa_backend().await || self.endpoint_client.has_command_auth()
     }
 
     async fn get_etag(&self) -> Option<String> {
@@ -456,7 +456,7 @@ impl OpenAiModelsManager {
             return false;
         };
         let _timer =
-            ditfa_otel::start_global_timer("codex.remote_models.load_cache.duration_ms", &[]);
+            ditfa_otel::start_global_timer("ditfa.remote_models.load_cache.duration_ms", &[]);
         let client_version = crate::client_version_to_whole();
         info!(client_version, "models cache: evaluating cache eligibility");
         // TODO(celia-oai): Include provider identity in cache eligibility so switching

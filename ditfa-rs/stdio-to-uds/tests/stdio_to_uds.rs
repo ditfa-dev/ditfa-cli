@@ -72,13 +72,13 @@ async fn pipes_stdin_and_stdout_through_socket() -> anyhow::Result<()> {
     let child_task = tokio::task::spawn_blocking(move || -> anyhow::Result<ChildOutput> {
         let stdin =
             std::fs::File::open(&request_path).context("failed to open child stdin fixture")?;
-        let mut child = Command::new(ditfa_utils_cargo_bin::cargo_bin("codex-stdio-to-uds")?)
+        let mut child = Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa-stdio-to-uds")?)
             .arg(&socket_path)
             .stdin(Stdio::from(stdin))
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
-            .context("failed to spawn codex-stdio-to-uds")?;
+            .context("failed to spawn ditfa-stdio-to-uds")?;
 
         let mut child_stdout = child.stdout.take().context("missing child stdout")?;
         let mut child_stderr = child.stderr.take().context("missing child stderr")?;
@@ -114,7 +114,7 @@ async fn pipes_stdin_and_stdout_through_socket() -> anyhow::Result<()> {
                     .context("timed out waiting for child stderr after kill")?
                     .context("failed to read child stderr")?;
                 anyhow::bail!(
-                    "codex-stdio-to-uds did not exit in time; server events: {:?}; stderr: {}",
+                    "ditfa-stdio-to-uds did not exit in time; server events: {:?}; stderr: {}",
                     server_events,
                     String::from_utf8_lossy(&stderr).trim_end()
                 );
@@ -143,7 +143,7 @@ async fn pipes_stdin_and_stdout_through_socket() -> anyhow::Result<()> {
     let child_output = child_task.await.context("child task panicked")??;
     assert!(
         child_output.status.success(),
-        "codex-stdio-to-uds exited with {status}; server events: {:?}; stderr: {}",
+        "ditfa-stdio-to-uds exited with {status}; server events: {:?}; stderr: {}",
         child_output.server_events,
         String::from_utf8_lossy(&child_output.stderr).trim_end(),
         status = child_output.status

@@ -159,7 +159,7 @@ async fn excludes_tools_hidden_from_model_exposure() {
         make_mcp_tool(
             DITFA_APPS_MCP_SERVER_NAME,
             "calendar_read",
-            "mcp__codex_apps__calendar",
+            "mcp__ditfa_apps__calendar",
             "read",
             Some("calendar"),
             Some("Calendar"),
@@ -170,7 +170,7 @@ async fn excludes_tools_hidden_from_model_exposure() {
         make_mcp_tool(
             DITFA_APPS_MCP_SERVER_NAME,
             "calendar_open",
-            "mcp__codex_apps__calendar",
+            "mcp__ditfa_apps__calendar",
             "open",
             Some("calendar"),
             Some("Calendar"),
@@ -221,7 +221,7 @@ enabled = true
     let enabled_tool = make_mcp_tool(
         DITFA_APPS_MCP_SERVER_NAME,
         "events/create",
-        "mcp__codex_apps__calendar",
+        "mcp__ditfa_apps__calendar",
         "create",
         Some("calendar"),
         Some("Calendar"),
@@ -229,7 +229,7 @@ enabled = true
     let disabled_tool = make_mcp_tool(
         DITFA_APPS_MCP_SERVER_NAME,
         "events/list",
-        "mcp__codex_apps__calendar",
+        "mcp__ditfa_apps__calendar",
         "list",
         Some("calendar"),
         Some("Calendar"),
@@ -279,7 +279,7 @@ async fn defers_apps_and_non_app_mcp_tools() {
         make_mcp_tool(
             DITFA_APPS_MCP_SERVER_NAME,
             "calendar_create_event",
-            "mcp__codex_apps__calendar",
+            "mcp__ditfa_apps__calendar",
             "_create_event",
             Some("calendar"),
             Some("Calendar"),

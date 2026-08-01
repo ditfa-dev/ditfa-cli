@@ -32,7 +32,7 @@ use std::fs;
 use std::io;
 use toml::Value as TomlValue;
 
-const EXTERNAL_AGENT_CONFIG_DETECT_METRIC: &str = "codex.external_agent_config.detect";
+const EXTERNAL_AGENT_CONFIG_DETECT_METRIC: &str = "ditfa.external_agent_config.detect";
 
 impl ExternalAgentConfigService {
     pub async fn detect(

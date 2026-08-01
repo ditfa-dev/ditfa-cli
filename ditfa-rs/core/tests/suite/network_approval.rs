@@ -42,10 +42,10 @@ use core_test_support::skip_if_no_network;
 use core_test_support::skip_if_no_remote_env;
 use core_test_support::skip_if_sandbox;
 use core_test_support::skip_if_target_windows;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::local;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::local;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_event_with_timeout;
 use pretty_assertions::assert_eq;
@@ -61,8 +61,8 @@ use tempfile::TempDir;
 use tokio::io::AsyncReadExt;
 use tokio::io::AsyncWriteExt;
 
-const NETWORK_TEST_HOST: &str = "codex-network-test.invalid";
-const NETWORK_TEST_TARGET: &str = "http://codex-network-test.invalid:80";
+const NETWORK_TEST_HOST: &str = "ditfa-network-test.invalid";
+const NETWORK_TEST_TARGET: &str = "http://ditfa-network-test.invalid:80";
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 #[cfg_attr(
@@ -429,14 +429,14 @@ async fn user_network_approval_once_session_and_denial_semantics() -> Result<()>
     let approval = expect_network_approval(&test, LOCAL_ENVIRONMENT_ID).await?;
     assert_eq!(
         approval.call_id,
-        "network#local#http#codex-network-test.invalid#80"
+        "network#local#http#ditfa-network-test.invalid#80"
     );
     assert_eq!(approval.approval_id, None);
     assert!(!approval.turn_id.is_empty());
     assert_eq!(approval.cwd, test.config.cwd);
     assert_eq!(
         approval.reason.as_deref(),
-        Some("codex-network-test.invalid is not in the allowed_domains")
+        Some("ditfa-network-test.invalid is not in the allowed_domains")
     );
     test.ditfa
         .submit(Op::ExecApproval {
@@ -639,11 +639,11 @@ async fn allowing_network_policy_amendment_persists_context_and_bypasses_prompt(
 
     let policy = fs::read_to_string(test.home.path().join("rules/default.rules"))?;
     assert!(policy.contains(
-        r#"network_rule(host="codex-network-test.invalid", protocol="http", decision="allow""#
+        r#"network_rule(host="ditfa-network-test.invalid", protocol="http", decision="allow""#
     ));
     assert!(first_responses.requests().iter().any(|request| {
         request.body_contains_text(
-            "Allowed network rule saved in execpolicy (allowlist): codex-network-test.invalid",
+            "Allowed network rule saved in execpolicy (allowlist): ditfa-network-test.invalid",
         )
     }));
 
@@ -1050,7 +1050,7 @@ async fn approved_network_host_for_one_environment_still_prompts_in_another() ->
     let test = managed_network_unified_exec_test(&server).await?;
     let local_cwd = TempDir::new()?;
     let remote_cwd = PathBuf::from(format!(
-        "/tmp/codex-network-approval-{}",
+        "/tmp/ditfa-network-approval-{}",
         SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis()
     ))
     .abs();
@@ -1140,7 +1140,7 @@ async fn approved_network_host_for_one_environment_still_prompts_in_another() ->
     Ok(())
 }
 
-async fn managed_network_unified_exec_test(server: &wiremock::MockServer) -> Result<TestCodex> {
+async fn managed_network_unified_exec_test(server: &wiremock::MockServer) -> Result<TestDitfa> {
     let home = Arc::new(TempDir::new()?);
     fs::write(
         home.path().join("config.toml"),
@@ -1163,7 +1163,7 @@ allow_local_binding = true
         /*exclude_slash_tmp*/ false,
     );
     let permission_profile_for_config = permission_profile.clone();
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_home(home)
         .with_cloud_config_bundle(managed_network_requirements_loader())
         .with_config(move |config| {
@@ -1235,7 +1235,7 @@ fn network_exec_args(command: &str) -> Value {
 }
 
 async fn submit_managed_network_turn(
-    test: &TestCodex,
+    test: &TestDitfa,
     prompt: &str,
     environments: Vec<TurnEnvironmentSelection>,
     approvals_reviewer: ApprovalsReviewer,
@@ -1394,7 +1394,7 @@ fn guardian_network_actions(responses: &ResponseMock) -> Result<Vec<Value>> {
 }
 
 async fn expect_network_approval(
-    test: &TestCodex,
+    test: &TestDitfa,
     expected_environment_id: &str,
 ) -> Result<ExecApprovalRequestEvent> {
     expect_network_approval_target(
@@ -1407,7 +1407,7 @@ async fn expect_network_approval(
 }
 
 async fn expect_network_approval_target(
-    test: &TestCodex,
+    test: &TestDitfa,
     expected_environment_id: &str,
     expected_target: &str,
     expected_protocol: NetworkApprovalProtocol,
@@ -1453,7 +1453,7 @@ async fn expect_network_approval_target(
     }
 }
 
-async fn wait_for_completion_without_network_prompt(test: &TestCodex) {
+async fn wait_for_completion_without_network_prompt(test: &TestDitfa) {
     let event = wait_for_event(&test.ditfa, |event| {
         matches!(
             event,
@@ -1513,7 +1513,7 @@ async fn wait_for_paths(paths: &[&std::path::Path]) -> Result<()> {
     Ok(())
 }
 
-async fn wait_for_turn_complete(test: &TestCodex) {
+async fn wait_for_turn_complete(test: &TestDitfa) {
     wait_for_event(&test.ditfa, |event| {
         matches!(event, EventMsg::TurnComplete(_))
     })

@@ -19,7 +19,7 @@ use ditfa_exec_server::EnvironmentManager;
 use ditfa_exec_server::HttpClient;
 use ditfa_exec_server::ReqwestHttpClient;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_protocol::capabilities::SelectedCapabilityRoot;
 use ditfa_protocol::mcp::CallToolResult;
 use ditfa_protocol::models::PermissionProfile;
@@ -58,13 +58,13 @@ pub struct McpRuntimeInput {
     pub tool_catalog_cache: McpToolCatalogCache,
     pub ditfa_apps_tools_cache_key: ConnectorRuntimeContextKey,
     pub supports_openai_form_elicitation: bool,
-    pub auth: Option<CodexAuth>,
+    pub auth: Option<DitfaAuth>,
     pub ditfa_apps_auth_manager: Option<Arc<AuthManager>>,
     pub elicitation_reviewer: Option<ElicitationReviewerHandle>,
     pub elicitation_lifecycle: Option<ElicitationLifecycle>,
 }
 
-/// Owns all mutable MCP state for one Codex thread.
+/// Owns all mutable MCP state for one Ditfa thread.
 ///
 /// Publication replaces the latest state atomically. Existing bindings retain
 /// their exact connections and configuration for as long as they are needed.
@@ -198,11 +198,11 @@ impl McpRuntime {
             .await
     }
 
-    pub async fn latest_hard_refresh_codex_apps_tools_cache(
+    pub async fn latest_hard_refresh_ditfa_apps_tools_cache(
         &self,
     ) -> anyhow::Result<Vec<ToolInfo>> {
         self.latest_connections()
-            .hard_refresh_codex_apps_tools_cache()
+            .hard_refresh_ditfa_apps_tools_cache()
             .await
     }
 

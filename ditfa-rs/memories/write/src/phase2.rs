@@ -334,7 +334,7 @@ mod agent {
             .features
             .disable(Feature::SkillMcpDependencyInstall);
 
-        // Preserve the parent's explicit choice to skip Codex-managed sandboxing.
+        // Preserve the parent's explicit choice to skip Ditfa-managed sandboxing.
         match parent_permission_profile {
             PermissionProfile::Disabled => agent_config
                 .permissions
@@ -488,7 +488,7 @@ mod agent {
         db: Arc<StateRuntime>,
         token: String,
         thread_id: ThreadId,
-        thread: &ditfa_core::CodexThread,
+        thread: &ditfa_core::DitfaThread,
     ) -> AgentStatus {
         let mut heartbeat_interval =
             tokio::time::interval(Duration::from_secs(crate::stage_two::JOB_HEARTBEAT_SECONDS));

@@ -205,7 +205,7 @@ fn normalize_stdio_cwd(
     Ok(Some(config_dir.join(cwd)))
 }
 
-pub(crate) fn environment_provider_from_codex_home(
+pub(crate) fn environment_provider_from_ditfa_home(
     ditfa_home: &Path,
 ) -> Result<Box<dyn EnvironmentProvider>, ExecServerError> {
     let path = ditfa_home.join(ENVIRONMENTS_TOML_FILE);
@@ -362,7 +362,7 @@ mod tests {
                     program: Some(" ssh ".to_string()),
                     args: Some(vec![
                         "dev".to_string(),
-                        "codex exec-server --listen stdio".to_string(),
+                        "ditfa exec-server --listen stdio".to_string(),
                     ]),
                     env: Some(HashMap::from([(
                         "DITFA_LOG".to_string(),
@@ -511,7 +511,7 @@ mod tests {
                 EnvironmentToml {
                     id: "devbox".to_string(),
                     url: Some("ws://127.0.0.1:8765".to_string()),
-                    program: Some("codex".to_string()),
+                    program: Some("ditfa".to_string()),
                     ..Default::default()
                 },
                 "environment `devbox` must set exactly one of url or program",
@@ -685,7 +685,7 @@ mod tests {
                 },
                 EnvironmentToml {
                     id: "devbox".to_string(),
-                    program: Some("codex".to_string()),
+                    program: Some("ditfa".to_string()),
                     ..Default::default()
                 },
             ],
@@ -754,7 +754,7 @@ initialize_timeout_sec = 34.0
 [[environments]]
 id = "ssh-dev"
 program = "ssh"
-args = ["dev", "codex exec-server --listen stdio"]
+args = ["dev", "ditfa exec-server --listen stdio"]
 cwd = "/tmp"
 [environments.env]
 DITFA_LOG = "debug"
@@ -784,7 +784,7 @@ DITFA_LOG = "debug"
                 program: Some("ssh".to_string()),
                 args: Some(vec![
                     "dev".to_string(),
-                    "codex exec-server --listen stdio".to_string(),
+                    "ditfa exec-server --listen stdio".to_string(),
                 ]),
                 env: Some(HashMap::from([(
                     "DITFA_LOG".to_string(),
@@ -846,7 +846,7 @@ unknown = true
     }
 
     #[tokio::test]
-    async fn environment_provider_from_codex_home_uses_present_environments_file() {
+    async fn environment_provider_from_ditfa_home_uses_present_environments_file() {
         let ditfa_home = tempdir().expect("tempdir");
         std::fs::write(
             ditfa_home.path().join(ENVIRONMENTS_TOML_FILE),
@@ -858,7 +858,7 @@ include_local = false
         .expect("write environments.toml");
 
         let provider =
-            environment_provider_from_codex_home(ditfa_home.path()).expect("environment provider");
+            environment_provider_from_ditfa_home(ditfa_home.path()).expect("environment provider");
 
         let snapshot = provider.snapshot().await.expect("environments");
         let environment_ids: Vec<_> = snapshot
@@ -873,11 +873,11 @@ include_local = false
     }
 
     #[tokio::test]
-    async fn environment_provider_from_codex_home_falls_back_when_file_is_missing() {
+    async fn environment_provider_from_ditfa_home_falls_back_when_file_is_missing() {
         let ditfa_home = tempdir().expect("tempdir");
 
         let provider =
-            environment_provider_from_codex_home(ditfa_home.path()).expect("environment provider");
+            environment_provider_from_ditfa_home(ditfa_home.path()).expect("environment provider");
 
         let snapshot = provider.snapshot().await.expect("environments");
         let environment_ids: Vec<_> = snapshot

@@ -1,11 +1,11 @@
 ---
-name: codex-pr-body
+name: ditfa-pr-body
 description: Update the title and body of one or more pull requests.
 ---
 
 ## Determining the PR(s)
 
-When this skill is invoked, the PR(s) to update may be specified explicitly, but in the common case, the PR(s) to update will be inferred from the branch / commit that the user is currently working on. For ordinary Git usage (i.e., not Sapling as discussed below), you may have to use a combination of `git branch` and `gh pr view <branch> --repo openai/codex --json number --jq '.number'` to determine the PR associated with the current branch / commit.
+When this skill is invoked, the PR(s) to update may be specified explicitly, but in the common case, the PR(s) to update will be inferred from the branch / commit that the user is currently working on. For ordinary Git usage (i.e., not Sapling as discussed below), you may have to use a combination of `git branch` and `gh pr view <branch> --repo Teamtem-dev/ditfa-code --json number --jq '.number'` to determine the PR associated with the current branch / commit.
 
 ## PR Body Contents
 

@@ -51,7 +51,7 @@ async fn plan_mode_uses_proposed_plan_block_for_plan_item() -> Result<()> {
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -113,7 +113,7 @@ async fn plan_mode_without_proposed_plan_does_not_emit_plan_item() -> Result<()>
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 

@@ -91,7 +91,7 @@ impl ShellSnapshot {
         async {
             let timer = config
                 .session_telemetry
-                .start_timer("codex.shell_snapshot.duration_ms", &[]);
+                .start_timer("ditfa.shell_snapshot.duration_ms", &[]);
             let snapshot = ShellSnapshot::try_create(
                 &config.ditfa_home,
                 config.session_id,
@@ -108,7 +108,7 @@ impl ShellSnapshot {
             }
             config
                 .session_telemetry
-                .counter("codex.shell_snapshot", /*inc*/ 1, &counter_tags);
+                .counter("ditfa.shell_snapshot", /*inc*/ 1, &counter_tags);
             snapshot.ok().map(Arc::new)
         }
         .instrument(snapshot_span)

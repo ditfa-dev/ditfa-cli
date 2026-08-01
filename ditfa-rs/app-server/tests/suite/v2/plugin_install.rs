@@ -72,7 +72,7 @@ const TEST_ALLOW_HTTP_REMOTE_PLUGIN_BUNDLE_DOWNLOADS: &str =
 async fn plugin_install_rejects_relative_marketplace_paths() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -102,7 +102,7 @@ async fn plugin_install_rejects_relative_marketplace_paths() -> Result<()> {
 async fn plugin_install_rejects_missing_install_source() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -134,7 +134,7 @@ async fn plugin_install_rejects_missing_install_source() -> Result<()> {
 async fn plugin_install_rejects_multiple_install_sources() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -174,7 +174,7 @@ plugins = false
 "#,
     )?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -243,7 +243,7 @@ async fn plugin_install_writes_remote_plugin_to_cloud_and_cache() -> Result<()> 
     .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[(TEST_ALLOW_HTTP_REMOTE_PLUGIN_BUNDLE_DOWNLOADS, Some("1"))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -328,7 +328,7 @@ async fn plugin_install_uses_remote_apps_needing_auth_response() -> Result<()> {
         .and(path("/backend-api/ps/apps/batch"))
         .and(header("authorization", "Bearer chatgpt-token"))
         .and(header("chatgpt-account-id", "account-123"))
-        .and(header("oai-product-sku", "codex"))
+        .and(header("oai-product-sku", "ditfa"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "apps": [{
                 "id": "alpha",
@@ -342,7 +342,7 @@ async fn plugin_install_uses_remote_apps_needing_auth_response() -> Result<()> {
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[(TEST_ALLOW_HTTP_REMOTE_PLUGIN_BUNDLE_DOWNLOADS, Some("1"))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -397,7 +397,7 @@ async fn plugin_install_rejects_missing_remote_bundle_url() -> Result<()> {
     mount_empty_remote_installed_plugins(&server).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -441,7 +441,7 @@ async fn plugin_install_rejects_plain_http_remote_bundle_url() -> Result<()> {
     mount_empty_remote_installed_plugins(&server).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -490,7 +490,7 @@ async fn plugin_install_rejects_invalid_remote_release_version() -> Result<()> {
     mount_empty_remote_installed_plugins(&server).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -525,7 +525,7 @@ async fn plugin_install_rejects_invalid_remote_plugin_name() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     write_remote_plugin_catalog_config(ditfa_home.path(), "https://example.invalid/backend-api/")?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -558,7 +558,7 @@ async fn plugin_install_tracks_analytics_when_remote_detail_fetch_fails() -> Res
     mount_backend_analytics_events(&server).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -613,7 +613,7 @@ async fn plugin_install_rejects_remote_plugin_disabled_by_admin_before_download(
     mount_empty_remote_installed_plugins(&server).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[(TEST_ALLOW_HTTP_REMOTE_PLUGIN_BUNDLE_DOWNLOADS, Some("1"))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -666,7 +666,7 @@ async fn plugin_install_rejects_remote_plugin_not_available() -> Result<()> {
     mount_empty_remote_installed_plugins(&server).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -691,7 +691,7 @@ async fn plugin_install_rejects_remote_plugin_not_available() -> Result<()> {
 }
 
 #[tokio::test]
-async fn plugin_install_rejects_when_workspace_codex_plugins_disabled() -> Result<()> {
+async fn plugin_install_rejects_when_workspace_ditfa_plugins_disabled() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let repo_root = TempDir::new()?;
     let server = MockServer::start().await;
@@ -732,7 +732,7 @@ async fn plugin_install_rejects_when_workspace_codex_plugins_disabled() -> Resul
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -755,7 +755,7 @@ async fn plugin_install_rejects_when_workspace_codex_plugins_disabled() -> Resul
     assert!(
         err.error
             .message
-            .contains("Codex plugins are disabled for this workspace")
+            .contains("Ditfa plugins are disabled for this workspace")
     );
     Ok(())
 }
@@ -764,7 +764,7 @@ async fn plugin_install_rejects_when_workspace_codex_plugins_disabled() -> Resul
 async fn plugin_install_returns_invalid_request_for_missing_marketplace_file() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -808,7 +808,7 @@ async fn plugin_install_returns_invalid_request_for_not_available_plugin() -> Re
         AbsolutePathBuf::try_from(repo_root.path().join(".agents/plugins/marketplace.json"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -860,7 +860,7 @@ async fn plugin_install_returns_invalid_request_for_disallowed_product_plugin() 
         AbsolutePathBuf::try_from(repo_root.path().join(".agents/plugins/marketplace.json"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_args(&["--session-source", "atlas"])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -913,7 +913,7 @@ async fn plugin_install_tracks_analytics_event() -> Result<()> {
         AbsolutePathBuf::try_from(repo_root.path().join(".agents/plugins/marketplace.json"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -978,7 +978,7 @@ async fn plugin_install_failure_tracks_analytics_event() -> Result<()> {
         AbsolutePathBuf::try_from(repo_root.path().join(".agents/plugins/marketplace.json"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1033,7 +1033,7 @@ async fn plugin_install_tracks_remote_plugin_analytics_event() -> Result<()> {
     mount_backend_analytics_events(&server).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[(TEST_ALLOW_HTTP_REMOTE_PLUGIN_BUNDLE_DOWNLOADS, Some("1"))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -1080,7 +1080,7 @@ async fn plugin_install_preserves_status_when_remote_bundle_error_body_is_too_la
     mount_backend_analytics_events(&server).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[(TEST_ALLOW_HTTP_REMOTE_PLUGIN_BUNDLE_DOWNLOADS, Some("1"))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -1213,7 +1213,7 @@ async fn plugin_install_returns_apps_needing_auth() -> Result<()> {
         AbsolutePathBuf::try_from(repo_root.path().join(".agents/plugins/marketplace.json"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1307,7 +1307,7 @@ async fn plugin_install_skips_mcp_oauth_for_chatgpt_dual_surface_plugin() -> Res
         AbsolutePathBuf::try_from(repo_root.path().join(".agents/plugins/marketplace.json"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1366,7 +1366,7 @@ async fn plugin_install_starts_mcp_oauth_with_formerly_disallowed_plugin_app() -
         AbsolutePathBuf::try_from(repo_root.path().join(".agents/plugins/marketplace.json"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1462,7 +1462,7 @@ async fn plugin_install_starts_mcp_oauth_through_protected_resource_metadata() -
         AbsolutePathBuf::try_from(repo_root.path().join(".agents/plugins/marketplace.json"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1524,7 +1524,7 @@ connectors = true
         AbsolutePathBuf::try_from(repo_root.path().join(".agents/plugins/marketplace.json"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", Some("test-api-key"))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -1562,7 +1562,7 @@ async fn plugin_install_starts_remote_mcp_oauth_for_install_response_only_app() 
     mount_remote_plugin_install_with_apps_needing_auth(&server, REMOTE_PLUGIN_ID, &["alpha"]).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[(TEST_ALLOW_HTTP_REMOTE_PLUGIN_BUNDLE_DOWNLOADS, Some("1"))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -1610,7 +1610,7 @@ async fn plugin_install_skips_remote_mcp_oauth_for_bundled_same_name_app() -> Re
     mount_remote_plugin_install_with_apps_needing_auth(&server, REMOTE_PLUGIN_ID, &["alpha"]).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[(TEST_ALLOW_HTTP_REMOTE_PLUGIN_BUNDLE_DOWNLOADS, Some("1"))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -1688,7 +1688,7 @@ async fn plugin_install_includes_formerly_disallowed_apps_needing_auth() -> Resu
         AbsolutePathBuf::try_from(repo_root.path().join(".agents/plugins/marketplace.json"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1775,7 +1775,7 @@ async fn plugin_install_makes_bundled_mcp_servers_available_to_followup_requests
         AbsolutePathBuf::try_from(repo_root.path().join(".agents/plugins/marketplace.json"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1990,7 +1990,7 @@ async fn batch_apps(
     let product_sku_ok = headers
         .get("oai-product-sku")
         .and_then(|value| value.to_str().ok())
-        .is_some_and(|value| value == "codex");
+        .is_some_and(|value| value == "ditfa");
 
     if !bearer_ok || !account_ok || !product_sku_ok {
         Err(StatusCode::UNAUTHORIZED)
@@ -2100,7 +2100,7 @@ async fn wait_for_plugin_analytics_payload(server: &MockServer) -> Result<serde_
                     && request
                         .url
                         .path()
-                        .ends_with("/codex/analytics-events/events")
+                        .ends_with("/ditfa/analytics-events/events")
             }) {
                 return serde_json::from_slice(&request.body)
                     .map_err(|err| anyhow::anyhow!("invalid analytics payload: {err}"));

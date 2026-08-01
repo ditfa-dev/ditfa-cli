@@ -828,7 +828,7 @@ mod tests {
         let notification =
             ServerNotification::AccountRateLimitsUpdated(AccountRateLimitsUpdatedNotification {
                 rate_limits: RateLimitSnapshot {
-                    limit_id: Some("codex".to_string()),
+                    limit_id: Some("ditfa".to_string()),
                     limit_name: None,
                     primary: Some(RateLimitWindow {
                         used_percent: 25,
@@ -849,7 +849,7 @@ mod tests {
                 "method": "account/rateLimits/updated",
                 "params": {
                         "rateLimits": {
-                        "limitId": "codex",
+                        "limitId": "ditfa",
                         "limitName": null,
                         "primary": {
                             "usedPercent": 25,

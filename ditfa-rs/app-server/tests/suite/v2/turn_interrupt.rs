@@ -67,7 +67,7 @@ async fn turn_interrupt_aborts_running_turn() -> Result<()> {
         .write(&ditfa_home)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .build_initialized()
         .await?;
 
@@ -139,7 +139,7 @@ async fn turn_interrupt_rejects_completed_turn() -> Result<()> {
         .write(&ditfa_home)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .build_initialized()
         .await?;
 
@@ -231,7 +231,7 @@ async fn turn_interrupt_resolves_pending_command_approval_request() -> Result<()
         .write(&ditfa_home)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .build_initialized()
         .await?;
 

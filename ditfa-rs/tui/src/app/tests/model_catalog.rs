@@ -180,7 +180,7 @@ fn select_model_availability_nux_returns_none_when_all_models_are_exhausted() {
 
 #[tokio::test]
 async fn prepare_startup_tooltip_override_persists_model_availability_nux_count() {
-    let ditfa_home = tempdir().expect("temp codex home");
+    let ditfa_home = tempdir().expect("temp ditfa home");
     let mut config = ConfigBuilder::default()
         .ditfa_home(ditfa_home.path().to_path_buf())
         .build()
@@ -220,7 +220,7 @@ async fn prepare_startup_tooltip_override_persists_model_availability_nux_count(
 
 #[tokio::test]
 async fn accepted_model_migration_persists_target_default_reasoning_effort() {
-    let ditfa_home = tempdir().expect("temp codex home");
+    let ditfa_home = tempdir().expect("temp ditfa home");
     let mut config = ConfigBuilder::default()
         .ditfa_home(ditfa_home.path().to_path_buf())
         .build()
@@ -336,7 +336,7 @@ async fn model_migration_prompt_skips_when_target_missing_or_hidden() {
 
 #[tokio::test]
 async fn model_migration_prompt_shows_for_hidden_model() {
-    let ditfa_home = tempdir().expect("temp codex home");
+    let ditfa_home = tempdir().expect("temp ditfa home");
     let config = ConfigBuilder::default()
         .ditfa_home(ditfa_home.path().to_path_buf())
         .build()

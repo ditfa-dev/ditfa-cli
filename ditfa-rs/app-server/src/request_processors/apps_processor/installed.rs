@@ -10,16 +10,16 @@ use ditfa_mcp::McpRuntime;
 use ditfa_mcp::McpRuntimeInput;
 use ditfa_mcp::ToolInfo;
 use ditfa_mcp::effective_mcp_servers;
-use ditfa_mcp::host_owned_codex_apps_enabled;
+use ditfa_mcp::host_owned_ditfa_apps_enabled;
 use ditfa_mcp::tool_is_model_visible;
 use ditfa_protocol::models::PermissionProfile;
 
 const CONNECTOR_RUNTIME_REFRESH_TIMEOUT: Duration = Duration::from_secs(30);
 const APPS_INSTALLED_SUBMIT_ID: &str = "app-installed";
-const APPS_INSTALLED_RESPONSE_BYTES_METRIC: &str = "codex.apps.installed.response_bytes";
-const APPS_INSTALLED_CONNECTOR_COUNT_METRIC: &str = "codex.apps.installed.connector_count";
-const APPS_INSTALLED_TOOL_COUNT_METRIC: &str = "codex.apps.installed.tool_count";
-const APPS_SNAPSHOT_AGE_METRIC: &str = "codex.apps.snapshot.age_ms";
+const APPS_INSTALLED_RESPONSE_BYTES_METRIC: &str = "ditfa.apps.installed.response_bytes";
+const APPS_INSTALLED_CONNECTOR_COUNT_METRIC: &str = "ditfa.apps.installed.connector_count";
+const APPS_INSTALLED_TOOL_COUNT_METRIC: &str = "ditfa.apps.installed.tool_count";
+const APPS_SNAPSHOT_AGE_METRIC: &str = "ditfa.apps.snapshot.age_ms";
 
 impl AppsRequestProcessor {
     pub(crate) async fn apps_installed(
@@ -43,11 +43,11 @@ impl AppsRequestProcessor {
             let auth = self.auth_manager.auth().await;
             let apps_enabled = config
                 .features
-                .apps_enabled_for_auth(auth.as_ref().is_some_and(CodexAuth::uses_codex_backend));
+                .apps_enabled_for_auth(auth.as_ref().is_some_and(DitfaAuth::uses_ditfa_backend));
 
             let workspace_enabled = apps_enabled
                 && self
-                    .workspace_codex_plugins_enabled(&config, auth.as_ref())
+                    .workspace_ditfa_plugins_enabled(&config, auth.as_ref())
                     .await;
             let runtime_enabled = apps_enabled && workspace_enabled;
 
@@ -78,7 +78,7 @@ impl AppsRequestProcessor {
                     );
                     let cancellation_token = CancellationToken::new();
                     let ditfa_apps_auth_manager =
-                        host_owned_codex_apps_enabled(&mcp_config, auth.as_ref())
+                        host_owned_ditfa_apps_enabled(&mcp_config, auth.as_ref())
                             .then(|| Arc::clone(&self.auth_manager));
                     let runtime = McpRuntime::new(McpRuntimeInput {
                         config: Arc::clone(&mcp_config),

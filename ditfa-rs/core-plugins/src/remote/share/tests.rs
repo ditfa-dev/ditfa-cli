@@ -4,7 +4,7 @@ use crate::test_support::recording_remote_plugin_service_config;
 use ditfa_app_server_protocol::PluginAuthPolicy;
 use ditfa_app_server_protocol::PluginInstallPolicy;
 use ditfa_app_server_protocol::PluginInterface;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
 use pretty_assertions::assert_eq;
 use serde_json::json;
@@ -31,8 +31,8 @@ fn test_config(server: &MockServer) -> RemotePluginServiceConfig {
     )
 }
 
-fn test_auth() -> CodexAuth {
-    CodexAuth::create_dummy_chatgpt_auth_for_testing()
+fn test_auth() -> DitfaAuth {
+    DitfaAuth::create_dummy_chatgpt_auth_for_testing()
 }
 
 fn write_file(path: &Path, contents: &str) {

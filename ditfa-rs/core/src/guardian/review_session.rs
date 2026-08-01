@@ -18,7 +18,7 @@ use ditfa_protocol::models::ResponseItem;
 use ditfa_protocol::openai_models::ModelMessages;
 use ditfa_protocol::openai_models::ReasoningEffort as ReasoningEffortConfig;
 use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::CodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::ErrorEvent;
 use ditfa_protocol::protocol::Event;
 use ditfa_protocol::protocol::EventMsg;
@@ -35,7 +35,7 @@ use tokio::sync::Semaphore;
 use tokio_util::sync::CancellationToken;
 use tracing::warn;
 
-use crate::ditfa_delegate::run_codex_thread_interactive;
+use crate::ditfa_delegate::run_ditfa_thread_interactive;
 use crate::config::Config;
 use crate::config::Constrained;
 use crate::config::ManagedFeatures;
@@ -69,7 +69,7 @@ pub(crate) enum GuardianReviewSessionOutcome {
     PromptBuildFailed(anyhow::Error),
     SessionFailed {
         error: anyhow::Error,
-        error_info: Option<CodexErrorInfo>,
+        error_info: Option<DitfaErrorInfo>,
     },
     TimedOut,
     Aborted,
@@ -670,7 +670,7 @@ async fn spawn_guardian_review_session(
         ),
         None => (None, 0, None),
     };
-    let (session, io) = Box::pin(run_codex_thread_interactive(
+    let (session, io) = Box::pin(run_ditfa_thread_interactive(
         spawn_config,
         parent_session.services.auth_manager.clone(),
         parent_session.services.models_manager.clone(),
@@ -1054,7 +1054,7 @@ pub(crate) fn build_guardian_review_session_config(
     for feature in [
         Feature::Collab,
         Feature::MultiAgentV2,
-        Feature::CodexHooks,
+        Feature::DitfaHooks,
         Feature::Apps,
         Feature::Plugins,
         Feature::WebSearchRequest,
@@ -1243,7 +1243,7 @@ mod tests {
             schema: super::super::prompt::guardian_output_schema(),
             model,
             reasoning_effort,
-            guardian_default_review_model_id: "codex-auto-review".to_string(),
+            guardian_default_review_model_id: "ditfa-auto-review".to_string(),
             guardian_catalog_contains_auto_review: true,
             guardian_review_model_overridden: false,
             guardian_review_model_override: None,
@@ -1380,7 +1380,7 @@ mod tests {
         let mut parent_config = crate::config::test_config().await;
         parent_config
             .features
-            .enable(Feature::CodexHooks)
+            .enable(Feature::DitfaHooks)
             .expect("enable hooks on parent config");
 
         let guardian_config = build_guardian_review_session_config(
@@ -1392,7 +1392,7 @@ mod tests {
         )
         .expect("guardian config");
 
-        assert!(!guardian_config.features.enabled(Feature::CodexHooks));
+        assert!(!guardian_config.features.enabled(Feature::DitfaHooks));
     }
 
     #[tokio::test]
@@ -1822,7 +1822,7 @@ mod tests {
                 id: "current-turn".to_string(),
                 msg: EventMsg::Error(ErrorEvent {
                     message: "temporary failure".to_string(),
-                    ditfa_error_info: Some(CodexErrorInfo::ServerOverloaded),
+                    ditfa_error_info: Some(DitfaErrorInfo::ServerOverloaded),
                 }),
             })
             .await
@@ -1850,7 +1850,7 @@ mod tests {
             panic!("expected structured session failure");
         };
         assert_eq!(error.to_string(), "temporary failure");
-        assert_eq!(error_info, Some(CodexErrorInfo::ServerOverloaded));
+        assert_eq!(error_info, Some(DitfaErrorInfo::ServerOverloaded));
         assert!(keep_review_session);
         assert!(capture_token_usage);
     }

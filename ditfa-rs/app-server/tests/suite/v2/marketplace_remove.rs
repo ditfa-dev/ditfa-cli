@@ -53,7 +53,7 @@ async fn marketplace_remove_deletes_config_and_installed_root() -> Result<()> {
     let installed_root = marketplace_install_root(ditfa_home.path()).join("debug");
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -89,7 +89,7 @@ async fn marketplace_remove_rejects_unknown_marketplace() -> Result<()> {
     let ditfa_home = TempDir::new()?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;

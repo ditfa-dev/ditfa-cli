@@ -81,7 +81,7 @@ async fn import_repo_agents_md_from_nested_cwd_rewrites_terms_and_skips_non_empt
     );
     assert_eq!(
         fs::read_to_string(repo_root.join("AGENTS.md")).expect("read target"),
-        "Codex\nCodex\nCodex\nSee AGENTS.md\n"
+        "Ditfa\nDitfa\nDitfa\nSee AGENTS.md\n"
     );
     assert_eq!(
         fs::read_to_string(repo_with_existing_target.join("AGENTS.md"))
@@ -136,7 +136,7 @@ async fn import_repo_agents_md_overwrites_empty_targets() {
     );
     assert_eq!(
         fs::read_to_string(repo_root.join("AGENTS.md")).expect("read target"),
-        "Codex guidance"
+        "Ditfa guidance"
     );
 }
 
@@ -186,12 +186,12 @@ async fn detect_repo_prefers_non_empty_external_agent_agents_source() {
 }
 
 #[tokio::test]
-async fn import_repo_hooks_preserves_disabled_codex_hooks_feature() {
+async fn import_repo_hooks_preserves_disabled_ditfa_hooks_feature() {
     let root = TempDir::new().expect("create tempdir");
     let repo_root = root.path().join("repo");
     fs::create_dir_all(repo_root.join(".git")).expect("create git dir");
     fs::create_dir_all(repo_root.join(EXTERNAL_AGENT_DIR)).expect("create external agent dir");
-    fs::create_dir_all(repo_root.join(".ditfa")).expect("create codex dir");
+    fs::create_dir_all(repo_root.join(".ditfa")).expect("create ditfa dir");
     fs::write(
         repo_root.join(EXTERNAL_AGENT_DIR).join("settings.json"),
         r#"{"hooks":{"Stop":[{"hooks":[{"command":"echo done"}]}]}}"#,
@@ -199,7 +199,7 @@ async fn import_repo_hooks_preserves_disabled_codex_hooks_feature() {
     .expect("write hooks");
     fs::write(
         repo_root.join(".ditfa").join("config.toml"),
-        "[features]\ncodex_hooks = false\n",
+        "[features]\nditfa_hooks = false\n",
     )
     .expect("write config");
 
@@ -234,7 +234,7 @@ async fn import_repo_hooks_preserves_disabled_codex_hooks_feature() {
     );
     assert_eq!(
         fs::read_to_string(repo_root.join(".ditfa").join("config.toml")).expect("read config"),
-        "[features]\ncodex_hooks = false\n"
+        "[features]\nditfa_hooks = false\n"
     );
     let hooks: JsonValue = serde_json::from_str(
         &fs::read_to_string(repo_root.join(".ditfa").join("hooks.json")).expect("read hooks"),
@@ -459,7 +459,7 @@ async fn import_repo_uses_non_empty_external_agent_agents_source() {
 
     assert_eq!(
         fs::read_to_string(repo_root.join("AGENTS.md")).expect("read target"),
-        "Codex guidance"
+        "Ditfa guidance"
     );
 }
 
@@ -492,7 +492,7 @@ async fn import_continues_after_failed_migration_item() {
 
     assert_eq!(
         fs::read_to_string(repo_root.join("AGENTS.md")).expect("read target"),
-        "Codex guidance"
+        "Ditfa guidance"
     );
 }
 

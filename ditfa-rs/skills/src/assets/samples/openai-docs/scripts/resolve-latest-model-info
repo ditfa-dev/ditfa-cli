@@ -26,8 +26,8 @@ if [ -n "$PATH_NODE" ]; then
 fi
 
 for CANDIDATE in \
-  "$HOME/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node" \
-  "$HOME/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/node" \
+  "$HOME/.cache/ditfa-runtimes/ditfa-primary-runtime/dependencies/node/bin/node" \
+  "$HOME/.cache/ditfa-runtimes/ditfa-primary-runtime/dependencies/bin/node" \
   "/opt/homebrew/bin/node" \
   "/usr/local/bin/node" \
   "/usr/bin/node"

@@ -17,23 +17,23 @@ use std::time::Instant;
 use std::time::SystemTime;
 
 use arc_swap::ArcSwapOption;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_protocol::mcp::McpServerInfo;
 use serde::Deserialize;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-use self::persistence::load_cached_codex_apps_server_info;
+use self::persistence::load_cached_ditfa_apps_server_info;
 use self::persistence::load_cached_connector_runtime_for_identity;
-use self::persistence::persist_codex_apps_cache;
+use self::persistence::persist_ditfa_apps_cache;
 use self::persistence::server_info_cache_path;
 use self::persistence::tools_cache_path;
 
-const MCP_TOOLS_CACHE_PUBLISH_DURATION_METRIC: &str = "codex.mcp.tools.cache_publish.duration_ms";
+const MCP_TOOLS_CACHE_PUBLISH_DURATION_METRIC: &str = "ditfa.mcp.tools.cache_publish.duration_ms";
 
 /// Values stored in the connector runtime's persisted tool snapshot.
 ///
-/// The runtime uses the connector-owned Codex Apps cache layout for every
+/// The runtime uses the connector-owned Ditfa Apps cache layout for every
 /// serializable, cloneable payload.
 pub trait ConnectorRuntimePayload: Clone + Serialize + DeserializeOwned {}
 
@@ -65,11 +65,11 @@ impl ConnectorRuntimeContextKey {
     }
 }
 
-/// Builds the connector runtime context key for the active Codex auth.
-pub fn connector_runtime_context_key(auth: Option<&CodexAuth>) -> ConnectorRuntimeContextKey {
-    let account_id = auth.and_then(CodexAuth::get_account_id);
-    let chatgpt_user_id = auth.and_then(CodexAuth::get_chatgpt_user_id);
-    if auth.is_some_and(CodexAuth::is_workspace_account) {
+/// Builds the connector runtime context key for the active Ditfa auth.
+pub fn connector_runtime_context_key(auth: Option<&DitfaAuth>) -> ConnectorRuntimeContextKey {
+    let account_id = auth.and_then(DitfaAuth::get_account_id);
+    let chatgpt_user_id = auth.and_then(DitfaAuth::get_chatgpt_user_id);
+    if auth.is_some_and(DitfaAuth::is_workspace_account) {
         ConnectorRuntimeContextKey::workspace(account_id, chatgpt_user_id)
     } else {
         ConnectorRuntimeContextKey::personal(account_id, chatgpt_user_id)
@@ -77,7 +77,7 @@ pub fn connector_runtime_context_key(auth: Option<&CodexAuth>) -> ConnectorRunti
 }
 
 /// Returns the persisted connector runtime tools cache path for the active auth identity.
-pub fn connector_runtime_cache_path(ditfa_home: &Path, auth: Option<&CodexAuth>) -> PathBuf {
+pub fn connector_runtime_cache_path(ditfa_home: &Path, auth: Option<&DitfaAuth>) -> PathBuf {
     let identity = ConnectorRuntimeIdentity {
         ditfa_home: ditfa_home.to_path_buf(),
         key: connector_runtime_context_key(auth),
@@ -205,7 +205,7 @@ impl<T: ConnectorRuntimePayload> ConnectorRuntimeContext<T> {
 
     pub fn cached_server_info(&self) -> Option<McpServerInfo> {
         match self.entry.disk_cache {
-            ConnectorRuntimeDiskCache::Enabled => load_cached_codex_apps_server_info(self),
+            ConnectorRuntimeDiskCache::Enabled => load_cached_ditfa_apps_server_info(self),
             ConnectorRuntimeDiskCache::Disabled => None,
         }
     }
@@ -234,7 +234,7 @@ impl<T: ConnectorRuntimePayload> ConnectorRuntimeContext<T> {
                 ticket,
                 server_info,
                 tools,
-                persist_codex_apps_cache,
+                persist_ditfa_apps_cache,
             ),
             ConnectorRuntimeDiskCache::Disabled => self.publish_runtime_if_newest_accepted_with(
                 ticket,

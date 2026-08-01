@@ -107,16 +107,16 @@ async fn write_linked_worktree_pointer(
 }
 
 async fn write_project_hook_config(
-    dot_codex_folder: &Path,
+    dot_ditfa_folder: &Path,
     foo: Option<&str>,
     command: &str,
 ) -> std::io::Result<()> {
-    tokio::fs::create_dir_all(dot_codex_folder).await?;
+    tokio::fs::create_dir_all(dot_ditfa_folder).await?;
     let foo = foo
         .map(|value| format!("foo = \"{value}\"\n\n"))
         .unwrap_or_default();
     tokio::fs::write(
-        dot_codex_folder.join(CONFIG_TOML_FILE),
+        dot_ditfa_folder.join(CONFIG_TOML_FILE),
         format!(
             r#"{foo}[hooks]
 
@@ -1166,11 +1166,11 @@ allowed_sandbox_modes = ["read-only"]
 
 #[cfg(target_os = "macos")]
 #[tokio::test]
-async fn managed_preferences_requirements_resolve_paths_against_codex_home() -> anyhow::Result<()> {
+async fn managed_preferences_requirements_resolve_paths_against_ditfa_home() -> anyhow::Result<()> {
     use base64::Engine;
 
     let tmp = tempdir()?;
-    let ditfa_home = tmp.path().join("codex-home");
+    let ditfa_home = tmp.path().join("ditfa-home");
     std::fs::create_dir_all(&ditfa_home)?;
 
     let mut loader_overrides =
@@ -2391,7 +2391,7 @@ statusMessage = "checking"
 }
 
 #[tokio::test]
-async fn load_config_layers_resolves_relative_bundle_requirements_paths_against_codex_home()
+async fn load_config_layers_resolves_relative_bundle_requirements_paths_against_ditfa_home()
 -> anyhow::Result<()> {
     let tmp = tempdir()?;
     let ditfa_home = tmp.path().join("home");
@@ -2445,7 +2445,7 @@ async fn strict_config_rejects_unknown_cloud_config_key() {
     let ditfa_home = tmp.path().join("home");
     tokio::fs::create_dir_all(&ditfa_home)
         .await
-        .expect("create codex home");
+        .expect("create ditfa home");
     let cwd = AbsolutePathBuf::from_absolute_path(tmp.path()).expect("cwd");
 
     let err = load_config_layers_state(
@@ -2598,7 +2598,7 @@ async fn project_layers_prefer_closest_cwd() -> std::io::Result<()> {
         .layers_high_to_low()
         .into_iter()
         .filter_map(|layer| match &layer.name {
-            ConfigLayerSource::Project { dot_codex_folder } => Some(dot_codex_folder),
+            ConfigLayerSource::Project { dot_ditfa_folder } => Some(dot_ditfa_folder),
             _ => None,
         })
         .collect();
@@ -2870,7 +2870,7 @@ fn project_hook_command(layer: &ConfigLayerEntry) -> Option<&str> {
 }
 
 #[tokio::test]
-async fn project_paths_resolve_relative_to_dot_codex_and_override_in_order() -> std::io::Result<()>
+async fn project_paths_resolve_relative_to_dot_ditfa_and_override_in_order() -> std::io::Result<()>
 {
     let tmp = tempdir()?;
     let project_root = tmp.path().join("project");
@@ -2986,7 +2986,7 @@ async fn inline_instructions_set_base_instructions() -> std::io::Result<()> {
 }
 
 #[tokio::test]
-async fn project_layer_is_added_when_dot_codex_exists_without_config_toml() -> std::io::Result<()> {
+async fn project_layer_is_added_when_dot_ditfa_exists_without_config_toml() -> std::io::Result<()> {
     let tmp = tempdir()?;
     let project_root = tmp.path().join("project");
     let nested = project_root.join("child");
@@ -3021,7 +3021,7 @@ async fn project_layer_is_added_when_dot_codex_exists_without_config_toml() -> s
         .collect();
     let expected_project_layer = ConfigLayerEntry::new(
         ConfigLayerSource::Project {
-            dot_codex_folder: AbsolutePathBuf::from_absolute_path(project_root.join(".ditfa"))?,
+            dot_ditfa_folder: AbsolutePathBuf::from_absolute_path(project_root.join(".ditfa"))?,
         },
         TomlValue::Table(toml::map::Map::new()),
     );
@@ -3077,27 +3077,27 @@ async fn ditfa_home_within_project_tree_is_not_double_loaded() -> std::io::Resul
     let tmp = tempdir()?;
     let project_root = tmp.path().join("project");
     let nested = project_root.join("child");
-    let project_dot_codex = project_root.join(".ditfa");
-    let nested_dot_codex = nested.join(".ditfa");
+    let project_dot_ditfa = project_root.join(".ditfa");
+    let nested_dot_ditfa = nested.join(".ditfa");
 
-    tokio::fs::create_dir_all(&nested_dot_codex).await?;
+    tokio::fs::create_dir_all(&nested_dot_ditfa).await?;
     tokio::fs::create_dir_all(project_root.join(".git")).await?;
     tokio::fs::write(
-        nested_dot_codex.join(CONFIG_TOML_FILE),
+        nested_dot_ditfa.join(CONFIG_TOML_FILE),
         r#"foo = "child"
 "#,
     )
     .await?;
 
-    tokio::fs::create_dir_all(&project_dot_codex).await?;
+    tokio::fs::create_dir_all(&project_dot_ditfa).await?;
     make_config_for_test(
-        &project_dot_codex,
+        &project_dot_ditfa,
         &project_root,
         TrustLevel::Trusted,
         /*project_root_markers*/ None,
     )
     .await?;
-    let user_config_path = project_dot_codex.join(CONFIG_TOML_FILE);
+    let user_config_path = project_dot_ditfa.join(CONFIG_TOML_FILE);
     let user_config_contents = tokio::fs::read_to_string(&user_config_path).await?;
     tokio::fs::write(
         &user_config_path,
@@ -3111,7 +3111,7 @@ async fn ditfa_home_within_project_tree_is_not_double_loaded() -> std::io::Resul
     let cwd = AbsolutePathBuf::from_absolute_path(&nested)?;
     let layers = load_config_layers_state(
         LOCAL_FS.as_ref(),
-        &project_dot_codex,
+        &project_dot_ditfa,
         Some(cwd),
         &[] as &[(String, TomlValue)],
         LoaderOverrides::default(),
@@ -3135,7 +3135,7 @@ async fn ditfa_home_within_project_tree_is_not_double_loaded() -> std::io::Resul
     .expect("parse child config");
     let expected_project_layer = ConfigLayerEntry::new(
         ConfigLayerSource::Project {
-            dot_codex_folder: AbsolutePathBuf::from_absolute_path(&nested_dot_codex)?,
+            dot_ditfa_folder: AbsolutePathBuf::from_absolute_path(&nested_dot_ditfa)?,
         },
         child_config,
     );
@@ -3273,14 +3273,14 @@ profile = "ignored"
 async fn project_layer_ignores_unsupported_config_keys() -> std::io::Result<()> {
     let tmp = tempdir()?;
     let project_root = tmp.path().join("project");
-    let dot_codex = project_root.join(".ditfa");
-    tokio::fs::create_dir_all(&dot_codex).await?;
+    let dot_ditfa = project_root.join(".ditfa");
+    tokio::fs::create_dir_all(&dot_ditfa).await?;
     // `model_instructions_file` is intentionally allowed from project config:
     // it is the control case that should still be resolved relative to this
     // `.ditfa` folder. The malformed profile value below would fail typed path
     // resolution if `profiles` were not stripped before that pass runs.
     tokio::fs::write(
-        dot_codex.join(CONFIG_TOML_FILE),
+        dot_ditfa.join(CONFIG_TOML_FILE),
         r#"
 model = "project-model"
 model_instructions_file = "instructions.md"
@@ -3356,7 +3356,7 @@ wire_api = "responses"
             "If you want these settings to apply, manually set them in your ",
             "user-level config.toml."
         ),
-        dot_codex.join(CONFIG_TOML_FILE).display(),
+        dot_ditfa.join(CONFIG_TOML_FILE).display(),
         ignored_project_config_keys.join(", ")
     )];
     assert_eq!(
@@ -3374,7 +3374,7 @@ wire_api = "responses"
     assert_eq!(
         effective_config.get("model_instructions_file"),
         Some(&TomlValue::String(
-            dot_codex
+            dot_ditfa
                 .join("instructions.md")
                 .to_string_lossy()
                 .to_string()
@@ -3457,14 +3457,14 @@ async fn cli_override_can_update_project_local_mcp_server_when_project_is_truste
     let tmp = tempdir()?;
     let project_root = tmp.path().join("project");
     let nested = project_root.join("child");
-    let dot_codex = project_root.join(".ditfa");
+    let dot_ditfa = project_root.join(".ditfa");
     let ditfa_home = tmp.path().join("home");
     tokio::fs::create_dir_all(&nested).await?;
-    tokio::fs::create_dir_all(&dot_codex).await?;
+    tokio::fs::create_dir_all(&dot_ditfa).await?;
     tokio::fs::create_dir_all(&ditfa_home).await?;
     tokio::fs::write(project_root.join(".git"), "gitdir: here").await?;
     tokio::fs::write(
-        dot_codex.join(CONFIG_TOML_FILE),
+        dot_ditfa.join(CONFIG_TOML_FILE),
         r#"
 [mcp_servers.sentry]
 url = "https://mcp.sentry.dev/mcp"
@@ -3506,14 +3506,14 @@ async fn cli_override_for_disabled_project_local_mcp_server_returns_invalid_tran
     let tmp = tempdir()?;
     let project_root = tmp.path().join("project");
     let nested = project_root.join("child");
-    let dot_codex = project_root.join(".ditfa");
+    let dot_ditfa = project_root.join(".ditfa");
     let ditfa_home = tmp.path().join("home");
     tokio::fs::create_dir_all(&nested).await?;
-    tokio::fs::create_dir_all(&dot_codex).await?;
+    tokio::fs::create_dir_all(&dot_ditfa).await?;
     tokio::fs::create_dir_all(&ditfa_home).await?;
     tokio::fs::write(project_root.join(".git"), "gitdir: here").await?;
     tokio::fs::write(
-        dot_codex.join(CONFIG_TOML_FILE),
+        dot_ditfa.join(CONFIG_TOML_FILE),
         r#"
 [mcp_servers.sentry]
 url = "https://mcp.sentry.dev/mcp"
@@ -3775,7 +3775,7 @@ async fn project_root_markers_supports_alternate_markers() -> std::io::Result<()
         .layers_high_to_low()
         .into_iter()
         .filter_map(|layer| match &layer.name {
-            ConfigLayerSource::Project { dot_codex_folder } => Some(dot_codex_folder),
+            ConfigLayerSource::Project { dot_ditfa_folder } => Some(dot_ditfa_folder),
             _ => None,
         })
         .collect();
@@ -3828,14 +3828,14 @@ mod requirements_exec_policy_tests {
         panic!("rule should match so heuristic should not be called");
     }
 
-    fn config_stack_for_dot_codex_folder_with_requirements(
-        dot_codex_folder: &Path,
+    fn config_stack_for_dot_ditfa_folder_with_requirements(
+        dot_ditfa_folder: &Path,
         requirements: ConfigRequirements,
     ) -> ConfigLayerStack {
-        let dot_codex_folder = AbsolutePathBuf::from_absolute_path(dot_codex_folder)
-            .expect("absolute dot_codex_folder");
+        let dot_ditfa_folder = AbsolutePathBuf::from_absolute_path(dot_ditfa_folder)
+            .expect("absolute dot_ditfa_folder");
         let layer = ConfigLayerEntry::new(
-            ConfigLayerSource::Project { dot_codex_folder },
+            ConfigLayerSource::Project { dot_ditfa_folder },
             TomlValue::Table(Default::default()),
         );
         ConfigLayerStack::new(vec![layer], requirements, ConfigRequirementsToml::default())
@@ -4049,7 +4049,7 @@ prefix_rules = []
             "#,
         );
         let config_stack =
-            config_stack_for_dot_codex_folder_with_requirements(temp_dir.path(), requirements);
+            config_stack_for_dot_ditfa_folder_with_requirements(temp_dir.path(), requirements);
 
         let policy = load_exec_policy(&config_stack).await?;
 
@@ -4088,7 +4088,7 @@ prefix_rules = []
             "#,
         );
         let config_stack =
-            config_stack_for_dot_codex_folder_with_requirements(temp_dir.path(), requirements);
+            config_stack_for_dot_ditfa_folder_with_requirements(temp_dir.path(), requirements);
 
         let policy = load_exec_policy(&config_stack).await?;
 

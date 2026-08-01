@@ -51,8 +51,8 @@ use core_test_support::skip_if_no_network;
 use core_test_support::skip_if_wine_exec;
 use core_test_support::streaming_sse::StreamingSseChunk;
 use core_test_support::streaming_sse::start_streaming_sse_server;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::test_target_os;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
@@ -117,7 +117,7 @@ fn non_openai_model_provider(server: &wiremock::MockServer) -> ModelProviderInfo
 fn trust_plugin_hooks(config: &mut Config, plugin_hook_sources: Vec<PluginHookSource>) {
     config
         .features
-        .enable(Feature::CodexHooks)
+        .enable(Feature::DitfaHooks)
         .expect("test config should allow feature update");
     let listed = ditfa_hooks::list_hooks(ditfa_hooks::HooksConfig {
         feature_enabled: true,
@@ -1230,7 +1230,7 @@ async fn stop_hook_can_block_multiple_times_in_same_turn() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_stop_hook(
                 home,
@@ -1326,7 +1326,7 @@ async fn session_start_hook_sees_materialized_transcript_path() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_session_start_hook_recording_transcript(home)
                 .expect("failed to write session start hook test fixture");
@@ -1364,7 +1364,7 @@ async fn session_end_flushes_transcript_and_ignores_control_output() -> Result<(
         ]),
     )
     .await;
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_session_end_hook(home).expect("write session end hook fixture");
         })
@@ -1396,7 +1396,7 @@ async fn session_end_skips_subagents() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_session_end_hook(home).expect("write session end hook fixture");
         })
@@ -1449,7 +1449,7 @@ async fn session_start_runs_before_user_prompt_submit_on_first_turn() -> Result<
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_session_start_and_user_prompt_submit_order_hooks(home)
                 .expect("failed to write hook ordering fixtures");
@@ -1497,7 +1497,7 @@ async fn session_start_hook_spills_large_additional_context() -> Result<()> {
     .await;
     let additional_context = "remember the reef ".repeat(800);
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook({
             let additional_context = additional_context.clone();
             move |home| {
@@ -1540,7 +1540,7 @@ async fn session_start_hooks_apply_additional_context_limits_individually() -> R
     let limited_additional_context = "spill this limited reef context".to_string();
     let expanded_additional_context = "keep this expanded reef context inline".to_string();
 
-    let test = test_codex()
+    let test = test_ditfa()
         .with_pre_build_hook({
             let limited_additional_context = limited_additional_context.clone();
             let expanded_additional_context = expanded_additional_context.clone();
@@ -1606,7 +1606,7 @@ async fn pre_tool_use_hook_spills_large_additional_context() -> Result<()> {
     .await;
     let additional_context = "remember the pre tool reef ".repeat(800);
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook({
             let additional_context = additional_context.clone();
             move |home| {
@@ -1663,7 +1663,7 @@ async fn compact_session_start_hook_records_additional_context_for_next_turn() -
     let additional_context = "remember the compacted reef";
     let model_provider = non_openai_model_provider(&server);
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(move |home| {
             write_compact_session_start_hook_with_context(home, additional_context)
                 .expect("failed to write compact session start hook fixture");
@@ -1773,7 +1773,7 @@ async fn mid_turn_auto_compact_session_start_hooks_run_before_each_continuation(
     .await;
     let model_provider = non_openai_model_provider(&server);
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_dynamic_compact_session_start_hook(
                 home,
@@ -1884,7 +1884,7 @@ async fn mid_turn_auto_compact_session_start_hook_stop_blocks_continuation() -> 
     .await;
     let model_provider = non_openai_model_provider(&server);
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_dynamic_compact_session_start_hook(home, DynamicCompactSessionStartHook::Stop)
                 .expect("failed to write stopping compact session start hook fixture");
@@ -1953,7 +1953,7 @@ async fn resumed_thread_runs_resume_then_compact_session_start_hooks() -> Result
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(move |home| {
             write_resume_and_compact_session_start_hook_with_context(
                 home,
@@ -1977,7 +1977,7 @@ async fn resumed_thread_runs_resume_then_compact_session_start_hooks() -> Result
     initial.submit_turn("hello before resume").await?;
     assert_eq!(responses_mock.requests().len(), 1);
 
-    let mut resume_builder = test_codex().with_config(move |config| {
+    let mut resume_builder = test_ditfa().with_config(move |config| {
         config.model_auto_compact_token_limit = Some(limit);
         trust_discovered_hooks(config);
     });
@@ -2037,7 +2037,7 @@ async fn stop_hook_spills_large_continuation_prompt() -> Result<()> {
         .collect::<Vec<_>>()
         .join(" ");
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook({
             let continuation_prompt = continuation_prompt.clone();
             move |home| {
@@ -2084,7 +2084,7 @@ async fn resumed_thread_keeps_stop_continuation_prompt_in_history() -> Result<()
     )
     .await;
 
-    let mut initial_builder = test_codex()
+    let mut initial_builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_stop_hook(home, &[FIRST_CONTINUATION_PROMPT])
                 .expect("failed to write stop hook test fixture");
@@ -2112,7 +2112,7 @@ async fn resumed_thread_keeps_stop_continuation_prompt_in_history() -> Result<()
     )
     .await;
 
-    let mut resume_builder = test_codex().with_config(trust_discovered_hooks);
+    let mut resume_builder = test_ditfa().with_config(trust_discovered_hooks);
     let resumed = resume_builder.resume(&server, home, rollout_path).await?;
 
     resumed.submit_turn("and now continue").await?;
@@ -2149,7 +2149,7 @@ async fn multiple_blocking_stop_hooks_persist_multiple_hook_prompt_fragments() -
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_parallel_stop_hooks(
                 home,
@@ -2202,7 +2202,7 @@ async fn blocked_user_prompt_submit_persists_additional_context_for_next_turn() 
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_user_prompt_submit_hook(home, "blocked first prompt", BLOCKED_PROMPT_CONTEXT)
                 .expect("failed to write user prompt submit hook test fixture");
@@ -2300,7 +2300,7 @@ async fn blocked_queued_prompt_does_not_strand_earlier_accepted_prompt() -> Resu
     let (server, _completions) =
         start_streaming_sse_server(vec![first_chunks, second_chunks]).await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model("gpt-5.4")
         .with_pre_build_hook(|home| {
             write_user_prompt_submit_hook(home, "blocked queued prompt", BLOCKED_PROMPT_CONTEXT)
@@ -2451,7 +2451,7 @@ async fn permission_request_hook_allows_shell_command_without_user_approval() ->
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             install_allow_permission_request_hook(home)
                 .expect("failed to write permission request hook test fixture");
@@ -2553,7 +2553,7 @@ async fn permission_request_hook_allow_bypasses_strict_auto_review() -> Result<(
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             install_allow_permission_request_hook(home)
                 .expect("failed to write permission request hook test fixture");
@@ -2670,7 +2670,7 @@ async fn permission_request_hook_allows_apply_patch_with_write_alias() -> Result
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_permission_request_hook(
                 home,
@@ -2747,7 +2747,7 @@ async fn permission_request_hook_sees_raw_exec_command_input() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             install_allow_permission_request_hook(home)
                 .expect("failed to write permission request hook test fixture");
@@ -2790,7 +2790,7 @@ async fn permission_request_hook_sees_raw_exec_command_input() -> Result<()> {
 
 #[tokio::test]
 async fn permission_request_hook_allows_network_approval_without_prompt() -> Result<()> {
-    let command = r#"python3 -c "import urllib.request; opener = urllib.request.build_opener(urllib.request.ProxyHandler()); print('OK:' + opener.open('http://codex-network-test.invalid', timeout=2).read().decode(errors='replace'))""#;
+    let command = r#"python3 -c "import urllib.request; opener = urllib.request.build_opener(urllib.request.ProxyHandler()); print('OK:' + opener.open('http://ditfa-network-test.invalid', timeout=2).read().decode(errors='replace'))""#;
     run_network_permission_hook_test(
         "allow",
         PERMISSION_REQUEST_ALLOW_REASON,
@@ -2804,7 +2804,7 @@ async fn permission_request_hook_allows_network_approval_without_prompt() -> Res
 #[tokio::test]
 async fn permission_request_hook_denies_network_approval_with_custom_message() -> Result<()> {
     let denial = "network access denied by the integration-test hook";
-    let command = r#"python3 -c "import urllib.request; opener = urllib.request.build_opener(urllib.request.ProxyHandler()); opener.open('http://codex-network-test.invalid', timeout=2).read()""#;
+    let command = r#"python3 -c "import urllib.request; opener = urllib.request.build_opener(urllib.request.ProxyHandler()); opener.open('http://ditfa-network-test.invalid', timeout=2).read()""#;
     run_network_permission_hook_test(
         "deny",
         denial,
@@ -2860,7 +2860,7 @@ allow_local_binding = true
     let approval_policy = AskForApproval::OnRequest;
     let permission_profile = network_workspace_write_profile();
     let permission_profile_for_config = permission_profile.clone();
-    let test = test_codex()
+    let test = test_ditfa()
         .with_home(Arc::clone(&home))
         .with_pre_build_hook(move |home| {
             write_permission_request_hook(
@@ -2922,7 +2922,7 @@ allow_local_binding = true
     assert_single_permission_request_hook_input(
         test.ditfa_home_path(),
         command,
-        Some("network-access http://codex-network-test.invalid:80"),
+        Some("network-access http://ditfa-network-test.invalid:80"),
     )?;
     let requests = responses.requests();
     assert_eq!(
@@ -2982,7 +2982,7 @@ async fn pre_tool_use_blocks_shell_command_before_execution() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_pre_tool_use_hook(home, Some("^Bash$"), "json_deny", "blocked by pre hook")
                 .expect("failed to write pre tool use hook test fixture");
@@ -3076,7 +3076,7 @@ async fn pre_tool_use_records_additional_context_for_shell_command() -> Result<(
     .await;
 
     let pre_context = "Remember the bash pre-tool note.";
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_pre_tool_use_hook(home, Some("^Bash$"), "context", pre_context)
                 .expect("failed to write pre tool use hook test fixture");
@@ -3139,7 +3139,7 @@ async fn blocked_pre_tool_use_records_additional_context_for_shell_command() -> 
     .await;
 
     let pre_context = "blocked by pre hook with context";
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_pre_tool_use_hook(home, Some("^Bash$"), "json_deny_with_context", pre_context)
                 .expect("failed to write pre tool use hook test fixture");
@@ -3266,7 +3266,7 @@ async fn assert_pre_tool_use_rewrites_bash_surface(surface: BashRewriteSurface) 
     .await;
 
     let updated_input = serde_json::json!({ "command": rewritten_command });
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(move |home| {
             write_updating_pre_tool_use_hook(home, "^Bash$", &updated_input)
                 .expect("failed to write updating pre tool use hook fixture");
@@ -3359,7 +3359,7 @@ text(output.output);
     .await;
 
     let updated_input = serde_json::json!({ "command": rewritten_command });
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model("test-gpt-5.1-codex")
         .with_pre_build_hook(move |home| {
             write_updating_pre_tool_use_hook(home, "^Bash$", &updated_input)
@@ -3444,7 +3444,7 @@ try {{
     .await;
 
     let reason = "blocked nested command";
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model("test-gpt-5.1-codex")
         .with_pre_build_hook(move |home| {
             write_pre_tool_use_hook(home, Some("^Bash$"), "json_deny", reason)
@@ -3523,7 +3523,7 @@ try {{
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model("test-gpt-5.1-codex")
         .with_pre_build_hook(move |home| {
             write_post_tool_use_hook(home, Some("^Bash$"), hook_mode, reason)
@@ -3688,7 +3688,7 @@ print(json.dumps({{
             .hooks,
     }];
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_home(Arc::clone(&home))
         .with_config(move |config| {
             config
@@ -3765,7 +3765,7 @@ async fn pre_tool_use_blocks_shell_when_defined_in_config_toml() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_pre_tool_use_hook_toml(
                 home,
@@ -3848,7 +3848,7 @@ async fn pre_tool_use_merges_hooks_json_and_config_toml() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_pre_tool_use_hook(home, Some("^Bash$"), "allow", "unused")
                 .expect("failed to write hooks.json hook fixture");
@@ -3950,7 +3950,7 @@ async fn pre_tool_use_blocks_exec_command_before_execution() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_pre_tool_use_hook(home, Some("^Bash$"), "exit_2", "blocked exec command")
                 .expect("failed to write pre tool use hook test fixture");
@@ -4031,7 +4031,7 @@ async fn pre_tool_use_blocks_apply_patch_before_execution() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_pre_tool_use_hook(
                 home,
@@ -4111,7 +4111,7 @@ async fn pre_tool_use_rewrites_apply_patch_before_execution() -> Result<()> {
     .await;
 
     let updated_input = serde_json::json!({ "command": rewritten_patch });
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(move |home| {
             write_updating_pre_tool_use_hook(home, "^apply_patch$", &updated_input)
                 .expect("failed to write updating pre tool use hook fixture");
@@ -4173,7 +4173,7 @@ async fn pre_tool_use_blocks_apply_patch_with_write_alias() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_pre_tool_use_hook(home, Some("^Write$"), "json_deny", "blocked write alias")
                 .expect("failed to write pre tool use hook test fixture");
@@ -4236,7 +4236,7 @@ async fn pre_tool_use_blocks_local_function_tool_before_execution() -> Result<()
     .await;
 
     let reason = "blocked local function pre hook";
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model("test-gpt-5.1-codex")
         .with_pre_build_hook(|home| {
             write_pre_tool_use_hook(home, Some("^test_sync_tool$"), "json_deny", reason)
@@ -4306,7 +4306,7 @@ async fn pre_tool_use_rewrites_local_function_tool_before_execution() -> Result<
     .await;
 
     let updated_input = serde_json::json!({});
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model("test-gpt-5.1-codex")
         .with_pre_build_hook(move |home| {
             write_updating_pre_tool_use_hook(home, "^test_sync_tool$", &updated_input)
@@ -4364,7 +4364,7 @@ async fn post_tool_use_records_additional_context_for_shell_command() -> Result<
     .await;
 
     let post_context = "Remember the bash post-tool note.";
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_post_tool_use_hook(home, Some("^Bash$"), "context", post_context)
                 .expect("failed to write post tool use hook test fixture");
@@ -4453,7 +4453,7 @@ async fn post_tool_use_block_decision_replaces_shell_command_output_with_reason(
     .await;
 
     let reason = "bash output looked sketchy";
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_post_tool_use_hook(home, Some("^Bash$"), "decision_block", reason)
                 .expect("failed to write post tool use hook test fixture");
@@ -4514,7 +4514,7 @@ async fn post_tool_use_continue_false_replaces_shell_command_output_with_stop_re
     .await;
 
     let stop_reason = "Execution halted by post-tool hook";
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_post_tool_use_hook(home, Some("^Bash$"), "continue_false", stop_reason)
                 .expect("failed to write post tool use hook test fixture");
@@ -4574,7 +4574,7 @@ async fn post_tool_use_exit_two_replaces_one_shot_exec_command_output_with_feedb
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_post_tool_use_hook(home, Some("^Bash$"), "exit_2", "blocked by post hook")
                 .expect("failed to write post tool use hook test fixture");
@@ -4643,7 +4643,7 @@ async fn post_tool_use_spills_large_feedback_message() -> Result<()> {
     .await;
     let feedback = "blocked by post hook ".repeat(800);
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook({
             let feedback = feedback.clone();
             move |home| {
@@ -4730,7 +4730,7 @@ async fn post_tool_use_blocks_when_exec_session_completes_via_write_stdin() -> R
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_logging_pre_and_blocking_post_tool_use_hooks(home, feedback)
                 .expect("failed to write tool use hook test fixture");
@@ -4811,7 +4811,7 @@ async fn post_tool_use_records_additional_context_for_apply_patch() -> Result<()
     .await;
 
     let post_context = "Remember the apply_patch post-tool note.";
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_post_tool_use_hook(home, Some("^apply_patch$"), "context", post_context)
                 .expect("failed to write post tool use hook test fixture");
@@ -4882,7 +4882,7 @@ async fn post_tool_use_records_apply_patch_context_with_edit_alias() -> Result<(
     .await;
 
     let post_context = "Remember the edit alias post-tool note.";
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_post_tool_use_hook(home, Some("^Edit$"), "context", post_context)
                 .expect("failed to write post tool use hook test fixture");

@@ -28,7 +28,7 @@ use ditfa_config::LoaderOverrides;
 use ditfa_core::config::Config;
 use ditfa_core::config::ConfigBuilder;
 use ditfa_exec_server::EnvironmentManager;
-use ditfa_feedback::CodexFeedback;
+use ditfa_feedback::DitfaFeedback;
 use ditfa_login::AuthManager;
 use ditfa_protocol::protocol::SessionSource;
 use ditfa_protocol::protocol::W3cTraceContext;
@@ -90,7 +90,7 @@ fn init_test_tracing() -> &'static TestTracing {
         let provider = SdkTracerProvider::builder()
             .with_simple_exporter(exporter.clone())
             .build();
-        let tracer = provider.tracer("codex-app-server-message-processor-tests");
+        let tracer = provider.tracer("ditfa-app-server-message-processor-tests");
         global::set_text_map_propagator(TraceContextPropagator::new());
         let subscriber =
             tracing_subscriber::registry().with(tracing_opentelemetry::layer().with_tracer(tracer));
@@ -107,7 +107,7 @@ fn request_from_client_request(request: ClientRequest) -> JSONRPCRequest {
 
 struct TracingHarness {
     _server: MockServer,
-    _codex_home: TempDir,
+    _ditfa_home: TempDir,
     processor: Arc<MessageProcessor>,
     outgoing_rx: mpsc::Receiver<crate::outgoing_message::OutgoingEnvelope>,
     session: Arc<ConnectionSessionState>,
@@ -125,7 +125,7 @@ impl TracingHarness {
         tracing::callsite::rebuild_interest_cache();
         let mut harness = Self {
             _server: server,
-            _codex_home: ditfa_home,
+            _ditfa_home: ditfa_home,
             processor,
             outgoing_rx,
             session: Arc::new(ConnectionSessionState::new()),
@@ -138,7 +138,7 @@ impl TracingHarness {
                     request_id: RequestId::Integer(1),
                     params: InitializeParams {
                         client_info: ClientInfo {
-                            name: "codex-app-server-tests".to_string(),
+                            name: "ditfa-app-server-tests".to_string(),
                             title: None,
                             version: "0.1.0".to_string(),
                         },
@@ -234,7 +234,7 @@ async fn build_test_processor(
 ) {
     let (outgoing_tx, outgoing_rx) = mpsc::channel(16);
     let auth_manager =
-        AuthManager::shared_from_config(config.as_ref(), /*enable_codex_api_key_env*/ false).await;
+        AuthManager::shared_from_config(config.as_ref(), /*enable_ditfa_api_key_env*/ false).await;
     let config_manager = ConfigManager::new(
         config.ditfa_home.to_path_buf(),
         Vec::new(),
@@ -257,7 +257,7 @@ async fn build_test_processor(
         config,
         config_manager,
         environment_manager: Arc::new(EnvironmentManager::default_for_tests()),
-        feedback: CodexFeedback::new(),
+        feedback: DitfaFeedback::new(),
         log_db: None,
         state_db: None,
         config_warnings: Vec::new(),
@@ -685,7 +685,7 @@ async fn turn_start_jsonrpc_span_parents_core_turn_spans() -> Result<()> {
                 && span_attr(span, "rpc.method") == Some("turn/start")
                 && span.span_context.trace_id() == remote_trace_id
         }) && spans.iter().any(|span| {
-            span_attr(span, "codex.op") == Some("user_input")
+            span_attr(span, "ditfa.op") == Some("user_input")
                 && span.span_context.trace_id() == remote_trace_id
         })
     })
@@ -694,8 +694,8 @@ async fn turn_start_jsonrpc_span_parents_core_turn_spans() -> Result<()> {
     let server_request_span =
         find_rpc_span_with_trace(&spans, SpanKind::Server, "turn/start", remote_trace_id);
     let core_turn_span =
-        find_span_with_trace(&spans, remote_trace_id, "codex.op=user_input", |span| {
-            span_attr(span, "codex.op") == Some("user_input")
+        find_span_with_trace(&spans, remote_trace_id, "ditfa.op=user_input", |span| {
+            span_attr(span, "ditfa.op") == Some("user_input")
         });
 
     assert_eq!(server_request_span.parent_span_id, remote_parent_span_id);

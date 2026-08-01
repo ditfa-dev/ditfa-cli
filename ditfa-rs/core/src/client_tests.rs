@@ -12,8 +12,8 @@ use super::X_OPENAI_SUBAGENT_HEADER;
 use crate::AttestationContext;
 use crate::AttestationProvider;
 use crate::GenerateAttestationFuture;
-use crate::responses_metadata::CodexResponsesMetadata;
-use crate::test_support::TestCodexResponsesRequestKind;
+use crate::responses_metadata::DitfaResponsesMetadata;
+use crate::test_support::TestDitfaResponsesRequestKind;
 use crate::test_support::responses_metadata as test_responses_metadata;
 use ditfa_api::AgentIdentityTelemetry;
 use ditfa_api::ApiError;
@@ -24,7 +24,7 @@ use ditfa_http_client::OutboundProxyPolicy;
 use ditfa_login::AuthCredentialsStoreMode;
 use ditfa_login::AuthKeyringBackendKind;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::auth::AgentIdentityAuthPolicy;
 use ditfa_model_provider::BearerAuthProvider;
 use ditfa_model_provider::SharedModelProvider;
@@ -173,7 +173,7 @@ async fn compact_uses_bearer_after_agent_identity_session_fallback() -> anyhow::
         /*turn_id*/ None,
         format!("{}:0", client.state.thread_id),
         /*parent_thread_id*/ None,
-        TestCodexResponsesRequestKind::Turn,
+        TestDitfaResponsesRequestKind::Turn,
     );
 
     let output = client
@@ -229,8 +229,8 @@ fn test_responses_metadata_for_client(
     turn_id: Option<&str>,
     window_id: String,
     parent_thread_id: Option<ThreadId>,
-    request_kind: TestCodexResponsesRequestKind,
-) -> CodexResponsesMetadata {
+    request_kind: TestDitfaResponsesRequestKind,
+) -> DitfaResponsesMetadata {
     let thread_id = client.state.thread_id.to_string();
     test_responses_metadata(
         TEST_INSTALLATION_ID,
@@ -323,7 +323,7 @@ async fn chatgpt_auth_manager(
     write_chatgpt_auth_json(ditfa_home.path());
     let auth_manager = AuthManager::shared(
         ditfa_home.path().to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -386,7 +386,7 @@ fn started_inference_attempt(temp: &TempDir) -> anyhow::Result<InferenceTraceAtt
         agent_path: "/root".to_string(),
         metadata_payload: None,
     })?;
-    writer.append(RawTraceEventPayload::CodexTurnStarted {
+    writer.append(RawTraceEventPayload::DitfaTurnStarted {
         ditfa_turn_id: "turn-1".to_string(),
         thread_id: "thread-root".to_string(),
     })?;
@@ -507,7 +507,7 @@ fn build_ws_client_metadata_includes_window_lineage_and_turn_metadata() {
         Some("turn-123"),
         expected_window_id.clone(),
         Some(parent_thread_id),
-        TestCodexResponsesRequestKind::Turn,
+        TestDitfaResponsesRequestKind::Turn,
     );
     let client_metadata =
         client.build_ws_client_metadata(&responses_metadata, /*use_responses_lite*/ false);
@@ -681,7 +681,7 @@ async fn bedrock_unauthorized_error_uses_provider_mapping() {
     assert_eq!(
         error.to_string(),
         format!(
-            "Amazon Bedrock rejected the request because its AWS signature has expired. Refresh your AWS credentials and retry. If `AWS_BEARER_TOKEN_BEDROCK` is set, update or unset it, then restart Codex, url: {url}"
+            "Amazon Bedrock rejected the request because its AWS signature has expired. Refresh your AWS credentials and retry. If `AWS_BEARER_TOKEN_BEDROCK` is set, update or unset it, then restart Ditfa, url: {url}"
         )
     );
 }
@@ -802,7 +802,7 @@ fn model_client_with_counting_attestation(
     let (auth_manager, provider) = if include_attestation {
         (
             Some(AuthManager::from_auth_for_testing(
-                CodexAuth::create_dummy_chatgpt_auth_for_testing(),
+                DitfaAuth::create_dummy_chatgpt_auth_for_testing(),
             )),
             ModelProviderInfo::create_openai_provider(Some(CHATGPT_DITFA_BASE_URL.to_string())),
         )
@@ -833,7 +833,7 @@ fn model_client_with_counting_attestation(
 }
 
 #[tokio::test]
-async fn websocket_handshake_includes_attestation_for_chatgpt_codex_responses() {
+async fn websocket_handshake_includes_attestation_for_chatgpt_ditfa_responses() {
     let (model_client, attestation_calls) =
         model_client_with_counting_attestation(/*include_attestation*/ true);
     let responses_metadata = test_responses_metadata_for_client(
@@ -841,7 +841,7 @@ async fn websocket_handshake_includes_attestation_for_chatgpt_codex_responses() 
         /*turn_id*/ None,
         format!("{}:0", model_client.state.thread_id),
         /*parent_thread_id*/ None,
-        TestCodexResponsesRequestKind::WebsocketConnection,
+        TestDitfaResponsesRequestKind::WebsocketConnection,
     );
 
     let headers = model_client
@@ -858,7 +858,7 @@ async fn websocket_handshake_includes_attestation_for_chatgpt_codex_responses() 
 }
 
 #[tokio::test]
-async fn non_chatgpt_codex_endpoints_omit_attestation_generation() {
+async fn non_chatgpt_ditfa_endpoints_omit_attestation_generation() {
     let (model_client, attestation_calls) =
         model_client_with_counting_attestation(/*include_attestation*/ false);
     let mut response_headers = http::HeaderMap::new();

@@ -32,7 +32,7 @@ use ditfa_core::test_support::auth_manager_from_auth_with_home;
 use ditfa_login::AuthDotJson;
 use ditfa_login::AuthKeyringBackendKind;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::save_auth;
 use ditfa_login::token_data::TokenData;
 use ditfa_login::token_data::parse_chatgpt_jwt_claims;
@@ -75,12 +75,12 @@ const TEST_REFRESHED_REMOTE_CONTROL_SERVER_TOKEN: &str = "Refreshed Remote Contr
 const TEST_REMOTE_CONTROL_SERVER_TOKEN_EXPIRES_AT: &str = "2999-01-01T00:00:00Z";
 
 fn remote_control_auth_manager() -> Arc<AuthManager> {
-    auth_manager_from_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    auth_manager_from_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
 }
 
 fn remote_control_auth_manager_with_home(ditfa_home: &TempDir) -> Arc<AuthManager> {
     auth_manager_from_auth_with_home(
-        CodexAuth::create_dummy_chatgpt_auth_for_testing(),
+        DitfaAuth::create_dummy_chatgpt_auth_for_testing(),
         ditfa_home.path().to_path_buf(),
     )
 }
@@ -1040,7 +1040,7 @@ async fn remote_control_start_allows_missing_auth_when_enabled() {
     let ditfa_home = TempDir::new().expect("temp dir should create");
     let auth_manager = AuthManager::shared(
         ditfa_home.path().to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -1540,15 +1540,15 @@ async fn remote_control_http_mode_enrolls_before_connecting() {
         Some(&TEST_INSTALLATION_ID.to_string())
     );
     assert_eq!(
-        handshake_request.headers.get("x-codex-server-id"),
+        handshake_request.headers.get("x-ditfa-server-id"),
         Some(&"srv_e_test".to_string())
     );
     assert_eq!(
-        handshake_request.headers.get("x-codex-name"),
+        handshake_request.headers.get("x-ditfa-name"),
         Some(&base64::engine::general_purpose::STANDARD.encode(&expected_server_name))
     );
     assert_eq!(
-        handshake_request.headers.get("x-codex-protocol-version"),
+        handshake_request.headers.get("x-ditfa-protocol-version"),
         Some(&REMOTE_CONTROL_PROTOCOL_VERSION.to_string())
     );
 
@@ -1616,7 +1616,7 @@ async fn remote_control_http_mode_enrolls_before_connecting() {
             crate::outgoing_message::OutgoingResponse {
                 id: ditfa_app_server_protocol::RequestId::Integer(11),
                 result: json!({
-                    "userAgent": "codex-test-agent"
+                    "userAgent": "ditfa-test-agent"
                 }),
             },
         )))
@@ -1631,7 +1631,7 @@ async fn remote_control_http_mode_enrolls_before_connecting() {
             "message": {
                 "id": 11,
                 "result": {
-                    "userAgent": "codex-test-agent",
+                    "userAgent": "ditfa-test-agent",
                 }
             }
         })
@@ -1767,7 +1767,7 @@ async fn remote_control_http_mode_refreshes_persisted_enrollment_before_connecti
         "/backend-api/wham/remote/control/server"
     );
     assert_eq!(
-        handshake_request.headers.get("x-codex-server-id"),
+        handshake_request.headers.get("x-ditfa-server-id"),
         Some(&persisted_enrollment.server_id)
     );
     assert_eq!(
@@ -1865,7 +1865,7 @@ async fn remote_control_stdio_mode_waits_for_client_name_before_connecting() {
     .await;
     let (handshake_request, _websocket) = accept_remote_control_backend_connection(&listener).await;
     assert_eq!(
-        handshake_request.headers.get("x-codex-server-id"),
+        handshake_request.headers.get("x-ditfa-server-id"),
         Some(&persisted_enrollment.server_id)
     );
 
@@ -1890,7 +1890,7 @@ async fn remote_control_waits_for_account_id_before_enrolling() {
     let state_db = remote_control_state_runtime(&ditfa_home).await;
     let auth_manager = AuthManager::shared(
         ditfa_home.path().to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -1963,7 +1963,7 @@ async fn remote_control_waits_for_account_id_before_enrolling() {
 
     let (handshake_request, _websocket) = accept_remote_control_backend_connection(&listener).await;
     assert_eq!(
-        handshake_request.headers.get("x-codex-server-id"),
+        handshake_request.headers.get("x-ditfa-server-id"),
         Some(&expected_enrollment.server_id)
     );
 
@@ -1988,7 +1988,7 @@ async fn persisted_enable_does_not_follow_auth_to_an_account_without_a_preferenc
     let state_db = remote_control_state_runtime(&ditfa_home).await;
     let auth_manager = AuthManager::shared(
         ditfa_home.path().to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -2193,7 +2193,7 @@ async fn remote_control_http_mode_reenrolls_when_refresh_reports_stale_enrollmen
     )
     .await;
     assert_eq!(
-        handshake_request.headers.get("x-codex-server-id"),
+        handshake_request.headers.get("x-ditfa-server-id"),
         Some(&refreshed_enrollment.server_id)
     );
     assert_eq!(
@@ -2303,7 +2303,7 @@ async fn remote_control_http_mode_reenrolls_after_explicit_missing_server_404() 
         "GET /backend-api/wham/remote/control/server HTTP/1.1"
     );
     assert_eq!(
-        websocket_request.headers.get("x-codex-server-id"),
+        websocket_request.headers.get("x-ditfa-server-id"),
         Some(&stale_enrollment.server_id)
     );
     expect_remote_control_status(
@@ -2342,7 +2342,7 @@ async fn remote_control_http_mode_reenrolls_after_explicit_missing_server_404() 
     )
     .await;
     assert_eq!(
-        handshake_request.headers.get("x-codex-server-id"),
+        handshake_request.headers.get("x-ditfa-server-id"),
         Some(&refreshed_enrollment.server_id)
     );
     assert_eq!(
@@ -2563,7 +2563,7 @@ async fn remote_control_http_mode_preserves_enrollment_after_generic_websocket_4
         "GET /backend-api/wham/remote/control/server HTTP/1.1"
     );
     assert_eq!(
-        websocket_request.headers.get("x-codex-server-id"),
+        websocket_request.headers.get("x-ditfa-server-id"),
         Some(&stale_enrollment.server_id)
     );
     assert_eq!(
@@ -2600,7 +2600,7 @@ async fn remote_control_http_mode_preserves_enrollment_after_generic_websocket_4
 
     let (handshake_request, _websocket) = accept_remote_control_backend_connection(&listener).await;
     assert_eq!(
-        handshake_request.headers.get("x-codex-server-id"),
+        handshake_request.headers.get("x-ditfa-server-id"),
         Some(&stale_enrollment.server_id)
     );
     assert_eq!(

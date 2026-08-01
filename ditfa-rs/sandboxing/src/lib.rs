@@ -36,7 +36,7 @@ pub use windows::resolve_windows_restricted_token_filesystem_overrides;
 pub use windows::unsupported_windows_restricted_token_sandbox_reason;
 pub use windows::windows_sandbox_uses_elevated_backend;
 
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 
 #[cfg(not(target_os = "linux"))]
 pub fn system_bwrap_warning(
@@ -45,30 +45,30 @@ pub fn system_bwrap_warning(
     None
 }
 
-impl From<SandboxTransformError> for CodexErr {
+impl From<SandboxTransformError> for DitfaErr {
     fn from(err: SandboxTransformError) -> Self {
         match err {
             error @ SandboxTransformError::InvalidCommandCwd { .. }
             | error @ SandboxTransformError::InvalidSandboxPolicyCwd { .. } => {
-                CodexErr::InvalidRequest(error.to_string())
+                DitfaErr::InvalidRequest(error.to_string())
             }
             SandboxTransformError::MissingLinuxSandboxExecutable => {
-                CodexErr::LandlockSandboxExecutableNotProvided
+                DitfaErr::LandlockSandboxExecutableNotProvided
             }
             SandboxTransformError::EnvironmentNetworkProxy(message) => {
-                CodexErr::UnsupportedOperation(message)
+                DitfaErr::UnsupportedOperation(message)
             }
             #[cfg(target_os = "linux")]
             SandboxTransformError::Wsl1UnsupportedForBubblewrap => {
-                CodexErr::UnsupportedOperation(crate::bwrap::WSL1_BWRAP_WARNING.to_string())
+                DitfaErr::UnsupportedOperation(crate::bwrap::WSL1_BWRAP_WARNING.to_string())
             }
             #[cfg(not(target_os = "macos"))]
-            SandboxTransformError::SeatbeltUnavailable => CodexErr::UnsupportedOperation(
+            SandboxTransformError::SeatbeltUnavailable => DitfaErr::UnsupportedOperation(
                 "seatbelt sandbox is only available on macOS".to_string(),
             ),
             #[cfg(target_os = "windows")]
             SandboxTransformError::WindowsSandboxPreparation(message) => {
-                CodexErr::UnsupportedOperation(message)
+                DitfaErr::UnsupportedOperation(message)
             }
         }
     }

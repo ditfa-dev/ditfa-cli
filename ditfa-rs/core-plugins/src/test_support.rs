@@ -200,7 +200,7 @@ pub(crate) fn write_curated_plugin_sha_with(ditfa_home: &Path, sha: &str) {
 }
 
 pub(crate) async fn load_plugins_config(ditfa_home: &Path, cwd: &Path) -> PluginsConfigInput {
-    let ditfa_home = AbsolutePathBuf::try_from(ditfa_home).expect("codex home should be absolute");
+    let ditfa_home = AbsolutePathBuf::try_from(ditfa_home).expect("ditfa home should be absolute");
     let cwd = AbsolutePathBuf::try_from(cwd).expect("cwd should be absolute");
     let config_layer_stack = load_config_layers_state(
         LOCAL_FS.as_ref(),

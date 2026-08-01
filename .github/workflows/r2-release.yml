@@ -19,7 +19,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    environment: codex-r2-publisher
+    environment: ditfa-r2-publisher
     permissions:
       contents: read
 
@@ -32,10 +32,10 @@ jobs:
       - name: Publish release assets and metadata to R2
         # R2 exposes an S3-compatible API, so the AWS CLI reads AWS-named variables.
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.CODEX_R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CODEX_R2_SECRET_ACCESS_KEY }}
-          AWS_ENDPOINT_URL: ${{ vars.CODEX_R2_ENDPOINT_URL }}
-          AWS_REGION: ${{ vars.CODEX_R2_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.DITFA_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DITFA_R2_SECRET_ACCESS_KEY }}
+          AWS_ENDPOINT_URL: ${{ vars.DITFA_R2_ENDPOINT_URL }}
+          AWS_REGION: ${{ vars.DITFA_R2_REGION }}
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.tag }}
           RELEASE_MAKE_LATEST: ${{ inputs.make_latest }}

@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import Any
 
 
-class CodexError(Exception):
+class DitfaError(Exception):
     """Base exception for SDK errors."""
 
 
-class JsonRpcError(CodexError):
+class JsonRpcError(DitfaError):
     """Raw JSON-RPC error wrapper from the server."""
 
     def __init__(self, code: int, message: str, data: Any = None):
@@ -17,35 +17,35 @@ class JsonRpcError(CodexError):
         self.data = data
 
 
-class TransportClosedError(CodexError):
-    """Raised when the Codex transport closes unexpectedly."""
+class TransportClosedError(DitfaError):
+    """Raised when the Ditfa transport closes unexpectedly."""
 
 
-class CodexRpcError(JsonRpcError):
+class DitfaRpcError(JsonRpcError):
     """Base typed error for JSON-RPC failures."""
 
 
-class ParseError(CodexRpcError):
+class ParseError(DitfaRpcError):
     """Raised when a request or response cannot be parsed."""
 
 
-class InvalidRequestError(CodexRpcError):
+class InvalidRequestError(DitfaRpcError):
     """Raised when the runtime rejects the request shape."""
 
 
-class MethodNotFoundError(CodexRpcError):
+class MethodNotFoundError(DitfaRpcError):
     """Raised when the requested operation is unavailable."""
 
 
-class InvalidParamsError(CodexRpcError):
+class InvalidParamsError(DitfaRpcError):
     """Raised when an operation receives invalid parameters."""
 
 
-class InternalRpcError(CodexRpcError):
+class InternalRpcError(DitfaRpcError):
     """Raised when the runtime reports an internal RPC failure."""
 
 
-class ServerBusyError(CodexRpcError):
+class ServerBusyError(DitfaRpcError):
     """Server is overloaded / unavailable and caller should retry."""
 
 
@@ -66,7 +66,7 @@ def _is_server_overloaded(data: Any) -> bool:
         return data.lower() == "server_overloaded"
 
     if isinstance(data, dict):
-        direct = data.get("codex_error_info") or data.get("codexErrorInfo") or data.get("errorInfo")
+        direct = data.get("ditfa_error_info") or data.get("ditfaErrorInfo") or data.get("errorInfo")
         if isinstance(direct, str) and direct.lower() == "server_overloaded":
             return True
         if isinstance(direct, dict):
@@ -104,7 +104,7 @@ def map_jsonrpc_error(code: int, message: str, data: Any = None) -> JsonRpcError
             return ServerBusyError(code, message, data)
         if _contains_retry_limit_text(message):
             return RetryLimitExceededError(code, message, data)
-        return CodexRpcError(code, message, data)
+        return DitfaRpcError(code, message, data)
 
     return JsonRpcError(code, message, data)
 

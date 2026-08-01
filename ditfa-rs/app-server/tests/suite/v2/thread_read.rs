@@ -53,7 +53,7 @@ use ditfa_config::LoaderOverrides;
 use ditfa_core::ARCHIVED_SESSIONS_SUBDIR;
 use ditfa_core::config::ConfigBuilder;
 use ditfa_exec_server::EnvironmentManager;
-use ditfa_feedback::CodexFeedback;
+use ditfa_feedback::DitfaFeedback;
 use ditfa_protocol::items::AgentMessageContent;
 use ditfa_protocol::items::AgentMessageItem;
 use ditfa_protocol::items::TurnItem as CoreTurnItem;
@@ -122,7 +122,7 @@ async fn thread_read_returns_summary_without_turns() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -176,7 +176,7 @@ async fn thread_read_can_include_turns() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -229,7 +229,7 @@ async fn paginated_stored_thread_routes_projected_turns_and_rejects_legacy_histo
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -334,7 +334,7 @@ async fn thread_turns_list_can_page_backward_and_forward() -> Result<()> {
     append_user_message(rollout_path.as_path(), "2025-01-05T12:02:00Z", "third")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -413,7 +413,7 @@ async fn thread_turns_list_supports_requested_items_view() -> Result<()> {
     append_agent_message(rollout_path.as_path(), "2025-01-05T12:02:00Z", "final")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -572,7 +572,7 @@ async fn thread_search_occurrences_reads_paginated_projection() -> Result<()> {
     store.shutdown_thread(thread_id).await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -675,16 +675,16 @@ async fn thread_turns_list_reads_store_history_without_rollout_path() -> Result<
         strict_config: false,
         cloud_config_bundle: CloudConfigBundleLoader::default(),
         thread_config_loader: Arc::new(ditfa_config::NoopThreadConfigLoader),
-        feedback: CodexFeedback::new(),
+        feedback: DitfaFeedback::new(),
         log_db: None,
         state_db: None,
         environment_manager: Arc::new(EnvironmentManager::default_for_tests()),
         config_warnings: Vec::new(),
         session_source: SessionSource::Cli.into(),
-        enable_codex_api_key_env: false,
+        enable_ditfa_api_key_env: false,
         initialize: InitializeParams {
             client_info: ClientInfo {
-                name: "codex-app-server-tests".to_string(),
+                name: "ditfa-app-server-tests".to_string(),
                 title: None,
                 version: "0.1.0".to_string(),
             },
@@ -745,16 +745,16 @@ async fn thread_read_loaded_include_turns_reads_store_history_without_rollout_pa
         strict_config: false,
         cloud_config_bundle: CloudConfigBundleLoader::default(),
         thread_config_loader: Arc::new(ditfa_config::NoopThreadConfigLoader),
-        feedback: CodexFeedback::new(),
+        feedback: DitfaFeedback::new(),
         log_db: None,
         state_db: None,
         environment_manager: Arc::new(EnvironmentManager::default_for_tests()),
         config_warnings: Vec::new(),
         session_source: SessionSource::Cli.into(),
-        enable_codex_api_key_env: false,
+        enable_ditfa_api_key_env: false,
         initialize: InitializeParams {
             client_info: ClientInfo {
-                name: "codex-app-server-tests".to_string(),
+                name: "ditfa-app-server-tests".to_string(),
                 title: None,
                 version: "0.1.0".to_string(),
             },
@@ -853,16 +853,16 @@ async fn thread_list_includes_store_thread_without_rollout_path() -> Result<()> 
         strict_config: false,
         cloud_config_bundle: CloudConfigBundleLoader::default(),
         thread_config_loader: Arc::new(ditfa_config::NoopThreadConfigLoader),
-        feedback: CodexFeedback::new(),
+        feedback: DitfaFeedback::new(),
         log_db: None,
         state_db: None,
         environment_manager: Arc::new(EnvironmentManager::default_for_tests()),
         config_warnings: Vec::new(),
         session_source: SessionSource::Cli.into(),
-        enable_codex_api_key_env: false,
+        enable_ditfa_api_key_env: false,
         initialize: InitializeParams {
             client_info: ClientInfo {
-                name: "codex-app-server-tests".to_string(),
+                name: "ditfa-app-server-tests".to_string(),
                 title: None,
                 version: "0.1.0".to_string(),
             },
@@ -934,7 +934,7 @@ async fn thread_read_can_return_archived_threads_by_id() -> Result<()> {
     std::fs::rename(&active_rollout_path, &archived_rollout_path)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -977,7 +977,7 @@ async fn thread_resume_initial_turns_page_matches_requested_turns_list_page() ->
     append_user_message(rollout_path.as_path(), "2025-01-05T12:02:00Z", "third")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -1046,7 +1046,7 @@ async fn thread_turns_list_rejects_cursor_when_anchor_turn_is_rolled_back() -> R
     append_user_message(rollout_path.as_path(), "2025-01-05T12:02:00Z", "third")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -1111,7 +1111,7 @@ async fn thread_read_returns_forked_from_id_for_forked_threads() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -1146,7 +1146,7 @@ async fn thread_read_loaded_thread_returns_precomputed_path_before_materializati
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1198,7 +1198,7 @@ async fn paginated_thread_name_set_is_reflected_in_read_list_and_metadata_resume
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -1348,7 +1348,7 @@ async fn thread_read_include_turns_rejects_unmaterialized_loaded_thread() -> Res
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1397,7 +1397,7 @@ async fn thread_turns_list_rejects_unmaterialized_loaded_thread() -> Result<()> 
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1537,7 +1537,7 @@ async fn paginated_history_lists_use_projected_turns_and_items() -> Result<()> {
     store.shutdown_thread(thread_id).await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -1847,7 +1847,7 @@ async fn thread_items_list_returns_unsupported() -> Result<()> {
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -1888,7 +1888,7 @@ async fn thread_read_reports_system_error_idle_flag_after_failed_turn() -> Resul
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 

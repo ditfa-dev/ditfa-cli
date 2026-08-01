@@ -109,7 +109,7 @@ async fn plugin_list_skips_invalid_marketplace_file_and_reports_error() -> Resul
 
     let home = ditfa_home.path().to_string_lossy().into_owned();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("HOME", Some(home.as_str())),
@@ -171,7 +171,7 @@ enabled = true
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -263,7 +263,7 @@ enabled = true
     mount_empty_user_installed_plugins(&server).await;
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -340,7 +340,7 @@ enabled = true
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -364,7 +364,7 @@ enabled = true
 async fn plugin_list_rejects_relative_cwds() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -444,7 +444,7 @@ async fn plugin_list_keeps_valid_marketplaces_when_another_marketplace_fails_to_
 
     let home = ditfa_home.path().to_string_lossy().into_owned();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("HOME", Some(home.as_str())),
@@ -512,7 +512,7 @@ async fn plugin_list_keeps_valid_marketplaces_when_another_marketplace_fails_to_
 }
 
 #[tokio::test]
-async fn plugin_list_returns_empty_when_workspace_codex_plugins_disabled() -> Result<()> {
+async fn plugin_list_returns_empty_when_workspace_ditfa_plugins_disabled() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let repo_root = TempDir::new()?;
     let server = MockServer::start().await;
@@ -535,7 +535,7 @@ async fn plugin_list_returns_empty_when_workspace_codex_plugins_disabled() -> Re
     std::fs::write(
         repo_root.path().join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "demo-plugin",
@@ -561,7 +561,7 @@ async fn plugin_list_returns_empty_when_workspace_codex_plugins_disabled() -> Re
 
     let home = ditfa_home.path().to_string_lossy().into_owned();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .without_managed_config()
         .with_env_overrides(&[
@@ -594,7 +594,7 @@ async fn plugin_list_returns_empty_when_workspace_codex_plugins_disabled() -> Re
 }
 
 #[tokio::test]
-async fn plugin_list_reuses_cached_workspace_codex_plugins_setting() -> Result<()> {
+async fn plugin_list_reuses_cached_workspace_ditfa_plugins_setting() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let repo_root = TempDir::new()?;
     let server = MockServer::start().await;
@@ -650,7 +650,7 @@ async fn plugin_list_reuses_cached_workspace_codex_plugins_setting() -> Result<(
 
     let home = ditfa_home.path().to_string_lossy().into_owned();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .without_managed_config()
         .with_env_overrides(&[
@@ -733,7 +733,7 @@ async fn plugin_list_uses_alternate_discoverable_manifest_and_keeps_undiscoverab
 
     let home = ditfa_home.path().to_string_lossy().into_owned();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("HOME", Some(home.as_str())),
@@ -837,7 +837,7 @@ async fn plugin_list_accepts_omitted_cwds() -> Result<()> {
     std::fs::write(
         ditfa_home.path().join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "home-plugin",
@@ -851,7 +851,7 @@ async fn plugin_list_accepts_omitted_cwds() -> Result<()> {
     )?;
     let home = ditfa_home.path().to_string_lossy().into_owned();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("HOME", Some(home.as_str())),
@@ -884,7 +884,7 @@ async fn plugin_list_returns_share_context_for_shared_local_plugin() -> Result<(
     std::fs::write(
         repo_root.path().join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "demo-plugin",
@@ -907,7 +907,7 @@ async fn plugin_list_returns_share_context_for_shared_local_plugin() -> Result<(
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -994,7 +994,7 @@ enabled = true
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -1072,12 +1072,12 @@ async fn plugin_list_includes_install_and_enabled_state_from_config() -> Result<
     let repo_root = TempDir::new()?;
     std::fs::create_dir_all(repo_root.path().join(".git"))?;
     std::fs::create_dir_all(repo_root.path().join(".agents/plugins"))?;
-    write_installed_plugin(&ditfa_home, "codex-curated", "enabled-plugin")?;
-    write_installed_plugin(&ditfa_home, "codex-curated", "disabled-plugin")?;
+    write_installed_plugin(&ditfa_home, "ditfa-curated", "enabled-plugin")?;
+    write_installed_plugin(&ditfa_home, "ditfa-curated", "disabled-plugin")?;
     std::fs::write(
         repo_root.path().join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "interface": {
     "displayName": "ChatGPT Official"
   },
@@ -1111,16 +1111,16 @@ async fn plugin_list_includes_install_and_enabled_state_from_config() -> Result<
         r#"[features]
 plugins = true
 
-[plugins."enabled-plugin@codex-curated"]
+[plugins."enabled-plugin@ditfa-curated"]
 enabled = true
 
-[plugins."disabled-plugin@codex-curated"]
+[plugins."disabled-plugin@ditfa-curated"]
 enabled = false
 "#,
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1150,7 +1150,7 @@ enabled = false
         })
         .expect("expected repo marketplace entry");
 
-    assert_eq!(marketplace.name, "codex-curated");
+    assert_eq!(marketplace.name, "ditfa-curated");
     assert_eq!(
         marketplace
             .interface
@@ -1159,7 +1159,7 @@ enabled = false
         Some("ChatGPT Official")
     );
     assert_eq!(marketplace.plugins.len(), 3);
-    assert_eq!(marketplace.plugins[0].id, "enabled-plugin@codex-curated");
+    assert_eq!(marketplace.plugins[0].id, "enabled-plugin@ditfa-curated");
     assert_eq!(marketplace.plugins[0].name, "enabled-plugin");
     assert_eq!(marketplace.plugins[0].installed, true);
     assert_eq!(marketplace.plugins[0].enabled, true);
@@ -1171,7 +1171,7 @@ enabled = false
         marketplace.plugins[0].auth_policy,
         PluginAuthPolicy::OnInstall
     );
-    assert_eq!(marketplace.plugins[1].id, "disabled-plugin@codex-curated");
+    assert_eq!(marketplace.plugins[1].id, "disabled-plugin@ditfa-curated");
     assert_eq!(marketplace.plugins[1].name, "disabled-plugin");
     assert_eq!(marketplace.plugins[1].installed, true);
     assert_eq!(marketplace.plugins[1].enabled, false);
@@ -1185,7 +1185,7 @@ enabled = false
     );
     assert_eq!(
         marketplace.plugins[2].id,
-        "uninstalled-plugin@codex-curated"
+        "uninstalled-plugin@ditfa-curated"
     );
     assert_eq!(marketplace.plugins[2].name, "uninstalled-plugin");
     assert_eq!(marketplace.plugins[2].installed, false);
@@ -1205,11 +1205,11 @@ enabled = false
 async fn plugin_list_uses_home_config_for_enabled_state() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     std::fs::create_dir_all(ditfa_home.path().join(".agents/plugins"))?;
-    write_installed_plugin(&ditfa_home, "codex-curated", "shared-plugin")?;
+    write_installed_plugin(&ditfa_home, "ditfa-curated", "shared-plugin")?;
     std::fs::write(
         ditfa_home.path().join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "shared-plugin",
@@ -1226,7 +1226,7 @@ async fn plugin_list_uses_home_config_for_enabled_state() -> Result<()> {
         r#"[features]
 plugins = true
 
-[plugins."shared-plugin@codex-curated"]
+[plugins."shared-plugin@ditfa-curated"]
 enabled = true
 "#,
     )?;
@@ -1239,7 +1239,7 @@ enabled = true
             .path()
             .join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "shared-plugin",
@@ -1254,7 +1254,7 @@ enabled = true
     std::fs::create_dir_all(workspace_enabled.path().join(".ditfa"))?;
     std::fs::write(
         workspace_enabled.path().join(".ditfa/config.toml"),
-        r#"[plugins."shared-plugin@codex-curated"]
+        r#"[plugins."shared-plugin@ditfa-curated"]
 enabled = false
 "#,
     )?;
@@ -1267,7 +1267,7 @@ enabled = false
     let workspace_default = TempDir::new()?;
     let home = ditfa_home.path().to_string_lossy().into_owned();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("HOME", Some(home.as_str())),
@@ -1296,7 +1296,7 @@ enabled = false
         .flat_map(|marketplace| marketplace.plugins.iter())
         .find(|plugin| plugin.name == "shared-plugin")
         .expect("expected shared-plugin entry");
-    assert_eq!(shared_plugin.id, "shared-plugin@codex-curated");
+    assert_eq!(shared_plugin.id, "shared-plugin@ditfa-curated");
     assert_eq!(shared_plugin.installed, true);
     assert_eq!(shared_plugin.enabled, true);
     Ok(())
@@ -1314,7 +1314,7 @@ async fn plugin_list_returns_plugin_interface_with_absolute_asset_paths() -> Res
     std::fs::write(
         repo_root.path().join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "demo-plugin",
@@ -1358,7 +1358,7 @@ async fn plugin_list_returns_plugin_interface_with_absolute_asset_paths() -> Res
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1381,7 +1381,7 @@ async fn plugin_list_returns_plugin_interface_with_absolute_asset_paths() -> Res
         .find(|plugin| plugin.name == "demo-plugin")
         .expect("expected demo-plugin entry");
 
-    assert_eq!(plugin.id, "demo-plugin@codex-curated");
+    assert_eq!(plugin.id, "demo-plugin@ditfa-curated");
     assert_eq!(plugin.installed, false);
     assert_eq!(plugin.enabled, false);
     assert_eq!(plugin.install_policy, PluginInstallPolicy::Available);
@@ -1448,7 +1448,7 @@ async fn plugin_list_accepts_legacy_string_default_prompt() -> Result<()> {
     std::fs::write(
         repo_root.path().join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "demo-plugin",
@@ -1471,7 +1471,7 @@ async fn plugin_list_accepts_legacy_string_default_prompt() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1559,7 +1559,7 @@ enabled = true
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1666,7 +1666,7 @@ async fn app_server_startup_sync_downloads_remote_installed_plugin_bundles() -> 
         .path()
         .join("plugins/cache/openai-curated-remote/linear/1.2.3");
     let _mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_plugin_startup_tasks()
         .with_env_overrides(&[(TEST_ALLOW_HTTP_REMOTE_PLUGIN_BUNDLE_DOWNLOADS, Some("1"))])
@@ -1746,7 +1746,7 @@ async fn plugin_list_sync_upgrades_and_removes_remote_installed_plugin_bundles()
         .join("plugins/cache/openai-curated-remote/stale");
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[(TEST_ALLOW_HTTP_REMOTE_PLUGIN_BUNDLE_DOWNLOADS, Some("1"))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -1892,7 +1892,7 @@ async fn plugin_list_includes_remote_marketplaces_when_remote_plugin_enabled() -
         .and(query_param("limit", "200"))
         .and(header("authorization", "Bearer chatgpt-token"))
         .and(header("chatgpt-account-id", "account-123"))
-        .and(header("oai-product-sku", "codex"))
+        .and(header("oai-product-sku", "ditfa"))
         .respond_with(ResponseTemplate::new(200).set_body_string(global_directory_body))
         .mount(&server)
         .await;
@@ -1902,7 +1902,7 @@ async fn plugin_list_includes_remote_marketplaces_when_remote_plugin_enabled() -
         .and(query_param("limit", "200"))
         .and(header("authorization", "Bearer chatgpt-token"))
         .and(header("chatgpt-account-id", "account-123"))
-        .and(header("oai-product-sku", "codex"))
+        .and(header("oai-product-sku", "ditfa"))
         .respond_with(ResponseTemplate::new(200).set_body_string(empty_page_body))
         .mount(&server)
         .await;
@@ -1911,7 +1911,7 @@ async fn plugin_list_includes_remote_marketplaces_when_remote_plugin_enabled() -
         .and(query_param("scope", "GLOBAL"))
         .and(header("authorization", "Bearer chatgpt-token"))
         .and(header("chatgpt-account-id", "account-123"))
-        .and(header("oai-product-sku", "codex"))
+        .and(header("oai-product-sku", "ditfa"))
         .respond_with(ResponseTemplate::new(200).set_body_string(global_installed_body))
         .mount(&server)
         .await;
@@ -1920,13 +1920,13 @@ async fn plugin_list_includes_remote_marketplaces_when_remote_plugin_enabled() -
         .and(query_param("scope", "WORKSPACE"))
         .and(header("authorization", "Bearer chatgpt-token"))
         .and(header("chatgpt-account-id", "account-123"))
-        .and(header("oai-product-sku", "codex"))
+        .and(header("oai-product-sku", "ditfa"))
         .respond_with(ResponseTemplate::new(200).set_body_string(empty_page_body))
         .mount(&server)
         .await;
     Mock::given(method("GET"))
         .and(path("/backend-api/plugins/featured"))
-        .and(query_param("platform", "codex"))
+        .and(query_param("platform", "ditfa"))
         .respond_with(
             ResponseTemplate::new(200).set_body_string(r#"["linear@openai-curated-remote"]"#),
         )
@@ -1934,7 +1934,7 @@ async fn plugin_list_includes_remote_marketplaces_when_remote_plugin_enabled() -
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -2102,7 +2102,7 @@ async fn plugin_list_honors_global_remote_catalog_cache_ttl() -> Result<()> {
     mount_empty_user_installed_plugins(&server).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -2263,7 +2263,7 @@ async fn app_server_startup_refreshes_cached_remote_catalog_without_blocking_plu
     mount_empty_user_installed_plugins(&server).await;
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -2312,7 +2312,7 @@ async fn app_server_startup_refreshes_cached_remote_catalog_without_blocking_plu
     mount_empty_user_installed_plugins(&server).await;
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_plugin_startup_tasks()
         .build()
@@ -2416,7 +2416,7 @@ async fn app_server_startup_skips_disabled_remote_plugin_catalog_scopes() -> Res
     }
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build()
         .await?;
     timeout(DEFAULT_TIMEOUT, app_server.initialize()).await??;
@@ -2459,7 +2459,7 @@ async fn app_server_startup_skips_disabled_remote_plugin_catalog_scopes() -> Res
     }
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .with_plugin_startup_tasks()
         .build()
         .await?;
@@ -2523,7 +2523,7 @@ async fn plugin_list_force_refetch_bypasses_fresh_global_remote_catalog_cache() 
     mount_empty_user_installed_plugins(&server).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -2676,7 +2676,7 @@ async fn plugin_list_includes_openai_curated_remote_collection_when_remote_plugi
     mount_empty_user_installed_plugins(&server).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -2766,7 +2766,7 @@ async fn plugin_list_propagates_openai_curated_remote_collection_errors_when_rem
     mount_empty_user_installed_plugins(&server).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -2810,7 +2810,7 @@ async fn plugin_list_skips_openai_curated_remote_collection_for_api_auth_when_re
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -2849,7 +2849,7 @@ async fn plugin_list_includes_api_curated_marketplace_for_api_auth_when_remote_p
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -2887,7 +2887,7 @@ async fn plugin_list_includes_api_curated_marketplace_for_api_auth_when_remote_p
 }
 
 #[tokio::test]
-async fn plugin_list_includes_api_curated_marketplace_for_bedrock_without_codex_auth() -> Result<()>
+async fn plugin_list_includes_api_curated_marketplace_for_bedrock_without_ditfa_auth() -> Result<()>
 {
     let ditfa_home = TempDir::new()?;
     std::fs::write(
@@ -2906,7 +2906,7 @@ plugins = true
     write_openai_api_curated_marketplace(ditfa_home.path(), &["api-plugin"])?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -2960,7 +2960,7 @@ async fn plugin_list_does_not_query_openai_curated_remote_collection_by_default(
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -3013,7 +3013,7 @@ async fn plugin_list_vertical_kind_noops_when_remote_plugin_enabled() -> Result<
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -3067,7 +3067,7 @@ async fn plugin_list_does_not_append_global_remote_when_marketplace_kinds_are_ex
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -3146,7 +3146,7 @@ plugin_sharing = true
     mount_empty_user_installed_plugins(&server).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -3256,7 +3256,7 @@ plugin_sharing = false
     mount_empty_user_installed_plugins(&server).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -3342,7 +3342,7 @@ plugin_sharing = false
     .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[(TEST_ALLOW_HTTP_REMOTE_PLUGIN_BUNDLE_DOWNLOADS, Some("1"))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -3428,7 +3428,7 @@ trusted_hash = "sha256:unrelated"
     .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[(TEST_ALLOW_HTTP_REMOTE_PLUGIN_BUNDLE_DOWNLOADS, Some("1"))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -3520,7 +3520,7 @@ async fn plugin_installed_hook_trust_write_failure_stays_untrusted() -> Result<(
     mount_workspace_bundle_sync(&server, &[("failed-trust", "AVAILABLE", &bundle_url)]).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[(TEST_ALLOW_HTTP_REMOTE_PLUGIN_BUNDLE_DOWNLOADS, Some("1"))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -3601,7 +3601,7 @@ async fn plugin_list_fetches_workspace_directory_kind_when_remote_plugin_disable
     mount_empty_user_installed_plugins(&server).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -3821,7 +3821,7 @@ plugin_sharing = false
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -3966,7 +3966,7 @@ async fn plugin_list_fetches_shared_with_me_kind() -> Result<()> {
     mount_empty_user_installed_plugins(&server).await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -4123,7 +4123,7 @@ plugin_sharing = false
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -4183,7 +4183,7 @@ plugin_sharing = true
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -4313,7 +4313,7 @@ async fn plugin_list_marks_remote_plugin_disabled_by_admin() -> Result<()> {
     }
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -4373,7 +4373,7 @@ remote_plugin = true
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -4403,13 +4403,13 @@ async fn plugin_list_fetches_featured_plugin_ids_without_chatgpt_auth() -> Resul
 
     Mock::given(method("GET"))
         .and(path("/backend-api/plugins/featured"))
-        .and(query_param("platform", "codex"))
+        .and(query_param("platform", "ditfa"))
         .respond_with(ResponseTemplate::new(200).set_body_string(r#"["linear@openai-curated"]"#))
         .mount(&server)
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -4441,14 +4441,14 @@ async fn plugin_list_uses_warmed_featured_plugin_ids_cache_on_first_request() ->
 
     Mock::given(method("GET"))
         .and(path("/backend-api/plugins/featured"))
-        .and(query_param("platform", "codex"))
+        .and(query_param("platform", "ditfa"))
         .respond_with(ResponseTemplate::new(200).set_body_string(r#"["linear@openai-curated"]"#))
         .expect(1)
         .mount(&server)
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_plugin_startup_tasks()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)

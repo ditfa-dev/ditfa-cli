@@ -2,7 +2,7 @@
 use anyhow::Context;
 use core_test_support::responses;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex_exec::test_codex_exec;
+use core_test_support::test_ditfa_exec::test_ditfa_exec;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
 use std::string::ToString;
@@ -131,7 +131,7 @@ async fn mount_exec_responses(
 async fn exec_resume_last_appends_to_existing_file() -> anyhow::Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let test = test_codex_exec();
+    let test = test_ditfa_exec();
     let server = MockServer::start().await;
     let _response_mock = mount_exec_responses(&server, /*count*/ 2).await;
     let repo_root = exec_repo_root()?;
@@ -184,7 +184,7 @@ async fn exec_resume_last_appends_to_existing_file() -> anyhow::Result<()> {
 async fn exec_resume_last_accepts_prompt_after_flag_in_json_mode() -> anyhow::Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let test = test_codex_exec();
+    let test = test_ditfa_exec();
     let server = MockServer::start().await;
     let _response_mock = mount_exec_responses(&server, /*count*/ 2).await;
     let repo_root = exec_repo_root()?;
@@ -237,7 +237,7 @@ async fn exec_resume_last_accepts_prompt_after_flag_in_json_mode() -> anyhow::Re
 async fn exec_resume_last_respects_cwd_filter_and_all_flag() -> anyhow::Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let test = test_codex_exec();
+    let test = test_ditfa_exec();
     let server = MockServer::start().await;
     let _response_mock = mount_exec_responses(&server, /*count*/ 5).await;
 
@@ -342,7 +342,7 @@ async fn exec_resume_last_respects_cwd_filter_and_all_flag() -> anyhow::Result<(
 async fn exec_resume_accepts_global_flags_after_subcommand() -> anyhow::Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let test = test_codex_exec();
+    let test = test_ditfa_exec();
     let server = MockServer::start().await;
     let _response_mock = mount_exec_responses(&server, /*count*/ 2).await;
 
@@ -379,7 +379,7 @@ async fn exec_resume_accepts_global_flags_after_subcommand() -> anyhow::Result<(
 async fn exec_resume_includes_output_schema_in_request() -> anyhow::Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let test = test_codex_exec();
+    let test = test_ditfa_exec();
     let server = MockServer::start().await;
     let response_mock = mount_exec_responses(&server, /*count*/ 2).await;
 
@@ -435,7 +435,7 @@ async fn exec_resume_includes_output_schema_in_request() -> anyhow::Result<()> {
 async fn exec_resume_by_id_appends_to_existing_file() -> anyhow::Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let test = test_codex_exec();
+    let test = test_ditfa_exec();
     let server = MockServer::start().await;
     let _response_mock = mount_exec_responses(&server, /*count*/ 2).await;
     let repo_root = exec_repo_root()?;
@@ -491,7 +491,7 @@ async fn exec_resume_by_id_appends_to_existing_file() -> anyhow::Result<()> {
 async fn exec_resume_preserves_cli_configuration_overrides() -> anyhow::Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let test = test_codex_exec();
+    let test = test_ditfa_exec();
     let server = MockServer::start().await;
     let _response_mock = mount_exec_responses(&server, /*count*/ 2).await;
     let repo_root = exec_repo_root()?;
@@ -566,7 +566,7 @@ async fn exec_resume_preserves_cli_configuration_overrides() -> anyhow::Result<(
 async fn exec_resume_accepts_images_after_subcommand() -> anyhow::Result<()> {
     skip_if_no_network!(Ok(()));
 
-    let test = test_codex_exec();
+    let test = test_ditfa_exec();
     let server = MockServer::start().await;
     let _response_mock = mount_exec_responses(&server, /*count*/ 2).await;
     let repo_root = exec_repo_root()?;

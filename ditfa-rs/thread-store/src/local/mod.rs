@@ -125,7 +125,7 @@ pub struct LocalThreadStoreConfig {
 impl LocalThreadStoreConfig {
     #[expect(
         clippy::expect_used,
-        reason = "resolved Codex configuration paths must be absolute"
+        reason = "resolved Ditfa configuration paths must be absolute"
     )]
     pub fn from_config(config: &impl ditfa_rollout::RolloutConfigView) -> Self {
         Self {

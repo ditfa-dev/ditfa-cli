@@ -2,12 +2,12 @@
 #![allow(clippy::unwrap_used)]
 
 use core_test_support::responses;
-use core_test_support::test_codex_exec::test_codex_exec;
+use core_test_support::test_ditfa_exec::test_ditfa_exec;
 use serde_json::Value;
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn exec_includes_output_schema_in_request() -> anyhow::Result<()> {
-    let test = test_codex_exec();
+    let test = test_ditfa_exec();
 
     let schema_contents = serde_json::json!({
         "type": "object",

@@ -113,7 +113,7 @@ async fn run_foreground_remote_control(
     root_config_overrides: CliConfigOverrides,
 ) -> anyhow::Result<()> {
     let socket_dir = tempfile::Builder::new()
-        .prefix("codex-rc-")
+        .prefix("ditfa-rc-")
         .tempdir_in("/tmp")
         .or_else(|_| tempfile::tempdir())
         .context("failed to create private app-server socket directory")?;
@@ -424,11 +424,11 @@ fn remote_control_start_human_lines(
 }
 
 fn daemon_app_server_human_lines(output: &AppServerRemoteControlStartOutput) -> Vec<String> {
-    let (managed_codex_path, managed_codex_version) = daemon_app_server_identity(output);
+    let (managed_ditfa_path, managed_ditfa_version) = daemon_app_server_identity(output);
     vec![
         "Daemon used app-server:".to_string(),
-        format!("  path: {}", managed_codex_path.display()),
-        format!("  version: {}", managed_codex_version.unwrap_or("unknown")),
+        format!("  path: {}", managed_ditfa_path.display()),
+        format!("  version: {}", managed_ditfa_version.unwrap_or("unknown")),
     ]
 }
 
@@ -437,12 +437,12 @@ fn daemon_app_server_identity(
 ) -> (&std::path::Path, Option<&str>) {
     match output {
         AppServerRemoteControlStartOutput::Bootstrap(output) => (
-            &output.managed_codex_path,
-            output.managed_codex_version.as_deref(),
+            &output.managed_ditfa_path,
+            output.managed_ditfa_version.as_deref(),
         ),
         AppServerRemoteControlStartOutput::Start(output) => (
-            &output.managed_codex_path,
-            output.managed_codex_version.as_deref(),
+            &output.managed_ditfa_path,
+            output.managed_ditfa_version.as_deref(),
         ),
     }
 }
@@ -526,8 +526,8 @@ mod tests {
                 status: AppServerLifecycleStatus::Started,
                 backend: None,
                 pid: Some(42),
-                managed_codex_path: PathBuf::from("/opt/codex/bin/codex"),
-                managed_codex_version: Some("1.0.0".to_string()),
+                managed_ditfa_path: PathBuf::from("/opt/ditfa/bin/ditfa"),
+                managed_ditfa_version: Some("1.0.0".to_string()),
                 socket_path: PathBuf::from("/tmp/app-server-control.sock"),
                 cli_version: Some("1.0.0".to_string()),
                 app_server_version: Some("2.0.0".to_string()),
@@ -611,7 +611,7 @@ mod tests {
             ),
             vec![
                 "Daemon used app-server:".to_string(),
-                "  path: /opt/codex/bin/codex".to_string(),
+                "  path: /opt/ditfa/bin/ditfa".to_string(),
                 "  version: 1.0.0".to_string(),
             ]
         );
@@ -647,8 +647,8 @@ mod tests {
                 "daemon": {
                     "status": "started",
                     "pid": 42,
-                    "managedCodexPath": "/opt/codex/bin/codex",
-                    "managedCodexVersion": "1.0.0",
+                    "managedDitfaPath": "/opt/ditfa/bin/ditfa",
+                    "managedDitfaVersion": "1.0.0",
                     "socketPath": "/tmp/app-server-control.sock",
                     "cliVersion": "1.0.0",
                     "appServerVersion": "2.0.0",

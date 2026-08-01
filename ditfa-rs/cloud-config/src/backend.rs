@@ -7,7 +7,7 @@ use ditfa_config::CloudConfigTomlBundle;
 use ditfa_config::CloudRequirementsFragment;
 use ditfa_config::CloudRequirementsTomlBundle;
 use ditfa_http_client::HttpClientFactory;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use std::future::Future;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -39,7 +39,7 @@ pub(crate) enum BundleRequestError {
 pub(crate) trait BundleClient: Send + Sync {
     fn get_bundle(
         &self,
-        auth: &CodexAuth,
+        auth: &DitfaAuth,
     ) -> impl Future<Output = Result<CloudConfigBundle, BundleRequestError>> + Send;
 }
 
@@ -58,7 +58,7 @@ impl BackendBundleClient {
 }
 
 impl BundleClient for BackendBundleClient {
-    async fn get_bundle(&self, auth: &CodexAuth) -> Result<CloudConfigBundle, BundleRequestError> {
+    async fn get_bundle(&self, auth: &DitfaAuth) -> Result<CloudConfigBundle, BundleRequestError> {
         let client = BackendClient::from_auth(
             self.base_url.clone(),
             auth,

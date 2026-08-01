@@ -144,7 +144,7 @@ async fn assert_standalone_web_search_round_trips_output(
     };
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .with_env_overrides(&env_overrides)
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -332,7 +332,7 @@ async fn assert_standalone_web_search_round_trips_output(
 
     drop(mcp);
     let mut reloaded_mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .with_env_overrides(&env_overrides)
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;

@@ -11,11 +11,11 @@ use tempfile::TempDir;
 use ditfa_config::CloudConfigBundleLoader;
 use ditfa_config::LoaderOverrides;
 use ditfa_config::test_support::CloudConfigBundleFixture;
-use ditfa_core::CodexThread;
+use ditfa_core::DitfaThread;
 use ditfa_core::config::Config;
 use ditfa_core::config::ConfigBuilder;
 use ditfa_core::config::ConfigOverrides;
-pub use ditfa_core::test_support::TestCodexResponsesRequestKind;
+pub use ditfa_core::test_support::TestDitfaResponsesRequestKind;
 pub use ditfa_core::test_support::responses_metadata;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
 pub use ditfa_utils_absolute_path::test_support::PathBufExt;
@@ -32,8 +32,8 @@ pub mod responses;
 pub mod streaming_sse;
 pub mod test_ditfa;
 pub mod test_ditfa_exec;
-pub use test_ditfa as test_codex;
-pub use test_ditfa_exec as test_codex_exec;
+pub use test_ditfa as test_ditfa;
+pub use test_ditfa_exec as test_ditfa_exec;
 mod test_environment;
 pub mod tracing;
 pub mod zsh_fork;
@@ -69,7 +69,7 @@ fn configure_insta_workspace_root_for_snapshot_tests() {
 
     let workspace_root = ditfa_utils_cargo_bin::repo_root()
         .ok()
-        .map(|root| root.join("codex-rs"));
+        .map(|root| root.join("ditfa-rs"));
 
     if let Some(workspace_root) = workspace_root
         && let Ok(workspace_root) = workspace_root.canonicalize()
@@ -149,7 +149,7 @@ impl TempDirExt for TempDir {
 }
 
 pub fn test_tmp_path() -> AbsolutePathBuf {
-    test_absolute_path_with_windows("/tmp", Some(r"C:\Users\codex\AppData\Local\Temp"))
+    test_absolute_path_with_windows("/tmp", Some(r"C:\Users\ditfa\AppData\Local\Temp"))
 }
 
 pub fn test_tmp_path_buf() -> PathBuf {
@@ -233,7 +233,7 @@ allow_local_binding = true
 fn default_test_overrides() -> ConfigOverrides {
     ConfigOverrides {
         ditfa_linux_sandbox_exe: Some(
-            find_codex_linux_sandbox_exe().expect("should find binary for codex-linux-sandbox"),
+            find_ditfa_linux_sandbox_exe().expect("should find binary for ditfa-linux-sandbox"),
         ),
         ..ConfigOverrides::default()
     }
@@ -245,7 +245,7 @@ fn default_test_overrides() -> ConfigOverrides {
 }
 
 #[cfg(target_os = "linux")]
-pub fn find_codex_linux_sandbox_exe() -> Result<PathBuf, CargoBinError> {
+pub fn find_ditfa_linux_sandbox_exe() -> Result<PathBuf, CargoBinError> {
     if let Some(path) = TEST_ARG0_PATH_ENTRY
         .get()
         .and_then(Option::as_ref)
@@ -258,28 +258,28 @@ pub fn find_codex_linux_sandbox_exe() -> Result<PathBuf, CargoBinError> {
         return Ok(path);
     }
 
-    ditfa_utils_cargo_bin::cargo_bin("codex-linux-sandbox")
+    ditfa_utils_cargo_bin::cargo_bin("ditfa-linux-sandbox")
 }
 
 pub async fn wait_for_event<F>(
-    codex: &CodexThread,
+    ditfa: &DitfaThread,
     predicate: F,
 ) -> ditfa_protocol::protocol::EventMsg
 where
     F: FnMut(&ditfa_protocol::protocol::EventMsg) -> bool,
 {
     use tokio::time::Duration;
-    wait_for_event_with_timeout(codex, predicate, Duration::from_secs(1)).await
+    wait_for_event_with_timeout(ditfa, predicate, Duration::from_secs(1)).await
 }
 
 /// Waits for a configured MCP server to finish startup and requires it to be ready.
-pub async fn wait_for_mcp_server(codex: &CodexThread, server_name: &str) -> anyhow::Result<()> {
+pub async fn wait_for_mcp_server(ditfa: &DitfaThread, server_name: &str) -> anyhow::Result<()> {
     use ditfa_protocol::protocol::EventMsg;
 
     // Wait for the startup summary regardless of outcome, then interpret the
     // requested server's ready, failed, or cancelled entry below.
     let summary = loop {
-        let event = codex
+        let event = ditfa
             .next_event()
             .await
             .expect("stream ended unexpectedly while waiting for MCP startup");
@@ -306,7 +306,7 @@ pub async fn wait_for_mcp_server(codex: &CodexThread, server_name: &str) -> anyh
 }
 
 pub async fn submit_thread_settings(
-    codex: &CodexThread,
+    ditfa: &DitfaThread,
     thread_settings: ditfa_protocol::protocol::ThreadSettingsOverrides,
 ) -> anyhow::Result<()> {
     use ditfa_protocol::protocol::EventMsg;
@@ -314,9 +314,9 @@ pub async fn submit_thread_settings(
     use tokio::time::Duration;
     use tokio::time::timeout;
 
-    let submission_id = codex.submit(Op::ThreadSettings { thread_settings }).await?;
+    let submission_id = ditfa.submit(Op::ThreadSettings { thread_settings }).await?;
     loop {
-        let ev = timeout(Duration::from_secs(10), codex.next_event())
+        let ev = timeout(Duration::from_secs(10), ditfa.next_event())
             .await
             .expect("timeout waiting for thread settings update")
             .expect("stream ended unexpectedly");
@@ -330,16 +330,16 @@ pub async fn submit_thread_settings(
     }
 }
 
-pub async fn wait_for_event_match<T, F>(codex: &CodexThread, matcher: F) -> T
+pub async fn wait_for_event_match<T, F>(ditfa: &DitfaThread, matcher: F) -> T
 where
     F: Fn(&ditfa_protocol::protocol::EventMsg) -> Option<T>,
 {
-    let ev = wait_for_event(codex, |ev| matcher(ev).is_some()).await;
+    let ev = wait_for_event(ditfa, |ev| matcher(ev).is_some()).await;
     matcher(&ev).expect("EventMsg should match matcher predicate")
 }
 
 pub async fn wait_for_event_with_timeout<F>(
-    codex: &CodexThread,
+    ditfa: &DitfaThread,
     mut predicate: F,
     wait_time: tokio::time::Duration,
 ) -> ditfa_protocol::protocol::EventMsg
@@ -350,7 +350,7 @@ where
     use tokio::time::timeout;
     loop {
         // Allow a bit more time to accommodate async startup work (e.g. config IO, tool discovery)
-        let ev = timeout(wait_time.max(Duration::from_secs(10)), codex.next_event())
+        let ev = timeout(wait_time.max(Duration::from_secs(10)), ditfa.next_event())
             .await
             .expect("timeout waiting for event")
             .expect("stream ended unexpectedly");
@@ -566,7 +566,7 @@ macro_rules! skip_if_no_network {
     () => {{
         if ::std::env::var($crate::sandbox_network_env_var()).is_ok() {
             println!(
-                "Skipping test because it cannot execute when network is disabled in a Codex sandbox."
+                "Skipping test because it cannot execute when network is disabled in a Ditfa sandbox."
             );
             return;
         }
@@ -574,7 +574,7 @@ macro_rules! skip_if_no_network {
     ($return_value:expr $(,)?) => {{
         if ::std::env::var($crate::sandbox_network_env_var()).is_ok() {
             println!(
-                "Skipping test because it cannot execute when network is disabled in a Codex sandbox."
+                "Skipping test because it cannot execute when network is disabled in a Ditfa sandbox."
             );
             return $return_value;
         }
@@ -677,10 +677,10 @@ macro_rules! ditfa_linux_sandbox_exe_or_skip {
     () => {{
         #[cfg(target_os = "linux")]
         {
-            match $crate::find_codex_linux_sandbox_exe() {
+            match $crate::find_ditfa_linux_sandbox_exe() {
                 Ok(path) => Some(path),
                 Err(err) => {
-                    eprintln!("codex-linux-sandbox binary not available, skipping test: {err}");
+                    eprintln!("ditfa-linux-sandbox binary not available, skipping test: {err}");
                     return;
                 }
             }
@@ -693,10 +693,10 @@ macro_rules! ditfa_linux_sandbox_exe_or_skip {
     ($return_value:expr $(,)?) => {{
         #[cfg(target_os = "linux")]
         {
-            match $crate::find_codex_linux_sandbox_exe() {
+            match $crate::find_ditfa_linux_sandbox_exe() {
                 Ok(path) => Some(path),
                 Err(err) => {
-                    eprintln!("codex-linux-sandbox binary not available, skipping test: {err}");
+                    eprintln!("ditfa-linux-sandbox binary not available, skipping test: {err}");
                     return $return_value;
                 }
             }

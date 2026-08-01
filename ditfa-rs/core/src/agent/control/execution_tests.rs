@@ -1,5 +1,5 @@
 use crate::agent::AgentControl;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::protocol::MultiAgentVersion;
 use ditfa_protocol::protocol::SessionSource;
 use ditfa_protocol::protocol::SubAgentSource;
@@ -29,7 +29,7 @@ fn execution_guards_count_active_v2_subagent_turns() {
     let Err(err) = control.ensure_execution_capacity(MultiAgentVersion::V2, &source) else {
         panic!("second active turn should exceed the derived non-root cap");
     };
-    let CodexErr::AgentLimitReached { max_threads } = err else {
+    let DitfaErr::AgentLimitReached { max_threads } = err else {
         panic!("expected AgentLimitReached");
     };
     assert_eq!(max_threads, 1);

@@ -22,8 +22,8 @@ use core_test_support::responses::ev_response_created;
 use core_test_support::responses::mount_sse_sequence;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event_with_timeout;
 use pretty_assertions::assert_eq;
 use serde_json::json;
@@ -44,7 +44,7 @@ const EXEC_SERVER_START_TIMEOUT: Duration = Duration::from_secs(30);
 const TURN_COMPLETE_TIMEOUT: Duration = Duration::from_secs(30);
 
 struct ExecServerProcess {
-    _codex_home: TempDir,
+    _ditfa_home: TempDir,
     child: Child,
     _stdout: BufReader<ChildStdout>,
     websocket_url: String,
@@ -53,7 +53,7 @@ struct ExecServerProcess {
 impl ExecServerProcess {
     async fn start() -> Result<Self> {
         let ditfa_home = TempDir::new()?;
-        let mut child = Command::new(ditfa_utils_cargo_bin::cargo_bin("codex")?)
+        let mut child = Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa")?)
             .args(["exec-server", "--listen", "ws://127.0.0.1:0"])
             .env("DITFA_HOME", ditfa_home.path())
             .stdin(Stdio::null())
@@ -85,7 +85,7 @@ impl ExecServerProcess {
         };
 
         Ok(Self {
-            _codex_home: ditfa_home,
+            _ditfa_home: ditfa_home,
             child,
             _stdout: stdout,
             websocket_url,
@@ -107,7 +107,7 @@ async fn two_exec_servers_isolate_workspace_write_roots() -> Result<()> {
     let second_workspace = TempDir::new()?;
 
     let server = start_mock_server().await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.use_experimental_unified_exec_tool = true;
         config
             .features

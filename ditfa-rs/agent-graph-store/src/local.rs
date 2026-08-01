@@ -131,7 +131,7 @@ mod tests {
 
     struct TestRuntime {
         state_db: Arc<StateRuntime>,
-        _codex_home: TempDir,
+        _ditfa_home: TempDir,
     }
 
     fn thread_id(suffix: u128) -> ThreadId {
@@ -147,7 +147,7 @@ mod tests {
                 .expect("state db should initialize");
         TestRuntime {
             state_db,
-            _codex_home: ditfa_home,
+            _ditfa_home: ditfa_home,
         }
     }
 

@@ -21,7 +21,7 @@ use crate::rmcp_client::DITFA_APPS_REFRESH_DURATION_METRIC;
 use crate::rmcp_client::MCP_TOOLS_LIST_DURATION_METRIC;
 use crate::rmcp_client::ManagedClient;
 use crate::rmcp_client::list_tools_for_client_uncached;
-use crate::rmcp_client::prepare_codex_apps_tools_for_model;
+use crate::rmcp_client::prepare_ditfa_apps_tools_for_model;
 use crate::runtime::emit_duration;
 use crate::tools::ToolInfo;
 use crate::tools::filter_tools;
@@ -78,7 +78,7 @@ impl McpConnectionSet {
                 match catalog_override {
                     Some(tools) => {
                         let tools = filter_tools(tools, &view.tool_filter);
-                        Some(prepare_codex_apps_tools_for_model(
+                        Some(prepare_ditfa_apps_tools_for_model(
                             tools,
                             &self.tool_plugin_provenance,
                         ))
@@ -155,7 +155,7 @@ impl McpConnectionSet {
             let server_tools = catalog_override.unwrap_or_else(|| client.tools.clone());
             let server_tools = filter_tools(server_tools, &view.tool_filter);
             let server_tools = if server_name == DITFA_APPS_MCP_SERVER_NAME {
-                prepare_codex_apps_tools_for_model(server_tools, &self.tool_plugin_provenance)
+                prepare_ditfa_apps_tools_for_model(server_tools, &self.tool_plugin_provenance)
             } else {
                 crate::rmcp_client::prepare_regular_mcp_tools_for_model(
                     server_tools,
@@ -232,12 +232,12 @@ impl McpConnectionSet {
         ))
     }
 
-    /// Force-refresh Codex Apps tools and publish one new exact catalog revision.
+    /// Force-refresh Ditfa Apps tools and publish one new exact catalog revision.
     #[expect(
         clippy::await_holding_invalid_type,
         reason = "catalog publication must remain serialized with captured tool calls"
     )]
-    pub async fn hard_refresh_codex_apps_tools_cache(&self) -> Result<Vec<ToolInfo>> {
+    pub async fn hard_refresh_ditfa_apps_tools_cache(&self) -> Result<Vec<ToolInfo>> {
         let _refresh = self.ditfa_apps_refresh_lock.lock().await;
         let refresh_start = Instant::now();
         let view = self
@@ -260,7 +260,7 @@ impl McpConnectionSet {
                 });
         let client_tools = list_tools_for_client_uncached(
             DITFA_APPS_MCP_SERVER_NAME,
-            /*is_codex_apps_mcp_server*/ true,
+            /*is_ditfa_apps_mcp_server*/ true,
             /*ditfa_apps_refresh_trigger*/ "explicit",
             &managed_client.client,
             view.tool_timeout,
@@ -282,7 +282,7 @@ impl McpConnectionSet {
                 client_tools.clone(),
             ),
             (None, None) => client_tools.clone(),
-            _ => unreachable!("Codex Apps fetch ticket requires cache context"),
+            _ => unreachable!("Ditfa Apps fetch ticket requires cache context"),
         };
         *self.ditfa_apps_tools_override.write().await = Some(client_tools);
         *tool_catalog_revision += 1;
@@ -292,7 +292,7 @@ impl McpConnectionSet {
             list_start.elapsed(),
             &[("cache", "miss")],
         );
-        let tools = prepare_codex_apps_tools_for_model(
+        let tools = prepare_ditfa_apps_tools_for_model(
             filter_tools(tools, &view.tool_filter),
             &self.tool_plugin_provenance,
         )

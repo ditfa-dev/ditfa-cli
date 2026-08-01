@@ -92,7 +92,7 @@ async fn mcp_server_status_list_returns_raw_server_and_tool_names() -> Result<()
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -164,7 +164,7 @@ MCP_TEST_PID_FILE = {}
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -221,7 +221,7 @@ async fn mcp_server_status_list_uses_thread_project_local_config() -> Result<()>
     set_project_trust_level(ditfa_home.path(), workspace.path(), TrustLevel::Trusted)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let ThreadStartResponse { thread, .. } = mcp
@@ -400,7 +400,7 @@ async fn mcp_server_status_list_tools_and_auth_only_skips_slow_inventory_calls()
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -452,7 +452,7 @@ url = "{underscore_server_url}/mcp"
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;

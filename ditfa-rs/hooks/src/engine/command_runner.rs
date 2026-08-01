@@ -31,7 +31,7 @@ pub(crate) struct CommandRunResult {
 }
 
 #[tracing::instrument(
-    name = "codex.hooks.command",
+    name = "ditfa.hooks.command",
     level = "trace",
     skip_all,
     fields(

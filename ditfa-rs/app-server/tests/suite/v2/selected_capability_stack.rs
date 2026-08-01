@@ -141,7 +141,7 @@ async fn selected_capability_stack_tracks_environment_availability_and_resume() 
     .await;
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(fixture.ditfa_home.path())
+        .with_ditfa_home(fixture.ditfa_home.path())
         // This fixture owns environments.toml and selects its environments explicitly.
         .without_auto_env()
         .build()
@@ -192,7 +192,7 @@ async fn selected_capability_stack_tracks_environment_availability_and_resume() 
     std::fs::remove_file(&fixture.pid_file)?;
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(fixture.ditfa_home.path())
+        .with_ditfa_home(fixture.ditfa_home.path())
         // This fixture owns environments.toml and selects its environments explicitly.
         .without_auto_env()
         .build()
@@ -344,7 +344,7 @@ async fn selected_capabilities_become_available_between_samples_in_one_turn() ->
     .await;
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(fixture.ditfa_home.path())
+        .with_ditfa_home(fixture.ditfa_home.path())
         // This fixture owns environments.toml and selects its environments explicitly.
         .without_auto_env()
         .build()
@@ -568,7 +568,7 @@ fn assert_selected_plugin_tools_absent(request: &ResponsesRequest) {
             .is_none()
     );
     let connector = request
-        .tool_by_name("mcp__codex_apps__calendar", "connector_calendar")
+        .tool_by_name("mcp__ditfa_apps__calendar", "connector_calendar")
         .expect("host connector should remain model-visible");
     assert!(
         connector["description"]
@@ -625,7 +625,7 @@ fn assert_selected_plugin_tools(request: &ResponsesRequest) {
             .is_some()
     );
     let connector = request
-        .tool_by_name("mcp__codex_apps__calendar", "connector_calendar")
+        .tool_by_name("mcp__ditfa_apps__calendar", "connector_calendar")
         .expect("selected connector should be model-visible");
     assert!(
         connector["description"]
@@ -747,7 +747,7 @@ async fn wait_for_selected_mcp_server(
 }
 
 async fn spawn_exec_server(ditfa_home: &std::path::Path, url: &str) -> Result<Child> {
-    let mut child = Command::new(ditfa_utils_cargo_bin::cargo_bin("codex")?)
+    let mut child = Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa")?)
         .args(["exec-server", "--listen", url])
         .stdin(Stdio::null())
         .stdout(Stdio::piped())

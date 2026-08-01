@@ -1,6 +1,6 @@
 use ditfa_core::config::Config;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::default_client::create_client;
 
 use anyhow::Context;
@@ -9,7 +9,7 @@ use serde::de::DeserializeOwned;
 use std::time::Duration;
 
 const OAI_PRODUCT_SKU_HEADER: &str = "OAI-Product-Sku";
-const DITFA_PRODUCT_SKU: &str = "codex";
+const DITFA_PRODUCT_SKU: &str = "ditfa";
 
 /// Make a GET request to the ChatGPT backend API.
 pub(crate) async fn chatgpt_get_request<T: DeserializeOwned>(
@@ -26,18 +26,18 @@ pub(crate) async fn chatgpt_get_request_with_timeout<T: DeserializeOwned>(
 ) -> anyhow::Result<T> {
     let chatgpt_base_url = &config.chatgpt_base_url;
     let auth_manager =
-        AuthManager::shared_from_config(config, /*enable_codex_api_key_env*/ false).await;
+        AuthManager::shared_from_config(config, /*enable_ditfa_api_key_env*/ false).await;
     let auth = auth_manager
         .auth()
         .await
         .ok_or_else(|| anyhow::anyhow!("ChatGPT auth not available"))?;
     anyhow::ensure!(
-        auth.uses_codex_backend(),
-        "ChatGPT backend requests require Codex backend auth"
+        auth.uses_ditfa_backend(),
+        "ChatGPT backend requests require Ditfa backend auth"
     );
     anyhow::ensure!(
         auth.get_account_id().is_some(),
-        "ChatGPT account ID not available, please re-run `codex login`"
+        "ChatGPT account ID not available, please re-run `ditfa login`"
     );
 
     // Make direct HTTP request to ChatGPT backend API with the token
@@ -82,19 +82,19 @@ pub(crate) async fn chatgpt_post_request_with_timeout<
     TRequest: Serialize + ?Sized,
 >(
     config: &Config,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     path: String,
     body: &TRequest,
     timeout: Duration,
     product_sku: &str,
 ) -> anyhow::Result<TResponse> {
     anyhow::ensure!(
-        auth.uses_codex_backend(),
-        "ChatGPT backend requests require Codex backend auth"
+        auth.uses_ditfa_backend(),
+        "ChatGPT backend requests require Ditfa backend auth"
     );
     anyhow::ensure!(
         auth.get_account_id().is_some(),
-        "ChatGPT account ID not available, please re-run codex login"
+        "ChatGPT account ID not available, please re-run ditfa login"
     );
 
     let url = format!(

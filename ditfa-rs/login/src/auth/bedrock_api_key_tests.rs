@@ -7,7 +7,7 @@ use tempfile::tempdir;
 use super::*;
 use crate::auth::AuthKeyringBackendKind;
 use crate::auth::AuthManager;
-use crate::auth::CodexAuth;
+use crate::auth::DitfaAuth;
 use crate::auth::storage::AuthStorageBackend;
 use crate::auth::storage::FileAuthStorage;
 
@@ -58,7 +58,7 @@ async fn login_with_bedrock_api_key_replaces_openai_auth() -> anyhow::Result<()>
 
     let auth_manager = AuthManager::new(
         ditfa_home.path().to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -81,13 +81,13 @@ async fn login_with_bedrock_api_key_replaces_openai_auth() -> anyhow::Result<()>
     assert_eq!(auth_manager.auth_mode(), Some(AuthMode::BedrockApiKey));
     assert_eq!(
         auth_manager.auth_cached().and_then(|auth| match auth {
-            CodexAuth::BedrockApiKey(auth) => Some(auth),
-            CodexAuth::ApiKey(_)
-            | CodexAuth::Chatgpt(_)
-            | CodexAuth::ChatgptAuthTokens(_)
-            | CodexAuth::Headers(_)
-            | CodexAuth::AgentIdentity(_)
-            | CodexAuth::PersonalAccessToken(_) => None,
+            DitfaAuth::BedrockApiKey(auth) => Some(auth),
+            DitfaAuth::ApiKey(_)
+            | DitfaAuth::Chatgpt(_)
+            | DitfaAuth::ChatgptAuthTokens(_)
+            | DitfaAuth::Headers(_)
+            | DitfaAuth::AgentIdentity(_)
+            | DitfaAuth::PersonalAccessToken(_) => None,
         }),
         Some(bedrock_auth())
     );
@@ -108,7 +108,7 @@ async fn logout_removes_bedrock_auth() -> anyhow::Result<()> {
     )?;
     let auth_manager = AuthManager::new(
         ditfa_home.path().to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -133,7 +133,7 @@ async fn bedrock_only_auth_storage_creates_primary_auth() -> anyhow::Result<()> 
 
     let auth_manager = AuthManager::new(
         ditfa_home.path().to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -145,13 +145,13 @@ async fn bedrock_only_auth_storage_creates_primary_auth() -> anyhow::Result<()> 
     assert_eq!(auth_manager.auth_mode(), Some(AuthMode::BedrockApiKey));
     assert_eq!(
         auth_manager.auth_cached().and_then(|auth| match auth {
-            CodexAuth::BedrockApiKey(auth) => Some(auth),
-            CodexAuth::ApiKey(_)
-            | CodexAuth::Chatgpt(_)
-            | CodexAuth::ChatgptAuthTokens(_)
-            | CodexAuth::Headers(_)
-            | CodexAuth::AgentIdentity(_)
-            | CodexAuth::PersonalAccessToken(_) => None,
+            DitfaAuth::BedrockApiKey(auth) => Some(auth),
+            DitfaAuth::ApiKey(_)
+            | DitfaAuth::Chatgpt(_)
+            | DitfaAuth::ChatgptAuthTokens(_)
+            | DitfaAuth::Headers(_)
+            | DitfaAuth::AgentIdentity(_)
+            | DitfaAuth::PersonalAccessToken(_) => None,
         }),
         Some(bedrock_auth())
     );

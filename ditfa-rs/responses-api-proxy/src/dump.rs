@@ -233,7 +233,7 @@ mod tests {
                 .expect("content-type header"),
             Header::from_bytes(&b"x-codex-window-id"[..], &b"thread-1:0"[..])
                 .expect("window id header"),
-            Header::from_bytes(&b"x-codex-parent-thread-id"[..], &b"parent-thread-1"[..])
+            Header::from_bytes(&b"x-ditfa-parent-thread-id"[..], &b"parent-thread-1"[..])
                 .expect("parent thread id header"),
             Header::from_bytes(&b"x-openai-subagent"[..], &b"collab_spawn"[..])
                 .expect("subagent header"),
@@ -274,7 +274,7 @@ mod tests {
                         "value": "thread-1:0"
                     },
                     {
-                        "name": "x-codex-parent-thread-id",
+                        "name": "x-ditfa-parent-thread-id",
                         "value": "parent-thread-1"
                     },
                     {
@@ -357,7 +357,7 @@ mod tests {
     fn test_dump_dir() -> std::path::PathBuf {
         let test_id = NEXT_TEST_DIR.fetch_add(1, Ordering::Relaxed);
         let dump_dir = std::env::temp_dir().join(format!(
-            "codex-responses-api-proxy-dump-test-{}-{test_id}",
+            "ditfa-responses-api-proxy-dump-test-{}-{test_id}",
             std::process::id()
         ));
         fs::create_dir_all(&dump_dir).expect("create test dump dir");

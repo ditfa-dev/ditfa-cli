@@ -27,7 +27,7 @@ use core_test_support::responses::ev_completed;
 use core_test_support::responses::ev_response_created;
 use core_test_support::responses::mount_sse_once;
 use core_test_support::responses::sse;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use pretty_assertions::assert_eq;
 
 struct StaticSkillProvider {
@@ -103,7 +103,7 @@ async fn production_turn_scales_extension_catalog_from_resolved_model_window() -
                 shadow_selection_enabled: false,
             },
         );
-        let mut builder = test_codex()
+        let mut builder = test_ditfa()
             .with_extensions(Arc::new(extensions.build()))
             .with_model_info_override("gpt-5.5", move |model_info| {
                 model_info.context_window = context_window;
@@ -195,7 +195,7 @@ async fn production_turn_fairly_shortens_extension_catalog_descriptions() -> Res
             shadow_selection_enabled: false,
         },
     );
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_extensions(Arc::new(extensions.build()))
         .with_model_info_override("gpt-5.5", |model_info| {
             model_info.context_window = Some(100_000);

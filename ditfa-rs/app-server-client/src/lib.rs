@@ -53,7 +53,7 @@ use ditfa_core::config::Config;
 pub use ditfa_core::otel_init::build_provider as build_otel_provider;
 pub use ditfa_exec_server::EnvironmentManager;
 pub use ditfa_exec_server::ExecServerRuntimePaths;
-use ditfa_feedback::CodexFeedback;
+use ditfa_feedback::DitfaFeedback;
 use ditfa_protocol::protocol::SessionSource;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
 use serde::de::DeserializeOwned;
@@ -71,7 +71,7 @@ pub use crate::remote::RemoteAppServerEndpoint;
 /// Transitional access to core-only embedded app-server types.
 ///
 /// New TUI behavior should prefer the app-server protocol methods. This
-/// module exists so clients can remove a direct `codex-core` dependency
+/// module exists so clients can remove a direct `ditfa-core` dependency
 /// while legacy startup/config paths are migrated to RPCs.
 pub mod legacy_core {
     pub mod config {
@@ -309,7 +309,7 @@ pub struct InProcessClientStartArgs {
     /// Preloaded cloud config bundle provider.
     pub cloud_config_bundle: CloudConfigBundleLoader,
     /// Feedback sink used by app-server/core telemetry and logs.
-    pub feedback: CodexFeedback,
+    pub feedback: DitfaFeedback,
     /// SQLite tracing layer used to flush recently emitted logs before feedback upload.
     pub log_db: Option<LogDbLayer>,
     /// Process-wide SQLite state handle shared with the embedded app-server.
@@ -321,7 +321,7 @@ pub struct InProcessClientStartArgs {
     /// Session source recorded in app-server thread metadata.
     pub session_source: SessionSource,
     /// Whether auth loading should honor the `DITFA_API_KEY` environment variable.
-    pub enable_codex_api_key_env: bool,
+    pub enable_ditfa_api_key_env: bool,
     /// Client name reported during initialize.
     pub client_name: String,
     /// Client version reported during initialize.
@@ -384,7 +384,7 @@ impl InProcessClientStartArgs {
             environment_manager: self.environment_manager,
             config_warnings: self.config_warnings,
             session_source: self.session_source,
-            enable_codex_api_key_env: self.enable_codex_api_key_env,
+            enable_ditfa_api_key_env: self.enable_ditfa_api_key_env,
             initialize,
             channel_capacity: self.channel_capacity,
         }
@@ -833,10 +833,10 @@ impl AppServerRequestHandle {
 }
 
 impl AppServerClient {
-    pub fn ditfa_home(&self, local_codex_home: &AbsolutePathBuf) -> Option<AppServerPath> {
+    pub fn ditfa_home(&self, local_ditfa_home: &AbsolutePathBuf) -> Option<AppServerPath> {
         match self {
             Self::InProcess(_) => Some(AppServerPath::from_app_server(
-                local_codex_home.display().to_string(),
+                local_ditfa_home.display().to_string(),
             )),
             Self::Remote(client) => client.ditfa_home().map(AppServerPath::from_app_server),
         }
@@ -954,14 +954,14 @@ mod tests {
         }
     }
 
-    async fn build_test_config_for_codex_home(ditfa_home: &Path) -> Config {
+    async fn build_test_config_for_ditfa_home(ditfa_home: &Path) -> Config {
         match ConfigBuilder::default()
             .ditfa_home(ditfa_home.to_path_buf())
             .build()
             .await
         {
             Ok(config) => config,
-            Err(_) => Config::load_default_with_cli_overrides_for_codex_home(
+            Err(_) => Config::load_default_with_cli_overrides_for_ditfa_home(
                 ditfa_home.to_path_buf(),
                 Vec::new(),
             )
@@ -971,7 +971,7 @@ mod tests {
     }
 
     struct TestClient {
-        _codex_home: TempDir,
+        _ditfa_home: TempDir,
         client: InProcessAppServerClient,
     }
 
@@ -994,7 +994,7 @@ mod tests {
         channel_capacity: usize,
     ) -> TestClient {
         let ditfa_home = TempDir::new().expect("temp dir");
-        let config = Arc::new(build_test_config_for_codex_home(ditfa_home.path()).await);
+        let config = Arc::new(build_test_config_for_ditfa_home(ditfa_home.path()).await);
         let state_db = init_state_db(config.as_ref())
             .await
             .expect("state db should initialize for in-process test");
@@ -1005,14 +1005,14 @@ mod tests {
             loader_overrides: LoaderOverrides::default(),
             strict_config: false,
             cloud_config_bundle: CloudConfigBundleLoader::default(),
-            feedback: CodexFeedback::new(),
+            feedback: DitfaFeedback::new(),
             log_db: None,
             state_db: Some(state_db),
             environment_manager: Arc::new(EnvironmentManager::default_for_tests()),
             config_warnings: Vec::new(),
             session_source,
-            enable_codex_api_key_env: false,
-            client_name: "codex-app-server-client-test".to_string(),
+            enable_ditfa_api_key_env: false,
+            client_name: "ditfa-app-server-client-test".to_string(),
             client_version: "0.0.0-test".to_string(),
             experimental_api: true,
             mcp_server_openai_form_elicitation: false,
@@ -1023,7 +1023,7 @@ mod tests {
         .expect("in-process app-server client should start");
 
         TestClient {
-            _codex_home: ditfa_home,
+            _ditfa_home: ditfa_home,
             client,
         }
     }
@@ -1094,7 +1094,7 @@ mod tests {
                 id: request.id,
                 result: serde_json::json!({
                     "userAgent": "ditfa_cli_rs/9.8.7-test (Test OS; x86_64) rust",
-                    "codexHome": "/server/.ditfa",
+                    "ditfaHome": "/server/.ditfa",
                 }),
             }),
         )
@@ -1206,7 +1206,7 @@ mod tests {
                 websocket_url,
                 auth_token: None,
             },
-            client_name: "codex-app-server-client-test".to_string(),
+            client_name: "ditfa-app-server-client-test".to_string(),
             client_version: "0.0.0-test".to_string(),
             experimental_api: true,
             mcp_server_openai_form_elicitation: false,
@@ -1463,7 +1463,7 @@ mod tests {
     #[tokio::test]
     async fn remote_unix_socket_typed_request_roundtrip_works() {
         let socket_dir = TempDir::new().expect("socket dir");
-        let socket_path = AbsolutePathBuf::from_absolute_path(socket_dir.path().join("codex.sock"))
+        let socket_path = AbsolutePathBuf::from_absolute_path(socket_dir.path().join("ditfa.sock"))
             .expect("socket path should resolve");
         let mut listener = UnixListener::bind(socket_path.as_path())
             .await
@@ -1495,7 +1495,7 @@ mod tests {
         });
         let client = RemoteAppServerClient::connect(RemoteAppServerConnectArgs {
             endpoint: RemoteAppServerEndpoint::UnixSocket { socket_path },
-            client_name: "codex-app-server-client-test".to_string(),
+            client_name: "ditfa-app-server-client-test".to_string(),
             client_version: "0.0.0-test".to_string(),
             experimental_api: true,
             mcp_server_openai_form_elicitation: false,
@@ -1584,7 +1584,7 @@ mod tests {
                 websocket_url,
                 auth_token: Some(auth_token),
             },
-            client_name: "codex-app-server-client-test".to_string(),
+            client_name: "ditfa-app-server-client-test".to_string(),
             client_version: "0.0.0-test".to_string(),
             experimental_api: true,
             mcp_server_openai_form_elicitation: false,
@@ -1604,7 +1604,7 @@ mod tests {
                 websocket_url: "ws://example.com:4500".to_string(),
                 auth_token: Some("remote-bearer-token".to_string()),
             },
-            client_name: "codex-app-server-client-test".to_string(),
+            client_name: "ditfa-app-server-client-test".to_string(),
             client_version: "0.0.0-test".to_string(),
             experimental_api: true,
             mcp_server_openai_form_elicitation: false,
@@ -2201,14 +2201,14 @@ mod tests {
             loader_overrides: LoaderOverrides::default(),
             strict_config: false,
             cloud_config_bundle: CloudConfigBundleLoader::default(),
-            feedback: CodexFeedback::new(),
+            feedback: DitfaFeedback::new(),
             log_db: None,
             state_db: None,
             environment_manager: environment_manager.clone(),
             config_warnings: Vec::new(),
             session_source: SessionSource::Exec,
-            enable_codex_api_key_env: false,
-            client_name: "codex-app-server-client-test".to_string(),
+            enable_ditfa_api_key_env: false,
+            client_name: "ditfa-app-server-client-test".to_string(),
             client_version: "0.0.0-test".to_string(),
             experimental_api: true,
             mcp_server_openai_form_elicitation: true,
@@ -2250,14 +2250,14 @@ mod tests {
             loader_overrides: LoaderOverrides::default(),
             strict_config: false,
             cloud_config_bundle: CloudConfigBundleLoader::default(),
-            feedback: CodexFeedback::new(),
+            feedback: DitfaFeedback::new(),
             log_db: None,
             state_db: None,
             environment_manager: Arc::new(EnvironmentManager::default_for_tests()),
             config_warnings: Vec::new(),
             session_source: SessionSource::Exec,
-            enable_codex_api_key_env: false,
-            client_name: "codex-app-server-client-test".to_string(),
+            enable_ditfa_api_key_env: false,
+            client_name: "ditfa-app-server-client-test".to_string(),
             client_version: "0.0.0-test".to_string(),
             experimental_api: true,
             mcp_server_openai_form_elicitation: false,

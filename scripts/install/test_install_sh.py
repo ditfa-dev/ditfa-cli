@@ -24,15 +24,15 @@ class InstallShTest(unittest.TestCase):
         self.assertEqual(
             requests,
             [
-                "https://api.github.com/repos/openai/codex/releases/tags/"
+                "https://api.github.com/repos/Teamtem-dev/ditfa-code/releases/tags/"
                 f"rust-v{VERSION}"
             ],
         )
         self.assertIn(
-            f"Could not fetch GitHub release metadata for Codex {VERSION}",
+            f"Could not fetch GitHub release metadata for Ditfa Code {VERSION}",
             result.stderr,
         )
-        self.assertNotIn("Could not find Codex package", result.stderr)
+        self.assertNotIn("Could not find Ditfa Code package", result.stderr)
 
     def test_exact_release_opt_out_uses_github_metadata_once(self) -> None:
         result, requests = run_installer(VERSION, use_mirror=False)
@@ -41,10 +41,10 @@ class InstallShTest(unittest.TestCase):
         self.assertEqual(
             requests,
             [
-                "https://api.github.com/repos/openai/codex/releases/tags/"
+                "https://api.github.com/repos/Teamtem-dev/ditfa-code/releases/tags/"
                 f"rust-v{VERSION}",
-                "https://github.com/openai/codex/releases/download/"
-                f"rust-v{VERSION}/codex-package_SHA256SUMS",
+                "https://github.com/Teamtem-dev/ditfa-code/releases/download/"
+                f"rust-v{VERSION}/ditfa-package_SHA256SUMS",
             ],
         )
         self.assertIn(f"Resolved version: {VERSION}", result.stdout)
@@ -57,10 +57,10 @@ class InstallShTest(unittest.TestCase):
         self.assertEqual(
             requests,
             [
-                "https://api.github.com/repos/openai/codex/releases/tags/"
+                "https://api.github.com/repos/Teamtem-dev/ditfa-code/releases/tags/"
                 f"rust-v{version}",
-                "https://github.com/openai/codex/releases/download/"
-                f"rust-v{version}/codex-package_SHA256SUMS",
+                "https://github.com/Teamtem-dev/ditfa-code/releases/download/"
+                f"rust-v{version}/ditfa-package_SHA256SUMS",
             ],
         )
         self.assertIn(f"Resolved version: {version}", result.stdout)
@@ -72,9 +72,9 @@ class InstallShTest(unittest.TestCase):
         self.assertEqual(
             requests,
             [
-                "https://api.github.com/repos/openai/codex/releases/latest",
-                "https://github.com/openai/codex/releases/download/"
-                f"rust-v{VERSION}/codex-package_SHA256SUMS",
+                "https://api.github.com/repos/Teamtem-dev/ditfa-code/releases/latest",
+                "https://github.com/Teamtem-dev/ditfa-code/releases/download/"
+                f"rust-v{VERSION}/ditfa-package_SHA256SUMS",
             ],
         )
         self.assertIn(f"Resolved version: {VERSION}", result.stdout)
@@ -88,9 +88,9 @@ class InstallShTest(unittest.TestCase):
         self.assertEqual(
             requests,
             [
-                "https://api.github.com/repos/openai/codex/releases/latest",
-                "https://github.com/openai/codex/releases/download/"
-                f"rust-v{VERSION}/codex-package_SHA256SUMS",
+                "https://api.github.com/repos/Teamtem-dev/ditfa-code/releases/latest",
+                "https://github.com/Teamtem-dev/ditfa-code/releases/download/"
+                f"rust-v{VERSION}/ditfa-package_SHA256SUMS",
             ],
         )
         self.assertIn(f"Resolved version: {VERSION}", result.stdout)
@@ -102,10 +102,10 @@ class InstallShTest(unittest.TestCase):
 
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(len(requests), 2)
-        self.assertIn("/codex-npm-", requests[1])
-        self.assertNotIn("codex-package_SHA256SUMS", requests[1])
+        self.assertIn("/ditfa-npm-", requests[1])
+        self.assertNotIn("ditfa-package_SHA256SUMS", requests[1])
 
-    def test_macos_install_exposes_code_mode_host_beside_codex(self) -> None:
+    def test_macos_install_exposes_code_mode_host_beside_ditfa(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             archive_path, checksum_path, metadata_json = create_package_release(root)
@@ -121,13 +121,13 @@ class InstallShTest(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, result.stderr)
             install_bin = root / "install-bin"
-            current = root / "codex-home" / "packages" / "standalone" / "current"
-            codex_path = install_bin / "codex"
-            host_path = install_bin / "codex-code-mode-host"
-            self.assertEqual(os.readlink(codex_path), str(current / "bin" / "codex"))
+            current = root / "ditfa-home" / "packages" / "standalone" / "current"
+            ditfa_path = install_bin / "ditfa"
+            host_path = install_bin / "ditfa-code-mode-host"
+            self.assertEqual(os.readlink(ditfa_path), str(current / "bin" / "ditfa"))
             self.assertEqual(
                 os.readlink(host_path),
-                str(current / "bin" / "codex-code-mode-host"),
+                str(current / "bin" / "ditfa-code-mode-host"),
             )
             self.assertTrue(os.access(host_path, os.X_OK))
 
@@ -150,9 +150,9 @@ class InstallShTest(unittest.TestCase):
             self.assertEqual(
                 requests,
                 [
-                    "https://releases.openai.com/codex/channels/latest",
-                    f"https://releases.openai.com/codex/releases/{VERSION}/codex-package_SHA256SUMS",
-                    f"https://releases.openai.com/codex/releases/{VERSION}/codex-package-aarch64-apple-darwin.tar.gz",
+                    "https://github.com/Teamtem-dev/ditfa-code/releases/channels/latest",
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{VERSION}/ditfa-package_SHA256SUMS",
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{VERSION}/ditfa-package-aarch64-apple-darwin.tar.gz",
                 ],
             )
 
@@ -170,11 +170,11 @@ class InstallShTest(unittest.TestCase):
                     "tag_name": f"rust-v{VERSION}",
                     "assets": [
                         {
-                            "name": "codex-package-aarch64-apple-darwin.tar.gz",
+                            "name": "ditfa-package-aarch64-apple-darwin.tar.gz",
                             "digest": "sha256:" + "a" * 64,
                         },
                         {
-                            "name": "codex-package_SHA256SUMS",
+                            "name": "ditfa-package_SHA256SUMS",
                             "digest": "sha256:" + "z" * 64,
                         },
                     ],
@@ -206,12 +206,12 @@ class InstallShTest(unittest.TestCase):
                     self.assertEqual(
                         requests,
                         [
-                            "https://releases.openai.com/codex/channels/latest",
-                            "https://api.github.com/repos/openai/codex/releases/latest",
-                            "https://github.com/openai/codex/releases/download/"
-                            f"rust-v{VERSION}/codex-package_SHA256SUMS",
-                            "https://github.com/openai/codex/releases/download/"
-                            f"rust-v{VERSION}/codex-package-aarch64-apple-darwin.tar.gz",
+                            "https://github.com/Teamtem-dev/ditfa-code/releases/channels/latest",
+                            "https://api.github.com/repos/Teamtem-dev/ditfa-code/releases/latest",
+                            "https://github.com/Teamtem-dev/ditfa-code/releases/download/"
+                            f"rust-v{VERSION}/ditfa-package_SHA256SUMS",
+                            "https://github.com/Teamtem-dev/ditfa-code/releases/download/"
+                            f"rust-v{VERSION}/ditfa-package-aarch64-apple-darwin.tar.gz",
                         ],
                     )
                     self.assertIn("falling back to GitHub Releases", result.stderr)
@@ -240,13 +240,13 @@ class InstallShTest(unittest.TestCase):
             self.assertEqual(
                 requests,
                 [
-                    f"https://releases.openai.com/codex/releases/{VERSION}/release.json",
-                    "https://api.github.com/repos/openai/codex/releases/tags/"
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{VERSION}/release.json",
+                    "https://api.github.com/repos/Teamtem-dev/ditfa-code/releases/tags/"
                     f"rust-v{VERSION}",
-                    "https://github.com/openai/codex/releases/download/"
-                    f"rust-v{VERSION}/codex-package_SHA256SUMS",
-                    "https://github.com/openai/codex/releases/download/"
-                    f"rust-v{VERSION}/codex-package-aarch64-apple-darwin.tar.gz",
+                    "https://github.com/Teamtem-dev/ditfa-code/releases/download/"
+                    f"rust-v{VERSION}/ditfa-package_SHA256SUMS",
+                    "https://github.com/Teamtem-dev/ditfa-code/releases/download/"
+                    f"rust-v{VERSION}/ditfa-package-aarch64-apple-darwin.tar.gz",
                 ],
             )
             self.assertIn("falling back to GitHub Releases", result.stderr)
@@ -271,13 +271,13 @@ class InstallShTest(unittest.TestCase):
             self.assertEqual(
                 requests,
                 [
-                    "https://releases.openai.com/codex/channels/latest",
-                    f"https://releases.openai.com/codex/releases/{VERSION}/codex-package_SHA256SUMS",
-                    "https://github.com/openai/codex/releases/download/"
-                    f"rust-v{VERSION}/codex-package_SHA256SUMS",
-                    f"https://releases.openai.com/codex/releases/{VERSION}/codex-package-aarch64-apple-darwin.tar.gz",
-                    "https://github.com/openai/codex/releases/download/"
-                    f"rust-v{VERSION}/codex-package-aarch64-apple-darwin.tar.gz",
+                    "https://github.com/Teamtem-dev/ditfa-code/releases/channels/latest",
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{VERSION}/ditfa-package_SHA256SUMS",
+                    "https://github.com/Teamtem-dev/ditfa-code/releases/download/"
+                    f"rust-v{VERSION}/ditfa-package_SHA256SUMS",
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{VERSION}/ditfa-package-aarch64-apple-darwin.tar.gz",
+                    "https://github.com/Teamtem-dev/ditfa-code/releases/download/"
+                    f"rust-v{VERSION}/ditfa-package-aarch64-apple-darwin.tar.gz",
                 ],
             )
             self.assertIn("retrying from GitHub Releases", result.stderr)
@@ -302,13 +302,13 @@ class InstallShTest(unittest.TestCase):
             self.assertEqual(
                 requests,
                 [
-                    "https://releases.openai.com/codex/channels/latest",
-                    f"https://releases.openai.com/codex/releases/{VERSION}/codex-package_SHA256SUMS",
-                    "https://github.com/openai/codex/releases/download/"
-                    f"rust-v{VERSION}/codex-package_SHA256SUMS",
-                    f"https://releases.openai.com/codex/releases/{VERSION}/codex-package-aarch64-apple-darwin.tar.gz",
-                    "https://github.com/openai/codex/releases/download/"
-                    f"rust-v{VERSION}/codex-package-aarch64-apple-darwin.tar.gz",
+                    "https://github.com/Teamtem-dev/ditfa-code/releases/channels/latest",
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{VERSION}/ditfa-package_SHA256SUMS",
+                    "https://github.com/Teamtem-dev/ditfa-code/releases/download/"
+                    f"rust-v{VERSION}/ditfa-package_SHA256SUMS",
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{VERSION}/ditfa-package-aarch64-apple-darwin.tar.gz",
+                    "https://github.com/Teamtem-dev/ditfa-code/releases/download/"
+                    f"rust-v{VERSION}/ditfa-package-aarch64-apple-darwin.tar.gz",
                 ],
             )
             self.assertIn("checksum did not match expected digest", result.stderr)
@@ -320,7 +320,7 @@ class InstallShTest(unittest.TestCase):
             archive_path, checksum_path, metadata_json = create_package_release(root)
             mirror_metadata = json.loads(metadata_json)
             for release_asset in mirror_metadata["assets"]:
-                if release_asset["name"] == "codex-package_SHA256SUMS":
+                if release_asset["name"] == "ditfa-package_SHA256SUMS":
                     release_asset["digest"] = "sha256:" + "0" * 64
 
             result, requests = run_installer_in(
@@ -338,13 +338,13 @@ class InstallShTest(unittest.TestCase):
             self.assertEqual(
                 requests,
                 [
-                    "https://releases.openai.com/codex/channels/latest",
-                    f"https://releases.openai.com/codex/releases/{VERSION}/codex-package_SHA256SUMS",
-                    "https://github.com/openai/codex/releases/download/"
-                    f"rust-v{VERSION}/codex-package_SHA256SUMS",
-                    "https://api.github.com/repos/openai/codex/releases/tags/"
+                    "https://github.com/Teamtem-dev/ditfa-code/releases/channels/latest",
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{VERSION}/ditfa-package_SHA256SUMS",
+                    "https://github.com/Teamtem-dev/ditfa-code/releases/download/"
+                    f"rust-v{VERSION}/ditfa-package_SHA256SUMS",
+                    "https://api.github.com/repos/Teamtem-dev/ditfa-code/releases/tags/"
                     f"rust-v{VERSION}",
-                    f"https://releases.openai.com/codex/releases/{VERSION}/codex-package-aarch64-apple-darwin.tar.gz",
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{VERSION}/ditfa-package-aarch64-apple-darwin.tar.gz",
                 ],
             )
             self.assertIn("checksum did not match expected digest", result.stderr)
@@ -355,12 +355,12 @@ class InstallShTest(unittest.TestCase):
             archive_path, checksum_path, metadata_json = create_package_release(root)
             mirror_checksum_path = root / "mirror-SHA256SUMS"
             mirror_checksum_path.write_text(
-                f"{'a' * 64}  codex-package-other-platform.tar.gz\n",
+                f"{'a' * 64}  ditfa-package-other-platform.tar.gz\n",
                 encoding="utf-8",
             )
             mirror_metadata = json.loads(metadata_json)
             for release_asset in mirror_metadata["assets"]:
-                if release_asset["name"] == "codex-package_SHA256SUMS":
+                if release_asset["name"] == "ditfa-package_SHA256SUMS":
                     release_asset["digest"] = (
                         "sha256:"
                         + hashlib.sha256(mirror_checksum_path.read_bytes()).hexdigest()
@@ -382,13 +382,13 @@ class InstallShTest(unittest.TestCase):
             self.assertEqual(
                 requests,
                 [
-                    "https://releases.openai.com/codex/channels/latest",
-                    f"https://releases.openai.com/codex/releases/{VERSION}/codex-package_SHA256SUMS",
-                    "https://github.com/openai/codex/releases/download/"
-                    f"rust-v{VERSION}/codex-package_SHA256SUMS",
-                    "https://api.github.com/repos/openai/codex/releases/tags/"
+                    "https://github.com/Teamtem-dev/ditfa-code/releases/channels/latest",
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{VERSION}/ditfa-package_SHA256SUMS",
+                    "https://github.com/Teamtem-dev/ditfa-code/releases/download/"
+                    f"rust-v{VERSION}/ditfa-package_SHA256SUMS",
+                    "https://api.github.com/repos/Teamtem-dev/ditfa-code/releases/tags/"
                     f"rust-v{VERSION}",
-                    f"https://releases.openai.com/codex/releases/{VERSION}/codex-package-aarch64-apple-darwin.tar.gz",
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{VERSION}/ditfa-package-aarch64-apple-darwin.tar.gz",
                 ],
             )
             self.assertIn("retrying from GitHub Releases", result.stderr)
@@ -413,11 +413,11 @@ class InstallShTest(unittest.TestCase):
             self.assertEqual(
                 requests,
                 [
-                    "https://releases.openai.com/codex/channels/latest",
-                    f"https://releases.openai.com/codex/releases/{VERSION}/codex-package_SHA256SUMS",
-                    "https://github.com/openai/codex/releases/download/"
-                    f"rust-v{VERSION}/codex-package_SHA256SUMS",
-                    "https://api.github.com/repos/openai/codex/releases/tags/"
+                    "https://github.com/Teamtem-dev/ditfa-code/releases/channels/latest",
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{VERSION}/ditfa-package_SHA256SUMS",
+                    "https://github.com/Teamtem-dev/ditfa-code/releases/download/"
+                    f"rust-v{VERSION}/ditfa-package_SHA256SUMS",
+                    "https://api.github.com/repos/Teamtem-dev/ditfa-code/releases/tags/"
                     f"rust-v{VERSION}",
                 ],
             )
@@ -445,9 +445,9 @@ class InstallShTest(unittest.TestCase):
             self.assertEqual(
                 requests,
                 [
-                    f"https://releases.openai.com/codex/releases/{MISMATCH_VERSION}/release.json",
-                    f"https://releases.openai.com/codex/releases/{MISMATCH_VERSION}/codex-package_SHA256SUMS",
-                    f"https://releases.openai.com/codex/releases/{MISMATCH_VERSION}/codex-package-aarch64-apple-darwin.tar.gz",
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{MISMATCH_VERSION}/release.json",
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{MISMATCH_VERSION}/ditfa-package_SHA256SUMS",
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{MISMATCH_VERSION}/ditfa-package-aarch64-apple-darwin.tar.gz",
                 ],
             )
             self.assertIn(
@@ -475,11 +475,11 @@ class InstallShTest(unittest.TestCase):
             self.assertEqual(
                 first_requests,
                 [
-                    f"https://releases.openai.com/codex/releases/{VERSION}/release.json",
-                    "https://api.github.com/repos/openai/codex/releases/tags/"
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{VERSION}/release.json",
+                    "https://api.github.com/repos/Teamtem-dev/ditfa-code/releases/tags/"
                     f"rust-v{VERSION}",
-                    "https://github.com/openai/codex/releases/download/"
-                    f"rust-v{VERSION}/codex-npm-darwin-arm64-{VERSION}.tgz",
+                    "https://github.com/Teamtem-dev/ditfa-code/releases/download/"
+                    f"rust-v{VERSION}/ditfa-npm-darwin-arm64-{VERSION}.tgz",
                 ],
             )
 
@@ -497,12 +497,12 @@ class InstallShTest(unittest.TestCase):
             self.assertEqual(
                 second_requests,
                 [
-                    f"https://releases.openai.com/codex/releases/{VERSION}/release.json",
-                    "https://api.github.com/repos/openai/codex/releases/tags/"
+                    f"https://github.com/Teamtem-dev/ditfa-code/releases/releases/{VERSION}/release.json",
+                    "https://api.github.com/repos/Teamtem-dev/ditfa-code/releases/tags/"
                     f"rust-v{VERSION}",
                 ],
             )
-            self.assertNotIn("Downloading Codex CLI", second_result.stdout)
+            self.assertNotIn("Downloading Ditfa Code CLI", second_result.stdout)
 
 
 def run_installer(
@@ -557,72 +557,72 @@ def run_installer_in(
               fi
               previous="$arg"
             done
-            printf '%s\n' "$url" >>"$CODEX_TEST_REQUEST_LOG"
+            printf '%s\n' "$url" >>"$DITFA_TEST_REQUEST_LOG"
 
             case "$url" in
               https://api.github.com/*)
-                if [ "$CODEX_TEST_METADATA_FAILURE" = "1" ]; then
+                if [ "$DITFA_TEST_METADATA_FAILURE" = "1" ]; then
                   echo "curl: (22) The requested URL returned error: 403" >&2
                   exit 22
                 fi
-                printf '%s\n' "$CODEX_TEST_METADATA_JSON"
+                printf '%s\n' "$DITFA_TEST_METADATA_JSON"
                 ;;
-              https://releases.openai.com/codex/channels/latest|https://releases.openai.com/codex/releases/*/release.json)
-                if [ "$CODEX_TEST_RELEASES_MODE" = "channel_failure" ]; then
+              https://github.com/Teamtem-dev/ditfa-code/releases/channels/latest|https://github.com/Teamtem-dev/ditfa-code/releases/releases/*/release.json)
+                if [ "$DITFA_TEST_RELEASES_MODE" = "channel_failure" ]; then
                   exit 22
                 fi
-                printf '%s\n' "$CODEX_TEST_RELEASES_METADATA_JSON"
+                printf '%s\n' "$DITFA_TEST_RELEASES_METADATA_JSON"
                 ;;
-              https://releases.openai.com/codex/releases/*/codex-package_SHA256SUMS)
-                if [ "$CODEX_TEST_RELEASES_MODE" = "asset_fallback" ]; then
+              https://github.com/Teamtem-dev/ditfa-code/releases/releases/*/ditfa-package_SHA256SUMS)
+                if [ "$DITFA_TEST_RELEASES_MODE" = "asset_fallback" ]; then
                   exit 22
                 fi
-                if [ "$CODEX_TEST_RELEASES_MODE" = "corrupt_assets" ] ||
-                  [ "$CODEX_TEST_RELEASES_MODE" = "corrupt_checksum_and_github" ]; then
+                if [ "$DITFA_TEST_RELEASES_MODE" = "corrupt_assets" ] ||
+                  [ "$DITFA_TEST_RELEASES_MODE" = "corrupt_checksum_and_github" ]; then
                   printf '<html>proxy error</html>\n' >"$output"
                   exit 0
                 fi
-                if [ -n "$CODEX_TEST_RELEASES_CHECKSUM_PATH" ]; then
-                  cp "$CODEX_TEST_RELEASES_CHECKSUM_PATH" "$output"
+                if [ -n "$DITFA_TEST_RELEASES_CHECKSUM_PATH" ]; then
+                  cp "$DITFA_TEST_RELEASES_CHECKSUM_PATH" "$output"
                 else
                   exit 22
                 fi
                 ;;
-              https://releases.openai.com/codex/releases/*/codex-package-*.tar.gz)
-                if [ "$CODEX_TEST_RELEASES_MODE" = "asset_fallback" ]; then
+              https://github.com/Teamtem-dev/ditfa-code/releases/releases/*/ditfa-package-*.tar.gz)
+                if [ "$DITFA_TEST_RELEASES_MODE" = "asset_fallback" ]; then
                   exit 22
                 fi
-                if [ "$CODEX_TEST_RELEASES_MODE" = "corrupt_assets" ]; then
+                if [ "$DITFA_TEST_RELEASES_MODE" = "corrupt_assets" ]; then
                   printf '<html>proxy error</html>\n' >"$output"
                   exit 0
                 fi
-                if [ -n "$CODEX_TEST_ARCHIVE_PATH" ]; then
-                  cp "$CODEX_TEST_ARCHIVE_PATH" "$output"
+                if [ -n "$DITFA_TEST_ARCHIVE_PATH" ]; then
+                  cp "$DITFA_TEST_ARCHIVE_PATH" "$output"
                 else
                   exit 22
                 fi
                 ;;
-              https://github.com/openai/codex/releases/download/*/codex-package_SHA256SUMS)
-                if [ "$CODEX_TEST_RELEASES_MODE" = "corrupt_checksum_and_github" ]; then
+              https://github.com/Teamtem-dev/ditfa-code/releases/download/*/ditfa-package_SHA256SUMS)
+                if [ "$DITFA_TEST_RELEASES_MODE" = "corrupt_checksum_and_github" ]; then
                   printf '<html>proxy error</html>\n' >"$output"
                   exit 0
                 fi
-                if [ -n "$CODEX_TEST_CHECKSUM_PATH" ]; then
-                  cp "$CODEX_TEST_CHECKSUM_PATH" "$output"
+                if [ -n "$DITFA_TEST_CHECKSUM_PATH" ]; then
+                  cp "$DITFA_TEST_CHECKSUM_PATH" "$output"
                 else
                   exit 22
                 fi
                 ;;
-              https://github.com/openai/codex/releases/download/*/codex-package-*.tar.gz)
-                if [ -n "$CODEX_TEST_ARCHIVE_PATH" ]; then
-                  cp "$CODEX_TEST_ARCHIVE_PATH" "$output"
+              https://github.com/Teamtem-dev/ditfa-code/releases/download/*/ditfa-package-*.tar.gz)
+                if [ -n "$DITFA_TEST_ARCHIVE_PATH" ]; then
+                  cp "$DITFA_TEST_ARCHIVE_PATH" "$output"
                 else
                   exit 22
                 fi
                 ;;
-              https://github.com/openai/codex/releases/download/*/codex-npm-*.tgz)
-                if [ -n "$CODEX_TEST_LEGACY_ARCHIVE_PATH" ]; then
-                  cp "$CODEX_TEST_LEGACY_ARCHIVE_PATH" "$output"
+              https://github.com/Teamtem-dev/ditfa-code/releases/download/*/ditfa-npm-*.tgz)
+                if [ -n "$DITFA_TEST_LEGACY_ARCHIVE_PATH" ]; then
+                  cp "$DITFA_TEST_LEGACY_ARCHIVE_PATH" "$output"
                 else
                   exit 22
                 fi
@@ -653,38 +653,38 @@ def run_installer_in(
     env = os.environ.copy()
     env.update(
         {
-            "CODEX_HOME": str(root / "codex-home"),
-            "CODEX_INSTALL_DIR": str(root / "install-bin"),
-            "CODEX_NON_INTERACTIVE": "1",
-            "CODEX_RELEASE": release,
-            "CODEX_TEST_ARCHIVE_PATH": str(archive_path or ""),
-            "CODEX_TEST_CHECKSUM_PATH": str(checksum_path or ""),
-            "CODEX_TEST_RELEASES_CHECKSUM_PATH": str(
+            "DITFA_HOME": str(root / "ditfa-home"),
+            "DITFA_INSTALL_DIR": str(root / "install-bin"),
+            "DITFA_NON_INTERACTIVE": "1",
+            "DITFA_RELEASE": release,
+            "DITFA_TEST_ARCHIVE_PATH": str(archive_path or ""),
+            "DITFA_TEST_CHECKSUM_PATH": str(checksum_path or ""),
+            "DITFA_TEST_RELEASES_CHECKSUM_PATH": str(
                 releases_checksum_path or checksum_path or ""
             ),
-            "CODEX_TEST_LEGACY_ARCHIVE_PATH": str(legacy_archive_path or ""),
-            "CODEX_TEST_METADATA_FAILURE": "1" if metadata_failure else "0",
-            "CODEX_TEST_METADATA_JSON": (
+            "DITFA_TEST_LEGACY_ARCHIVE_PATH": str(legacy_archive_path or ""),
+            "DITFA_TEST_METADATA_FAILURE": "1" if metadata_failure else "0",
+            "DITFA_TEST_METADATA_JSON": (
                 metadata_json if metadata_json is not None else release_metadata()
             ),
-            "CODEX_TEST_RELEASES_METADATA_JSON": (
+            "DITFA_TEST_RELEASES_METADATA_JSON": (
                 releases_metadata_json
                 if releases_metadata_json is not None
                 else metadata_json
                 if metadata_json is not None
                 else release_metadata()
             ),
-            "CODEX_TEST_RELEASES_MODE": releases_mode,
-            "CODEX_TEST_REQUEST_LOG": str(request_log),
+            "DITFA_TEST_RELEASES_MODE": releases_mode,
+            "DITFA_TEST_REQUEST_LOG": str(request_log),
             "HOME": str(home),
             "PATH": f"{bin_dir}:/usr/bin:/bin",
             "SHELL": "/bin/sh",
         }
     )
     if use_mirror is None:
-        env.pop("CODEX_INSTALLER_USE_RELEASES_OPENAI_COM", None)
+        env.pop("DITFA_INSTALLER_USE_RELEASES_OPENAI_COM", None)
     else:
-        env["CODEX_INSTALLER_USE_RELEASES_OPENAI_COM"] = (
+        env["DITFA_INSTALLER_USE_RELEASES_OPENAI_COM"] = (
             "TRUE" if use_mirror else "false"
         )
     result = subprocess.run(
@@ -709,26 +709,26 @@ def create_package_release(
 ) -> tuple[Path, Path, str]:
     package_dir = root / "package"
     (package_dir / "bin").mkdir(parents=True)
-    (package_dir / "codex-path").mkdir()
-    (package_dir / "codex-package.json").write_text("{}\n", encoding="utf-8")
+    (package_dir / "ditfa-path").mkdir()
+    (package_dir / "ditfa-package.json").write_text("{}\n", encoding="utf-8")
     write_executable(
-        package_dir / "bin" / "codex",
-        f"#!/bin/sh\nprintf 'codex-cli {VERSION}\\n'\n",
+        package_dir / "bin" / "ditfa",
+        f"#!/bin/sh\nprintf 'ditfa-cli {VERSION}\\n'\n",
     )
     write_executable(
-        package_dir / "bin" / "codex-code-mode-host",
+        package_dir / "bin" / "ditfa-code-mode-host",
         "#!/bin/sh\nexit 0\n",
     )
-    write_executable(package_dir / "codex-path" / "rg", "#!/bin/sh\nexit 0\n")
+    write_executable(package_dir / "ditfa-path" / "rg", "#!/bin/sh\nexit 0\n")
 
-    asset = "codex-package-aarch64-apple-darwin.tar.gz"
+    asset = "ditfa-package-aarch64-apple-darwin.tar.gz"
     archive_path = root / asset
     with tarfile.open(archive_path, "w:gz") as archive:
         for path in package_dir.iterdir():
             archive.add(path, arcname=path.name)
 
     archive_digest = hashlib.sha256(archive_path.read_bytes()).hexdigest()
-    checksum_path = root / "codex-package_SHA256SUMS"
+    checksum_path = root / "ditfa-package_SHA256SUMS"
     checksum_path.write_text(f"{archive_digest}  {asset}\n", encoding="utf-8")
     checksum_digest = hashlib.sha256(checksum_path.read_bytes()).hexdigest()
     metadata_json = json.dumps(
@@ -736,7 +736,7 @@ def create_package_release(
             "assets": [
                 {"name": asset, "digest": f"sha256:{archive_digest}"},
                 {
-                    "name": "codex-package_SHA256SUMS",
+                    "name": "ditfa-package_SHA256SUMS",
                     "digest": f"sha256:{checksum_digest}",
                 },
             ],
@@ -750,15 +750,15 @@ def create_package_release(
 def create_legacy_release(root: Path) -> tuple[Path, str]:
     package_dir = root / "legacy-package"
     vendor_dir = package_dir / "package" / "vendor" / "aarch64-apple-darwin"
-    (vendor_dir / "codex").mkdir(parents=True)
+    (vendor_dir / "ditfa").mkdir(parents=True)
     (vendor_dir / "path").mkdir()
     write_executable(
-        vendor_dir / "codex" / "codex",
-        f"#!/bin/sh\nprintf 'codex-cli {VERSION}\\n'\n",
+        vendor_dir / "ditfa" / "ditfa",
+        f"#!/bin/sh\nprintf 'ditfa-cli {VERSION}\\n'\n",
     )
     write_executable(vendor_dir / "path" / "rg", "#!/bin/sh\nexit 0\n")
 
-    asset = f"codex-npm-darwin-arm64-{VERSION}.tgz"
+    asset = f"ditfa-npm-darwin-arm64-{VERSION}.tgz"
     archive_path = root / asset
     with tarfile.open(archive_path, "w:gz") as archive:
         archive.add(package_dir / "package", arcname="package")
@@ -782,7 +782,7 @@ def write_executable(path: Path, contents: str) -> None:
 def release_metadata(*, compact: bool = False, reorder: bool = False) -> str:
     assets = [
         asset_metadata(
-            f"codex-package-{target}.tar.gz",
+            f"ditfa-package-{target}.tar.gz",
             f"sha256:{'a' * 64}",
             reorder=reorder,
         )
@@ -795,7 +795,7 @@ def release_metadata(*, compact: bool = False, reorder: bool = False) -> str:
     ]
     assets.append(
         asset_metadata(
-            "codex-package_SHA256SUMS",
+            "ditfa-package_SHA256SUMS",
             f"sha256:{'b' * 64}",
             reorder=reorder,
         )
@@ -819,18 +819,18 @@ def legacy_release_metadata_with_decoys() -> str:
     assets = [
         {
             "metadata": {
-                "name": "codex-package-x86_64-unknown-linux-musl.tar.gz",
+                "name": "ditfa-package-x86_64-unknown-linux-musl.tar.gz",
                 "digest": fake_digest,
             },
             "digest": f"sha256:{'c' * 64}",
-            "name": f"codex-npm-{target}-{VERSION}.tgz",
+            "name": f"ditfa-npm-{target}-{VERSION}.tgz",
         }
         for target in ("darwin-arm64", "darwin-x64", "linux-arm64", "linux-x64")
     ]
     return json.dumps(
         {
             "body": (
-                f'fake: {{"name":"codex-package_SHA256SUMS","digest":"{fake_digest}"}}'
+                f'fake: {{"name":"ditfa-package_SHA256SUMS","digest":"{fake_digest}"}}'
             ),
             "assets": assets,
             "tag_name": f"rust-v{VERSION}",

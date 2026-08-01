@@ -91,7 +91,7 @@ pub struct RuntimeDbPath {
     pub path: PathBuf,
 }
 
-/// Resolved configuration shared by all Codex SQLite connections.
+/// Resolved configuration shared by all Ditfa SQLite connections.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SqliteConfig {
     sqlite_home: AbsolutePathBuf,
@@ -240,7 +240,7 @@ impl SqliteConfig {
         Ok(pool)
     }
 
-    /// Open a writable Codex SQLite database, creating it if necessary.
+    /// Open a writable Ditfa SQLite database, creating it if necessary.
     pub async fn open_read_write_pool(&self, path: &Path) -> Result<SqlitePool, Error> {
         let options = SqliteConnectOptions::new()
             .filename(path)
@@ -256,7 +256,7 @@ impl SqliteConfig {
             .await
     }
 
-    /// Open an existing Codex SQLite database without creating or modifying it.
+    /// Open an existing Ditfa SQLite database without creating or modifying it.
     pub async fn open_read_only_pool(&self, path: &Path) -> Result<SqlitePool, Error> {
         let options = SqliteConnectOptions::new()
             .filename(path)

@@ -5,7 +5,7 @@ use crate::metrics::MEMORY_STARTUP;
 use crate::phase1;
 use crate::phase2;
 use crate::runtime::MemoryStartupContext;
-use ditfa_core::CodexThread;
+use ditfa_core::DitfaThread;
 use ditfa_core::ThreadManager;
 use ditfa_core::config::Config;
 use ditfa_features::Feature;
@@ -24,7 +24,7 @@ pub fn start_memories_startup_task(
     thread_manager: Arc<ThreadManager>,
     auth_manager: Arc<AuthManager>,
     thread_id: ThreadId,
-    thread: Arc<CodexThread>,
+    thread: Arc<DitfaThread>,
     config: Arc<Config>,
     parent_permission_profile: PermissionProfile,
     source: &SessionSource,

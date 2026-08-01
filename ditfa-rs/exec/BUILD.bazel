@@ -1,8 +1,8 @@
-load("//:defs.bzl", "codex_rust_crate")
+load("//:defs.bzl", "ditfa_rust_crate")
 
-codex_rust_crate(
+ditfa_rust_crate(
     name = "exec",
-    crate_name = "codex_exec",
+    crate_name = "ditfa_exec",
     test_shard_counts = {
         "exec-all-test": 8,
     },

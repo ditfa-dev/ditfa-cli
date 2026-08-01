@@ -51,7 +51,7 @@ pub(in crate::reducer) struct ObservedAgentResultEdge {
     pub(in crate::reducer) wall_time_unix_ms: i64,
     pub(in crate::reducer) edge_id: String,
     pub(in crate::reducer) child_thread_id: String,
-    pub(in crate::reducer) child_codex_turn_id: String,
+    pub(in crate::reducer) child_ditfa_turn_id: String,
     pub(in crate::reducer) parent_thread_id: String,
     pub(in crate::reducer) message: String,
     pub(in crate::reducer) carried_payload: Option<RawPayloadRef>,
@@ -479,7 +479,7 @@ impl TraceReducer {
         let message_author = self.agent_path_for_thread(&observed.child_thread_id)?;
         let source = if let Some(source_item_id) = self.latest_assistant_message_item_for_turn(
             &observed.child_thread_id,
-            &observed.child_codex_turn_id,
+            &observed.child_ditfa_turn_id,
         ) {
             TraceAnchor::ConversationItem {
                 item_id: source_item_id,

@@ -6,7 +6,7 @@ use crate::outgoing_message::OutgoingMessage;
 use crate::outgoing_message::QueuedOutgoingMessage;
 use ditfa_app_server_protocol::JSONRPCErrorError;
 use ditfa_app_server_protocol::JSONRPCMessage;
-use ditfa_core::config::find_codex_home;
+use ditfa_core::config::find_ditfa_home;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
 use std::net::SocketAddr;
 use std::path::Path;
@@ -118,7 +118,7 @@ impl AppServerTransport {
 
         if let Some(raw_socket_path) = listen_url.strip_prefix("unix://") {
             let socket_path = if raw_socket_path.is_empty() {
-                let ditfa_home = find_codex_home().map_err(|err| {
+                let ditfa_home = find_ditfa_home().map_err(|err| {
                     AppServerTransportParseError::InvalidUnixSocketPath {
                         listen_url: listen_url.to_string(),
                         message: format!("failed to resolve DITFA_HOME: {err}"),

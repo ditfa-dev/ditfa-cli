@@ -35,7 +35,7 @@ use ditfa_protocol::ThreadId;
 use ditfa_protocol::config_types::CollaborationMode;
 use ditfa_protocol::config_types::ModeKind;
 use ditfa_protocol::config_types::Settings;
-use ditfa_protocol::protocol::CodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::Event;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::SessionSource;
@@ -520,7 +520,7 @@ async fn turn_error_usage_limit_accounts_progress_and_clears_accounting() -> any
         )
         .await;
     harness
-        .notify_turn_error("turn-1", CodexErrorInfo::UsageLimitExceeded)
+        .notify_turn_error("turn-1", DitfaErrorInfo::UsageLimitExceeded)
         .await;
 
     let goal = runtime
@@ -591,7 +591,7 @@ async fn turn_error_blocks_goal() -> anyhow::Result<()> {
         .await?;
 
     harness
-        .notify_turn_error("turn-1", CodexErrorInfo::Other)
+        .notify_turn_error("turn-1", DitfaErrorInfo::Other)
         .await;
 
     let goal = runtime
@@ -1307,7 +1307,7 @@ impl GoalExtensionHarness {
         }
     }
 
-    async fn notify_turn_error(&self, turn_id: &str, error: CodexErrorInfo) {
+    async fn notify_turn_error(&self, turn_id: &str, error: DitfaErrorInfo) {
         let turn_store = ExtensionData::new(turn_id);
         for contributor in self.registry.turn_lifecycle_contributors() {
             contributor

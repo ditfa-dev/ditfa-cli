@@ -81,7 +81,7 @@ use crate::version::DITFA_CLI_VERSION;
 use ditfa_app_server_protocol::AddCreditsNudgeCreditType;
 use ditfa_app_server_protocol::AddCreditsNudgeEmailStatus;
 use ditfa_app_server_protocol::AppSummary;
-use ditfa_app_server_protocol::CodexErrorInfo as AppServerCodexErrorInfo;
+use ditfa_app_server_protocol::DitfaErrorInfo as AppServerDitfaErrorInfo;
 use ditfa_app_server_protocol::CollabAgentTool;
 use ditfa_app_server_protocol::CollabAgentToolCallStatus;
 use ditfa_app_server_protocol::CommandExecutionRequestApprovalParams;
@@ -494,9 +494,9 @@ pub(crate) struct ChatWidgetInit {
     pub(crate) initial_user_message: Option<UserMessage>,
     pub(crate) enhanced_keys_supported: bool,
     pub(crate) has_chatgpt_account: bool,
-    pub(crate) has_codex_backend_auth: bool,
+    pub(crate) has_ditfa_backend_auth: bool,
     pub(crate) model_catalog: Arc<ModelCatalog>,
-    pub(crate) feedback: ditfa_feedback::CodexFeedback,
+    pub(crate) feedback: ditfa_feedback::DitfaFeedback,
     pub(crate) is_first_run: bool,
     pub(crate) status_account_display: Option<StatusAccountDisplay>,
     pub(crate) runtime_model_provider_base_url: Option<String>,
@@ -525,14 +525,14 @@ pub(crate) enum ExternalEditorState {
 /// intent (`Op` submissions and `AppEvent` requests).
 ///
 /// It is not responsible for running the agent itself; it reflects progress by updating UI state
-/// and by sending requests back to codex-core.
+/// and by sending requests back to ditfa-core.
 ///
 /// Quit/interrupt behavior intentionally spans layers: the bottom pane owns local input routing
 /// (which view gets Ctrl+C), while `ChatWidget` owns process-level decisions such as interrupting
 /// active work, arming the double-press quit shortcut, and requesting shutdown-first exit.
 pub(crate) struct ChatWidget {
     app_event_tx: AppEventSender,
-    ditfa_op_target: CodexOpTarget,
+    ditfa_op_target: DitfaOpTarget,
     bottom_pane: BottomPane,
     transcript: TranscriptState,
     config: Config,
@@ -546,7 +546,7 @@ pub(crate) struct ChatWidget {
     /// The currently active collaboration mask, if any.
     active_collaboration_mask: Option<CollaborationModeMask>,
     has_chatgpt_account: bool,
-    has_codex_backend_auth: bool,
+    has_ditfa_backend_auth: bool,
     model_catalog: Arc<ModelCatalog>,
     session_telemetry: SessionTelemetry,
     session_header: SessionHeader,
@@ -694,7 +694,7 @@ pub(crate) struct ChatWidget {
     turn_runtime_metrics: RuntimeMetricsSummary,
     last_rendered_width: std::cell::Cell<Option<usize>>,
     // Feedback sink for /feedback
-    feedback: ditfa_feedback::CodexFeedback,
+    feedback: ditfa_feedback::DitfaFeedback,
     // Current session rollout path (if known)
     current_rollout_path: Option<PathBuf>,
     // Current working directory (if known)
@@ -760,7 +760,7 @@ pub(crate) struct ChatWidget {
 }
 
 #[cfg_attr(not(test), allow(dead_code))]
-enum CodexOpTarget {
+enum DitfaOpTarget {
     Direct(UnboundedSender<AppCommand>),
     AppEvent,
 }
@@ -1021,7 +1021,7 @@ impl ChatWidget {
         let snapshot = self.feedback.snapshot(self.thread_id);
         #[cfg(target_os = "windows")]
         let include_windows_sandbox_log =
-            ditfa_windows_sandbox::current_log_file_path_for_codex_home(&self.config.ditfa_home)
+            ditfa_windows_sandbox::current_log_file_path_for_ditfa_home(&self.config.ditfa_home)
                 .is_file();
         #[cfg(not(target_os = "windows"))]
         let include_windows_sandbox_log = false;
@@ -1726,7 +1726,7 @@ impl ChatWidget {
         ));
     }
 
-    /// Forward a command directly to codex.
+    /// Forward a command directly to ditfa.
     pub(crate) fn submit_op<T>(&mut self, op: T) -> bool
     where
         T: Into<AppCommand>,
@@ -1746,15 +1746,15 @@ impl ChatWidget {
             self.bottom_pane.set_task_running(/*running*/ true);
         }
         match &self.ditfa_op_target {
-            CodexOpTarget::Direct(ditfa_op_tx) => {
+            DitfaOpTarget::Direct(ditfa_op_tx) => {
                 crate::session_log::log_outbound_op(&op);
                 if let Err(e) = ditfa_op_tx.send(op) {
                     tracing::error!("failed to submit op: {e}");
                     return false;
                 }
             }
-            CodexOpTarget::AppEvent => {
-                self.app_event_tx.send(AppEvent::CodexOp(op));
+            DitfaOpTarget::AppEvent => {
+                self.app_event_tx.send(AppEvent::DitfaOp(op));
             }
         }
         true

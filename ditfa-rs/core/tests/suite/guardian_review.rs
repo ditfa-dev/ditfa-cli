@@ -25,8 +25,8 @@ use core_test_support::responses::start_websocket_server;
 use core_test_support::skip_if_no_network;
 use core_test_support::skip_if_sandbox;
 use core_test_support::skip_if_wine_exec;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
@@ -44,7 +44,7 @@ async fn guardian_session_prewarms_and_is_reused_for_first_review() -> Result<()
     let mut review_model = ditfa_models_manager::bundled_models_response()?
         .models
         .into_iter()
-        .find(|model| model.slug == "codex-auto-review")
+        .find(|model| model.slug == "ditfa-auto-review")
         .expect("bundled auto-review model");
     let model_messages = review_model
         .model_messages
@@ -85,7 +85,7 @@ async fn guardian_session_prewarms_and_is_reused_for_first_review() -> Result<()
         ]],
     ])
     .await;
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.model_catalog = Some(ModelsResponse {
             models: vec![review_model],
         });
@@ -187,7 +187,7 @@ async fn guardian_denial_rejects_tool_call_with_rationale() -> Result<()> {
     };
     let sandbox_policy_for_config = sandbox_policy.clone();
 
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.permissions.approval_policy = Constrained::allow_any(approval_policy);
         config
             .set_legacy_sandbox_policy(sandbox_policy_for_config)
@@ -311,7 +311,7 @@ printf '%s\n' "${@: -1}" >> "${payload_path}""#,
     let notify_script_str = notify_script.to_str().unwrap().to_string();
     let sandbox_policy_for_config = sandbox_policy.clone();
 
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.notify = Some(vec![notify_script_str]);
         config.permissions.approval_policy = Constrained::allow_any(approval_policy);
         config

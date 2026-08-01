@@ -38,7 +38,7 @@ use crate::wrapping::RtOptions;
 use crate::wrapping::adaptive_wrap_lines;
 
 const MCP_DITFA_APPS_SERVER_NAME: &str = "ditfa_apps";
-const MCP_TOOL_DITFA_APPS_META_KEY: &str = "_codex_apps";
+const MCP_TOOL_DITFA_APPS_META_KEY: &str = "_ditfa_apps";
 const CONNECTOR_AUTH_FAILURE_META_KEY: &str = "connector_auth_failure";
 const CONNECTOR_AUTH_FAILURE_IS_AUTH_FAILURE_KEY: &str = "is_auth_failure";
 const CONNECTOR_AUTH_FAILURE_CONNECTOR_ID_KEY: &str = "connector_id";
@@ -97,7 +97,7 @@ impl AppLinkViewParams {
         };
         if server_name == MCP_DITFA_APPS_SERVER_NAME {
             let url = validate_external_url(url, /*require_chatgpt_host*/ true)?;
-            return Self::from_codex_apps_auth_url_parts(
+            return Self::from_ditfa_apps_auth_url_parts(
                 thread_id,
                 server_name,
                 request_id,
@@ -119,7 +119,7 @@ impl AppLinkViewParams {
         ))
     }
 
-    fn from_codex_apps_auth_url_parts(
+    fn from_ditfa_apps_auth_url_parts(
         thread_id: ThreadId,
         server_name: &str,
         request_id: AppServerRequestId,
@@ -555,14 +555,14 @@ impl AppLinkView {
 
         let is_auth_suggestion = self.is_auth_suggestion();
         let is_external_action_suggestion = self.is_external_action_suggestion();
-        let is_codex_apps_auth = is_auth_suggestion
+        let is_ditfa_apps_auth = is_auth_suggestion
             && self
                 .elicitation_target
                 .as_ref()
                 .is_some_and(|target| target.server_name == MCP_DITFA_APPS_SERVER_NAME);
         lines.push(Line::from(
             if is_auth_suggestion {
-                if is_codex_apps_auth {
+                if is_ditfa_apps_auth {
                     "Finish App Sign In"
                 } else {
                     "Finish Authentication"
@@ -578,7 +578,7 @@ impl AppLinkView {
 
         if is_auth_suggestion {
             for line in wrap(
-                if is_codex_apps_auth {
+                if is_ditfa_apps_auth {
                     "Sign in to the app on Ditfa in the browser window that just opened."
                 } else {
                     "Complete authentication in the browser window that just opened."
@@ -878,7 +878,7 @@ mod tests {
     fn auth_url_request(url: &str) -> ditfa_app_server_protocol::McpServerElicitationRequest {
         ditfa_app_server_protocol::McpServerElicitationRequest::Url {
             meta: Some(serde_json::json!({
-                "_codex_apps": {
+                "_ditfa_apps": {
                     "connector_auth_failure": {
                         "is_auth_failure": true,
                         "connector_id": "connector_calendar",
@@ -917,7 +917,7 @@ mod tests {
     }
 
     #[test]
-    fn non_codex_apps_url_elicitation_builds_generic_app_link_params() {
+    fn non_ditfa_apps_url_elicitation_builds_generic_app_link_params() {
         let target = generic_url_target();
         let request = ditfa_app_server_protocol::McpServerElicitationRequest::Url {
             meta: None,

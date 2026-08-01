@@ -83,7 +83,7 @@ where
         params: Some(serde_json::to_value(InitializeParams {
             client_info: ClientInfo {
                 name: CLIENT_NAME.to_string(),
-                title: Some("Codex App Server Daemon".to_string()),
+                title: Some("Ditfa App Server Daemon".to_string()),
                 version: env!("CARGO_PKG_VERSION").to_string(),
             },
             capabilities: if experimental_api {
@@ -164,7 +164,7 @@ mod tests {
     use super::parse_version_from_user_agent;
 
     #[test]
-    fn parses_version_from_codex_user_agent() {
+    fn parses_version_from_ditfa_user_agent() {
         assert_eq!(
             parse_version_from_user_agent(
                 "ditfa_app_server_daemon/1.2.3 (Linux 6.8.0; x86_64) ditfa_cli_rs/1.2.3",

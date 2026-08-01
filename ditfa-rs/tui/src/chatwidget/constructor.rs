@@ -4,12 +4,12 @@ use super::*;
 
 impl ChatWidget {
     pub(crate) fn new_with_app_event(common: ChatWidgetInit) -> Self {
-        Self::new_with_op_target(common, CodexOpTarget::AppEvent)
+        Self::new_with_op_target(common, DitfaOpTarget::AppEvent)
     }
 
     pub(super) fn new_with_op_target(
         common: ChatWidgetInit,
-        ditfa_op_target: CodexOpTarget,
+        ditfa_op_target: DitfaOpTarget,
     ) -> Self {
         let ChatWidgetInit {
             config,
@@ -19,7 +19,7 @@ impl ChatWidget {
             initial_user_message,
             enhanced_keys_supported,
             has_chatgpt_account,
-            has_codex_backend_auth,
+            has_ditfa_backend_auth,
             model_catalog,
             feedback,
             is_first_run,
@@ -114,7 +114,7 @@ impl ChatWidget {
             current_collaboration_mode,
             active_collaboration_mask,
             has_chatgpt_account,
-            has_codex_backend_auth,
+            has_ditfa_backend_auth,
             model_catalog,
             session_telemetry,
             session_header: SessionHeader::new(header_model),
@@ -283,7 +283,7 @@ impl ChatWidget {
             .set_connectors_enabled(widget.connectors_enabled());
         widget
             .bottom_pane
-            .set_token_activity_command_enabled(widget.has_codex_backend_auth);
+            .set_token_activity_command_enabled(widget.has_ditfa_backend_auth);
         widget.refresh_status_surfaces();
 
         widget

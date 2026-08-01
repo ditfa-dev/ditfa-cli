@@ -26,7 +26,7 @@ use crate::environment_provider::EnvironmentDefault;
 use crate::environment_provider::EnvironmentProvider;
 use crate::environment_provider::EnvironmentProviderSnapshot;
 use crate::environment_provider::normalize_exec_server_url;
-use crate::environment_toml::environment_provider_from_codex_home;
+use crate::environment_toml::environment_provider_from_ditfa_home;
 use crate::local_file_system::LocalFileSystem;
 use crate::local_process::LocalProcess;
 use crate::process::ExecBackend;
@@ -56,7 +56,7 @@ pub enum EnvironmentConnectionState {
     Disconnected,
 }
 
-/// Owns the execution/filesystem environments available to the Codex runtime.
+/// Owns the execution/filesystem environments available to the Ditfa runtime.
 ///
 /// `EnvironmentManager` is a shared registry for concrete environments. Its
 /// default constructor preserves the legacy `DITFA_EXEC_SERVER_URL` behavior
@@ -161,14 +161,14 @@ impl EnvironmentManager {
     /// If `DITFA_HOME/environments.toml` is present, it defines the configured
     /// environments. Otherwise this preserves the legacy
     /// `DITFA_EXEC_SERVER_URL` behavior.
-    pub async fn from_codex_home(
+    pub async fn from_ditfa_home(
         ditfa_home: impl AsRef<std::path::Path>,
         local_runtime_paths: Option<ExecServerRuntimePaths>,
     ) -> Result<Self, ExecServerError> {
         if let Some(config) = noise_environment_config_from_env()? {
             return Self::from_noise_environment_config(config, local_runtime_paths);
         }
-        let provider = environment_provider_from_codex_home(ditfa_home.as_ref())?;
+        let provider = environment_provider_from_ditfa_home(ditfa_home.as_ref())?;
         Self::from_snapshot(provider.snapshot().await?, local_runtime_paths)
     }
 
@@ -1252,7 +1252,7 @@ mod tests {
         let environment = Environment::remote_with_transport(
             ExecServerTransportParams::StdioCommand {
                 command: StdioExecServerCommand {
-                    program: "codex-missing-exec-server-for-test".to_string(),
+                    program: "ditfa-missing-exec-server-for-test".to_string(),
                     args: Vec::new(),
                     env: HashMap::new(),
                     cwd: None,
@@ -1274,7 +1274,7 @@ mod tests {
         let environment = Environment::remote_with_transport(
             ExecServerTransportParams::StdioCommand {
                 command: StdioExecServerCommand {
-                    program: "codex-missing-exec-server-for-test".to_string(),
+                    program: "ditfa-missing-exec-server-for-test".to_string(),
                     args: Vec::new(),
                     env: HashMap::new(),
                     cwd: None,
@@ -1307,7 +1307,7 @@ mod tests {
         let environment = Environment::remote_with_transport(
             ExecServerTransportParams::StdioCommand {
                 command: StdioExecServerCommand {
-                    program: "codex-missing-exec-server-for-test".to_string(),
+                    program: "ditfa-missing-exec-server-for-test".to_string(),
                     args: Vec::new(),
                     env: HashMap::new(),
                     cwd: None,

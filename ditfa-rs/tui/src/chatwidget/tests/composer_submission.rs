@@ -1162,7 +1162,7 @@ async fn output_free_esc_interrupt_keeps_prompt_and_opens_blank_composer() {
                     saw_prompt = true;
                 }
             }
-            Ok(AppEvent::CodexOp(Op::Interrupt)) => break,
+            Ok(AppEvent::DitfaOp(Op::Interrupt)) => break,
             Ok(_) => {}
             Err(error) => panic!("expected Esc interrupt command, got {error:?}"),
         }

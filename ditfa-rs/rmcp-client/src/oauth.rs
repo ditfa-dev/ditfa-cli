@@ -67,13 +67,13 @@ use ditfa_keyring_store::KeyringStore;
 use rmcp::transport::auth::AuthorizationManager;
 use tokio::sync::Mutex;
 
-use ditfa_utils_home_dir::find_codex_home;
+use ditfa_utils_home_dir::find_ditfa_home;
 
 pub(crate) use self::resolved_store::ResolvedOAuthCredentialStore;
 pub(crate) use self::resolved_store::ResolvedOAuthTokens;
 pub(crate) use self::resolved_store::resolve_oauth_tokens_from_store_policy;
 
-const KEYRING_SERVICE: &str = "Codex MCP Credentials";
+const KEYRING_SERVICE: &str = "Ditfa MCP Credentials";
 const MCP_OAUTH_SECRET_PREFIX: &str = "MCP_OAUTH";
 const REFRESH_SKEW_MILLIS: u64 = 30_000;
 
@@ -233,7 +233,7 @@ fn load_oauth_tokens_from_secrets_keyring<K: KeyringStore + Clone + 'static>(
     url: &str,
 ) -> std::result::Result<Option<StoredOAuthTokens>, OAuthKeyringLoadError> {
     let _store_lock = OAuthStoreLock::acquire(OAuthStore::Secrets)?;
-    let ditfa_home = find_codex_home().map_err(anyhow::Error::from)?;
+    let ditfa_home = find_ditfa_home().map_err(anyhow::Error::from)?;
     let manager = SecretsManager::new_with_keyring_store_and_namespace(
         ditfa_home.to_path_buf(),
         SecretsBackendKind::Local,
@@ -352,7 +352,7 @@ fn save_oauth_tokens_to_secrets_keyring_with_lock_held<K: KeyringStore + Clone +
     tokens: &StoredOAuthTokens,
     serialized: &str,
 ) -> Result<()> {
-    let ditfa_home = find_codex_home()?;
+    let ditfa_home = find_ditfa_home()?;
     let manager = SecretsManager::new_with_keyring_store_and_namespace(
         ditfa_home.to_path_buf(),
         SecretsBackendKind::Local,
@@ -492,7 +492,7 @@ fn delete_oauth_tokens_from_secrets_keyring<K: KeyringStore + Clone + 'static>(
     url: &str,
 ) -> Result<bool> {
     let _store_lock = OAuthStoreLock::acquire(OAuthStore::Secrets)?;
-    let ditfa_home = find_codex_home()?;
+    let ditfa_home = find_ditfa_home()?;
     let manager = SecretsManager::new_with_keyring_store_and_namespace(
         ditfa_home.to_path_buf(),
         SecretsBackendKind::Local,
@@ -793,7 +793,7 @@ fn compute_secret_name(server_name: &str, server_url: &str) -> Result<SecretName
 }
 
 fn fallback_file_path() -> Result<PathBuf> {
-    Ok(find_codex_home()?.join(FALLBACK_FILENAME).to_path_buf())
+    Ok(find_ditfa_home()?.join(FALLBACK_FILENAME).to_path_buf())
 }
 
 fn read_fallback_file_unlocked() -> Result<Option<FallbackFile>> {
@@ -868,11 +868,11 @@ mod tests {
     #[path = "persistor_tests.rs"]
     mod persistor_tests;
 
-    use super::test_support::TempCodexHome;
+    use super::test_support::TempDitfaHome;
 
     #[test]
     fn stored_oauth_credentials_ignore_derived_expiration_and_track_token_changes() -> Result<()> {
-        let _env = TempCodexHome::new();
+        let _env = TempDitfaHome::new();
         let mut tokens = sample_tokens();
         let credentials = super::normalized_oauth_credentials(Some(&tokens));
         tokens
@@ -913,7 +913,7 @@ mod tests {
 
     #[test]
     fn resolve_oauth_tokens_from_store_policy_uses_keyring_when_available() -> Result<()> {
-        let _env = TempCodexHome::new();
+        let _env = TempDitfaHome::new();
         let store = MockKeyringStore::default();
         let tokens = sample_tokens();
         let expected = tokens.clone();
@@ -939,7 +939,7 @@ mod tests {
 
     #[test]
     fn load_oauth_tokens_falls_back_when_missing_in_keyring() -> Result<()> {
-        let _env = TempCodexHome::new();
+        let _env = TempDitfaHome::new();
         let store = MockKeyringStore::default();
         let tokens = sample_tokens();
         let expected = tokens.clone();
@@ -961,7 +961,7 @@ mod tests {
 
     #[test]
     fn load_oauth_tokens_falls_back_when_keyring_errors() -> Result<()> {
-        let _env = TempCodexHome::new();
+        let _env = TempDitfaHome::new();
         let store = MockKeyringStore::default();
         let tokens = sample_tokens();
         let expected = tokens.clone();
@@ -985,7 +985,7 @@ mod tests {
 
     #[test]
     fn exact_store_operations_do_not_adopt_or_mutate_the_other_store() -> Result<()> {
-        let _env = TempCodexHome::new();
+        let _env = TempDitfaHome::new();
         let store = MockKeyringStore::default();
         let file_tokens = sample_tokens();
         let mut keyring_tokens = file_tokens.clone();
@@ -1014,7 +1014,7 @@ mod tests {
 
     #[test]
     fn save_oauth_tokens_prefers_keyring_when_available() -> Result<()> {
-        let _env = TempCodexHome::new();
+        let _env = TempDitfaHome::new();
         let store = MockKeyringStore::default();
         let tokens = sample_tokens();
         let key = super::compute_store_key(&tokens.server_name, &tokens.url)?;
@@ -1037,7 +1037,7 @@ mod tests {
 
     #[test]
     fn save_oauth_tokens_writes_fallback_when_keyring_fails() -> Result<()> {
-        let _env = TempCodexHome::new();
+        let _env = TempDitfaHome::new();
         let store = MockKeyringStore::default();
         let tokens = sample_tokens();
         let key = super::compute_store_key(&tokens.server_name, &tokens.url)?;
@@ -1068,7 +1068,7 @@ mod tests {
 
     #[test]
     fn save_oauth_tokens_with_secrets_backend_writes_encrypted_storage() -> Result<()> {
-        let env = TempCodexHome::new();
+        let env = TempDitfaHome::new();
         let store = MockKeyringStore::default();
         let tokens = sample_tokens();
         let key = super::compute_store_key(&tokens.server_name, &tokens.url)?;
@@ -1103,7 +1103,7 @@ mod tests {
 
     #[test]
     fn load_oauth_tokens_with_secrets_backend_reads_encrypted_storage() -> Result<()> {
-        let _env = TempCodexHome::new();
+        let _env = TempDitfaHome::new();
         let store = MockKeyringStore::default();
         let tokens = sample_tokens();
         let expected = tokens.clone();
@@ -1128,7 +1128,7 @@ mod tests {
 
     #[test]
     fn load_oauth_tokens_with_secrets_backend_ignores_direct_entry() -> Result<()> {
-        let _env = TempCodexHome::new();
+        let _env = TempDitfaHome::new();
         let store = MockKeyringStore::default();
         let tokens = sample_tokens();
         let key = super::compute_store_key(&tokens.server_name, &tokens.url)?;
@@ -1149,7 +1149,7 @@ mod tests {
     #[test]
     fn save_oauth_tokens_with_secrets_backend_falls_back_to_file_when_keyring_fails() -> Result<()>
     {
-        let env = TempCodexHome::new();
+        let env = TempDitfaHome::new();
         let store = MockKeyringStore::default();
         store.set_error(
             &compute_keyring_account(env.path()),
@@ -1172,7 +1172,7 @@ mod tests {
 
     #[test]
     fn delete_oauth_tokens_with_secrets_backend_removes_secrets_and_file() -> Result<()> {
-        let env = TempCodexHome::new();
+        let env = TempDitfaHome::new();
         let store = MockKeyringStore::default();
         let tokens = sample_tokens();
         let serialized = serde_json::to_string(&tokens)?;
@@ -1211,7 +1211,7 @@ mod tests {
 
     #[test]
     fn delete_oauth_tokens_removes_all_storage() -> Result<()> {
-        let _env = TempCodexHome::new();
+        let _env = TempDitfaHome::new();
         let store = MockKeyringStore::default();
         let tokens = sample_tokens();
         let serialized = serde_json::to_string(&tokens)?;
@@ -1234,7 +1234,7 @@ mod tests {
 
     #[test]
     fn delete_oauth_tokens_file_mode_removes_keyring_only_entry() -> Result<()> {
-        let _env = TempCodexHome::new();
+        let _env = TempDitfaHome::new();
         let store = MockKeyringStore::default();
         let tokens = sample_tokens();
         let serialized = serde_json::to_string(&tokens)?;
@@ -1257,7 +1257,7 @@ mod tests {
 
     #[test]
     fn delete_oauth_tokens_propagates_keyring_errors() -> Result<()> {
-        let _env = TempCodexHome::new();
+        let _env = TempDitfaHome::new();
         let store = MockKeyringStore::default();
         let tokens = sample_tokens();
         let key = super::compute_store_key(&tokens.server_name, &tokens.url)?;

@@ -829,17 +829,17 @@ mod worker {
 mod metrics {
     use std::time::Duration;
 
-    const FILE_COMPRESSED_BYTES_HISTOGRAM: &str = "codex.rollout_compression.file.compressed_bytes";
-    const FILE_COUNTER: &str = "codex.rollout_compression.file";
-    const FILE_DURATION_HISTOGRAM: &str = "codex.rollout_compression.file.duration_ms";
-    const FILE_SOURCE_BYTES_HISTOGRAM: &str = "codex.rollout_compression.file.source_bytes";
+    const FILE_COMPRESSED_BYTES_HISTOGRAM: &str = "ditfa.rollout_compression.file.compressed_bytes";
+    const FILE_COUNTER: &str = "ditfa.rollout_compression.file";
+    const FILE_DURATION_HISTOGRAM: &str = "ditfa.rollout_compression.file.duration_ms";
+    const FILE_SOURCE_BYTES_HISTOGRAM: &str = "ditfa.rollout_compression.file.source_bytes";
     const FILE_COMPRESSION_RATIO_HISTOGRAM: &str =
-        "codex.rollout_compression.file.compression_ratio";
-    const MATERIALIZE_COUNTER: &str = "codex.rollout_compression.materialize";
-    const RUN_COUNTER: &str = "codex.rollout_compression.run";
-    const RUN_DURATION_HISTOGRAM: &str = "codex.rollout_compression.run.duration_ms";
+        "ditfa.rollout_compression.file.compression_ratio";
+    const MATERIALIZE_COUNTER: &str = "ditfa.rollout_compression.materialize";
+    const RUN_COUNTER: &str = "ditfa.rollout_compression.run";
+    const RUN_DURATION_HISTOGRAM: &str = "ditfa.rollout_compression.run.duration_ms";
     const RATIO_BASIS_POINTS: u128 = 10_000;
-    const TEMP_CLEANUP_COUNTER: &str = "codex.rollout_compression.temp_cleanup";
+    const TEMP_CLEANUP_COUNTER: &str = "ditfa.rollout_compression.temp_cleanup";
 
     pub(super) fn file(outcome: &'static str) {
         counter(FILE_COUNTER, &[("outcome", outcome)]);

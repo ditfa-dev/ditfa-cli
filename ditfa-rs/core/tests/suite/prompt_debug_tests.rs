@@ -5,7 +5,7 @@ use ditfa_core::build_prompt_input;
 use ditfa_core::config::ConfigBuilder;
 use ditfa_core::config::ConfigOverrides;
 use ditfa_extension_api::ExtensionRegistryBuilder;
-use ditfa_home::CodexHomeUserInstructionsProvider;
+use ditfa_home::DitfaHomeUserInstructionsProvider;
 use ditfa_protocol::models::ContentItem;
 use ditfa_protocol::models::ResponseItem;
 use ditfa_protocol::user_input::UserInput;
@@ -30,7 +30,7 @@ async fn build_prompt_input_includes_context_and_user_message() -> Result<()> {
         })
         .build()
         .await?;
-    let user_instructions_provider = Arc::new(CodexHomeUserInstructionsProvider::new(
+    let user_instructions_provider = Arc::new(DitfaHomeUserInstructionsProvider::new(
         config.ditfa_home.clone(),
     ));
     let input = build_prompt_input(

@@ -23,8 +23,8 @@ use std::sync::Arc;
 use tracing::instrument;
 use tracing::trace;
 
-const MULTIPART_BOUNDARY: &str = "codex-realtime-call-boundary";
-const MULTIPART_CONTENT_TYPE: &str = "multipart/form-data; boundary=codex-realtime-call-boundary";
+const MULTIPART_BOUNDARY: &str = "ditfa-realtime-call-boundary";
+const MULTIPART_CONTENT_TYPE: &str = "multipart/form-data; boundary=ditfa-realtime-call-boundary";
 
 pub struct RealtimeCallClient<T: HttpTransport> {
     session: EndpointSession<T>,
@@ -539,18 +539,18 @@ mod tests {
         assert_eq!(
             body,
             format!(
-                "--codex-realtime-call-boundary\r\n\
+                "--ditfa-realtime-call-boundary\r\n\
                  Content-Disposition: form-data; name=\"sdp\"\r\n\
                  Content-Type: application/sdp\r\n\
                  \r\n\
                  v=offer\r\n\
                  \r\n\
-                 --codex-realtime-call-boundary\r\n\
+                 --ditfa-realtime-call-boundary\r\n\
                  Content-Disposition: form-data; name=\"session\"\r\n\
                  Content-Type: application/json\r\n\
                  \r\n\
                  {session}\r\n\
-                 --codex-realtime-call-boundary--\r\n"
+                 --ditfa-realtime-call-boundary--\r\n"
             )
         );
     }

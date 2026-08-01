@@ -129,7 +129,7 @@ use super::analytics::wait_for_matching_analytics_event;
 const DEFAULT_READ_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(25);
 #[cfg(not(windows))]
 const DEFAULT_READ_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
-const DITFA_5_2_INSTRUCTIONS_TEMPLATE_DEFAULT: &str = "You are Codex, a coding agent based on GPT-5. You and the user share the same workspace and collaborate to achieve the user's goals.";
+const DITFA_5_2_INSTRUCTIONS_TEMPLATE_DEFAULT: &str = "You are Ditfa, a coding agent based on GPT-5. You and the user share the same workspace and collaborate to achieve the user's goals.";
 
 #[tokio::test]
 async fn thread_resume_paginated_metadata_only_uses_model_context() -> Result<()> {
@@ -146,7 +146,7 @@ async fn thread_resume_paginated_metadata_only_uses_model_context() -> Result<()
     )?;
 
     let mut primary = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -208,7 +208,7 @@ async fn thread_resume_rejects_unmaterialized_thread() -> Result<()> {
     mock_responses_config(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -253,7 +253,7 @@ async fn thread_resume_with_empty_path_uses_running_thread_id() -> Result<()> {
     mock_responses_config(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -319,7 +319,7 @@ async fn thread_resume_running_thread_uses_cached_instruction_sources() -> Resul
     std::fs::write(&project_agents, "project instructions")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         // TODO(anp): Move the cached instruction-source fixture into the auto environment cwd.
         .without_auto_env()
         .build_initialized()
@@ -391,7 +391,7 @@ async fn turn_start_updates_runtime_workspace_roots_for_loaded_thread() -> Resul
     std::fs::create_dir_all(&extra_root)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -458,7 +458,7 @@ async fn thread_resume_preserves_persisted_approvals_reviewer() -> Result<()> {
 
     let thread_id = {
         let mut mcp = TestAppServer::builder()
-            .with_codex_home(ditfa_home.path())
+            .with_ditfa_home(ditfa_home.path())
             .without_auto_env()
             .build_initialized()
             .await?;
@@ -509,7 +509,7 @@ async fn thread_resume_preserves_persisted_approvals_reviewer() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -542,7 +542,7 @@ async fn thread_resume_preserves_goal_first_and_fork_approvals_reviewer() -> Res
 
     let (thread_id, fork_thread_id) = {
         let mut mcp = TestAppServer::builder()
-            .with_codex_home(ditfa_home.path())
+            .with_ditfa_home(ditfa_home.path())
             .without_managed_config()
             .build_initialized()
             .await?;
@@ -616,7 +616,7 @@ async fn thread_resume_preserves_goal_first_and_fork_approvals_reviewer() -> Res
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_managed_config()
         .build_initialized()
         .await?;
@@ -658,7 +658,7 @@ async fn thread_resume_preserves_acknowledged_model_effort_and_approvals_reviewe
 
     let thread_id = {
         let mut mcp = TestAppServer::builder()
-            .with_codex_home(ditfa_home.path())
+            .with_ditfa_home(ditfa_home.path())
             .build_initialized()
             .await?;
 
@@ -714,7 +714,7 @@ async fn thread_resume_preserves_acknowledged_model_effort_and_approvals_reviewe
     };
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let resume_id = mcp
@@ -758,7 +758,7 @@ async fn thread_resume_preserves_acknowledged_model_effort_and_approvals_reviewe
     drop(mcp);
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let resume_id = mcp
@@ -789,7 +789,7 @@ async fn thread_goal_get_rejects_unmaterialized_thread() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_managed_config()
         .build_initialized()
         .await?;
@@ -845,9 +845,9 @@ async fn goal_first_live_thread_appears_in_state_db_thread_list() -> Result<()> 
     let sqlite_home = ditfa_home_path
         .as_path()
         .to_str()
-        .expect("test codex home should be utf-8");
+        .expect("test ditfa home should be utf-8");
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home_path)
+        .with_ditfa_home(&ditfa_home_path)
         .without_managed_config()
         .with_env_overrides(&[("DITFA_SQLITE_HOME", Some(sqlite_home))])
         .build_initialized()
@@ -933,7 +933,7 @@ async fn thread_resume_tracks_thread_initialized_analytics() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_managed_config()
         .build_initialized()
         .await?;
@@ -978,7 +978,7 @@ async fn thread_resume_running_thread_tracks_thread_originator_in_analytics() ->
     mount_analytics_capture(&server, ditfa_home.path()).await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_managed_config()
         .build_initialized()
         .await?;
@@ -1091,7 +1091,7 @@ async fn thread_resume_returns_rollout_history() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1282,7 +1282,7 @@ async fn resume_redaction_fixture(client_name: Option<&str>) -> Result<ThreadRes
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build()
         .await?;
     if let Some(client_name) = client_name {
@@ -1394,7 +1394,7 @@ async fn thread_resume_can_skip_turns_for_metadata_only_resume() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1439,7 +1439,7 @@ async fn thread_resume_rejects_archived_session_by_id() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1459,7 +1459,7 @@ async fn thread_resume_rejects_archived_session_by_id() -> Result<()> {
     assert!(
         message.contains(&format!("session {conversation_id} is archived"))
             && message.contains(&format!(
-                "codex unarchive {conversation_id}` to unarchive it first"
+                "ditfa unarchive {conversation_id}` to unarchive it first"
             )),
         "unexpected resume error: {message}"
     );
@@ -1480,7 +1480,7 @@ async fn thread_resume_keeps_paused_goal_paused() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_managed_config()
         .build_initialized()
         .await?;
@@ -1576,7 +1576,7 @@ async fn thread_goal_set_preserves_budget_limited_same_objective() -> Result<()>
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_managed_config()
         .build_initialized()
         .await?;
@@ -1666,7 +1666,7 @@ async fn thread_goal_set_persists_resumable_stopped_statuses() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_managed_config()
         .build_initialized()
         .await?;
@@ -1756,7 +1756,7 @@ async fn thread_goal_set_edits_objective_without_resetting_usage() -> Result<()>
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_managed_config()
         .build_initialized()
         .await?;
@@ -1865,7 +1865,7 @@ async fn thread_goal_lifecycle_emits_analytics_and_clear_deletes_goal() -> Resul
     mount_analytics_capture(&server, ditfa_home.path()).await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_managed_config()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT.saturating_mul(2))
         .await?;
@@ -2033,7 +2033,7 @@ async fn thread_resume_emits_restored_token_usage_before_next_turn() -> Result<(
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -2084,7 +2084,7 @@ async fn thread_resume_skips_restored_token_usage_when_turns_are_excluded() -> R
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -2189,7 +2189,7 @@ async fn thread_resume_token_usage_replay_ignores_stale_interrupted_tail_turn() 
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -2314,7 +2314,7 @@ async fn thread_resume_token_usage_replay_can_belong_to_interrupted_turn() -> Re
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -2425,7 +2425,7 @@ async fn thread_resume_prefers_persisted_git_metadata_for_local_threads() -> Res
         parent_thread_id: None,
         timestamp: "2025-01-05T12:00:00Z".to_string(),
         cwd: repo_path.clone(),
-        originator: "codex".to_string(),
+        originator: "ditfa".to_string(),
         cli_version: "0.0.0".to_string(),
         source: RolloutSessionSource::Cli,
         thread_source: None,
@@ -2486,7 +2486,7 @@ async fn thread_resume_prefers_persisted_git_metadata_for_local_threads() -> Res
         .await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -2579,7 +2579,7 @@ async fn thread_resume_and_read_interrupt_incomplete_rollout_turn_when_thread_is
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -2641,7 +2641,7 @@ async fn thread_resume_defers_updated_at_until_turn_start() -> Result<()> {
     let thread_id = rollout.conversation_id.clone();
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -2747,7 +2747,7 @@ async fn thread_resume_keeps_in_flight_turn_streaming() -> Result<()> {
     mock_responses_config(&server.uri()).write(ditfa_home.path())?;
 
     let mut primary = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -2784,7 +2784,7 @@ async fn thread_resume_keeps_in_flight_turn_streaming() -> Result<()> {
     primary.clear_message_buffer();
 
     let mut secondary = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -2851,7 +2851,7 @@ async fn thread_resume_rejects_history_when_thread_is_running() -> Result<()> {
     mock_responses_config(&server.uri()).write(ditfa_home.path())?;
 
     let mut primary = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -2968,7 +2968,7 @@ async fn thread_resume_rejects_mismatched_path_for_running_thread_id() -> Result
     mock_responses_config(&server.uri()).write(ditfa_home.path())?;
 
     let mut primary = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -3135,7 +3135,7 @@ async fn thread_resume_rejoins_running_paginated_thread_with_initial_page() -> R
     mock_responses_config(&server.uri()).write(ditfa_home.path())?;
 
     let mut primary = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -3278,7 +3278,7 @@ async fn thread_resume_can_skip_turns_when_thread_is_running() -> Result<()> {
     mock_responses_config(&server.uri()).write(ditfa_home.path())?;
 
     let mut primary = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -3314,7 +3314,7 @@ async fn thread_resume_can_skip_turns_when_thread_is_running() -> Result<()> {
     .await??;
 
     let mut secondary = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -3363,7 +3363,7 @@ async fn thread_resume_replays_pending_command_execution_request_approval() -> R
     mock_responses_config(&server.uri()).write(ditfa_home.path())?;
 
     let mut primary = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -3501,7 +3501,7 @@ async fn thread_resume_replays_pending_file_change_request_approval() -> Result<
     mock_responses_config(&server.uri()).write(&ditfa_home)?;
 
     let mut primary = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .build_initialized()
         .await?;
 
@@ -3710,13 +3710,13 @@ async fn thread_resume_fails_when_required_mcp_server_fails_to_initialize() -> R
     mock_responses_config(&server.uri())
         .with_extra_config(
             r#"[mcp_servers.required_broken]
-command = "codex-definitely-not-a-real-binary"
+command = "ditfa-definitely-not-a-real-binary"
 required = true"#,
         )
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -3795,7 +3795,7 @@ async fn thread_resume_surfaces_cloud_config_bundle_load_errors() -> Result<()> 
     )?;
     let refresh_token_url = format!("{}/oauth/token", server.uri());
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .with_env_overrides(&[
             ("OPENAI_API_KEY", None),
             (
@@ -3883,7 +3883,7 @@ async fn thread_resume_can_load_source_by_external_path() -> Result<()> {
     let thread_path = rollout_path(external_home.path(), "2025-01-05T12-00-00", &thread_id);
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let resume_id = mcp
@@ -3965,7 +3965,7 @@ async fn start_materialized_thread_and_restart(
     seed_text: &str,
 ) -> Result<RestartedThreadFixture> {
     let mut first_mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home)
+        .with_ditfa_home(ditfa_home)
         .build_initialized()
         .await?;
 
@@ -4018,7 +4018,7 @@ async fn start_materialized_thread_and_restart(
     drop(first_mcp);
 
     let second_mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home)
+        .with_ditfa_home(ditfa_home)
         .build_initialized()
         .await?;
 
@@ -4051,7 +4051,7 @@ async fn thread_resume_accepts_personality_override() -> Result<()> {
     mock_responses_config(&server.uri()).write(ditfa_home.path())?;
 
     let mut primary = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -4087,7 +4087,7 @@ async fn thread_resume_accepts_personality_override() -> Result<()> {
     .await??;
 
     let mut secondary = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 

@@ -820,7 +820,7 @@ fn run_setup_full(payload: &Payload, log: &mut dyn Write, sbx_dir: &Path) -> Res
     }
 
     if refresh_only {
-        setup_runtime_bin::ensure_codex_app_runtime_paths_readable(
+        setup_runtime_bin::ensure_ditfa_app_runtime_paths_readable(
             sandbox_group_psid,
             &mut refresh_errors,
             log,
@@ -1038,9 +1038,9 @@ mod tests {
     fn payload_json() -> serde_json::Value {
         json!({
             "version": SETUP_VERSION,
-            "offline_username": "CodexSandboxOffline",
-            "online_username": "CodexSandboxOnline",
-            "ditfa_home": "C:\\codex-home",
+            "offline_username": "DitfaSandboxOffline",
+            "online_username": "DitfaSandboxOnline",
+            "ditfa_home": "C:\\ditfa-home",
             "command_cwd": "C:\\workspace",
             "read_roots": [],
             "write_roots": [],
@@ -1084,9 +1084,9 @@ mod tests {
     #[test]
     fn write_root_refresh_replaces_stale_delete_child_grant() {
         let temp = tempfile::tempdir().expect("tempdir");
-        let ditfa_home = temp.path().join("codex-home");
+        let ditfa_home = temp.path().join("ditfa-home");
         let workspace = temp.path().join("workspace");
-        fs::create_dir_all(&ditfa_home).expect("create codex home");
+        fs::create_dir_all(&ditfa_home).expect("create ditfa home");
         fs::create_dir_all(&workspace).expect("create workspace");
 
         let sid = workspace_write_cap_sid_for_root(&ditfa_home, &workspace, &workspace)
@@ -1114,10 +1114,10 @@ mod tests {
     #[test]
     fn write_root_refresh_checks_each_sid() {
         let temp = tempfile::tempdir().expect("tempdir");
-        let ditfa_home = temp.path().join("codex-home");
+        let ditfa_home = temp.path().join("ditfa-home");
         let workspace = temp.path().join("workspace");
         let other_root = temp.path().join("other-root");
-        fs::create_dir_all(&ditfa_home).expect("create codex home");
+        fs::create_dir_all(&ditfa_home).expect("create ditfa home");
         fs::create_dir_all(&workspace).expect("create workspace");
         fs::create_dir_all(&other_root).expect("create other root");
 
@@ -1155,10 +1155,10 @@ mod tests {
     #[test]
     fn write_root_refresh_ignores_inherited_delete_child_grant() {
         let temp = tempfile::tempdir().expect("tempdir");
-        let ditfa_home = temp.path().join("codex-home");
+        let ditfa_home = temp.path().join("ditfa-home");
         let parent = temp.path().join("parent");
         let workspace = parent.join("workspace");
-        fs::create_dir_all(&ditfa_home).expect("create codex home");
+        fs::create_dir_all(&ditfa_home).expect("create ditfa home");
         fs::create_dir_all(&workspace).expect("create workspace");
 
         let sid = workspace_write_cap_sid_for_root(&ditfa_home, &workspace, &workspace)
@@ -1204,12 +1204,12 @@ mod tests {
     #[test]
     fn deny_path_under_active_root_uses_only_matching_root_sid() {
         let temp = tempfile::tempdir().expect("tempdir");
-        let ditfa_home = temp.path().join("codex-home");
+        let ditfa_home = temp.path().join("ditfa-home");
         let workspace = temp.path().join("workspace");
         let active_root = temp.path().join("active-root");
         let stale_root = temp.path().join("stale-root");
         let deny_path = active_root.join("protected");
-        fs::create_dir_all(&ditfa_home).expect("create codex home");
+        fs::create_dir_all(&ditfa_home).expect("create ditfa home");
         fs::create_dir_all(&workspace).expect("create workspace");
         fs::create_dir_all(&active_root).expect("create active root");
         fs::create_dir_all(&stale_root).expect("create stale root");
@@ -1240,12 +1240,12 @@ mod tests {
     #[test]
     fn deny_path_outside_active_roots_falls_back_to_all_active_root_sids() {
         let temp = tempfile::tempdir().expect("tempdir");
-        let ditfa_home = temp.path().join("codex-home");
+        let ditfa_home = temp.path().join("ditfa-home");
         let workspace = temp.path().join("workspace");
         let active_root = temp.path().join("active-root");
         let stale_root = temp.path().join("stale-root");
         let deny_path = temp.path().join("outside-deny");
-        fs::create_dir_all(&ditfa_home).expect("create codex home");
+        fs::create_dir_all(&ditfa_home).expect("create ditfa home");
         fs::create_dir_all(&workspace).expect("create workspace");
         fs::create_dir_all(&active_root).expect("create active root");
         fs::create_dir_all(&stale_root).expect("create stale root");
@@ -1277,11 +1277,11 @@ mod tests {
     #[test]
     fn deny_path_includes_nested_active_root_sid() {
         let temp = tempfile::tempdir().expect("tempdir");
-        let ditfa_home = temp.path().join("codex-home");
+        let ditfa_home = temp.path().join("ditfa-home");
         let workspace = temp.path().join("workspace");
         let protected_dir = workspace.join(".ditfa");
         let nested_root = protected_dir.join("nested-root");
-        fs::create_dir_all(&ditfa_home).expect("create codex home");
+        fs::create_dir_all(&ditfa_home).expect("create ditfa home");
         fs::create_dir_all(&workspace).expect("create workspace");
         fs::create_dir_all(&nested_root).expect("create nested root");
 

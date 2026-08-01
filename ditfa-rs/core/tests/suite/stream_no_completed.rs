@@ -10,8 +10,8 @@ use core_test_support::responses;
 use core_test_support::skip_if_no_network;
 use core_test_support::streaming_sse::StreamingSseChunk;
 use core_test_support::streaming_sse::start_streaming_sse_server;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 
 fn sse_incomplete() -> String {
@@ -67,7 +67,7 @@ async fn retries_on_early_close() {
         supports_standalone_web_search: false,
     };
 
-    let TestCodex { codex, .. } = test_codex()
+    let TestDitfa { ditfa, .. } = test_ditfa()
         .with_config(move |config| {
             config.model_provider = model_provider;
         })
@@ -75,7 +75,7 @@ async fn retries_on_early_close() {
         .await
         .unwrap();
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -90,7 +90,7 @@ async fn retries_on_early_close() {
         .unwrap();
 
     // Wait until TurnComplete (should succeed after retry).
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
     let requests = server.requests().await;
     assert_eq!(

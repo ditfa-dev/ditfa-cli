@@ -1,8 +1,8 @@
 import path from "node:path";
 
-export function codexPathOverride() {
+export function ditfaPathOverride() {
   return (
-    process.env.CODEX_EXECUTABLE ??
-    path.join(process.cwd(), "..", "..", "codex-rs", "target", "debug", "codex")
+    process.env.DITFA_EXECUTABLE ??
+    path.join(process.cwd(), "..", "..", "ditfa-rs", "target", "debug", "ditfa")
   );
 }

@@ -3,7 +3,7 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/../../.." && pwd)"
-proto_dir="$repo_root/codex-rs/config/src/thread_config/proto"
+proto_dir="$repo_root/ditfa-rs/config/src/thread_config/proto"
 generated="$proto_dir/ditfa.thread_config.v1.rs"
 tmpdir="$(mktemp -d)"
 
@@ -13,7 +13,7 @@ cleanup() {
 trap cleanup EXIT
 
 (
-    cd "$repo_root/codex-rs"
+    cd "$repo_root/ditfa-rs"
     CARGO_TARGET_DIR="$tmpdir/target" cargo run \
         -p ditfa-config \
         --example generate-proto \

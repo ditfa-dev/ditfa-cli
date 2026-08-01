@@ -1,6 +1,6 @@
 use crate::remote::RemotePluginServiceConfig;
 use ditfa_http_client::RouteAwareRequestError;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_protocol::protocol::Product;
 use http::Method;
 use http::StatusCode;
@@ -102,7 +102,7 @@ pub enum RemotePluginFetchError {
 
 pub async fn fetch_remote_featured_plugin_ids(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     product: Option<Product>,
 ) -> Result<Vec<String>, RemotePluginFetchError> {
     let base_url = config.chatgpt_base_url.trim_end_matches('/');
@@ -110,14 +110,14 @@ pub async fn fetch_remote_featured_plugin_ids(
         .map_err(RemotePluginFetchError::InvalidBaseUrl)?;
     url.query_pairs_mut().append_pair(
         "platform",
-        product.unwrap_or(Product::Codex).to_app_platform(),
+        product.unwrap_or(Product::Ditfa).to_app_platform(),
     );
     let url = url.to_string();
     let mut request = config
         .http_request(Method::GET, &url)
         .timeout(REMOTE_FEATURED_PLUGIN_FETCH_TIMEOUT);
 
-    if let Some(auth) = auth.filter(|auth| auth.uses_codex_backend()) {
+    if let Some(auth) = auth.filter(|auth| auth.uses_ditfa_backend()) {
         request =
             request.headers(ditfa_model_provider::auth_provider_from_auth(auth).to_auth_headers());
     }
@@ -143,7 +143,7 @@ pub async fn fetch_remote_featured_plugin_ids(
 
 pub async fn enable_remote_plugin(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     plugin_id: &str,
 ) -> Result<(), RemotePluginMutationError> {
     post_remote_plugin_mutation(config, auth, plugin_id, "enable").await?;
@@ -152,20 +152,20 @@ pub async fn enable_remote_plugin(
 
 pub async fn uninstall_remote_plugin(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     plugin_id: &str,
 ) -> Result<(), RemotePluginMutationError> {
     post_remote_plugin_mutation(config, auth, plugin_id, "uninstall").await?;
     Ok(())
 }
 
-fn ensure_codex_backend_auth(
-    auth: Option<&CodexAuth>,
-) -> Result<&CodexAuth, RemotePluginMutationError> {
+fn ensure_ditfa_backend_auth(
+    auth: Option<&DitfaAuth>,
+) -> Result<&DitfaAuth, RemotePluginMutationError> {
     let Some(auth) = auth else {
         return Err(RemotePluginMutationError::AuthRequired);
     };
-    if !auth.uses_codex_backend() {
+    if !auth.uses_ditfa_backend() {
         return Err(RemotePluginMutationError::UnsupportedAuthMode);
     }
     Ok(auth)
@@ -173,11 +173,11 @@ fn ensure_codex_backend_auth(
 
 async fn post_remote_plugin_mutation(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     plugin_id: &str,
     action: &str,
 ) -> Result<RemotePluginMutationResponse, RemotePluginMutationError> {
-    let auth = ensure_codex_backend_auth(auth)?;
+    let auth = ensure_ditfa_backend_auth(auth)?;
     let url = remote_plugin_mutation_url(config, plugin_id, action)?;
     let request = config
         .http_request(Method::POST, &url)

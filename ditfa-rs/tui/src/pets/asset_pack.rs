@@ -1,7 +1,7 @@
 //! Built-in pet asset acquisition and cache ownership.
 //!
 //! Unlike custom pets, built-in pets are not checked into the TUI package as
-//! local spritesheets. The TUI resolves them from the public Codex pets CDN on
+//! local spritesheets. The TUI resolves them from the public Ditfa pets CDN on
 //! first use, verifies that the downloaded file has the expected spritesheet
 //! geometry, and installs it into a versioned cache under DITFA_HOME.
 //!
@@ -26,7 +26,7 @@ use super::catalog;
 
 const PET_PACK_VERSION: &str = "v1";
 const PET_PACK_DIR: &str = "cache/tui-pets";
-const PET_CDN_BASE_URL: &str = "https://persistent.oaistatic.com/codex/pets/v1";
+const PET_CDN_BASE_URL: &str = "https://persistent.oaistatic.com/ditfa/pets/v1";
 const PET_DOWNLOAD_TIMEOUT: Duration = Duration::from_secs(60);
 const PET_MAX_DOWNLOAD_BYTES: u64 = 4 * 1024 * 1024;
 
@@ -171,7 +171,7 @@ mod tests {
 
         assert_eq!(
             url,
-            "https://persistent.oaistatic.com/codex/pets/v1/dewey-spritesheet-v4.webp"
+            "https://persistent.oaistatic.com/ditfa/pets/v1/dewey-spritesheet-v4.webp"
         );
     }
 

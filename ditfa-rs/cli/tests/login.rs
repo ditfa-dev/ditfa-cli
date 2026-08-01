@@ -23,7 +23,7 @@ use wiremock::matchers::method;
 use wiremock::matchers::path;
 
 fn ditfa_command(ditfa_home: &Path) -> Result<assert_cmd::Command> {
-    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("codex")?);
+    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa")?);
     cmd.env("DITFA_HOME", ditfa_home);
     Ok(cmd)
 }
@@ -122,7 +122,7 @@ async fn debug_prompt_input_follows_authenticated_attribution_setting() -> Resul
         assert!(output.status.success());
         let prompt = String::from_utf8(output.stdout)?;
         assert_eq!(
-            prompt.contains("Co-authored-by: Codex <noreply@openai.com>"),
+            prompt.contains("Co-authored-by: Ditfa <noreply@openai.com>"),
             enabled
         );
         assert!(!prompt.contains("attribution is disabled for the current workspace"));

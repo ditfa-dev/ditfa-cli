@@ -128,7 +128,7 @@ async fn managed_requirements_reject_all_remote_control_rpcs() -> Result<()> {
         "allow_remote_control = false\n",
     )?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -184,7 +184,7 @@ async fn managed_requirements_allow_remote_control_true_does_not_enable_or_block
         "allow_remote_control = true\n",
     )?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -211,7 +211,7 @@ async fn explicit_remote_control_startup_fails_when_disabled_by_requirements() -
     let socket_path = ditfa_home.path().join("app-server.sock");
     let transport =
         AppServerTransport::from_listen_url(&format!("unix://{}", socket_path.display()))?;
-    let _codex_home_guard = EnvVarGuard::set("DITFA_HOME", ditfa_home.path().as_os_str());
+    let _ditfa_home_guard = EnvVarGuard::set("DITFA_HOME", ditfa_home.path().as_os_str());
 
     let result = timeout(
         STARTUP_TIMEOUT,
@@ -269,7 +269,7 @@ async fn listen_off_honors_persisted_remote_control_enable() -> Result<()> {
         .await?;
 
     let _app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_args(&["--listen", "off"])
         .build()
@@ -313,7 +313,7 @@ async fn listen_off_ignores_persisted_enable_when_disabled_by_requirements() -> 
         .await?;
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_args(&["--listen", "off"])
         .build()
@@ -365,7 +365,7 @@ async fn listen_off_exits_without_persisted_remote_control_enable() -> Result<()
         }
 
         let mut app_server = TestAppServer::builder()
-            .with_codex_home(ditfa_home.path())
+            .with_ditfa_home(ditfa_home.path())
             .without_auto_env()
             .with_args(&["--listen", "off"])
             .build()
@@ -381,7 +381,7 @@ async fn remote_control_disable_returns_disabled_status() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let _listener = configured_remote_control_listener(ditfa_home.path()).await?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -404,7 +404,7 @@ async fn remote_control_disable_returns_disabled_status() -> Result<()> {
 async fn remote_control_status_read_returns_disabled_status() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -428,7 +428,7 @@ async fn remote_control_enable_returns_connecting_status() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut backend = BlockingRemoteControlBackend::start(ditfa_home.path()).await?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -463,7 +463,7 @@ async fn disable_waits_for_in_flight_durable_enable() -> Result<()> {
     let state_db =
         StateRuntime::init(ditfa_home.path().to_path_buf(), "test-provider".to_string()).await?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -498,7 +498,7 @@ async fn rpc_updates_durable_preference_but_ephemeral_does_not() -> Result<()> {
         StateRuntime::init(ditfa_home.path().to_path_buf(), "test-provider".to_string()).await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -558,7 +558,7 @@ async fn remote_control_status_read_returns_connecting_status_after_enable() -> 
     let ditfa_home = TempDir::new()?;
     let mut backend = BlockingRemoteControlBackend::start(ditfa_home.path()).await?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -592,7 +592,7 @@ async fn remote_control_pairing_start_returns_pairing_artifacts() -> Result<()> 
     let ditfa_home = TempDir::new()?;
     let mut backend = PairingRemoteControlBackend::start(ditfa_home.path()).await?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -689,7 +689,7 @@ async fn pairing_start_works_after_ephemeral_enable() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut backend = PairingRemoteControlBackend::start(ditfa_home.path()).await?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -730,7 +730,7 @@ async fn remote_control_client_management_works_while_disabled() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut backend = ClientManagementRemoteControlBackend::start(ditfa_home.path()).await?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;

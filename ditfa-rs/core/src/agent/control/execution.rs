@@ -1,7 +1,7 @@
 use super::AgentControl;
 use ditfa_protocol::ThreadId;
-use ditfa_protocol::error::CodexErr;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::DitfaErr;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::protocol::MultiAgentVersion;
 use ditfa_protocol::protocol::Op;
 use ditfa_protocol::protocol::SessionSource;
@@ -31,7 +31,7 @@ impl AgentControl {
         &self,
         thread_id: ThreadId,
         op: &Op,
-    ) -> CodexResult<()> {
+    ) -> DitfaResult<()> {
         self.ensure_execution_capacity_for_turn_start(thread_id, op_starts_turn(op))
             .await
     }
@@ -40,7 +40,7 @@ impl AgentControl {
         &self,
         thread_id: ThreadId,
         starts_turn: bool,
-    ) -> CodexResult<()> {
+    ) -> DitfaResult<()> {
         if !starts_turn {
             return Ok(());
         }
@@ -60,7 +60,7 @@ impl AgentControl {
         &self,
         multi_agent_version: MultiAgentVersion,
         session_source: &SessionSource,
-    ) -> CodexResult<()> {
+    ) -> DitfaResult<()> {
         if !is_execution_limited(multi_agent_version, session_source) {
             return Ok(());
         }
@@ -68,7 +68,7 @@ impl AgentControl {
         if self.agent_execution_limiter.has_capacity() {
             Ok(())
         } else {
-            Err(CodexErr::AgentLimitReached { max_threads })
+            Err(DitfaErr::AgentLimitReached { max_threads })
         }
     }
 

@@ -1,20 +1,20 @@
-import { CodexOptions } from "./codexOptions";
-import { CodexExec } from "./exec";
+import { DitfaOptions } from "./ditfaOptions";
+import { DitfaExec } from "./exec";
 import { Thread } from "./thread";
 import { ThreadOptions } from "./threadOptions";
 
 /**
- * Codex is the main class for interacting with the Codex agent.
+ * Ditfa is the main class for interacting with the Ditfa agent.
  *
  * Use the `startThread()` method to start a new thread or `resumeThread()` to resume a previously started thread.
  */
-export class Codex {
-  private exec: CodexExec;
-  private options: CodexOptions;
+export class Ditfa {
+  private exec: DitfaExec;
+  private options: DitfaOptions;
 
-  constructor(options: CodexOptions = {}) {
-    const { codexPathOverride, env, config } = options;
-    this.exec = new CodexExec(codexPathOverride, env, config);
+  constructor(options: DitfaOptions = {}) {
+    const { ditfaPathOverride, env, config } = options;
+    this.exec = new DitfaExec(ditfaPathOverride, env, config);
     this.options = options;
   }
 
@@ -28,7 +28,7 @@ export class Codex {
 
   /**
    * Resumes a conversation with an agent based on the thread id.
-   * Threads are persisted in ~/.codex/sessions.
+   * Threads are persisted in ~/.ditfa/sessions.
    *
    * @param id The id of the thread to resume.
    * @returns A new thread instance.

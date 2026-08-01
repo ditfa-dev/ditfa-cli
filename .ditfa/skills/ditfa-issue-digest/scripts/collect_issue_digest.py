@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Collect recent openai/codex issue activity for owner-focused digests."""
+"""Collect recent Teamtem-dev/ditfa-code issue activity for owner-focused digests."""
 
 import argparse
 import json
@@ -26,10 +26,10 @@ class GhCommandError(RuntimeError):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Collect recent GitHub issue activity for a Codex owner digest."
+        description="Collect recent GitHub issue activity for a Ditfa Code owner digest."
     )
     parser.add_argument(
-        "--repo", default="openai/codex", help="OWNER/REPO, default openai/codex"
+        "--repo", default="Teamtem-dev/ditfa-code", help="OWNER/REPO, default Teamtem-dev/ditfa-code"
     )
     parser.add_argument(
         "--labels",
@@ -508,7 +508,7 @@ def compact_text(value, limit):
 def clean_title_for_description(title):
     cleaned = re.sub(r"\s+", " ", str(title or "")).strip()
     cleaned = re.sub(
-        r"^(codex(?: desktop| app|\.app| cli)?|desktop|windows codex app)\s*[:,-]\s*",
+        r"^(ditfa(?: desktop| app|\.app| cli)?|desktop|windows ditfa app)\s*[:,-]\s*",
         "",
         cleaned,
         flags=re.IGNORECASE,
@@ -950,7 +950,7 @@ def collect_digest(args):
         "generated_at": format_timestamp(datetime.now(timezone.utc)),
         "source": {
             "repo": args.repo,
-            "skill": "codex-issue-digest",
+            "skill": "ditfa-issue-digest",
             "collector": skill_relative_path(),
             "script_version": SCRIPT_VERSION,
             "git_head": git_head(),

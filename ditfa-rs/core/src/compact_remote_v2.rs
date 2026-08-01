@@ -17,7 +17,7 @@ use crate::hook_runtime::PostCompactHookOutcome;
 use crate::hook_runtime::PreCompactHookOutcome;
 use crate::hook_runtime::run_post_compact_hooks;
 use crate::hook_runtime::run_pre_compact_hooks;
-use crate::responses_metadata::CodexResponsesMetadata;
+use crate::responses_metadata::DitfaResponsesMetadata;
 use crate::responses_metadata::CompactionTurnMetadata;
 use crate::responses_retry::ResponsesStreamRequest;
 use crate::responses_retry::handle_retryable_response_stream_error;
@@ -28,8 +28,8 @@ use ditfa_analytics::CompactionImplementation;
 use ditfa_analytics::CompactionPhase;
 use ditfa_analytics::CompactionReason;
 use ditfa_analytics::CompactionTrigger;
-use ditfa_protocol::error::CodexErr;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::DitfaErr;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::items::ContextCompactionItem;
 use ditfa_protocol::items::TurnItem;
 use ditfa_protocol::models::ContentItem;
@@ -65,7 +65,7 @@ pub(crate) async fn run_inline_remote_auto_compact_task(
     initial_context_injection: InitialContextInjection,
     reason: CompactionReason,
     phase: CompactionPhase,
-) -> CodexResult<()> {
+) -> DitfaResult<()> {
     let compaction_metadata = CompactionTurnMetadata::new(
         CompactionTrigger::Auto,
         reason,
@@ -86,7 +86,7 @@ pub(crate) async fn run_inline_remote_auto_compact_task(
 pub(crate) async fn run_remote_compact_task(
     sess: Arc<Session>,
     turn_context: Arc<TurnContext>,
-) -> CodexResult<()> {
+) -> DitfaResult<()> {
     // Standalone compaction is its own request boundary, so it captures a fresh step.
     let step_context = sess
         .capture_step_context(Arc::clone(&turn_context), &CancellationToken::new())
@@ -124,7 +124,7 @@ async fn run_remote_compact_task_inner(
     client_session: Option<&mut ModelClientSession>,
     initial_context_injection: InitialContextInjection,
     compaction_metadata: CompactionTurnMetadata,
-) -> CodexResult<()> {
+) -> DitfaResult<()> {
     let turn_context = &step_context.turn;
     let trigger = compaction_metadata.trigger();
     let reason = compaction_metadata.reason();
@@ -147,7 +147,7 @@ async fn run_remote_compact_task_inner(
     match pre_compact_outcome {
         PreCompactHookOutcome::Continue => {}
         PreCompactHookOutcome::Stopped => {
-            let error = CodexErr::TurnAborted;
+            let error = DitfaErr::TurnAborted;
             attempt
                 .track(
                     sess.as_ref(),
@@ -177,7 +177,7 @@ async fn run_remote_compact_task_inner(
             attempt
                 .track(sess.as_ref(), status, ditfa_error, analytics_details)
                 .await;
-            return Err(CodexErr::TurnAborted);
+            return Err(DitfaErr::TurnAborted);
         }
     }
     attempt
@@ -185,9 +185,9 @@ async fn run_remote_compact_task_inner(
         .await;
     match result {
         Ok(()) => Ok(()),
-        Err(err @ CodexErr::TurnAborted) => Err(err),
+        Err(err @ DitfaErr::TurnAborted) => Err(err),
         Err(err) => {
-            sess.track_turn_codex_error(turn_context, &err);
+            sess.track_turn_ditfa_error(turn_context, &err);
             let event = EventMsg::Error(
                 err.to_error_event(Some("Error running remote compact task".to_string())),
             );
@@ -205,7 +205,7 @@ async fn run_remote_compact_task_inner_impl(
     initial_context_injection: InitialContextInjection,
     compaction_metadata: CompactionTurnMetadata,
     analytics_details: &mut CompactionAnalyticsDetails,
-) -> CodexResult<()> {
+) -> DitfaResult<()> {
     let turn_context = &step_context.turn;
     let context_compaction_item = ContextCompactionItem::new();
     let compaction_id = context_compaction_item.id.clone();
@@ -331,8 +331,8 @@ async fn run_remote_compaction_request_v2(
     turn_context: &TurnContext,
     client_session: &mut ModelClientSession,
     prompt: &Prompt,
-    responses_metadata: &CodexResponsesMetadata,
-) -> CodexResult<RemoteCompactionV2Output> {
+    responses_metadata: &DitfaResponsesMetadata,
+) -> DitfaResult<RemoteCompactionV2Output> {
     let max_retries = turn_context
         .provider
         .info()
@@ -378,7 +378,7 @@ async fn run_remote_compaction_request_v2(
 
 async fn collect_compaction_output(
     mut stream: ResponseStream,
-) -> CodexResult<RemoteCompactionV2Output> {
+) -> DitfaResult<RemoteCompactionV2Output> {
     let mut output_item_count = 0usize;
     let mut compaction_count = 0usize;
     let mut compaction_output = None;
@@ -411,14 +411,14 @@ async fn collect_compaction_output(
     }
 
     if !saw_completed {
-        return Err(CodexErr::Stream(
+        return Err(DitfaErr::Stream(
             "remote compaction v2 stream closed before response.completed".to_string(),
             None,
         ));
     }
 
     if compaction_count != 1 {
-        return Err(CodexErr::Fatal(format!(
+        return Err(DitfaErr::Fatal(format!(
             "remote compaction v2 expected exactly one compaction output item, got {compaction_count} from {output_item_count} output items"
         )));
     }
@@ -592,7 +592,7 @@ mod tests {
         }
     }
 
-    fn response_stream(events: Vec<CodexResult<ResponseEvent>>) -> ResponseStream {
+    fn response_stream(events: Vec<DitfaResult<ResponseEvent>>) -> ResponseStream {
         let (tx_event, rx_event) = mpsc::channel(events.len().max(1));
         for event in events {
             tx_event

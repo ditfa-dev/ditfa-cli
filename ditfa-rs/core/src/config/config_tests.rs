@@ -450,7 +450,7 @@ async fn load_config_resolves_code_mode_config() -> std::io::Result<()> {
         r#"
 [features.code_mode]
 enabled = true
-excluded_tool_namespaces = ["mcp__codex_apps", "multi_agent_v1"]
+excluded_tool_namespaces = ["mcp__ditfa_apps", "multi_agent_v1"]
 direct_only_tool_namespaces = ["mcp__history", "mcp__notes"]
 "#,
     )
@@ -464,7 +464,7 @@ direct_only_tool_namespaces = ["mcp__history", "mcp__notes"]
 
     assert_eq!(
         config.code_mode.excluded_tool_namespaces,
-        vec!["mcp__codex_apps".to_string(), "multi_agent_v1".to_string()]
+        vec!["mcp__ditfa_apps".to_string(), "multi_agent_v1".to_string()]
     );
     assert_eq!(
         config.code_mode.direct_only_tool_namespaces,
@@ -767,7 +767,7 @@ fn rejects_provider_aws_for_custom_provider() {
 name = "Custom Provider"
 
 [model_providers.custom.aws]
-profile = "codex-bedrock"
+profile = "ditfa-bedrock"
 "#,
     )
     .unwrap_err();
@@ -784,7 +784,7 @@ fn accepts_amazon_bedrock_aws_profile_override() {
     let cfg = toml::from_str::<ConfigToml>(
         r#"
 [model_providers.amazon-bedrock.aws]
-profile = "codex-bedrock"
+profile = "ditfa-bedrock"
 region = "us-west-2"
 "#,
     )
@@ -795,7 +795,7 @@ region = "us-west-2"
             .get("amazon-bedrock")
             .and_then(|provider| provider.aws.as_ref())
             .and_then(|aws| aws.profile.as_deref()),
-        Some("codex-bedrock")
+        Some("ditfa-bedrock")
     );
     assert_eq!(
         cfg.model_providers
@@ -813,7 +813,7 @@ async fn load_config_applies_amazon_bedrock_aws_profile_override() {
 model_provider = "amazon-bedrock"
 
 [model_providers.amazon-bedrock.aws]
-profile = "codex-bedrock"
+profile = "ditfa-bedrock"
 region = "us-west-2"
 "#,
     )
@@ -834,7 +834,7 @@ region = "us-west-2"
             .aws
             .as_ref()
             .and_then(|aws| aws.profile.as_deref()),
-        Some("codex-bedrock")
+        Some("ditfa-bedrock")
     );
     assert_eq!(
         config
@@ -2631,7 +2631,7 @@ async fn default_permissions_read_only_keeps_add_dir_read_only() -> std::io::Res
 async fn workspace_profile_applies_rules_to_runtime_and_profile_workspace_roots()
 -> std::io::Result<()> {
     let temp_dir = TempDir::new()?;
-    let ditfa_home = temp_dir.path().join("codex-home");
+    let ditfa_home = temp_dir.path().join("ditfa-home");
     let cwd = temp_dir.path().join("frontend");
     let runtime_root = temp_dir.path().join("backend");
     let profile_root = temp_dir.path().join("shared");
@@ -3485,7 +3485,7 @@ async fn permissions_profiles_allow_unknown_special_paths() -> std::io::Result<(
     );
     assert!(
         config.startup_warnings.iter().any(|warning| warning.contains(
-            "Configured filesystem path `:future_special_path` is not recognized by this version of Codex and will be ignored."
+            "Configured filesystem path `:future_special_path` is not recognized by this version of Ditfa and will be ignored."
         )),
         "{:?}",
         config.startup_warnings
@@ -3526,7 +3526,7 @@ async fn permissions_profiles_allow_unknown_special_paths_with_nested_entries()
     );
     assert!(
         config.startup_warnings.iter().any(|warning| warning.contains(
-            "Configured filesystem path `:future_special_path` with nested entry `docs` is not recognized by this version of Codex and will be ignored."
+            "Configured filesystem path `:future_special_path` with nested entry `docs` is not recognized by this version of Ditfa and will be ignored."
         )),
         "{:?}",
         config.startup_warnings
@@ -3557,7 +3557,7 @@ async fn permissions_profiles_allow_missing_filesystem_with_warning() -> std::io
     );
     assert!(
         config.startup_warnings.iter().any(|warning| warning.contains(
-            "Permissions profile `dev` does not define any recognized filesystem entries for this version of Codex."
+            "Permissions profile `dev` does not define any recognized filesystem entries for this version of Ditfa."
         )),
         "{:?}",
         config.startup_warnings
@@ -3585,7 +3585,7 @@ async fn permissions_profiles_allow_empty_filesystem_with_warning() -> std::io::
     );
     assert!(
         config.startup_warnings.iter().any(|warning| warning.contains(
-            "Permissions profile `dev` does not define any recognized filesystem entries for this version of Codex."
+            "Permissions profile `dev` does not define any recognized filesystem entries for this version of Ditfa."
         )),
         "{:?}",
         config.startup_warnings
@@ -4730,7 +4730,7 @@ fn filter_plugin_mcp_servers_by_matchers_enforces_name_and_invocation() {
 async fn rebuild_preserving_session_layers_refreshes_requirements() -> std::io::Result<()> {
     let ditfa_home = TempDir::new()?;
     let user_file = AbsolutePathBuf::resolve_path_against_base(CONFIG_TOML_FILE, ditfa_home.path());
-    let project_dot_codex =
+    let project_dot_ditfa =
         AbsolutePathBuf::resolve_path_against_base("project/.ditfa", ditfa_home.path());
     let mcp_requirements = BTreeMap::from([
         (
@@ -4793,7 +4793,7 @@ async fn rebuild_preserving_session_layers_refreshes_requirements() -> std::io::
             ),
             ConfigLayerEntry::new(
                 ConfigLayerSource::Project {
-                    dot_codex_folder: project_dot_codex.clone(),
+                    dot_ditfa_folder: project_dot_ditfa.clone(),
                 },
                 toml::toml! {
                     [mcp_servers.fresh_project]
@@ -4848,7 +4848,7 @@ async fn rebuild_preserving_session_layers_refreshes_requirements() -> std::io::
             ),
             ConfigLayerEntry::new(
                 ConfigLayerSource::Project {
-                    dot_codex_folder: project_dot_codex,
+                    dot_ditfa_folder: project_dot_ditfa,
                 },
                 toml::toml! {
                     [mcp_servers.fresh_project]
@@ -5343,7 +5343,7 @@ async fn default_zsh_path_sets_runtime_zsh_path() -> std::io::Result<()> {
 }
 
 #[tokio::test]
-async fn sqlite_home_defaults_to_codex_home_for_workspace_write() -> std::io::Result<()> {
+async fn sqlite_home_defaults_to_ditfa_home_for_workspace_write() -> std::io::Result<()> {
     let ditfa_home = TempDir::new()?;
     let config = Config::load_from_base_config_with_overrides(
         ConfigToml::default(),
@@ -6140,7 +6140,7 @@ fn desktop_toml_round_trips_opaque_nested_values() -> anyhow::Result<()> {
         r#"
 [desktop]
 appearanceTheme = "dark"
-selected-avatar-id = "codex"
+selected-avatar-id = "ditfa"
 recentViews = ["threads", "settings"]
 
 [desktop.workspace]
@@ -6160,7 +6160,7 @@ pane = { selected = "console", expanded = false }
     );
     assert_eq!(
         desktop.get("selected-avatar-id"),
-        Some(&serde_json::json!("codex"))
+        Some(&serde_json::json!("ditfa"))
     );
     assert_eq!(
         desktop.get("recentViews"),
@@ -6485,7 +6485,7 @@ async fn replace_mcp_servers_serializes_sourced_env_vars() -> anyhow::Result<()>
 async fn replace_mcp_servers_serializes_cwd() -> anyhow::Result<()> {
     let ditfa_home = TempDir::new()?;
 
-    let cwd_path = PathBuf::from("/tmp/codex-mcp");
+    let cwd_path = PathBuf::from("/tmp/ditfa-mcp");
     let cwd = LegacyAppPathString::from_path(&cwd_path);
     let servers = BTreeMap::from([(
         "docs".to_string(),
@@ -6523,7 +6523,7 @@ async fn replace_mcp_servers_serializes_cwd() -> anyhow::Result<()> {
     let config_path = ditfa_home.path().join(CONFIG_TOML_FILE);
     let serialized = std::fs::read_to_string(&config_path)?;
     assert!(
-        serialized.contains(r#"cwd = "/tmp/codex-mcp""#),
+        serialized.contains(r#"cwd = "/tmp/ditfa-mcp""#),
         "serialized config missing cwd field:\n{serialized}"
     );
 
@@ -7099,7 +7099,7 @@ async fn replace_mcp_servers_streamable_http_serializes_oauth_resource() -> anyh
             disabled_tools: None,
             scopes: None,
             oauth: Some(McpServerOAuthConfig {
-                client_id: Some("eci-prd-pub-codex-123".to_string()),
+                client_id: Some("eci-prd-pub-ditfa-123".to_string()),
             }),
             oauth_resource: Some("https://resource.example.com".to_string()),
             tools: HashMap::new(),
@@ -7114,7 +7114,7 @@ async fn replace_mcp_servers_streamable_http_serializes_oauth_resource() -> anyh
     let config_path = ditfa_home.path().join(CONFIG_TOML_FILE);
     let serialized = std::fs::read_to_string(&config_path)?;
     assert!(serialized.contains("[mcp_servers.docs.oauth]"));
-    assert!(serialized.contains(r#"client_id = "eci-prd-pub-codex-123""#));
+    assert!(serialized.contains(r#"client_id = "eci-prd-pub-ditfa-123""#));
     assert!(serialized.contains(r#"oauth_resource = "https://resource.example.com""#));
 
     let loaded = load_global_mcp_servers(ditfa_home.path()).await?;
@@ -7123,7 +7123,7 @@ async fn replace_mcp_servers_streamable_http_serializes_oauth_resource() -> anyh
         docs.oauth_resource.as_deref(),
         Some("https://resource.example.com")
     );
-    assert_eq!(docs.oauth_client_id(), Some("eci-prd-pub-codex-123"));
+    assert_eq!(docs.oauth_client_id(), Some("eci-prd-pub-ditfa-123"));
 
     Ok(())
 }
@@ -9275,12 +9275,12 @@ trust_level = "trusted"
 fn test_set_project_trusted_migrates_top_level_inline_projects_preserving_entries()
 -> anyhow::Result<()> {
     let initial = r#"toplevel = "baz"
-projects = { "/Users/mbolin/code/codex4" = { trust_level = "trusted", foo = "bar" } , "/Users/mbolin/code/codex3" = { trust_level = "trusted" } }
+projects = { "/Users/mbolin/code/ditfa4" = { trust_level = "trusted", foo = "bar" } , "/Users/mbolin/code/ditfa3" = { trust_level = "trusted" } }
 model = "foo""#;
     let mut doc = initial.parse::<DocumentMut>()?;
 
     // Approve a new directory
-    let new_project = Path::new("/Users/mbolin/code/codex2");
+    let new_project = Path::new("/Users/mbolin/code/ditfa2");
     set_project_trust_level_inner(&mut doc, new_project, TrustLevel::Trusted)?;
 
     let contents = doc.to_string();
@@ -9292,11 +9292,11 @@ model = "foo""#;
         r#"toplevel = "baz"
 model = "foo"
 
-[projects."/Users/mbolin/code/codex4"]
+[projects."/Users/mbolin/code/ditfa4"]
 trust_level = "trusted"
 foo = "bar"
 
-[projects."/Users/mbolin/code/codex3"]
+[projects."/Users/mbolin/code/ditfa3"]
 trust_level = "trusted"
 
 [projects."{new_project_key}"]
@@ -9891,7 +9891,7 @@ sandbox_mode = "danger-full-access"
     assert_eq!(err.kind(), std::io::ErrorKind::InvalidInput);
     assert_eq!(
         err.to_string(),
-        "`approval_policy = \"never\"` cannot be used because requirements do not allow `sandbox_mode = \"danger-full-access\"`; Codex would fall back to read-only permissions with approvals disabled. Choose an `approval_policy` based on what you need, such as `on-request`, or choose an allowed sandbox mode."
+        "`approval_policy = \"never\"` cannot be used because requirements do not allow `sandbox_mode = \"danger-full-access\"`; Ditfa would fall back to read-only permissions with approvals disabled. Choose an `approval_policy` based on what you need, such as `on-request`, or choose an allowed sandbox mode."
     );
     Ok(())
 }
@@ -9925,7 +9925,7 @@ default_permissions = "dev"
     assert_eq!(err.kind(), std::io::ErrorKind::InvalidInput);
     assert_eq!(
         err.to_string(),
-        "`approval_policy = \"never\"` cannot be used because requirements do not allow `sandbox_mode = \"danger-full-access\"`; Codex would fall back to read-only permissions with approvals disabled. Choose an `approval_policy` based on what you need, such as `on-request`, or choose an allowed sandbox mode."
+        "`approval_policy = \"never\"` cannot be used because requirements do not allow `sandbox_mode = \"danger-full-access\"`; Ditfa would fall back to read-only permissions with approvals disabled. Choose an `approval_policy` based on what you need, such as `on-request`, or choose an allowed sandbox mode."
     );
     Ok(())
 }
@@ -10251,7 +10251,7 @@ async fn debug_config_lockfile_export_settings_load_from_nested_table() -> std::
         ditfa_home.path().join(CONFIG_TOML_FILE),
         r#"[debug.config_lockfile]
 export_dir = "locks"
-allow_codex_version_mismatch = true
+allow_ditfa_version_mismatch = true
 save_fields_resolved_from_model_catalog = false
 "#,
     )?;
@@ -10269,7 +10269,7 @@ save_fields_resolved_from_model_catalog = false
             ditfa_home.path()
         ))
     );
-    assert!(config.config_lock_allow_codex_version_mismatch);
+    assert!(config.config_lock_allow_ditfa_version_mismatch);
     assert!(!config.config_lock_save_fields_resolved_from_model_catalog);
 
     Ok(())
@@ -10295,7 +10295,7 @@ ditfa_version = "older-version"
         format!(
             r#"[debug.config_lockfile]
 load_path = '{}'
-allow_codex_version_mismatch = true
+allow_ditfa_version_mismatch = true
 save_fields_resolved_from_model_catalog = false
 "#,
             lock_path.display()
@@ -10309,7 +10309,7 @@ save_fields_resolved_from_model_catalog = false
         .await?;
 
     assert!(config.config_lock_toml.is_some());
-    assert!(config.config_lock_allow_codex_version_mismatch);
+    assert!(config.config_lock_allow_ditfa_version_mismatch);
     assert!(!config.config_lock_save_fields_resolved_from_model_catalog);
 
     Ok(())

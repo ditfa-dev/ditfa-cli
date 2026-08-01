@@ -66,9 +66,9 @@ use ditfa_chatgpt::workspace_settings;
 use ditfa_core::ThreadManager;
 use ditfa_core::config::Config;
 use ditfa_exec_server::EnvironmentManager;
-use ditfa_feedback::CodexFeedback;
+use ditfa_feedback::DitfaFeedback;
 use ditfa_goal_extension::GoalService;
-use ditfa_home::CodexHomeUserInstructionsProvider;
+use ditfa_home::DitfaHomeUserInstructionsProvider;
 use ditfa_login::AuthManager;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::protocol::SessionSource;
@@ -203,7 +203,7 @@ pub(crate) struct MessageProcessorArgs {
     pub(crate) config: Arc<Config>,
     pub(crate) config_manager: ConfigManager,
     pub(crate) environment_manager: Arc<EnvironmentManager>,
-    pub(crate) feedback: CodexFeedback,
+    pub(crate) feedback: DitfaFeedback,
     pub(crate) log_db: Option<LogDbLayer>,
     pub(crate) state_db: Option<StateDbHandle>,
     pub(crate) config_warnings: Vec<ConfigWarningNotification>,
@@ -257,7 +257,7 @@ impl MessageProcessor {
                 config.as_ref(),
                 auth_manager.clone(),
                 ditfa_core::build_models_manager(config.as_ref(), auth_manager.clone()),
-                ditfa_core::CodexAppsToolsCache::default(),
+                ditfa_core::DitfaAppsToolsCache::default(),
                 session_source,
                 environment_manager,
                 thread_extensions(
@@ -279,7 +279,7 @@ impl MessageProcessor {
                         thread_store: Arc::clone(&thread_store),
                     },
                 ),
-                Arc::new(CodexHomeUserInstructionsProvider::new(
+                Arc::new(DitfaHomeUserInstructionsProvider::new(
                     config.ditfa_home.clone(),
                 )),
                 Some(analytics_events_client.clone()),

@@ -52,7 +52,7 @@ use chrono::Local;
 use chrono::Utc;
 use ditfa_analytics::AnalyticsEventsClient;
 use ditfa_analytics::SubAgentThreadStartedInput;
-use ditfa_analytics::TurnCodexErrorFact;
+use ditfa_analytics::TurnDitfaErrorFact;
 use ditfa_async_utils::OrCancelExt;
 use ditfa_connectors::connector_runtime_context_key;
 use ditfa_core_skills::injection::HostSkillsCatalogInWorldState;
@@ -70,7 +70,7 @@ use ditfa_features::unstable_features_warning_event;
 use ditfa_hooks::Hooks;
 use ditfa_hooks::HooksConfig;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::auth_env_telemetry::collect_auth_env_telemetry;
 use ditfa_mcp::McpResourceClient;
 use ditfa_mcp::McpRuntime;
@@ -198,8 +198,8 @@ use ditfa_config::types::AuthKeyringBackendKind;
 use ditfa_config::types::McpServerConfig;
 use ditfa_config::types::OAuthCredentialsStoreMode;
 use ditfa_model_provider_info::ModelProviderInfo;
-use ditfa_protocol::error::CodexErr;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::DitfaErr;
+use ditfa_protocol::error::Result as DitfaResult;
 #[cfg(test)]
 use ditfa_protocol::exec_output::StreamOutput;
 
@@ -261,11 +261,11 @@ impl SteerInputError {
         match self {
             Self::NoActiveTurn(_) => ErrorEvent {
                 message: "no active turn to steer".to_string(),
-                ditfa_error_info: Some(CodexErrorInfo::BadRequest),
+                ditfa_error_info: Some(DitfaErrorInfo::BadRequest),
             },
             Self::ExpectedTurnMismatch { expected, actual } => ErrorEvent {
                 message: format!("expected active turn id `{expected}` but found `{actual}`"),
-                ditfa_error_info: Some(CodexErrorInfo::BadRequest),
+                ditfa_error_info: Some(DitfaErrorInfo::BadRequest),
             },
             Self::ActiveTurnNotSteerable { turn_kind } => {
                 let turn_kind_label = match turn_kind {
@@ -274,14 +274,14 @@ impl SteerInputError {
                 };
                 ErrorEvent {
                     message: format!("cannot steer a {turn_kind_label} turn"),
-                    ditfa_error_info: Some(CodexErrorInfo::ActiveTurnNotSteerable {
+                    ditfa_error_info: Some(DitfaErrorInfo::ActiveTurnNotSteerable {
                         turn_kind: *turn_kind,
                     }),
                 }
             }
             Self::EmptyInput => ErrorEvent {
                 message: "input must not be empty".to_string(),
-                ditfa_error_info: Some(CodexErrorInfo::BadRequest),
+                ditfa_error_info: Some(DitfaErrorInfo::BadRequest),
             },
         }
     }
@@ -352,7 +352,7 @@ use ditfa_protocol::models::ResponseItem;
 use ditfa_protocol::openai_models::ReasoningEffort as ReasoningEffortConfig;
 use ditfa_protocol::protocol::ApplyPatchApprovalRequestEvent;
 use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::CodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::CompactedItem;
 use ditfa_protocol::protocol::DeprecationNoticeEvent;
 use ditfa_protocol::protocol::ErrorEvent;
@@ -479,7 +479,7 @@ const CYBER_SAFETY_URL: &str = "https://developers.openai.com/codex/concepts/cyb
 
 impl Session {
     /// Spawn and initialize a new session.
-    pub(crate) async fn spawn(args: SessionSpawnArgs) -> CodexResult<(Arc<Self>, SessionIo)> {
+    pub(crate) async fn spawn(args: SessionSpawnArgs) -> DitfaResult<(Arc<Self>, SessionIo)> {
         let parent_trace = match args.parent_trace {
             Some(trace) => {
                 if ditfa_otel::context_from_w3c_trace_context(&trace).is_some() {
@@ -503,7 +503,7 @@ impl Session {
         .await
     }
 
-    async fn spawn_internal(args: SessionSpawnArgs) -> CodexResult<(Arc<Self>, SessionIo)> {
+    async fn spawn_internal(args: SessionSpawnArgs) -> DitfaResult<(Arc<Self>, SessionIo)> {
         let SessionSpawnArgs {
             mut config,
             allow_provider_model_fallback,
@@ -580,7 +580,7 @@ impl Session {
             Arc::new(
                 ExecPolicyManager::load(&config.config_layer_stack)
                     .await
-                    .map_err(|err| CodexErr::Fatal(format!("failed to load rules: {err}")))?,
+                    .map_err(|err| DitfaErr::Fatal(format!("failed to load rules: {err}")))?,
             )
         };
 
@@ -765,7 +765,7 @@ impl Session {
 
 impl SessionIo {
     /// Submit the `op` wrapped in a `Submission` with a unique ID.
-    pub(crate) async fn submit(&self, op: Op) -> CodexResult<String> {
+    pub(crate) async fn submit(&self, op: Op) -> DitfaResult<String> {
         self.submit_with_trace(op, /*trace*/ None).await
     }
 
@@ -773,7 +773,7 @@ impl SessionIo {
         &self,
         op: Op,
         trace: Option<W3cTraceContext>,
-    ) -> CodexResult<String> {
+    ) -> DitfaResult<String> {
         let id = new_submission_id();
         let sub = Submission {
             id: id.clone(),
@@ -790,7 +790,7 @@ impl SessionIo {
         op: Op,
         trace: Option<W3cTraceContext>,
         client_user_message_id: Option<String>,
-    ) -> CodexResult<String> {
+    ) -> DitfaResult<String> {
         debug_assert!(matches!(op, Op::UserInput { .. }));
         let id = new_submission_id();
         let sub = Submission {
@@ -804,34 +804,34 @@ impl SessionIo {
     }
 
     /// Use sparingly: prefer `submit()` so submission IDs are generated consistently.
-    pub(crate) async fn submit_with_id(&self, mut sub: Submission) -> CodexResult<()> {
+    pub(crate) async fn submit_with_id(&self, mut sub: Submission) -> DitfaResult<()> {
         if sub.trace.is_none() {
             sub.trace = current_span_w3c_trace_context();
         }
         self.tx_sub
             .send(sub)
             .await
-            .map_err(|_| CodexErr::InternalAgentDied)?;
+            .map_err(|_| DitfaErr::InternalAgentDied)?;
         Ok(())
     }
 
-    pub(crate) async fn shutdown_and_wait(&self) -> CodexResult<()> {
+    pub(crate) async fn shutdown_and_wait(&self) -> DitfaResult<()> {
         let session_loop_termination = self.session_loop_termination.clone();
         match self.submit(Op::Shutdown).await {
             Ok(_) => {}
-            Err(CodexErr::InternalAgentDied) => {}
+            Err(DitfaErr::InternalAgentDied) => {}
             Err(err) => return Err(err),
         }
         session_loop_termination.await;
         Ok(())
     }
 
-    pub(crate) async fn next_event(&self) -> CodexResult<Event> {
+    pub(crate) async fn next_event(&self) -> DitfaResult<Event> {
         let event = self
             .rx_event
             .recv()
             .await
-            .map_err(|_| CodexErr::InternalAgentDied)?;
+            .map_err(|_| DitfaErr::InternalAgentDied)?;
         Ok(event)
     }
 
@@ -881,7 +881,7 @@ fn unsupported_service_tier_warning(
 
 fn session_permission_profile_state_from_config(
     config: &Config,
-) -> CodexResult<PermissionProfileState> {
+) -> DitfaResult<PermissionProfileState> {
     Ok(config.permissions.permission_profile_state().clone())
 }
 
@@ -966,7 +966,7 @@ impl Session {
         !matches!(permission_profile, PermissionProfile::Disabled)
     }
 
-    /// Builds the `x-codex-beta-features` header value for this session.
+    /// Builds the `x-ditfa-beta-features` header value for this session.
     ///
     /// `ModelClient` is session-scoped and intentionally does not depend on the full `Config`, so
     /// we precompute the comma-separated list of enabled experimental feature keys at session
@@ -1311,7 +1311,7 @@ impl Session {
                         EventMsg::Warning(WarningEvent {
                             message: format!(
                                 "This session was recorded with model `{prev}` but is resuming with `{curr}`. \
-                         Consider switching back to `{prev}` as it may affect Codex performance."
+                         Consider switching back to `{prev}` as it may affect Ditfa performance."
                             ),
                         }),
                     )
@@ -1815,11 +1815,11 @@ impl Session {
         )
     }
 
-    /// Record a terminal CodexErr before the app-server completion notification is reduced.
-    pub(crate) fn track_turn_codex_error(&self, turn_context: &TurnContext, error: &CodexErr) {
+    /// Record a terminal DitfaErr before the app-server completion notification is reduced.
+    pub(crate) fn track_turn_ditfa_error(&self, turn_context: &TurnContext, error: &DitfaErr) {
         self.services
             .analytics_events_client
-            .track_turn_codex_error(TurnCodexErrorFact::from_codex_err(
+            .track_turn_ditfa_error(TurnDitfaErrorFact::from_ditfa_err(
                 self.thread_id.to_string(),
                 turn_context.sub_id.clone(),
                 error,
@@ -1833,7 +1833,7 @@ impl Session {
             && error
                 .ditfa_error_info
                 .as_ref()
-                .is_some_and(CodexErrorInfo::affects_turn_status)
+                .is_some_and(DitfaErrorInfo::affects_turn_status)
         {
             turn_context
                 .terminal_error
@@ -1843,7 +1843,7 @@ impl Session {
         }
         self.services
             .rollout_thread_trace
-            .record_codex_turn_event(&turn_context.sub_id, &legacy_source);
+            .record_ditfa_turn_event(&turn_context.sub_id, &legacy_source);
         self.services
             .rollout_thread_trace
             .record_tool_call_event(turn_context.sub_id.clone(), &legacy_source);
@@ -2418,7 +2418,7 @@ impl Session {
         let Ok(native_environment_cwd) = environment.cwd.to_abs_path() else {
             warn!(
                 cwd = %environment.cwd,
-                "request_permissions requires a cwd native to the Codex host"
+                "request_permissions requires a cwd native to the Ditfa host"
             );
             return Some(RequestPermissionsResponse {
                 permissions: RequestPermissionProfile::default(),
@@ -2691,7 +2691,7 @@ impl Session {
                         warn!(
                             cwd = %entry.environment.cwd,
                             %err,
-                            "request_permissions requires a cwd native to the Codex host"
+                            "request_permissions requires a cwd native to the Ditfa host"
                         );
                         RequestPermissionsResponse {
                             permissions: RequestPermissionProfile::default(),
@@ -2980,7 +2980,7 @@ impl Session {
         self: &Arc<Self>,
         turn_context: Arc<TurnContext>,
         cancellation_token: &CancellationToken,
-    ) -> CodexResult<Arc<StepContext>> {
+    ) -> DitfaResult<Arc<StepContext>> {
         // Keep selections fixed for the turn while allowing their startup work to finish.
         let environments = turn_context.environments.refresh_readiness();
         self.services
@@ -3716,7 +3716,7 @@ impl Session {
         &self,
         turn_context: &TurnContext,
         token_usage: Option<&TokenUsage>,
-    ) -> CodexResult<()> {
+    ) -> DitfaResult<()> {
         let result = self
             .record_token_usage_info(turn_context, token_usage)
             .await;
@@ -3728,7 +3728,7 @@ impl Session {
         &self,
         turn_context: &TurnContext,
         token_usage: Option<&TokenUsage>,
-    ) -> CodexResult<()> {
+    ) -> DitfaResult<()> {
         if let Some(token_usage) = token_usage {
             let token_info = {
                 let mut state = self.state.lock().await;
@@ -3890,10 +3890,10 @@ impl Session {
         &self,
         turn_context: &TurnContext,
         message: impl Into<String>,
-        ditfa_error: CodexErr,
+        ditfa_error: DitfaErr,
     ) {
         let additional_details = ditfa_error.to_string();
-        let ditfa_error_info = CodexErrorInfo::ResponseStreamDisconnected {
+        let ditfa_error_info = DitfaErrorInfo::ResponseStreamDisconnected {
             http_status_code: ditfa_error.http_status_code_value(),
         };
         let event = EventMsg::StreamError(StreamErrorEvent {
@@ -4103,7 +4103,7 @@ async fn build_hooks_for_config(
     let plugin_hook_load_warnings = plugin_outcome.effective_plugin_hook_warnings();
     Hooks::new(HooksConfig {
         legacy_notify_argv: config.notify.clone(),
-        feature_enabled: config.features.enabled(Feature::CodexHooks),
+        feature_enabled: config.features.enabled(Feature::DitfaHooks),
         bypass_hook_trust: config.bypass_hook_trust,
         config_layer_stack: Some(config.config_layer_stack.clone()),
         plugin_hook_sources,

@@ -15,7 +15,7 @@ permissions:
 jobs:
   prepare:
     # Prevent scheduled runs on forks (no secrets, wastes Actions minutes)
-    if: github.repository == 'openai/codex'
+    if: github.repository == 'Teamtem-dev/ditfa-code'
     environment:
       name: rust-release-prepare
       deployment: false
@@ -29,14 +29,14 @@ jobs:
 
       - name: Update models.json
         env:
-          OPENAI_API_KEY: ${{ secrets.CODEX_OPENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.DITFA_OPENAI_API_KEY }}
         run: |
           set -euo pipefail
 
           client_version="99.99.99"
           terminal_info="github-actions"
-          user_agent="codex_cli_rs/99.99.99 (Linux $(uname -r); $(uname -m)) ${terminal_info}"
-          base_url="${OPENAI_BASE_URL:-https://chatgpt.com/backend-api/codex}"
+          user_agent="ditfa_cli_rs/99.99.99 (Linux $(uname -r); $(uname -m)) ${terminal_info}"
+          base_url="${OPENAI_BASE_URL:-https://chatgpt.com/backend-api/ditfa}"
 
           headers=(
             -H "Authorization: Bearer ${OPENAI_API_KEY}"
@@ -44,7 +44,7 @@ jobs:
           )
 
           url="${base_url%/}/models?client_version=${client_version}"
-          curl --http1.1 --fail --show-error --location "${headers[@]}" "${url}" | jq '.' > codex-rs/models-manager/models.json
+          curl --http1.1 --fail --show-error --location "${headers[@]}" "${url}" | jq '.' > ditfa-rs/models-manager/models.json
 
       - name: Open pull request (if changed)
         uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0

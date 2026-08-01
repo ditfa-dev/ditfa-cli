@@ -27,7 +27,7 @@ use crate::tools::sandboxing::default_exec_approval_requirement;
 use crate::tools::sandboxing::sandbox_override_for_first_attempt;
 use crate::tools::sandboxing::unsandboxed_execution_allowed;
 use ditfa_otel::ToolDecisionSource;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::SandboxErr;
 use ditfa_protocol::exec_output::ExecToolCallOutput;
 use ditfa_protocol::protocol::AskForApproval;
@@ -298,7 +298,7 @@ impl ToolOrchestrator {
                     deferred_network_approval: first_deferred_network_approval,
                 })
             }
-            Err(ToolError::Codex(CodexErr::Sandbox(SandboxErr::Denied {
+            Err(ToolError::Ditfa(DitfaErr::Sandbox(SandboxErr::Denied {
                 output,
                 network_policy_decision,
             }))) => {
@@ -317,7 +317,7 @@ impl ToolOrchestrator {
                         initial_duration,
                         /*escalated_duration*/ None,
                     );
-                    return Err(ToolError::Codex(CodexErr::Sandbox(SandboxErr::Denied {
+                    return Err(ToolError::Ditfa(DitfaErr::Sandbox(SandboxErr::Denied {
                         output,
                         network_policy_decision,
                     })));
@@ -330,7 +330,7 @@ impl ToolOrchestrator {
                         initial_duration,
                         /*escalated_duration*/ None,
                     );
-                    return Err(ToolError::Codex(CodexErr::Sandbox(SandboxErr::Denied {
+                    return Err(ToolError::Ditfa(DitfaErr::Sandbox(SandboxErr::Denied {
                         output,
                         network_policy_decision,
                     })));
@@ -359,7 +359,7 @@ impl ToolOrchestrator {
                             initial_duration,
                             /*escalated_duration*/ None,
                         );
-                        return Err(ToolError::Codex(CodexErr::Sandbox(SandboxErr::Denied {
+                        return Err(ToolError::Ditfa(DitfaErr::Sandbox(SandboxErr::Denied {
                             output,
                             network_policy_decision,
                         })));
@@ -373,7 +373,7 @@ impl ToolOrchestrator {
                         initial_duration,
                         /*escalated_duration*/ None,
                     );
-                    return Err(ToolError::Codex(CodexErr::Sandbox(SandboxErr::Denied {
+                    return Err(ToolError::Ditfa(DitfaErr::Sandbox(SandboxErr::Denied {
                         output,
                         network_policy_decision,
                     })));
@@ -437,7 +437,7 @@ impl ToolOrchestrator {
                 } else {
                     SandboxType::None
                 };
-                let retry_codex_linux_sandbox_exe = if unsandboxed_allowed {
+                let retry_ditfa_linux_sandbox_exe = if unsandboxed_allowed {
                     None
                 } else {
                     turn_ctx.config.ditfa_linux_sandbox_exe.as_ref()
@@ -451,7 +451,7 @@ impl ToolOrchestrator {
                     manager: &self.sandbox,
                     sandbox_cwd: &sandbox_policy_cwd,
                     workspace_roots,
-                    ditfa_linux_sandbox_exe: retry_codex_linux_sandbox_exe,
+                    ditfa_linux_sandbox_exe: retry_ditfa_linux_sandbox_exe,
                     use_legacy_landlock,
                     windows_sandbox_level: turn_ctx.windows_sandbox_level,
                     windows_sandbox_private_desktop: turn_ctx
@@ -514,10 +514,10 @@ impl ToolOrchestrator {
 
 fn sandbox_outcome_from_tool_error(err: &ToolError) -> Option<&'static str> {
     match err {
-        ToolError::Codex(CodexErr::Sandbox(SandboxErr::Denied { .. })) => Some("denied"),
-        ToolError::Codex(CodexErr::Sandbox(SandboxErr::Timeout { .. })) => Some("timed_out"),
-        ToolError::Codex(CodexErr::Sandbox(SandboxErr::Signal(_))) => Some("signal"),
-        ToolError::Rejected(_) | ToolError::Codex(_) => None,
+        ToolError::Ditfa(DitfaErr::Sandbox(SandboxErr::Denied { .. })) => Some("denied"),
+        ToolError::Ditfa(DitfaErr::Sandbox(SandboxErr::Timeout { .. })) => Some("timed_out"),
+        ToolError::Ditfa(DitfaErr::Sandbox(SandboxErr::Signal(_))) => Some("signal"),
+        ToolError::Rejected(_) | ToolError::Ditfa(_) => None,
     }
 }
 

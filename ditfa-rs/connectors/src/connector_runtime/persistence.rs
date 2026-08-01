@@ -27,7 +27,7 @@ use super::ConnectorRuntimePayload;
 use super::ConnectorRuntimeSnapshot;
 use super::emit_duration;
 
-const MCP_TOOLS_CACHE_WRITE_DURATION_METRIC: &str = "codex.mcp.tools.cache_write.duration_ms";
+const MCP_TOOLS_CACHE_WRITE_DURATION_METRIC: &str = "ditfa.mcp.tools.cache_write.duration_ms";
 const DITFA_APPS_TOOLS_CACHE_DIR: &str = "cache/ditfa_apps_tools";
 pub(crate) const DITFA_APPS_TOOLS_CACHE_SCHEMA_VERSION: u8 = 4;
 const DITFA_APPS_SERVER_INFO_CACHE_DIR: &str = "cache/ditfa_apps_server_info";
@@ -59,7 +59,7 @@ pub(crate) fn load_cached_connector_runtime_for_identity<T: ConnectorRuntimePayl
 ) -> Option<ConnectorRuntimeSnapshot<T>> {
     let cache_path = tools_cache_path(identity);
     let (bytes, modified_at) = read_bounded_cache_file(&cache_path).ok()?;
-    let cache: CodexAppsToolsDiskCache<T> = serde_json::from_slice(&bytes).ok()?;
+    let cache: DitfaAppsToolsDiskCache<T> = serde_json::from_slice(&bytes).ok()?;
     (cache.schema_version == DITFA_APPS_TOOLS_CACHE_SCHEMA_VERSION).then_some(
         ConnectorRuntimeSnapshot {
             tools: cache.tools,
@@ -76,38 +76,38 @@ where
     T: ConnectorRuntimePayload,
 {
     let cache_path = cache_context.tools_cache_path();
-    let bytes = serde_json::to_vec_pretty(&CodexAppsToolsDiskCache {
+    let bytes = serde_json::to_vec_pretty(&DitfaAppsToolsDiskCache {
         schema_version: DITFA_APPS_TOOLS_CACHE_SCHEMA_VERSION,
         tools: snapshot.tools.clone(),
     })
     .context("failed to serialize connector runtime cache")?;
-    write_codex_apps_cache_file(&cache_path, "runtime", bytes)
+    write_ditfa_apps_cache_file(&cache_path, "runtime", bytes)
 }
 
 #[instrument(level = "trace", skip_all)]
-pub(crate) fn load_cached_codex_apps_server_info<T: ConnectorRuntimePayload>(
+pub(crate) fn load_cached_ditfa_apps_server_info<T: ConnectorRuntimePayload>(
     cache_context: &ConnectorRuntimeContext<T>,
 ) -> Option<McpServerInfo> {
     let (bytes, _) = read_bounded_cache_file(&cache_context.server_info_cache_path()).ok()?;
-    let cache: CodexAppsServerInfoDiskCache = serde_json::from_slice(&bytes).ok()?;
+    let cache: DitfaAppsServerInfoDiskCache = serde_json::from_slice(&bytes).ok()?;
     (cache.schema_version == DITFA_APPS_SERVER_INFO_CACHE_SCHEMA_VERSION)
         .then_some(cache.server_info)
 }
 
-fn write_cached_codex_apps_server_info<T: ConnectorRuntimePayload>(
+fn write_cached_ditfa_apps_server_info<T: ConnectorRuntimePayload>(
     cache_context: &ConnectorRuntimeContext<T>,
     server_info: &McpServerInfo,
 ) -> anyhow::Result<()> {
     let cache_path = cache_context.server_info_cache_path();
-    let bytes = serde_json::to_vec_pretty(&CodexAppsServerInfoDiskCache {
+    let bytes = serde_json::to_vec_pretty(&DitfaAppsServerInfoDiskCache {
         schema_version: DITFA_APPS_SERVER_INFO_CACHE_SCHEMA_VERSION,
         server_info: server_info.clone(),
     })
-    .context("failed to serialize Codex Apps server info cache")?;
-    write_codex_apps_cache_file(&cache_path, "server info", bytes)
+    .context("failed to serialize Ditfa Apps server info cache")?;
+    write_ditfa_apps_cache_file(&cache_path, "server info", bytes)
 }
 
-pub(crate) fn persist_codex_apps_cache<T>(
+pub(crate) fn persist_ditfa_apps_cache<T>(
     cache_context: &ConnectorRuntimeContext<T>,
     server_info: &McpServerInfo,
     snapshot: &ConnectorRuntimeSnapshot<T>,
@@ -119,9 +119,9 @@ pub(crate) fn persist_codex_apps_cache<T>(
     if let Err(err) = &tools_result {
         tracing::warn!("failed to write connector runtime cache: {err:#}");
     }
-    let server_info_result = write_cached_codex_apps_server_info(cache_context, server_info);
+    let server_info_result = write_cached_ditfa_apps_server_info(cache_context, server_info);
     if let Err(err) = &server_info_result {
-        tracing::warn!("failed to write Codex Apps server info cache: {err:#}");
+        tracing::warn!("failed to write Ditfa Apps server info cache: {err:#}");
     }
     let status = if tools_result.is_ok() && server_info_result.is_ok() {
         "success"
@@ -164,38 +164,38 @@ fn read_bounded_cache_file(cache_path: &Path) -> anyhow::Result<(Vec<u8>, System
     Ok((bytes, metadata.modified().unwrap_or(UNIX_EPOCH)))
 }
 
-fn write_codex_apps_cache_file(
+fn write_ditfa_apps_cache_file(
     cache_path: &Path,
     cache_name: &str,
     bytes: Vec<u8>,
 ) -> anyhow::Result<()> {
     let parent = cache_path.parent().ok_or_else(|| {
         anyhow!(
-            "Codex Apps {cache_name} cache path `{}` has no parent",
+            "Ditfa Apps {cache_name} cache path `{}` has no parent",
             cache_path.display()
         )
     })?;
     std::fs::create_dir_all(parent).with_context(|| {
         format!(
-            "failed to create Codex Apps {cache_name} cache directory `{}`",
+            "failed to create Ditfa Apps {cache_name} cache directory `{}`",
             parent.display()
         )
     })?;
     let mut temporary = NamedTempFile::new_in(parent).with_context(|| {
         format!(
-            "failed to create temporary Codex Apps {cache_name} cache in `{}`",
+            "failed to create temporary Ditfa Apps {cache_name} cache in `{}`",
             parent.display()
         )
     })?;
     temporary.write_all(&bytes).with_context(|| {
         format!(
-            "failed to write temporary Codex Apps {cache_name} cache for `{}`",
+            "failed to write temporary Ditfa Apps {cache_name} cache for `{}`",
             cache_path.display()
         )
     })?;
     temporary.persist(cache_path).map_err(|error| {
         anyhow!(
-            "failed to atomically replace Codex Apps {cache_name} cache `{}`: {}",
+            "failed to atomically replace Ditfa Apps {cache_name} cache `{}`: {}",
             cache_path.display(),
             error.error
         )
@@ -204,13 +204,13 @@ fn write_codex_apps_cache_file(
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct CodexAppsToolsDiskCache<T> {
+struct DitfaAppsToolsDiskCache<T> {
     schema_version: u8,
     tools: Vec<T>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct CodexAppsServerInfoDiskCache {
+struct DitfaAppsServerInfoDiskCache {
     schema_version: u8,
     server_info: McpServerInfo,
 }
@@ -223,7 +223,7 @@ fn sha1_hex(s: &str) -> String {
 }
 
 #[cfg(test)]
-pub(crate) fn write_cached_codex_apps_tools_for_test<T>(
+pub(crate) fn write_cached_ditfa_apps_tools_for_test<T>(
     cache_context: &ConnectorRuntimeContext<T>,
     server_info: &McpServerInfo,
     tools: &[T],
@@ -238,11 +238,11 @@ pub(crate) fn write_cached_codex_apps_tools_for_test<T>(
         .entry
         .current_snapshot
         .store(Some(Arc::new(snapshot.clone())));
-    persist_codex_apps_cache(cache_context, server_info, &snapshot);
+    persist_ditfa_apps_cache(cache_context, server_info, &snapshot);
 }
 
 #[cfg(test)]
-pub(crate) fn read_cached_codex_apps_tools<T>(
+pub(crate) fn read_cached_ditfa_apps_tools<T>(
     cache_context: &ConnectorRuntimeContext<T>,
 ) -> Option<Vec<T>>
 where
@@ -253,7 +253,7 @@ where
 }
 
 #[cfg(test)]
-pub(crate) fn write_cached_codex_apps_tools<T>(
+pub(crate) fn write_cached_ditfa_apps_tools<T>(
     cache_context: &ConnectorRuntimeContext<T>,
     tools: &[T],
 ) -> anyhow::Result<()>

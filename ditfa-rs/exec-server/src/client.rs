@@ -129,7 +129,7 @@ const MAX_PENDING_PROCESS_EVENT_BYTES: usize = 1024 * 1024;
 impl Default for ExecServerClientConnectOptions {
     fn default() -> Self {
         Self {
-            client_name: "codex-core".to_string(),
+            client_name: "ditfa-core".to_string(),
             initialize_timeout: INITIALIZE_TIMEOUT,
             resume_session_id: None,
         }
@@ -2491,7 +2491,7 @@ mod tests {
     async fn terminal_stdio_startup_failure_is_remembered() {
         let client = LazyRemoteExecServerClient::new(ExecServerTransportParams::StdioCommand {
             command: StdioExecServerCommand {
-                program: "codex-missing-exec-server-for-test".to_string(),
+                program: "ditfa-missing-exec-server-for-test".to_string(),
                 args: Vec::new(),
                 env: HashMap::new(),
                 cwd: None,

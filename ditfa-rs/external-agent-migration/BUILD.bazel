@@ -1,6 +1,6 @@
-load("//:defs.bzl", "codex_rust_crate")
+load("//:defs.bzl", "ditfa_rust_crate")
 
-codex_rust_crate(
+ditfa_rust_crate(
     name = "external-agent-migration",
-    crate_name = "codex_external_agent_migration",
+    crate_name = "ditfa_external_agent_migration",
 )

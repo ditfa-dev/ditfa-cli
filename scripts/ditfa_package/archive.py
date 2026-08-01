@@ -1,4 +1,4 @@
-"""Archive writers for canonical Codex package directories."""
+"""Archive writers for canonical Ditfa Code package directories."""
 
 import shutil
 import subprocess
@@ -71,7 +71,7 @@ def write_tar_archive(package_dir: Path, archive_path: Path, *, mode: str) -> No
 def write_tar_zst_archive(package_dir: Path, archive_path: Path) -> None:
     zstd_command = resolve_zstd_command()
 
-    with tempfile.TemporaryDirectory(prefix="codex-package-archive-") as temp_dir_str:
+    with tempfile.TemporaryDirectory(prefix="ditfa-package-archive-") as temp_dir_str:
         tar_path = Path(temp_dir_str) / "package.tar"
         write_tar_archive(package_dir, tar_path, mode="w")
         subprocess.check_call(

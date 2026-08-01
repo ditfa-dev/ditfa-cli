@@ -36,12 +36,12 @@ pub enum AuthMode {
     #[ts(rename = "headers")]
     #[strum(serialize = "headers")]
     Headers,
-    /// Programmatic Codex auth backed by a registered Agent Identity.
+    /// Programmatic Ditfa auth backed by a registered Agent Identity.
     #[serde(rename = "agentIdentity")]
     #[ts(rename = "agentIdentity")]
     #[strum(serialize = "agentIdentity")]
     AgentIdentity,
-    /// Programmatic Codex auth backed by a personal access token.
+    /// Programmatic Ditfa auth backed by a personal access token.
     #[serde(rename = "personalAccessToken")]
     #[ts(rename = "personalAccessToken")]
     #[strum(serialize = "personalAccessToken")]
@@ -63,7 +63,7 @@ impl AuthMode {
     }
 
     /// Returns whether this mode is backed by Ditfa services rather than a direct model API.
-    pub fn uses_codex_backend(self) -> bool {
+    pub fn uses_ditfa_backend(self) -> bool {
         match self {
             Self::Chatgpt
             | Self::ChatgptAuthTokens
@@ -1112,7 +1112,7 @@ client_request_definitions! {
         response: v2::CommandExecResizeResponse,
     },
     #[experimental("process/spawn")]
-    /// Spawn a standalone process (argv vector) without a Codex sandbox.
+    /// Spawn a standalone process (argv vector) without a Ditfa sandbox.
     ProcessSpawn => "process/spawn" {
         params: v2::ProcessSpawnParams,
         serialization: process_handle(params.process_handle),
@@ -1780,7 +1780,7 @@ mod tests {
     use ditfa_protocol::config_types::MultiAgentMode;
     use ditfa_protocol::models::BUILT_IN_PERMISSION_PROFILE_READ_ONLY;
     use ditfa_protocol::parse_command::ParsedCommand;
-    use ditfa_protocol::protocol::CodexResponseHandoffMode;
+    use ditfa_protocol::protocol::DitfaResponseHandoffMode;
     use ditfa_protocol::protocol::ConversationTextRole;
     use ditfa_protocol::protocol::RealtimeConversationVersion;
     use ditfa_protocol::protocol::RealtimeOutputModality;
@@ -2337,7 +2337,7 @@ mod tests {
             params: v1::InitializeParams {
                 client_info: v1::ClientInfo {
                     name: "ditfa_vscode".to_string(),
-                    title: Some("Codex VS Code Extension".to_string()),
+                    title: Some("Ditfa VS Code Extension".to_string()),
                     version: "0.1.0".to_string(),
                 },
                 capabilities: Some(v1::InitializeCapabilities {
@@ -2359,7 +2359,7 @@ mod tests {
                 "params": {
                     "clientInfo": {
                         "name": "ditfa_vscode",
-                        "title": "Codex VS Code Extension",
+                        "title": "Ditfa VS Code Extension",
                         "version": "0.1.0"
                     },
                     "capabilities": {
@@ -2386,7 +2386,7 @@ mod tests {
             "params": {
                 "clientInfo": {
                     "name": "ditfa_vscode",
-                    "title": "Codex VS Code Extension",
+                    "title": "Ditfa VS Code Extension",
                     "version": "0.1.0"
                 },
                 "capabilities": {
@@ -2408,7 +2408,7 @@ mod tests {
                 params: v1::InitializeParams {
                     client_info: v1::ClientInfo {
                         name: "ditfa_vscode".to_string(),
-                        title: Some("Codex VS Code Extension".to_string()),
+                        title: Some("Ditfa VS Code Extension".to_string()),
                         version: "0.1.0".to_string(),
                     },
                     capabilities: Some(v1::InitializeCapabilities {
@@ -2927,7 +2927,7 @@ mod tests {
                 "params": {
                     "type": "chatgpt",
                     "appBrand": null,
-                    "codexStreamlinedLogin": true
+                    "ditfaStreamlinedLogin": true
                 }
             }),
             serde_json::to_value(&request)?,
@@ -2952,7 +2952,7 @@ mod tests {
                 "params": {
                     "type": "chatgpt",
                     "appBrand": "chatgpt",
-                    "codexStreamlinedLogin": true,
+                    "ditfaStreamlinedLogin": true,
                     "useHostedLoginSuccessPage": true
                 }
             }),
@@ -3094,23 +3094,23 @@ mod tests {
         );
 
         let ditfa_managed_bedrock = v2::Account::AmazonBedrock {
-            uses_codex_managed_credentials: true,
+            uses_ditfa_managed_credentials: true,
         };
         assert_eq!(
             json!({
                 "type": "amazonBedrock",
-                "usesCodexManagedCredentials": true,
+                "usesDitfaManagedCredentials": true,
             }),
             serde_json::to_value(&ditfa_managed_bedrock)?,
         );
 
         let externally_managed_bedrock = v2::Account::AmazonBedrock {
-            uses_codex_managed_credentials: false,
+            uses_ditfa_managed_credentials: false,
         };
         assert_eq!(
             json!({
                 "type": "amazonBedrock",
-                "usesCodexManagedCredentials": false,
+                "usesDitfaManagedCredentials": false,
             }),
             serde_json::to_value(&externally_managed_bedrock)?,
         );
@@ -3122,7 +3122,7 @@ mod tests {
     fn account_defaults_legacy_bedrock_managed_credentials_flag() -> Result<()> {
         assert_eq!(
             v2::Account::AmazonBedrock {
-                uses_codex_managed_credentials: false,
+                uses_ditfa_managed_credentials: false,
             },
             serde_json::from_value(json!({
                 "type": "amazonBedrock",
@@ -3483,7 +3483,7 @@ mod tests {
                 flush_transcript_tail_on_session_end: Some(true),
                 ditfa_responses_as_items: None,
                 ditfa_response_item_prefix: None,
-                ditfa_response_handoff_mode: Some(CodexResponseHandoffMode::BemTags),
+                ditfa_response_handoff_mode: Some(DitfaResponseHandoffMode::BemTags),
                 ditfa_response_handoff_channel_prefixes: Some(std::collections::BTreeMap::from([
                     ("analysis".to_string(), vec!["[THINKING]".to_string()]),
                     (
@@ -3521,10 +3521,10 @@ mod tests {
                     "threadId": "thr_123",
                     "clientManagedHandoffs": true,
                     "flushTranscriptTailOnSessionEnd": true,
-                    "codexResponsesAsItems": null,
-                    "codexResponseItemPrefix": null,
-                    "codexResponseHandoffMode": "bemTags",
-                    "codexResponseHandoffChannelPrefixes": {
+                    "ditfaResponsesAsItems": null,
+                    "ditfaResponseItemPrefix": null,
+                    "ditfaResponseHandoffMode": "bemTags",
+                    "ditfaResponseHandoffChannelPrefixes": {
                         "analysis": ["[THINKING]"],
                         "commentary": ["[PROGRESS]", "[UPDATE]"],
                         "final": ["[DONE]"]
@@ -3585,10 +3585,10 @@ mod tests {
                     "threadId": "thr_123",
                     "clientManagedHandoffs": null,
                     "flushTranscriptTailOnSessionEnd": null,
-                    "codexResponsesAsItems": null,
-                    "codexResponseItemPrefix": null,
-                    "codexResponseHandoffMode": null,
-                    "codexResponseHandoffChannelPrefixes": null,
+                    "ditfaResponsesAsItems": null,
+                    "ditfaResponseItemPrefix": null,
+                    "ditfaResponseHandoffMode": null,
+                    "ditfaResponseHandoffChannelPrefixes": null,
                     "model": null,
                     "outputModality": "audio",
                     "includeStartupContext": null,
@@ -3631,10 +3631,10 @@ mod tests {
                     "threadId": "thr_123",
                     "clientManagedHandoffs": null,
                     "flushTranscriptTailOnSessionEnd": null,
-                    "codexResponsesAsItems": null,
-                    "codexResponseItemPrefix": null,
-                    "codexResponseHandoffMode": null,
-                    "codexResponseHandoffChannelPrefixes": null,
+                    "ditfaResponsesAsItems": null,
+                    "ditfaResponseItemPrefix": null,
+                    "ditfaResponseHandoffMode": null,
+                    "ditfaResponseHandoffChannelPrefixes": null,
                     "model": null,
                     "outputModality": "audio",
                     "includeStartupContext": null,
@@ -3655,7 +3655,7 @@ mod tests {
             "params": {
                 "threadId": "thr_123",
                 // Retain runtime compatibility with clients that have not yet removed this field.
-                "codexResponseHandoffPrefix": "",
+                "ditfaResponseHandoffPrefix": "",
                 "outputModality": "audio",
                 "realtimeSessionId": null,
                 "transport": null,

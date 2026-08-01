@@ -267,7 +267,7 @@ async fn prepared_call_does_not_reroute_after_captured_connection_closes() {
 
     let error = old_call
         .call(
-            Some(serde_json::json!({"query": "codex"})),
+            Some(serde_json::json!({"query": "ditfa"})),
             /*meta*/ None,
         )
         .await
@@ -295,7 +295,7 @@ async fn prepared_call_is_rejected_after_catalog_refresh() {
 
     let error = prepared
         .call(
-            Some(serde_json::json!({"query": "codex"})),
+            Some(serde_json::json!({"query": "ditfa"})),
             /*meta*/ None,
         )
         .await

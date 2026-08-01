@@ -56,7 +56,7 @@ const EXTERNAL_AGENT_DIR: &str = crate::ClaSource::CONFIG_DIR;
 #[cfg(test)]
 const EXTERNAL_AGENT_CONFIG_MD: &str = crate::ClaSource::CONFIG_MD;
 
-const EXTERNAL_AGENT_CONFIG_IMPORT_METRIC: &str = "codex.external_agent_config.import";
+const EXTERNAL_AGENT_CONFIG_IMPORT_METRIC: &str = "ditfa.external_agent_config.import";
 
 #[derive(Clone)]
 pub struct ExternalAgentConfigService {
@@ -761,7 +761,7 @@ pub(crate) fn configured_marketplace_plugins(
                     .policy
                     .products
                     .as_deref()
-                    .is_none_or(|products| Product::Codex.matches_product_restriction(products))
+                    .is_none_or(|products| Product::Ditfa.matches_product_restriction(products))
             })
             .map(|plugin| plugin.name)
             .collect::<HashSet<_>>();

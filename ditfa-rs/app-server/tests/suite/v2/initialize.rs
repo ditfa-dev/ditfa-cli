@@ -31,12 +31,12 @@ async fn initialize_uses_client_info_name_as_originator() -> Result<()> {
     let responses = Vec::new();
     let server = create_mock_responses_server_sequence_unchecked(responses).await;
     let ditfa_home = TempDir::new()?;
-    let expected_codex_home = AbsolutePathBuf::try_from(ditfa_home.path().canonicalize()?)?;
+    let expected_ditfa_home = AbsolutePathBuf::try_from(ditfa_home.path().canonicalize()?)?;
     MockResponsesConfig::new(&server.uri())
         .disable_feature(Feature::ShellSnapshot)
         .write(ditfa_home.path())?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -45,7 +45,7 @@ async fn initialize_uses_client_info_name_as_originator() -> Result<()> {
         DEFAULT_READ_TIMEOUT,
         mcp.initialize_with_client_info(ClientInfo {
             name: "ditfa_vscode".to_string(),
-            title: Some("Codex VS Code Extension".to_string()),
+            title: Some("Ditfa VS Code Extension".to_string()),
             version: "0.1.0".to_string(),
         }),
     )
@@ -56,13 +56,13 @@ async fn initialize_uses_client_info_name_as_originator() -> Result<()> {
     };
     let InitializeResponse {
         user_agent,
-        ditfa_home: response_codex_home,
+        ditfa_home: response_ditfa_home,
         platform_family,
         platform_os,
     } = to_response::<InitializeResponse>(response)?;
 
     assert!(user_agent.starts_with("ditfa_vscode/"));
-    assert_eq!(response_codex_home, expected_codex_home);
+    assert_eq!(response_ditfa_home, expected_ditfa_home);
     assert_eq!(platform_family, std::env::consts::FAMILY);
     assert_eq!(platform_os, std::env::consts::OS);
     Ok(())
@@ -77,7 +77,7 @@ async fn initialize_probe_does_not_override_originator() -> Result<()> {
         .disable_feature(Feature::ShellSnapshot)
         .write(ditfa_home.path())?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -86,7 +86,7 @@ async fn initialize_probe_does_not_override_originator() -> Result<()> {
         DEFAULT_READ_TIMEOUT,
         mcp.initialize_with_client_info(ClientInfo {
             name: "ditfa_app_server_daemon".to_string(),
-            title: Some("Codex App Server Daemon".to_string()),
+            title: Some("Ditfa App Server Daemon".to_string()),
             version: "0.1.0".to_string(),
         }),
     )
@@ -102,7 +102,7 @@ async fn initialize_probe_does_not_override_originator() -> Result<()> {
 }
 
 #[tokio::test]
-async fn initialize_codex_backend_does_not_override_originator() -> Result<()> {
+async fn initialize_ditfa_backend_does_not_override_originator() -> Result<()> {
     let responses = Vec::new();
     let server = create_mock_responses_server_sequence_unchecked(responses).await;
     let ditfa_home = TempDir::new()?;
@@ -110,7 +110,7 @@ async fn initialize_codex_backend_does_not_override_originator() -> Result<()> {
         .disable_feature(Feature::ShellSnapshot)
         .write(ditfa_home.path())?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -118,8 +118,8 @@ async fn initialize_codex_backend_does_not_override_originator() -> Result<()> {
     let message = timeout(
         DEFAULT_READ_TIMEOUT,
         mcp.initialize_with_client_info(ClientInfo {
-            name: "codex-backend".to_string(),
-            title: Some("Codex Backend".to_string()),
+            name: "ditfa-backend".to_string(),
+            title: Some("Ditfa Backend".to_string()),
             version: "0.1.0".to_string(),
         }),
     )
@@ -139,12 +139,12 @@ async fn initialize_respects_originator_override_env_var() -> Result<()> {
     let responses = Vec::new();
     let server = create_mock_responses_server_sequence_unchecked(responses).await;
     let ditfa_home = TempDir::new()?;
-    let expected_codex_home = AbsolutePathBuf::try_from(ditfa_home.path().canonicalize()?)?;
+    let expected_ditfa_home = AbsolutePathBuf::try_from(ditfa_home.path().canonicalize()?)?;
     MockResponsesConfig::new(&server.uri())
         .disable_feature(Feature::ShellSnapshot)
         .write(ditfa_home.path())?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[(
             "DITFA_INTERNAL_ORIGINATOR_OVERRIDE",
@@ -157,7 +157,7 @@ async fn initialize_respects_originator_override_env_var() -> Result<()> {
         DEFAULT_READ_TIMEOUT,
         mcp.initialize_with_client_info(ClientInfo {
             name: "ditfa_vscode".to_string(),
-            title: Some("Codex VS Code Extension".to_string()),
+            title: Some("Ditfa VS Code Extension".to_string()),
             version: "0.1.0".to_string(),
         }),
     )
@@ -168,13 +168,13 @@ async fn initialize_respects_originator_override_env_var() -> Result<()> {
     };
     let InitializeResponse {
         user_agent,
-        ditfa_home: response_codex_home,
+        ditfa_home: response_ditfa_home,
         platform_family,
         platform_os,
     } = to_response::<InitializeResponse>(response)?;
 
     assert!(user_agent.starts_with("ditfa_originator_via_env_var/"));
-    assert_eq!(response_codex_home, expected_codex_home);
+    assert_eq!(response_ditfa_home, expected_ditfa_home);
     assert_eq!(platform_family, std::env::consts::FAMILY);
     assert_eq!(platform_os, std::env::consts::OS);
     Ok(())
@@ -189,7 +189,7 @@ async fn initialize_rejects_invalid_client_name() -> Result<()> {
         .disable_feature(Feature::ShellSnapshot)
         .write(ditfa_home.path())?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("DITFA_INTERNAL_ORIGINATOR_OVERRIDE", None)])
         .build()
@@ -227,7 +227,7 @@ async fn initialize_opt_out_notification_methods_filters_notifications() -> Resu
         .disable_feature(Feature::ShellSnapshot)
         .write(ditfa_home.path())?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build()
         .await?;
 
@@ -236,7 +236,7 @@ async fn initialize_opt_out_notification_methods_filters_notifications() -> Resu
         mcp.initialize_with_capabilities(
             ClientInfo {
                 name: "ditfa_vscode".to_string(),
-                title: Some("Codex VS Code Extension".to_string()),
+                title: Some("Ditfa VS Code Extension".to_string()),
                 version: "0.1.0".to_string(),
             },
             Some(InitializeCapabilities {
@@ -294,7 +294,7 @@ async fn turn_start_notify_payload_includes_initialize_client_name() -> Result<(
     let server = create_mock_responses_server_sequence_unchecked(responses).await;
     let ditfa_home = TempDir::new()?;
     let notify_file = ditfa_home.path().join("notify.json");
-    let notify_capture = cargo_bin("codex-app-server-test-notify-capture")?;
+    let notify_capture = cargo_bin("ditfa-app-server-test-notify-capture")?;
     let notify_capture = notify_capture
         .to_str()
         .expect("notify capture path should be valid UTF-8");
@@ -311,7 +311,7 @@ async fn turn_start_notify_payload_includes_initialize_client_name() -> Result<(
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build()
         .await?;
     timeout(

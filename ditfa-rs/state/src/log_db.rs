@@ -211,7 +211,7 @@ where
         }
 
         // The SDK emits DEBUG timer meta-events every second per process; these
-        // were over 30% of retained logs in measured high-fanout Codex environments.
+        // were over 30% of retained logs in measured high-fanout Ditfa environments.
         if metadata.target() == "opentelemetry_sdk"
             && matches!(
                 *metadata.level(),
@@ -501,8 +501,8 @@ mod tests {
 
     use super::*;
 
-    fn temp_codex_home() -> std::path::PathBuf {
-        std::env::temp_dir().join(format!("codex-state-log-db-{}", Uuid::new_v4()))
+    fn temp_ditfa_home() -> std::path::PathBuf {
+        std::env::temp_dir().join(format!("ditfa-state-log-db-{}", Uuid::new_v4()))
     }
 
     async fn wait_for_log_count(runtime: &StateRuntime, expected: usize) -> Vec<crate::LogRow> {
@@ -582,7 +582,7 @@ mod tests {
 
     #[tokio::test]
     async fn sqlite_feedback_logs_match_feedback_formatter_shape() {
-        let ditfa_home = temp_codex_home();
+        let ditfa_home = temp_ditfa_home();
         let runtime = StateRuntime::init(ditfa_home.clone(), "test-provider".to_string())
             .await
             .expect("initialize runtime");
@@ -640,7 +640,7 @@ mod tests {
 
     #[tokio::test]
     async fn flush_persists_logs_for_query() {
-        let ditfa_home = temp_codex_home();
+        let ditfa_home = temp_ditfa_home();
         let runtime = StateRuntime::init(ditfa_home.clone(), "test-provider".to_string())
             .await
             .expect("initialize runtime");
@@ -671,7 +671,7 @@ mod tests {
 
     #[tokio::test]
     async fn configured_batch_size_flushes_without_explicit_flush() {
-        let ditfa_home = temp_codex_home();
+        let ditfa_home = temp_ditfa_home();
         let runtime = StateRuntime::init(ditfa_home.clone(), "test-provider".to_string())
             .await
             .expect("initialize runtime");
@@ -720,7 +720,7 @@ mod tests {
 
     #[tokio::test]
     async fn configured_flush_interval_persists_buffered_logs() {
-        let ditfa_home = temp_codex_home();
+        let ditfa_home = temp_ditfa_home();
         let runtime = StateRuntime::init(ditfa_home.clone(), "test-provider".to_string())
             .await
             .expect("initialize runtime");

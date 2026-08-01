@@ -73,7 +73,7 @@ async fn first_turn_after_external_login_waits_for_recommended_plugins() -> Resu
 
     let sqlite_home = ditfa_home.path().to_string_lossy();
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_managed_config()
         .with_env_overrides(&[("DITFA_SQLITE_HOME", Some(sqlite_home.as_ref()))])
         .build()

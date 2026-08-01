@@ -1,26 +1,26 @@
 use crate::client::AnalyticsEventsClient;
 use crate::client::AnalyticsEventsQueue;
 use crate::events::AppServerRpcTransport;
-use crate::events::CodexAcceptedLineFingerprintsEventParams;
-use crate::events::CodexAcceptedLineFingerprintsEventRequest;
-use crate::events::CodexAppMentionedEventRequest;
-use crate::events::CodexAppServerClientMetadata;
-use crate::events::CodexAppUsedEventRequest;
-use crate::events::CodexCommandExecutionEventParams;
-use crate::events::CodexCommandExecutionEventRequest;
-use crate::events::CodexCompactionEventRequest;
-use crate::events::CodexHookRunEventRequest;
-use crate::events::CodexOnboardingExternalAgentImportFailureEventRequest;
-use crate::events::CodexOnboardingExternalAgentImportFailureMetadata;
-use crate::events::CodexPluginEventRequest;
-use crate::events::CodexPluginInstallFailedEventRequest;
-use crate::events::CodexPluginInstallFailedMetadata;
-use crate::events::CodexPluginUsedEventRequest;
-use crate::events::CodexReviewEventParams;
-use crate::events::CodexReviewEventRequest;
-use crate::events::CodexRuntimeMetadata;
-use crate::events::CodexToolItemEventBase;
-use crate::events::CodexTurnEventRequest;
+use crate::events::DitfaAcceptedLineFingerprintsEventParams;
+use crate::events::DitfaAcceptedLineFingerprintsEventRequest;
+use crate::events::DitfaAppMentionedEventRequest;
+use crate::events::DitfaAppServerClientMetadata;
+use crate::events::DitfaAppUsedEventRequest;
+use crate::events::DitfaCommandExecutionEventParams;
+use crate::events::DitfaCommandExecutionEventRequest;
+use crate::events::DitfaCompactionEventRequest;
+use crate::events::DitfaHookRunEventRequest;
+use crate::events::DitfaOnboardingExternalAgentImportFailureEventRequest;
+use crate::events::DitfaOnboardingExternalAgentImportFailureMetadata;
+use crate::events::DitfaPluginEventRequest;
+use crate::events::DitfaPluginInstallFailedEventRequest;
+use crate::events::DitfaPluginInstallFailedMetadata;
+use crate::events::DitfaPluginUsedEventRequest;
+use crate::events::DitfaReviewEventParams;
+use crate::events::DitfaReviewEventRequest;
+use crate::events::DitfaRuntimeMetadata;
+use crate::events::DitfaToolItemEventBase;
+use crate::events::DitfaTurnEventRequest;
 use crate::events::FinalApprovalOutcome;
 use crate::events::GuardianApprovalRequestSource;
 use crate::events::GuardianReviewDecision;
@@ -47,8 +47,8 @@ use crate::facts::AnalyticsJsonRpcError;
 use crate::facts::AppInvocation;
 use crate::facts::AppMentionedInput;
 use crate::facts::AppUsedInput;
-use crate::facts::CodexCompactionEvent;
-use crate::facts::CodexErrKind;
+use crate::facts::DitfaCompactionEvent;
+use crate::facts::DitfaErrKind;
 use crate::facts::CompactionImplementation;
 use crate::facts::CompactionPhase;
 use crate::facts::CompactionReason;
@@ -76,7 +76,7 @@ use crate::facts::SkillInvokedInput;
 use crate::facts::SubAgentThreadStartedInput;
 use crate::facts::ThreadInitializationMode;
 use crate::facts::TrackEventsContext;
-use crate::facts::TurnCodexErrorFact;
+use crate::facts::TurnDitfaErrorFact;
 use crate::facts::TurnProfile;
 use crate::facts::TurnProfileFact;
 use crate::facts::TurnResolvedConfigFact;
@@ -91,7 +91,7 @@ use ditfa_app_server_protocol::AskForApproval as AppServerAskForApproval;
 use ditfa_app_server_protocol::ClientInfo;
 use ditfa_app_server_protocol::ClientRequest;
 use ditfa_app_server_protocol::ClientResponsePayload;
-use ditfa_app_server_protocol::CodexErrorInfo;
+use ditfa_app_server_protocol::DitfaErrorInfo;
 use ditfa_app_server_protocol::CollabAgentTool;
 use ditfa_app_server_protocol::CollabAgentToolCallStatus;
 use ditfa_app_server_protocol::CommandAction;
@@ -153,7 +153,7 @@ use ditfa_plugin::PluginTelemetryMetadata;
 use ditfa_protocol::approvals::NetworkApprovalProtocol;
 use ditfa_protocol::config_types::ApprovalsReviewer;
 use ditfa_protocol::config_types::ModeKind;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::models::NetworkPermissions as CoreNetworkPermissions;
 use ditfa_protocol::models::PermissionProfile as CorePermissionProfile;
 use ditfa_protocol::protocol::AskForApproval;
@@ -253,18 +253,18 @@ fn sample_thread_start_response(
     })
 }
 
-fn sample_app_server_client_metadata() -> CodexAppServerClientMetadata {
-    CodexAppServerClientMetadata {
+fn sample_app_server_client_metadata() -> DitfaAppServerClientMetadata {
+    DitfaAppServerClientMetadata {
         product_client_id: DEFAULT_ORIGINATOR.to_string(),
-        client_name: Some("codex-tui".to_string()),
+        client_name: Some("ditfa-tui".to_string()),
         client_version: Some("1.0.0".to_string()),
         rpc_transport: AppServerRpcTransport::Stdio,
         experimental_api_enabled: Some(true),
     }
 }
 
-fn sample_runtime_metadata() -> CodexRuntimeMetadata {
-    CodexRuntimeMetadata {
+fn sample_runtime_metadata() -> DitfaRuntimeMetadata {
+    DitfaRuntimeMetadata {
         ditfa_rs_version: "0.1.0".to_string(),
         runtime_os: "macos".to_string(),
         runtime_os_version: "15.3.1".to_string(),
@@ -392,7 +392,7 @@ fn sample_turn_completed_notification(
     thread_id: &str,
     turn_id: &str,
     status: AppServerTurnStatus,
-    ditfa_error_info: Option<ditfa_app_server_protocol::CodexErrorInfo>,
+    ditfa_error_info: Option<ditfa_app_server_protocol::DitfaErrorInfo>,
 ) -> ServerNotification {
     ServerNotification::TurnCompleted(TurnCompletedNotification {
         thread_id: thread_id.to_string(),
@@ -503,7 +503,7 @@ fn non_steerable_review_error() -> JSONRPCErrorError {
         data: Some(
             serde_json::to_value(AppServerTurnError {
                 message: "cannot steer a review turn".to_string(),
-                ditfa_error_info: Some(CodexErrorInfo::ActiveTurnNotSteerable {
+                ditfa_error_info: Some(DitfaErrorInfo::ActiveTurnNotSteerable {
                     turn_kind: NonSteerableTurnKind::Review,
                 }),
                 additional_details: None,
@@ -550,13 +550,13 @@ async fn ingest_rejected_turn_steer(
                 connection_id: 8,
                 params: InitializeParams {
                     client_info: ClientInfo {
-                        name: "codex-web".to_string(),
+                        name: "ditfa-web".to_string(),
                         title: None,
                         version: "1.0.0".to_string(),
                     },
                     capabilities: None,
                 },
-                product_client_id: "codex-web".to_string(),
+                product_client_id: "ditfa-web".to_string(),
                 runtime: sample_runtime_metadata(),
                 rpc_transport: AppServerRpcTransport::Stdio,
             },
@@ -612,13 +612,13 @@ async fn ingest_initialize(reducer: &mut AnalyticsReducer, out: &mut Vec<TrackEv
                 connection_id: 7,
                 params: InitializeParams {
                     client_info: ClientInfo {
-                        name: "codex-tui".to_string(),
+                        name: "ditfa-tui".to_string(),
                         title: None,
                         version: "1.0.0".to_string(),
                     },
                     capabilities: None,
                 },
-                product_client_id: "codex-tui".to_string(),
+                product_client_id: "ditfa-tui".to_string(),
                 runtime: sample_runtime_metadata(),
                 rpc_transport: AppServerRpcTransport::Stdio,
             },
@@ -801,7 +801,7 @@ fn sample_initialize_fact(connection_id: u64) -> AnalyticsFact {
         connection_id,
         params: InitializeParams {
             client_info: ClientInfo {
-                name: "codex-tui".to_string(),
+                name: "ditfa-tui".to_string(),
                 title: None,
                 version: "1.0.0".to_string(),
             },
@@ -813,7 +813,7 @@ fn sample_initialize_fact(connection_id: u64) -> AnalyticsFact {
             }),
         },
         product_client_id: DEFAULT_ORIGINATOR.to_string(),
-        runtime: CodexRuntimeMetadata {
+        runtime: DitfaRuntimeMetadata {
             ditfa_rs_version: "0.99.0".to_string(),
             runtime_os: "linux".to_string(),
             runtime_os_version: "24.04".to_string(),
@@ -1027,7 +1027,7 @@ fn normalize_path_for_skill_id_user_scoped_uses_absolute_path() {
 
 #[test]
 fn normalize_path_for_skill_id_admin_scoped_uses_absolute_path() {
-    let skill_path = PathBuf::from("/etc/codex/skills/doc/SKILL.md");
+    let skill_path = PathBuf::from("/etc/ditfa/skills/doc/SKILL.md");
 
     let path = normalize_path_for_skill_id(
         /*repo_url*/ None,
@@ -1057,7 +1057,7 @@ fn normalize_path_for_skill_id_repo_root_not_in_skill_path_uses_absolute_path() 
 #[test]
 fn app_mentioned_event_serializes_expected_shape() {
     let tracking = test_tracking_context("thread-1", "turn-1");
-    let event = TrackEventRequest::AppMentioned(CodexAppMentionedEventRequest {
+    let event = TrackEventRequest::AppMentioned(DitfaAppMentionedEventRequest {
         event_type: "ditfa_app_mentioned",
         event_params: ditfa_app_metadata(
             &tracking,
@@ -1091,7 +1091,7 @@ fn app_mentioned_event_serializes_expected_shape() {
 #[test]
 fn app_used_event_serializes_expected_shape() {
     let tracking = test_tracking_context("thread-2", "turn-2");
-    let event = TrackEventRequest::AppUsed(CodexAppUsedEventRequest {
+    let event = TrackEventRequest::AppUsed(DitfaAppUsedEventRequest {
         event_type: "ditfa_app_used",
         event_params: ditfa_app_metadata(
             &tracking,
@@ -1125,13 +1125,13 @@ fn app_used_event_serializes_expected_shape() {
 #[test]
 fn accepted_line_fingerprints_event_serializes_expected_shape() {
     let event = TrackEventRequest::AcceptedLineFingerprints(Box::new(
-        CodexAcceptedLineFingerprintsEventRequest {
+        DitfaAcceptedLineFingerprintsEventRequest {
             event_type: "ditfa_accepted_line_fingerprints",
-            event_params: CodexAcceptedLineFingerprintsEventParams {
-                event_type: "codex.accepted_line_fingerprints",
+            event_params: DitfaAcceptedLineFingerprintsEventParams {
+                event_type: "ditfa.accepted_line_fingerprints",
                 turn_id: "turn-1".to_string(),
                 thread_id: "thread-1".to_string(),
-                product_surface: Some("codex".to_string()),
+                product_surface: Some("ditfa".to_string()),
                 model_slug: Some("gpt-5.1-codex".to_string()),
                 completed_at: 1710000000,
                 repo_hash: Some("repo-hash-1".to_string()),
@@ -1149,10 +1149,10 @@ fn accepted_line_fingerprints_event_serializes_expected_shape() {
         json!({
             "event_type": "ditfa_accepted_line_fingerprints",
             "event_params": {
-                "event_type": "codex.accepted_line_fingerprints",
+                "event_type": "ditfa.accepted_line_fingerprints",
                 "turn_id": "turn-1",
                 "thread_id": "thread-1",
-                "product_surface": "codex",
+                "product_surface": "ditfa",
                 "model_slug": "gpt-5.1-codex",
                 "completed_at": 1710000000,
                 "repo_hash": "repo-hash-1",
@@ -1310,11 +1310,11 @@ async fn analytics_flush_delivers_completed_turn_with_file_diff() {
         .expect("system clock should be after Unix epoch")
         .as_nanos();
     let capture_path = std::env::temp_dir().join(format!(
-        "codex-analytics-turn-flush-{}-{nonce}.jsonl",
+        "ditfa-analytics-turn-flush-{}-{nonce}.jsonl",
         std::process::id()
     ));
     let auth_manager = ditfa_login::AuthManager::from_auth_for_testing(
-        ditfa_login::CodexAuth::create_dummy_chatgpt_auth_for_testing(),
+        ditfa_login::DitfaAuth::create_dummy_chatgpt_auth_for_testing(),
     );
     let client = AnalyticsEventsClient::new_for_capture_file(auth_manager, capture_path.clone());
 
@@ -1408,10 +1408,10 @@ index 1111111..2222222
 
 #[test]
 fn compaction_event_serializes_expected_shape() {
-    let event = TrackEventRequest::Compaction(Box::new(CodexCompactionEventRequest {
+    let event = TrackEventRequest::Compaction(Box::new(DitfaCompactionEventRequest {
         event_type: "ditfa_compaction_event",
         event_params: crate::events::ditfa_compaction_event_params(
-            CodexCompactionEvent {
+            DitfaCompactionEvent {
                 thread_id: "thread-1".to_string(),
                 turn_id: "turn-1".to_string(),
                 trigger: CompactionTrigger::Auto,
@@ -1453,7 +1453,7 @@ fn compaction_event_serializes_expected_shape() {
                 "turn_id": "turn-1",
                 "app_server_client": {
                     "product_client_id": DEFAULT_ORIGINATOR,
-                    "client_name": "codex-tui",
+                    "client_name": "ditfa-tui",
                     "client_version": "1.0.0",
                     "rpc_transport": "stdio",
                     "experimental_api_enabled": true
@@ -1526,14 +1526,14 @@ fn thread_initialized_event_serializes_expected_shape() {
         event_params: ThreadInitializedEventParams {
             thread_id: "thread-0".to_string(),
             session_id: "session-thread-0".to_string(),
-            app_server_client: CodexAppServerClientMetadata {
+            app_server_client: DitfaAppServerClientMetadata {
                 product_client_id: DEFAULT_ORIGINATOR.to_string(),
-                client_name: Some("codex-tui".to_string()),
+                client_name: Some("ditfa-tui".to_string()),
                 client_version: Some("1.0.0".to_string()),
                 rpc_transport: AppServerRpcTransport::Stdio,
                 experimental_api_enabled: Some(true),
             },
-            runtime: CodexRuntimeMetadata {
+            runtime: DitfaRuntimeMetadata {
                 ditfa_rs_version: "0.1.0".to_string(),
                 runtime_os: "macos".to_string(),
                 runtime_os_version: "15.3.1".to_string(),
@@ -1561,7 +1561,7 @@ fn thread_initialized_event_serializes_expected_shape() {
                 "session_id": "session-thread-0",
                 "app_server_client": {
                     "product_client_id": DEFAULT_ORIGINATOR,
-                    "client_name": "codex-tui",
+                    "client_name": "ditfa-tui",
                     "client_version": "1.0.0",
                     "rpc_transport": "stdio",
                     "experimental_api_enabled": true
@@ -1587,22 +1587,22 @@ fn thread_initialized_event_serializes_expected_shape() {
 
 #[test]
 fn command_execution_event_serializes_expected_shape() {
-    let event = TrackEventRequest::CommandExecution(CodexCommandExecutionEventRequest {
+    let event = TrackEventRequest::CommandExecution(DitfaCommandExecutionEventRequest {
         event_type: "ditfa_command_execution_event",
-        event_params: CodexCommandExecutionEventParams {
-            base: CodexToolItemEventBase {
+        event_params: DitfaCommandExecutionEventParams {
+            base: DitfaToolItemEventBase {
                 thread_id: "thread-1".to_string(),
                 session_id: "session-thread-1".to_string(),
                 turn_id: "turn-1".to_string(),
                 item_id: "item-1".to_string(),
-                app_server_client: CodexAppServerClientMetadata {
+                app_server_client: DitfaAppServerClientMetadata {
                     product_client_id: "ditfa_tui".to_string(),
-                    client_name: Some("codex-tui".to_string()),
+                    client_name: Some("ditfa-tui".to_string()),
                     client_version: Some("1.2.3".to_string()),
                     rpc_transport: AppServerRpcTransport::Websocket,
                     experimental_api_enabled: Some(true),
                 },
-                runtime: CodexRuntimeMetadata {
+                runtime: DitfaRuntimeMetadata {
                     ditfa_rs_version: "0.99.0".to_string(),
                     runtime_os: "macos".to_string(),
                     runtime_os_version: "15.3.1".to_string(),
@@ -1647,7 +1647,7 @@ fn command_execution_event_serializes_expected_shape() {
                 "item_id": "item-1",
                 "app_server_client": {
                     "product_client_id": "ditfa_tui",
-                    "client_name": "codex-tui",
+                    "client_name": "ditfa-tui",
                     "client_version": "1.2.3",
                     "rpc_transport": "websocket",
                     "experimental_api_enabled": true
@@ -1688,21 +1688,21 @@ fn command_execution_event_serializes_expected_shape() {
 
 #[test]
 fn review_event_serializes_expected_shape() {
-    let event = TrackEventRequest::ReviewEvent(CodexReviewEventRequest {
+    let event = TrackEventRequest::ReviewEvent(DitfaReviewEventRequest {
         event_type: "ditfa_review_event",
-        event_params: CodexReviewEventParams {
+        event_params: DitfaReviewEventParams {
             thread_id: "thread-1".to_string(),
             turn_id: "turn-1".to_string(),
             item_id: None,
             review_id: "review-1".to_string(),
-            app_server_client: CodexAppServerClientMetadata {
+            app_server_client: DitfaAppServerClientMetadata {
                 product_client_id: "ditfa_tui".to_string(),
-                client_name: Some("codex-tui".to_string()),
+                client_name: Some("ditfa-tui".to_string()),
                 client_version: Some("1.2.3".to_string()),
                 rpc_transport: AppServerRpcTransport::Websocket,
                 experimental_api_enabled: Some(true),
             },
-            runtime: CodexRuntimeMetadata {
+            runtime: DitfaRuntimeMetadata {
                 ditfa_rs_version: "0.99.0".to_string(),
                 runtime_os: "macos".to_string(),
                 runtime_os_version: "15.3.1".to_string(),
@@ -1735,7 +1735,7 @@ fn review_event_serializes_expected_shape() {
                 "review_id": "review-1",
                 "app_server_client": {
                     "product_client_id": "ditfa_tui",
-                    "client_name": "codex-tui",
+                    "client_name": "ditfa-tui",
                     "client_version": "1.2.3",
                     "rpc_transport": "websocket",
                     "experimental_api_enabled": true
@@ -1790,7 +1790,7 @@ async fn initialize_caches_client_and_thread_lifecycle_publishes_once_initialize
                 connection_id: 7,
                 params: InitializeParams {
                     client_info: ClientInfo {
-                        name: "codex-tui".to_string(),
+                        name: "ditfa-tui".to_string(),
                         title: None,
                         version: "1.0.0".to_string(),
                     },
@@ -1802,7 +1802,7 @@ async fn initialize_caches_client_and_thread_lifecycle_publishes_once_initialize
                     }),
                 },
                 product_client_id: DEFAULT_ORIGINATOR.to_string(),
-                runtime: CodexRuntimeMetadata {
+                runtime: DitfaRuntimeMetadata {
                     ditfa_rs_version: "0.99.0".to_string(),
                     runtime_os: "linux".to_string(),
                     runtime_os_version: "24.04".to_string(),
@@ -1839,7 +1839,7 @@ async fn initialize_caches_client_and_thread_lifecycle_publishes_once_initialize
     );
     assert_eq!(
         payload[0]["event_params"]["app_server_client"]["client_name"],
-        "codex-tui"
+        "ditfa-tui"
     );
     assert_eq!(
         payload[0]["event_params"]["app_server_client"]["client_version"],
@@ -1913,7 +1913,7 @@ async fn thread_originator_overrides_shared_connection_across_thread_events() {
                 "thread_id": "thread-work",
                 "app_server_client": {
                     "product_client_id": TEST_PRODUCT_CLIENT_ID,
-                    "client_name": "codex-tui",
+                    "client_name": "ditfa-tui",
                     "client_version": "1.0.0",
                     "rpc_transport": "websocket",
                     "experimental_api_enabled": false,
@@ -1923,7 +1923,7 @@ async fn thread_originator_overrides_shared_connection_across_thread_events() {
                 "thread_id": "thread-default",
                 "app_server_client": {
                     "product_client_id": DEFAULT_ORIGINATOR,
-                    "client_name": "codex-tui",
+                    "client_name": "ditfa-tui",
                     "client_version": "1.0.0",
                     "rpc_transport": "websocket",
                     "experimental_api_enabled": false,
@@ -1963,7 +1963,7 @@ async fn thread_originator_overrides_shared_connection_across_thread_events() {
     reducer
         .ingest(
             AnalyticsFact::Custom(CustomAnalyticsFact::Compaction(Box::new(
-                CodexCompactionEvent {
+                DitfaCompactionEvent {
                     thread_id: "thread-work".to_string(),
                     turn_id: "turn-compact".to_string(),
                     trigger: CompactionTrigger::Manual,
@@ -2095,7 +2095,7 @@ async fn compaction_event_ingests_custom_fact() {
                 connection_id: 7,
                 params: InitializeParams {
                     client_info: ClientInfo {
-                        name: "codex-tui".to_string(),
+                        name: "ditfa-tui".to_string(),
                         title: None,
                         version: "1.0.0".to_string(),
                     },
@@ -2142,7 +2142,7 @@ async fn compaction_event_ingests_custom_fact() {
     reducer
         .ingest(
             AnalyticsFact::Custom(CustomAnalyticsFact::Compaction(Box::new(
-                CodexCompactionEvent {
+                DitfaCompactionEvent {
                     thread_id: "thread-1".to_string(),
                     turn_id: "turn-compact".to_string(),
                     trigger: CompactionTrigger::Manual,
@@ -2151,7 +2151,7 @@ async fn compaction_event_ingests_custom_fact() {
                     phase: CompactionPhase::StandaloneTurn,
                     strategy: CompactionStrategy::Memento,
                     status: CompactionStatus::Failed,
-                    ditfa_error_kind: Some(CodexErrKind::ContextWindowExceeded),
+                    ditfa_error_kind: Some(DitfaErrKind::ContextWindowExceeded),
                     ditfa_error_http_status_code: None,
                     active_context_tokens_before: 131_000,
                     active_context_tokens_after: 131_000,
@@ -2188,7 +2188,7 @@ async fn compaction_event_ingests_custom_fact() {
     );
     assert_eq!(
         payload[0]["event_params"]["app_server_client"]["client_name"],
-        "codex-tui"
+        "ditfa-tui"
     );
     assert_eq!(
         payload[0]["event_params"]["app_server_client"]["rpc_transport"],
@@ -2226,7 +2226,7 @@ async fn guardian_review_event_ingests_custom_fact_with_optional_target_item() {
                 connection_id: 7,
                 params: InitializeParams {
                     client_info: ClientInfo {
-                        name: "codex-tui".to_string(),
+                        name: "ditfa-tui".to_string(),
                         title: None,
                         version: "1.0.0".to_string(),
                     },
@@ -2286,7 +2286,7 @@ async fn guardian_review_event_ingests_custom_fact_with_optional_target_item() {
                     guardian_session_kind: None,
                     guardian_model: None,
                     guardian_reasoning_effort: None,
-                    guardian_default_review_model_id: Some("codex-auto-review".to_string()),
+                    guardian_default_review_model_id: Some("ditfa-auto-review".to_string()),
                     guardian_catalog_contains_auto_review: Some(false),
                     guardian_review_model_overridden: Some(false),
                     guardian_review_model_override: None,
@@ -2360,7 +2360,7 @@ async fn guardian_review_event_ingests_custom_fact_with_optional_target_item() {
     assert_eq!(payload[0]["event_params"]["review_timeout_ms"], 90_000);
     assert_eq!(
         payload[0]["event_params"]["guardian_default_review_model_id"],
-        "codex-auto-review"
+        "ditfa-auto-review"
     );
     assert_eq!(
         payload[0]["event_params"]["guardian_catalog_contains_auto_review"],
@@ -2492,7 +2492,7 @@ async fn item_lifecycle_notifications_publish_command_execution_event() {
     assert_eq!(payload[0]["event_params"]["execution_duration_ms"], 42);
     assert_eq!(
         payload[0]["event_params"]["app_server_client"]["client_name"],
-        "codex-tui"
+        "ditfa-tui"
     );
     assert_eq!(payload[0]["event_params"]["thread_source"], "user");
 }
@@ -2836,8 +2836,8 @@ fn subagent_thread_started_review_serializes_expected_shape() {
             thread_id: "thread-review".to_string(),
             parent_thread_id: None,
             forked_from_thread_id: None,
-            product_client_id: "codex-tui".to_string(),
-            client_name: "codex-tui".to_string(),
+            product_client_id: "ditfa-tui".to_string(),
+            client_name: "ditfa-tui".to_string(),
             client_version: "1.0.0".to_string(),
             model: "gpt-5".to_string(),
             ephemeral: false,
@@ -2850,11 +2850,11 @@ fn subagent_thread_started_review_serializes_expected_shape() {
     assert_eq!(payload["event_params"]["thread_source"], "subagent");
     assert_eq!(
         payload["event_params"]["app_server_client"]["product_client_id"],
-        "codex-tui"
+        "ditfa-tui"
     );
     assert_eq!(
         payload["event_params"]["app_server_client"]["client_name"],
-        "codex-tui"
+        "ditfa-tui"
     );
     assert_eq!(
         payload["event_params"]["app_server_client"]["client_version"],
@@ -2888,8 +2888,8 @@ fn subagent_thread_started_thread_spawn_serializes_thread_lineage() {
             thread_id: "thread-spawn".to_string(),
             parent_thread_id: Some(parent_thread_id.to_string()),
             forked_from_thread_id: Some(forked_from_thread_id.to_string()),
-            product_client_id: "codex-tui".to_string(),
-            client_name: "codex-tui".to_string(),
+            product_client_id: "ditfa-tui".to_string(),
+            client_name: "ditfa-tui".to_string(),
             client_version: "1.0.0".to_string(),
             model: "gpt-5".to_string(),
             ephemeral: true,
@@ -2927,8 +2927,8 @@ fn subagent_thread_started_memory_consolidation_serializes_expected_shape() {
             thread_id: "thread-memory".to_string(),
             parent_thread_id: None,
             forked_from_thread_id: None,
-            product_client_id: "codex-tui".to_string(),
-            client_name: "codex-tui".to_string(),
+            product_client_id: "ditfa-tui".to_string(),
+            client_name: "ditfa-tui".to_string(),
             client_version: "1.0.0".to_string(),
             model: "gpt-5".to_string(),
             ephemeral: false,
@@ -2954,8 +2954,8 @@ fn subagent_thread_started_other_serializes_expected_shape() {
             thread_id: "thread-guardian".to_string(),
             parent_thread_id: None,
             forked_from_thread_id: None,
-            product_client_id: "codex-tui".to_string(),
-            client_name: "codex-tui".to_string(),
+            product_client_id: "ditfa-tui".to_string(),
+            client_name: "ditfa-tui".to_string(),
             client_version: "1.0.0".to_string(),
             model: "gpt-5".to_string(),
             ephemeral: false,
@@ -2980,8 +2980,8 @@ fn subagent_thread_started_other_serializes_explicit_parent_thread_id() {
             thread_id: "thread-guardian".to_string(),
             parent_thread_id: Some(parent_thread_id.to_string()),
             forked_from_thread_id: None,
-            product_client_id: "codex-tui".to_string(),
-            client_name: "codex-tui".to_string(),
+            product_client_id: "ditfa-tui".to_string(),
+            client_name: "ditfa-tui".to_string(),
             client_version: "1.0.0".to_string(),
             model: "gpt-5".to_string(),
             ephemeral: false,
@@ -3011,8 +3011,8 @@ async fn subagent_thread_started_publishes_without_initialize() {
                     thread_id: "thread-review".to_string(),
                     parent_thread_id: None,
                     forked_from_thread_id: None,
-                    product_client_id: "codex-tui".to_string(),
-                    client_name: "codex-tui".to_string(),
+                    product_client_id: "ditfa-tui".to_string(),
+                    client_name: "ditfa-tui".to_string(),
                     client_version: "1.0.0".to_string(),
                     model: "gpt-5".to_string(),
                     ephemeral: false,
@@ -3029,7 +3029,7 @@ async fn subagent_thread_started_publishes_without_initialize() {
     assert_eq!(payload[0]["event_type"], "ditfa_thread_initialized");
     assert_eq!(
         payload[0]["event_params"]["app_server_client"]["product_client_id"],
-        "codex-tui"
+        "ditfa-tui"
     );
     assert_eq!(payload[0]["event_params"]["thread_source"], "subagent");
     assert_eq!(payload[0]["event_params"]["subagent_source"], "review");
@@ -3110,7 +3110,7 @@ async fn subagent_events_keep_thread_originator_with_explicit_turn_connection() 
     reducer
         .ingest(
             AnalyticsFact::Custom(CustomAnalyticsFact::Compaction(Box::new(
-                CodexCompactionEvent {
+                DitfaCompactionEvent {
                     thread_id: "thread-review".to_string(),
                     turn_id: "turn-compact".to_string(),
                     trigger: CompactionTrigger::Manual,
@@ -3212,7 +3212,7 @@ async fn subagent_events_keep_thread_originator_with_explicit_turn_connection() 
     );
     assert_eq!(
         event.event_params.app_server_client.client_name.as_deref(),
-        Some("codex-tui")
+        Some("ditfa-tui")
     );
 }
 
@@ -3230,8 +3230,8 @@ async fn subagent_tool_items_inherit_parent_connection_metadata() {
                     thread_id: "thread-subagent".to_string(),
                     parent_thread_id: Some("thread-1".to_string()),
                     forked_from_thread_id: None,
-                    product_client_id: "codex-tui".to_string(),
-                    client_name: "codex-tui".to_string(),
+                    product_client_id: "ditfa-tui".to_string(),
+                    client_name: "ditfa-tui".to_string(),
                     client_version: "1.0.0".to_string(),
                     model: "gpt-5".to_string(),
                     ephemeral: false,
@@ -3298,14 +3298,14 @@ async fn subagent_tool_items_inherit_parent_connection_metadata() {
     assert_eq!(payload[0]["event_params"]["parent_thread_id"], "thread-1");
     assert_eq!(
         payload[0]["event_params"]["app_server_client"]["client_name"],
-        "codex-tui"
+        "ditfa-tui"
     );
 }
 
 #[test]
 fn plugin_used_event_serializes_expected_shape() {
     let tracking = test_tracking_context("thread-3", "turn-3");
-    let event = TrackEventRequest::PluginUsed(CodexPluginUsedEventRequest {
+    let event = TrackEventRequest::PluginUsed(DitfaPluginUsedEventRequest {
         event_type: "ditfa_plugin_used",
         event_params: ditfa_plugin_used_metadata(&tracking, sample_plugin_metadata()),
     });
@@ -3336,7 +3336,7 @@ fn plugin_used_event_serializes_expected_shape() {
 
 #[test]
 fn plugin_management_event_serializes_expected_shape() {
-    let event = TrackEventRequest::PluginInstalled(CodexPluginEventRequest {
+    let event = TrackEventRequest::PluginInstalled(DitfaPluginEventRequest {
         event_type: "ditfa_plugin_installed",
         event_params: ditfa_plugin_metadata(sample_plugin_metadata()),
     });
@@ -3363,9 +3363,9 @@ fn plugin_management_event_serializes_expected_shape() {
 
 #[test]
 fn plugin_install_failed_event_serializes_expected_shape() {
-    let event = TrackEventRequest::PluginInstallFailed(CodexPluginInstallFailedEventRequest {
+    let event = TrackEventRequest::PluginInstallFailed(DitfaPluginInstallFailedEventRequest {
         event_type: "ditfa_plugin_install_failed",
-        event_params: CodexPluginInstallFailedMetadata {
+        event_params: DitfaPluginInstallFailedMetadata {
             plugin: ditfa_plugin_metadata(sample_plugin_metadata()),
             source: PluginInstallSource::Manual,
             error_type: "store_io".to_string(),
@@ -3400,7 +3400,7 @@ fn plugin_install_failed_event_serializes_expected_shape() {
 fn plugin_management_event_keeps_plugin_id_local_when_remote_id_exists() {
     let mut plugin = sample_plugin_metadata();
     plugin.remote_plugin_id = Some("plugins~Plugin_remote".to_string());
-    let event = TrackEventRequest::PluginInstalled(CodexPluginEventRequest {
+    let event = TrackEventRequest::PluginInstalled(DitfaPluginEventRequest {
         event_type: "ditfa_plugin_installed",
         event_params: ditfa_plugin_metadata(plugin),
     });
@@ -3428,7 +3428,7 @@ fn plugin_management_event_keeps_plugin_id_local_when_remote_id_exists() {
 #[test]
 fn hook_run_event_serializes_expected_shape() {
     let tracking = test_tracking_context("thread-3", "turn-3");
-    let event = TrackEventRequest::HookRun(CodexHookRunEventRequest {
+    let event = TrackEventRequest::HookRun(DitfaHookRunEventRequest {
         event_type: "ditfa_hook_run",
         event_params: ditfa_hook_run_metadata(
             &tracking,
@@ -3940,9 +3940,9 @@ async fn reducer_ingests_external_agent_config_import_completed_fact() {
 #[test]
 fn external_agent_config_import_failure_event_serializes_expected_shape() {
     let event = TrackEventRequest::ExternalAgentConfigImportFailure(
-        CodexOnboardingExternalAgentImportFailureEventRequest {
+        DitfaOnboardingExternalAgentImportFailureEventRequest {
             event_type: "ditfa_onboarding_external_agent_import_failure",
-            event_params: CodexOnboardingExternalAgentImportFailureMetadata {
+            event_params: DitfaOnboardingExternalAgentImportFailureMetadata {
                 import_id: "import-1".to_string(),
                 source: "app_server".to_string(),
                 provider_id: "test-provider-42".to_string(),
@@ -4018,9 +4018,9 @@ async fn reducer_ingests_external_agent_config_import_failure_fact() {
 
 #[test]
 fn turn_event_serializes_expected_shape() {
-    let event = TrackEventRequest::TurnEvent(Box::new(CodexTurnEventRequest {
+    let event = TrackEventRequest::TurnEvent(Box::new(DitfaTurnEventRequest {
         event_type: "ditfa_turn_event",
-        event_params: crate::events::CodexTurnEventParams {
+        event_params: crate::events::DitfaTurnEventParams {
             thread_id: "thread-2".to_string(),
             session_id: "session-thread-2".to_string(),
             turn_id: "turn-2".to_string(),
@@ -4090,7 +4090,7 @@ fn turn_event_serializes_expected_shape() {
                 "submission_type": null,
                 "app_server_client": {
                     "product_client_id": "ditfa_cli_rs",
-                    "client_name": "codex-tui",
+                    "client_name": "ditfa-tui",
                     "client_version": "1.0.0",
                     "rpc_transport": "stdio",
                     "experimental_api_enabled": true
@@ -4217,7 +4217,7 @@ async fn accepted_turn_steer_emits_expected_event() {
     );
     assert_eq!(
         payload["event_params"]["app_server_client"]["product_client_id"],
-        json!("codex-tui")
+        json!("ditfa-tui")
     );
     assert_eq!(
         payload["event_params"]["runtime"]["ditfa_rs_version"],
@@ -4248,7 +4248,7 @@ async fn rejected_turn_steer_uses_request_connection_metadata() {
     assert_eq!(payload["event_params"]["num_input_images"], json!(1));
     assert_eq!(
         payload["event_params"]["app_server_client"]["product_client_id"],
-        json!("codex-tui")
+        json!("ditfa-tui")
     );
     assert_eq!(
         payload["event_params"]["runtime"]["ditfa_rs_version"],
@@ -4430,8 +4430,8 @@ async fn turn_lifecycle_emits_turn_event() {
     assert_eq!(
         payload["event_params"]["app_server_client"],
         json!({
-            "product_client_id": "codex-tui",
-            "client_name": "codex-tui",
+            "product_client_id": "ditfa-tui",
+            "client_name": "ditfa-tui",
             "client_version": "1.0.0",
             "rpc_transport": "stdio",
             "experimental_api_enabled": null,
@@ -4551,7 +4551,7 @@ async fn turn_event_counts_completed_tool_items() {
         },
         ThreadItem::WebSearch(WebSearchItem {
             id: "web-1".to_string(),
-            query: "codex".to_string(),
+            query: "ditfa".to_string(),
             action: None,
             results: None,
         }),
@@ -4878,11 +4878,11 @@ async fn turn_lifecycle_emits_failed_turn_event() {
     .await;
     reducer
         .ingest(
-            AnalyticsFact::Custom(CustomAnalyticsFact::TurnCodexError(Box::new(
-                TurnCodexErrorFact::from_codex_err(
+            AnalyticsFact::Custom(CustomAnalyticsFact::TurnDitfaError(Box::new(
+                TurnDitfaErrorFact::from_ditfa_err(
                     "thread-2".to_string(),
                     "turn-2".to_string(),
-                    &CodexErr::InvalidRequest("unknown turn environment id `env-2`".to_string()),
+                    &DitfaErr::InvalidRequest("unknown turn environment id `env-2`".to_string()),
                 ),
             ))),
             &mut out,
@@ -4894,7 +4894,7 @@ async fn turn_lifecycle_emits_failed_turn_event() {
                 "thread-2",
                 "turn-2",
                 AppServerTurnStatus::Failed,
-                Some(ditfa_app_server_protocol::CodexErrorInfo::BadRequest),
+                Some(ditfa_app_server_protocol::DitfaErrorInfo::BadRequest),
             ))),
             &mut out,
         )

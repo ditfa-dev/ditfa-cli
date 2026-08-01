@@ -26,7 +26,7 @@ use ditfa_utils_output_truncation::TruncationPolicy;
 use ditfa_utils_output_truncation::approx_tokens_from_byte_count;
 use core_test_support::skip_if_no_remote_env;
 use core_test_support::skip_if_sandbox;
-use core_test_support::test_codex::test_env as remote_test_env;
+use core_test_support::test_ditfa::test_env as remote_test_env;
 use pretty_assertions::assert_eq;
 use std::collections::HashMap;
 use std::num::NonZeroUsize;
@@ -380,7 +380,7 @@ async fn unified_exec_persists_across_requests() -> anyhow::Result<()> {
     write_stdin(
         &session,
         process_id,
-        "export DITFA_INTERACTIVE_SHELL_VAR=codex\n",
+        "export DITFA_INTERACTIVE_SHELL_VAR=ditfa\n",
         /*yield_time_ms*/ 2_500,
     )
     .await?;
@@ -395,7 +395,7 @@ async fn unified_exec_persists_across_requests() -> anyhow::Result<()> {
     assert!(
         out_2
             .truncated_output(DEFAULT_MAX_OUTPUT_TOKENS)
-            .contains("codex"),
+            .contains("ditfa"),
         "expected environment variable output"
     );
 
@@ -421,7 +421,7 @@ async fn multi_unified_exec_sessions() -> anyhow::Result<()> {
     write_stdin(
         &session,
         session_a,
-        "export DITFA_INTERACTIVE_SHELL_VAR=codex\n",
+        "export DITFA_INTERACTIVE_SHELL_VAR=ditfa\n",
         /*yield_time_ms*/ 2_500,
     )
     .await?;
@@ -442,7 +442,7 @@ async fn multi_unified_exec_sessions() -> anyhow::Result<()> {
     assert!(
         !out_2
             .truncated_output(DEFAULT_MAX_OUTPUT_TOKENS)
-            .contains("codex"),
+            .contains("ditfa"),
         "short command should run in a fresh shell"
     );
 
@@ -456,7 +456,7 @@ async fn multi_unified_exec_sessions() -> anyhow::Result<()> {
     assert!(
         out_3
             .truncated_output(DEFAULT_MAX_OUTPUT_TOKENS)
-            .contains("codex"),
+            .contains("ditfa"),
         "session should preserve state"
     );
 

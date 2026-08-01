@@ -79,7 +79,7 @@ impl Pet {
     /// has already been materialized into DITFA_HOME; if callers skip the
     /// asset-fetch step, they will get a missing-spritesheet error here on
     /// first use.
-    pub(super) fn load_with_codex_home(value: &str, ditfa_home: Option<&Path>) -> Result<Self> {
+    pub(super) fn load_with_ditfa_home(value: &str, ditfa_home: Option<&Path>) -> Result<Self> {
         if path_like(value) {
             return load_pet_path(value);
         }
@@ -649,11 +649,11 @@ mod tests {
     }
 
     fn load_pet_from_dir(dir: &tempfile::TempDir) -> Pet {
-        Pet::load_with_codex_home(dir.path().to_str().unwrap(), /*ditfa_home*/ None).unwrap()
+        Pet::load_with_ditfa_home(dir.path().to_str().unwrap(), /*ditfa_home*/ None).unwrap()
     }
 
     fn load_pet_error_from_dir(dir: &tempfile::TempDir) -> anyhow::Error {
-        Pet::load_with_codex_home(dir.path().to_str().unwrap(), /*ditfa_home*/ None).unwrap_err()
+        Pet::load_with_ditfa_home(dir.path().to_str().unwrap(), /*ditfa_home*/ None).unwrap_err()
     }
 
     #[test]
@@ -662,7 +662,7 @@ mod tests {
         super::super::asset_pack::write_test_pack(ditfa_home.path());
 
         let pet =
-            Pet::load_with_codex_home("dewey", /*ditfa_home*/ Some(ditfa_home.path())).unwrap();
+            Pet::load_with_ditfa_home("dewey", /*ditfa_home*/ Some(ditfa_home.path())).unwrap();
 
         assert_eq!(pet.id, "dewey");
         assert_eq!(pet.display_name, "Dewey");
@@ -805,7 +805,7 @@ mod tests {
     fn load_pet_json_path_uses_containing_directory() {
         let dir = write_minimal_pet();
 
-        let pet = Pet::load_with_codex_home(
+        let pet = Pet::load_with_ditfa_home(
             dir.path().join("pet.json").to_str().unwrap(),
             /*ditfa_home*/ None,
         )
@@ -816,7 +816,7 @@ mod tests {
     }
 
     #[test]
-    fn custom_pet_selector_loads_codex_home_pet_manifest() {
+    fn custom_pet_selector_loads_ditfa_home_pet_manifest() {
         let dir = write_minimal_pet();
         let ditfa_home = tempfile::tempdir().unwrap();
         let pet_dir = ditfa_home.path().join("pets").join("chefito");
@@ -828,7 +828,7 @@ mod tests {
         )
         .unwrap();
 
-        let pet = Pet::load_with_codex_home(
+        let pet = Pet::load_with_ditfa_home(
             &custom_pet_selector("chefito"),
             /*ditfa_home*/ Some(ditfa_home.path()),
         )
@@ -851,7 +851,7 @@ mod tests {
         )
         .unwrap();
 
-        let pet = Pet::load_with_codex_home(
+        let pet = Pet::load_with_ditfa_home(
             &custom_pet_selector("legacy"),
             /*ditfa_home*/ Some(ditfa_home.path()),
         )
@@ -875,7 +875,7 @@ mod tests {
         )
         .unwrap();
 
-        let err = Pet::load_with_codex_home(
+        let err = Pet::load_with_ditfa_home(
             &custom_pet_selector("escape"),
             /*ditfa_home*/ Some(ditfa_home.path()),
         )

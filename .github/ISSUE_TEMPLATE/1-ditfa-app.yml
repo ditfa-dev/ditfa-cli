@@ -1,5 +1,5 @@
-name: 🖥️ Codex App Bug
-description: Report an issue with the Codex App
+name: 🖥️ Ditfa Code App Bug
+description: Report an issue with the Ditfa Code App
 labels:
   - app
 body:
@@ -12,7 +12,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: What version of the Codex App are you using (From “About Codex” dialog)?
+      label: What version of the Ditfa Code App are you using (From “About Ditfa Code” dialog)?
     validations:
       required: true
   - type: input

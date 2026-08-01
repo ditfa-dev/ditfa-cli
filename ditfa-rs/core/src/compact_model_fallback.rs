@@ -1,20 +1,20 @@
 use ditfa_analytics::CompactionImplementation;
 use ditfa_analytics::CompactionReason;
 use ditfa_otel::SessionTelemetry;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use tracing::warn;
 
 /// Retries failures that may be model-specific and succeed with a different model.
-pub(crate) fn should_retry_with_current_model(error: &CodexErr) -> bool {
+pub(crate) fn should_retry_with_current_model(error: &DitfaErr) -> bool {
     matches!(
         error,
-        CodexErr::InvalidRequest(_)
-            | CodexErr::UnexpectedStatus(_)
-            | CodexErr::ContextWindowExceeded
-            | CodexErr::UsageLimitReached(_)
-            | CodexErr::ServerOverloaded
-            | CodexErr::InternalServerError
-            | CodexErr::RetryLimit(_)
+        DitfaErr::InvalidRequest(_)
+            | DitfaErr::UnexpectedStatus(_)
+            | DitfaErr::ContextWindowExceeded
+            | DitfaErr::UsageLimitReached(_)
+            | DitfaErr::ServerOverloaded
+            | DitfaErr::InternalServerError
+            | DitfaErr::RetryLimit(_)
     )
 }
 
@@ -24,7 +24,7 @@ pub(crate) fn record_model_fallback(
     current_model: &str,
     reason: CompactionReason,
     implementation: CompactionImplementation,
-    fallback_error: Option<&CodexErr>,
+    fallback_error: Option<&DitfaErr>,
 ) {
     let reason_tag = match reason {
         CompactionReason::UserRequested => "user_requested",
@@ -43,7 +43,7 @@ pub(crate) fn record_model_fallback(
         "failed"
     };
     session_telemetry.counter(
-        "codex.compaction.model_fallback",
+        "ditfa.compaction.model_fallback",
         /*inc*/ 1,
         &[
             ("reason", reason_tag),

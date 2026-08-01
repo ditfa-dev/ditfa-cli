@@ -215,13 +215,13 @@ impl TurnContext {
     }
 
     pub(crate) fn apps_enabled(&self) -> bool {
-        let uses_codex_backend = self
+        let uses_ditfa_backend = self
             .auth_manager
             .as_deref()
-            .is_some_and(AuthManager::current_auth_uses_codex_backend);
+            .is_some_and(AuthManager::current_auth_uses_ditfa_backend);
         self.config
             .features
-            .apps_enabled_for_auth(uses_codex_backend)
+            .apps_enabled_for_auth(uses_ditfa_backend)
             && self.config.orchestrator_mcp_enabled
     }
 
@@ -597,9 +597,9 @@ impl Session {
         &self,
         sub_id: String,
         updates: SessionSettingsUpdate,
-    ) -> CodexResult<Arc<TurnContext>> {
+    ) -> DitfaResult<Arc<TurnContext>> {
         let notify_config_contributors = !self.services.extensions.config_contributors().is_empty();
-        let update_result: CodexResult<_> = {
+        let update_result: DitfaResult<_> = {
             let mut state = self.state.lock().await;
             match state.session_configuration.clone().apply(&updates) {
                 Ok(next) => {
@@ -630,7 +630,7 @@ impl Session {
                         new_config,
                     ))
                 }
-                Err(err) => Err(CodexErr::InvalidRequest(err.to_string())),
+                Err(err) => Err(DitfaErr::InvalidRequest(err.to_string())),
             }
         };
 
@@ -643,11 +643,11 @@ impl Session {
                         id: sub_id.clone(),
                         msg: EventMsg::Error(ErrorEvent {
                             message: message.clone(),
-                            ditfa_error_info: Some(CodexErrorInfo::BadRequest),
+                            ditfa_error_info: Some(DitfaErrorInfo::BadRequest),
                         }),
                     })
                     .await;
-                    return Err(CodexErr::InvalidRequest(message));
+                    return Err(DitfaErr::InvalidRequest(message));
                 }
             };
         self.emit_config_changed_contributors(previous_config.as_ref(), new_config.as_ref());

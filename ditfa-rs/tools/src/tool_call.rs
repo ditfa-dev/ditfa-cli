@@ -108,7 +108,7 @@ impl std::fmt::Debug for ToolCall {
             .field("tool_name", &self.tool_name)
             .field("model", &self.model)
             .field(
-                "has_codex_turn_metadata",
+                "has_ditfa_turn_metadata",
                 &self.ditfa_turn_metadata.is_some(),
             )
             .field("truncation_policy", &self.truncation_policy)

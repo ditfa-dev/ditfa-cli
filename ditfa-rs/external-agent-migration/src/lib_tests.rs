@@ -346,7 +346,7 @@ fn subagent_accepts_yaml_block_lists_by_ignoring_unsupported_fields() {
 }
 
 #[test]
-fn subagent_requires_minimum_codex_agent_fields() {
+fn subagent_requires_minimum_ditfa_agent_fields() {
     let missing_description =
         parse_document_content("---\nname: incomplete\n---\nInvestigate carefully.\n");
     let missing_body =

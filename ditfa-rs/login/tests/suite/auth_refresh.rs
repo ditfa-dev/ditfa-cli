@@ -134,7 +134,7 @@ async fn refresh_token_honors_respect_system_proxy() -> Result<()> {
     );
     let auth_manager = AuthManager::shared(
         ditfa_home.path().to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -1362,7 +1362,7 @@ impl RefreshTokenTestContext {
 
         let auth_manager = AuthManager::shared(
             ditfa_home.path().to_path_buf(),
-            /*enable_codex_api_key_env*/ false,
+            /*enable_ditfa_api_key_env*/ false,
             AuthCredentialsStoreMode::File,
             /*forced_chatgpt_workspace_id*/ None,
             /*chatgpt_base_url*/ None,

@@ -1,4 +1,4 @@
-"""Public Codex protocol model exports for type annotations and matching."""
+"""Public Ditfa protocol model exports for type annotations and matching."""
 
 from __future__ import annotations
 

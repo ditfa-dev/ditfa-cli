@@ -12,8 +12,8 @@ use std::fs;
 use std::process::Command;
 use tempfile::tempdir;
 
-/// While we may add an `apply-patch` subcommand to the `codex` CLI multitool
-/// at some point, we must ensure that the smaller `codex-exec` CLI can still
+/// While we may add an `apply-patch` subcommand to the `ditfa` CLI multitool
+/// at some point, we must ensure that the smaller `ditfa-exec` CLI can still
 /// emulate the `apply_patch` CLI.
 #[test]
 fn test_standalone_exec_cli_can_use_apply_patch() -> anyhow::Result<()> {
@@ -22,7 +22,7 @@ fn test_standalone_exec_cli_can_use_apply_patch() -> anyhow::Result<()> {
     let absolute_path = tmp.path().join(relative_path);
     fs::write(&absolute_path, "original content\n")?;
 
-    Command::new(ditfa_utils_cargo_bin::cargo_bin("codex-exec")?)
+    Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa-exec")?)
         .arg(DITFA_CORE_APPLY_PATCH_ARG1)
         .arg(
             r#"*** Begin Patch
@@ -48,11 +48,11 @@ fn test_standalone_exec_cli_can_use_apply_patch() -> anyhow::Result<()> {
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn test_apply_patch_tool() -> anyhow::Result<()> {
     use core_test_support::skip_if_no_network;
-    use core_test_support::test_codex_exec::test_codex_exec;
+    use core_test_support::test_ditfa_exec::test_ditfa_exec;
 
     skip_if_no_network!(Ok(()));
 
-    let test = test_codex_exec();
+    let test = test_ditfa_exec();
     let tmp_path = test.cwd_path().to_path_buf();
     let add_patch = r#"*** Begin Patch
 *** Add File: test.md
@@ -96,11 +96,11 @@ async fn test_apply_patch_tool() -> anyhow::Result<()> {
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn test_apply_patch_freeform_tool() -> anyhow::Result<()> {
     use core_test_support::skip_if_no_network;
-    use core_test_support::test_codex_exec::test_codex_exec;
+    use core_test_support::test_ditfa_exec::test_ditfa_exec;
 
     skip_if_no_network!(Ok(()));
 
-    let test = test_codex_exec();
+    let test = test_ditfa_exec();
     let freeform_add_patch = r#"*** Begin Patch
 *** Add File: app.py
 +class BaseClass:
@@ -156,7 +156,7 @@ async fn shutdown_flushes_completed_turn_and_file_diff() -> anyhow::Result<()> {
     use ditfa_login::token_data::IdTokenInfo;
     use ditfa_protocol::auth::AuthMode;
     use core_test_support::skip_if_no_network;
-    use core_test_support::test_codex_exec::test_codex_exec;
+    use core_test_support::test_ditfa_exec::test_ditfa_exec;
     use std::sync::Arc;
     use std::sync::atomic::AtomicUsize;
     use std::sync::atomic::Ordering;
@@ -167,7 +167,7 @@ async fn shutdown_flushes_completed_turn_and_file_diff() -> anyhow::Result<()> {
 
     skip_if_no_network!(Ok(()));
 
-    let test = test_codex_exec();
+    let test = test_ditfa_exec();
     let run_dir = test.cwd_path();
     assert!(
         std::process::Command::new("git")

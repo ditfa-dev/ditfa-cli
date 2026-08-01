@@ -22,7 +22,7 @@ use crate::turn_diff_tracker::TurnDiffTracker;
 use ditfa_extension_api::empty_extension_registry;
 use ditfa_features::Feature;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_model_provider::create_model_provider;
 use ditfa_model_provider_info::built_in_model_providers;
 use ditfa_protocol::AgentPath;
@@ -102,7 +102,7 @@ fn parse_agent_id(id: &str) -> ThreadId {
 
 fn thread_manager() -> ThreadManager {
     ThreadManager::with_models_provider_for_tests(
-        CodexAuth::from_api_key("dummy"),
+        DitfaAuth::from_api_key("dummy"),
         built_in_model_providers(/* openai_base_url */ /*openai_base_url*/ None)["openai"].clone(),
     )
 }
@@ -111,7 +111,7 @@ async fn install_role_with_model_override(turn: &mut TurnContext) -> String {
     let role_name = "fork-context-role".to_string();
     tokio::fs::create_dir_all(&turn.config.ditfa_home)
         .await
-        .expect("codex home should be created");
+        .expect("ditfa home should be created");
     let role_config_path = turn
         .config
         .ditfa_home
@@ -618,7 +618,7 @@ async fn spawn_agent_service_tier_inheritance_preserves_supported_or_configured_
         let (mut session, mut turn) = make_session_and_context().await;
         tokio::fs::create_dir_all(&turn.config.ditfa_home)
             .await
-            .expect("codex home should be created");
+            .expect("ditfa home should be created");
         let role_config_path = turn
             .config
             .ditfa_home
@@ -694,7 +694,7 @@ async fn spawn_agent_role_service_tier_falls_back_to_supported_parent_tier() {
         .await;
     tokio::fs::create_dir_all(&turn.config.ditfa_home)
         .await
-        .expect("codex home should be created");
+        .expect("ditfa home should be created");
     let role_config_path = turn.config.ditfa_home.as_path().join("tiered-role.toml");
     tokio::fs::write(
         &role_config_path,
@@ -758,7 +758,7 @@ async fn spawn_agent_role_service_tier_does_not_hide_invalid_spawn_request() {
     let (session, mut turn) = make_session_and_context().await;
     tokio::fs::create_dir_all(&turn.config.ditfa_home)
         .await
-        .expect("codex home should be created");
+        .expect("ditfa home should be created");
     let role_config_path = turn.config.ditfa_home.as_path().join("tiered-role.toml");
     tokio::fs::write(
         &role_config_path,
@@ -2763,7 +2763,7 @@ async fn resume_agent_restores_closed_agent_and_accepts_send_input() {
                 phase: None,
                 internal_chat_message_metadata_passthrough: None,
             })]),
-            AuthManager::from_auth_for_testing(CodexAuth::from_api_key("dummy")),
+            AuthManager::from_auth_for_testing(DitfaAuth::from_api_key("dummy")),
             /*parent_trace*/ None,
             /*supports_openai_form_elicitation*/ false,
         )
@@ -3872,7 +3872,7 @@ async fn multi_agent_v2_interrupt_agent_accepts_unloaded_task_name_target() {
         .await
         .expect("sqlite state db should initialize");
     let manager = ThreadManager::with_models_provider_home_and_state_for_tests(
-        CodexAuth::from_api_key("dummy"),
+        DitfaAuth::from_api_key("dummy"),
         config.model_provider.clone(),
         config.ditfa_home.to_path_buf(),
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -4198,12 +4198,12 @@ async fn tool_handlers_cascade_close_and_resume_and_keep_explicitly_closed_subtr
         .enable(Feature::Sqlite)
         .expect("test config should allow sqlite");
     let state_db = init_state_db(&config).await;
-    let auth_manager = AuthManager::from_auth_for_testing(CodexAuth::from_api_key("dummy"));
+    let auth_manager = AuthManager::from_auth_for_testing(DitfaAuth::from_api_key("dummy"));
     let manager = ThreadManager::new(
         &config,
         auth_manager.clone(),
         crate::thread_manager::build_models_manager(&config, auth_manager),
-        crate::CodexAppsToolsCache::default(),
+        crate::DitfaAppsToolsCache::default(),
         SessionSource::Exec,
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
         empty_extension_registry(),

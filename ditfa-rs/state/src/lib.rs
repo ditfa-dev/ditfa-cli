@@ -2,7 +2,7 @@
 //!
 //! This crate is intentionally small and focused: it extracts rollout metadata
 //! from JSONL rollouts and mirrors it into a local SQLite database. Backfill
-//! orchestration and rollout scanning live in `codex-core`.
+//! orchestration and rollout scanning live in `ditfa-core`.
 
 const _: () = assert!(
     libsqlite3_sys::SQLITE_VERSION_NUMBER >= 3_051_003,
@@ -82,14 +82,14 @@ pub use telemetry::record_fallback;
 pub const SQLITE_HOME_ENV: &str = "DITFA_SQLITE_HOME";
 
 /// Errors encountered during DB operations. Tags: [stage]
-pub const DB_ERROR_METRIC: &str = "codex.db.error";
+pub const DB_ERROR_METRIC: &str = "ditfa.db.error";
 /// Metrics on backfill process. Tags: [status]
-pub const DB_METRIC_BACKFILL: &str = "codex.db.backfill";
+pub const DB_METRIC_BACKFILL: &str = "ditfa.db.backfill";
 /// Metrics on backfill duration. Tags: [status]
-pub const DB_METRIC_BACKFILL_DURATION_MS: &str = "codex.db.backfill.duration_ms";
+pub const DB_METRIC_BACKFILL_DURATION_MS: &str = "ditfa.db.backfill.duration_ms";
 /// SQLite initialization attempts. Tags: [status, phase, db, error]
-pub const DB_INIT_METRIC: &str = "codex.sqlite.init.count";
+pub const DB_INIT_METRIC: &str = "ditfa.sqlite.init.count";
 /// SQLite initialization latency. Tags: [status, phase, db, error]
-pub const DB_INIT_DURATION_METRIC: &str = "codex.sqlite.init.duration_ms";
+pub const DB_INIT_DURATION_METRIC: &str = "ditfa.sqlite.init.duration_ms";
 /// Rollout fallback attempts. Tags: [caller, reason]
-pub const DB_FALLBACK_METRIC: &str = "codex.sqlite.fallback.count";
+pub const DB_FALLBACK_METRIC: &str = "ditfa.sqlite.fallback.count";

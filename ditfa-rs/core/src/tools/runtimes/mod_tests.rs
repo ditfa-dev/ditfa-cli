@@ -72,7 +72,7 @@ async fn test_network_proxy() -> anyhow::Result<NetworkProxy> {
             state,
             Arc::new(StaticReloader),
         )))
-        .managed_by_codex(/*managed_by_codex*/ false)
+        .managed_by_ditfa(/*managed_by_ditfa*/ false)
         .http_addr("127.0.0.1:43128".parse()?)
         .socks_addr("127.0.0.1:48081".parse()?)
         .build()
@@ -179,16 +179,16 @@ fn runtime_path_prepends_records_runtime_path_prepend() {
     let mut env = HashMap::from([("PATH".to_string(), "/usr/bin:/bin".to_string())]);
     let mut runtime_path_prepends = RuntimePathPrepends::default();
 
-    runtime_path_prepends.prepend(&mut env, PathBuf::from("/package/codex-path").as_path());
+    runtime_path_prepends.prepend(&mut env, PathBuf::from("/package/ditfa-path").as_path());
 
     assert_eq!(
         env.get("PATH").map(String::as_str),
-        Some("/package/codex-path:/usr/bin:/bin"),
+        Some("/package/ditfa-path:/usr/bin:/bin"),
         "runtime PATH prepend should update the live exec environment"
     );
     assert_eq!(
         runtime_path_prepends.entries,
-        vec!["/package/codex-path"],
+        vec!["/package/ditfa-path"],
         "runtime PATH prepend should be recorded for snapshot replay"
     );
 }
@@ -198,20 +198,20 @@ fn runtime_path_prepends_records_runtime_path_prepend() {
 fn runtime_path_prepends_drops_empty_path_entries() {
     let mut env = HashMap::from([(
         "PATH".to_string(),
-        ":/usr/bin:/package/codex-path::/bin:".to_string(),
+        ":/usr/bin:/package/ditfa-path::/bin:".to_string(),
     )]);
     let mut runtime_path_prepends = RuntimePathPrepends::default();
 
-    runtime_path_prepends.prepend(&mut env, PathBuf::from("/package/codex-path").as_path());
+    runtime_path_prepends.prepend(&mut env, PathBuf::from("/package/ditfa-path").as_path());
 
     assert_eq!(
         env.get("PATH").map(String::as_str),
-        Some("/package/codex-path:/usr/bin:/bin"),
+        Some("/package/ditfa-path:/usr/bin:/bin"),
         "empty PATH entries should be dropped instead of preserving current-directory lookup"
     );
     assert_eq!(
         runtime_path_prepends.entries,
-        vec!["/package/codex-path"],
+        vec!["/package/ditfa-path"],
         "deduped runtime PATH prepend should still be recorded once"
     );
 }
@@ -263,15 +263,15 @@ fn apply_zsh_fork_path_prepend_uses_shell_parent() {
     apply_zsh_fork_path_prepend(
         &mut env,
         &mut runtime_path_prepends,
-        PathBuf::from("/package/codex-resources/zsh/bin/zsh").as_path(),
+        PathBuf::from("/package/ditfa-resources/zsh/bin/zsh").as_path(),
     );
 
-    let expected = "/package/codex-resources/zsh/bin:/usr/bin:/bin";
+    let expected = "/package/ditfa-resources/zsh/bin:/usr/bin:/bin";
     assert_eq!(env.get("PATH").map(String::as_str), Some(expected));
     assert_eq!(
         runtime_path_prepends,
         RuntimePathPrepends {
-            entries: vec!["/package/codex-resources/zsh/bin".to_string()]
+            entries: vec!["/package/ditfa-resources/zsh/bin".to_string()]
         }
     );
 }
@@ -281,7 +281,7 @@ fn apply_zsh_fork_path_prepend_uses_shell_parent() {
 fn apply_zsh_fork_path_prepend_moves_existing_shell_parent_to_front() {
     let mut env = HashMap::from([(
         "PATH".to_string(),
-        "/usr/bin:/package/codex-resources/zsh/bin:/bin:/package/codex-resources/zsh/bin"
+        "/usr/bin:/package/ditfa-resources/zsh/bin:/bin:/package/ditfa-resources/zsh/bin"
             .to_string(),
     )]);
     let mut runtime_path_prepends = RuntimePathPrepends::default();
@@ -289,23 +289,23 @@ fn apply_zsh_fork_path_prepend_moves_existing_shell_parent_to_front() {
     apply_zsh_fork_path_prepend(
         &mut env,
         &mut runtime_path_prepends,
-        PathBuf::from("/package/codex-resources/zsh/bin/zsh").as_path(),
+        PathBuf::from("/package/ditfa-resources/zsh/bin/zsh").as_path(),
     );
 
     assert_eq!(
         env.get("PATH").map(String::as_str),
-        Some("/package/codex-resources/zsh/bin:/usr/bin:/bin")
+        Some("/package/ditfa-resources/zsh/bin:/usr/bin:/bin")
     );
     assert_eq!(
         runtime_path_prepends,
         RuntimePathPrepends {
-            entries: vec!["/package/codex-resources/zsh/bin".to_string()]
+            entries: vec!["/package/ditfa-resources/zsh/bin".to_string()]
         }
     );
 }
 
 #[test]
-fn explicit_escalation_keeps_user_proxy_env_without_codex_marker() {
+fn explicit_escalation_keeps_user_proxy_env_without_ditfa_marker() {
     let env = HashMap::from([
         (
             "HTTP_PROXY".to_string(),
@@ -502,7 +502,7 @@ fn maybe_wrap_shell_lc_with_snapshot_restores_explicit_override_precedence() {
 }
 
 #[test]
-fn maybe_wrap_shell_lc_with_snapshot_restores_codex_thread_id_from_env() {
+fn maybe_wrap_shell_lc_with_snapshot_restores_ditfa_thread_id_from_env() {
     let dir = tempdir().expect("create temp dir");
     let snapshot_path = dir.path().join("snapshot.sh");
     std::fs::write(
@@ -658,7 +658,7 @@ fn maybe_wrap_shell_lc_with_snapshot_restores_proxy_env_from_process_env() {
 
 #[cfg(target_os = "macos")]
 #[test]
-fn maybe_wrap_shell_lc_with_snapshot_refreshes_codex_proxy_git_ssh_command() {
+fn maybe_wrap_shell_lc_with_snapshot_refreshes_ditfa_proxy_git_ssh_command() {
     let dir = tempdir().expect("create temp dir");
     let snapshot_path = dir.path().join("snapshot.sh");
     let stale_command = format!(
@@ -744,7 +744,7 @@ fn maybe_wrap_shell_lc_with_snapshot_restores_custom_git_ssh_command() {
 
 #[cfg(target_os = "macos")]
 #[test]
-fn maybe_wrap_shell_lc_with_snapshot_clears_stale_codex_git_ssh_command_without_live_command() {
+fn maybe_wrap_shell_lc_with_snapshot_clears_stale_ditfa_git_ssh_command_without_live_command() {
     let dir = tempdir().expect("create temp dir");
     let snapshot_path = dir.path().join("snapshot.sh");
     let stale_command = format!(
@@ -989,7 +989,7 @@ fn run_snapshot_path_probe_with_runtime_path_prepend(
         "-lc".to_string(),
         "printf '%s' \"$PATH\"".to_string(),
     ];
-    let package_path_dir = dir.path().join("codex-path");
+    let package_path_dir = dir.path().join("ditfa-path");
     let mut env = HashMap::from([("PATH".to_string(), "/worktree/bin".to_string())]);
     let mut runtime_path_prepends = RuntimePathPrepends::default();
     runtime_path_prepends.prepend(&mut env, package_path_dir.as_path());
@@ -1035,7 +1035,7 @@ fn maybe_wrap_shell_lc_with_snapshot_preserves_zsh_fork_path_prepend() {
     ];
     let zsh_path = dir
         .path()
-        .join("codex-resources")
+        .join("ditfa-resources")
         .join("zsh")
         .join("bin")
         .join("zsh");

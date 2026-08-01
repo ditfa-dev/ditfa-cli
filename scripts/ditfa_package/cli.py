@@ -1,4 +1,4 @@
-"""Command-line interface for building Codex package directories."""
+"""Command-line interface for building Ditfa Code package directories."""
 
 import argparse
 import tempfile
@@ -21,7 +21,7 @@ from .version import read_workspace_version
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Build a canonical Codex package directory and optional archive.",
+        description="Build a canonical Ditfa Code package directory and optional archive.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
@@ -36,7 +36,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--variant",
         choices=sorted(PACKAGE_VARIANTS),
-        default="codex",
+        default="ditfa",
         help="Package variant to build.",
     )
     parser.add_argument(
@@ -86,7 +86,7 @@ def parse_args() -> argparse.Namespace:
         "--code-mode-host-bin",
         type=Path,
         help=(
-            "Optional prebuilt codex-code-mode-host executable. If omitted, "
+            "Optional prebuilt ditfa-code-mode-host executable. If omitted, "
             "the host is built with Cargo."
         ),
     )
@@ -103,25 +103,25 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         help=(
             "Optional DotSlash manifest for the patched zsh fork instead of "
-            "scripts/codex_package/codex-zsh."
+            "scripts/ditfa_package/ditfa-zsh."
         ),
     )
     parser.add_argument(
-        "--codex-command-runner-bin",
+        "--ditfa-command-runner-bin",
         type=Path,
         help=(
-            "Optional prebuilt Windows codex-command-runner.exe executable. "
-            "If omitted for Windows targets, codex-command-runner is built "
+            "Optional prebuilt Windows ditfa-command-runner.exe executable. "
+            "If omitted for Windows targets, ditfa-command-runner is built "
             "with Cargo."
         ),
     )
     parser.add_argument(
-        "--codex-windows-sandbox-setup-bin",
+        "--ditfa-windows-sandbox-setup-bin",
         type=Path,
         help=(
-            "Optional prebuilt Windows codex-windows-sandbox-setup.exe "
+            "Optional prebuilt Windows ditfa-windows-sandbox-setup.exe "
             "executable. If omitted for Windows targets, "
-            "codex-windows-sandbox-setup is built with Cargo."
+            "ditfa-windows-sandbox-setup is built with Cargo."
         ),
     )
     parser.add_argument(
@@ -129,7 +129,7 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         help=(
             "Optional local ripgrep executable override instead of fetching from "
-            "scripts/codex_package/rg."
+            "scripts/ditfa_package/rg."
         ),
     )
     return parser.parse_args()
@@ -143,7 +143,7 @@ def main() -> int:
     package_dir = (
         package_dir_arg.resolve()
         if package_dir_arg is not None
-        else Path(tempfile.mkdtemp(prefix="codex-package-")).resolve()
+        else Path(tempfile.mkdtemp(prefix="ditfa-package-")).resolve()
     )
 
     source_outputs = build_source_binaries(
@@ -166,15 +166,15 @@ def main() -> int:
             "prebuilt Linux bwrap executable",
             "--bwrap-bin",
         ),
-        codex_command_runner_bin=resolve_optional_input_path(
-            args.codex_command_runner_bin,
-            "prebuilt Windows codex-command-runner.exe executable",
-            "--codex-command-runner-bin",
+        ditfa_command_runner_bin=resolve_optional_input_path(
+            args.ditfa_command_runner_bin,
+            "prebuilt Windows ditfa-command-runner.exe executable",
+            "--ditfa-command-runner-bin",
         ),
-        codex_windows_sandbox_setup_bin=resolve_optional_input_path(
-            args.codex_windows_sandbox_setup_bin,
-            "prebuilt Windows codex-windows-sandbox-setup.exe executable",
-            "--codex-windows-sandbox-setup-bin",
+        ditfa_windows_sandbox_setup_bin=resolve_optional_input_path(
+            args.ditfa_windows_sandbox_setup_bin,
+            "prebuilt Windows ditfa-windows-sandbox-setup.exe executable",
+            "--ditfa-windows-sandbox-setup-bin",
         ),
     )
     version = read_workspace_version()
@@ -184,8 +184,8 @@ def main() -> int:
         rg_bin=resolve_rg_bin(spec, args.rg_bin),
         zsh_bin=resolve_zsh_bin(spec, args.zsh_manifest),
         bwrap_bin=source_outputs.bwrap_bin,
-        codex_command_runner_bin=source_outputs.codex_command_runner_bin,
-        codex_windows_sandbox_setup_bin=source_outputs.codex_windows_sandbox_setup_bin,
+        ditfa_command_runner_bin=source_outputs.ditfa_command_runner_bin,
+        ditfa_windows_sandbox_setup_bin=source_outputs.ditfa_windows_sandbox_setup_bin,
     )
     prepare_package_dir(package_dir, force=args.force)
     build_package_dir(package_dir, version, variant, spec, inputs)
@@ -196,9 +196,9 @@ def main() -> int:
     for archive_output in args.archive_output:
         archive_path = archive_output.resolve()
         write_archive(package_dir, archive_path, force=args.force)
-        print(f"Built Codex package archive at {archive_path}")
+        print(f"Built Ditfa Code package archive at {archive_path}")
 
-    print(f"Built Codex package directory at {package_dir}")
+    print(f"Built Ditfa Code package directory at {package_dir}")
     return 0
 
 

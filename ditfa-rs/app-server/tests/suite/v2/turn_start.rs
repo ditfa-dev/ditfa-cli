@@ -114,7 +114,7 @@ fn body_contains(req: &wiremock::Request, text: &str) -> bool {
 }
 
 async fn run_local_image_turn(detail: Option<ImageDetail>) -> Result<Vec<Value>> {
-    // Two Codex turns hit the mock model (session start + turn/start).
+    // Two Ditfa turns hit the mock model (session start + turn/start).
     let responses = vec![
         create_final_assistant_message_sse_response("Done")?,
         create_final_assistant_message_sse_response("Done")?,
@@ -127,7 +127,7 @@ async fn run_local_image_turn(detail: Option<ImageDetail>) -> Result<Vec<Value>>
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -212,7 +212,7 @@ async fn turn_start_with_empty_input_runs_model_request() -> Result<()> {
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -297,7 +297,7 @@ async fn turn_start_additional_context_flows_to_model_input() -> Result<()> {
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -365,14 +365,14 @@ async fn turn_start_sends_originator_header() -> Result<()> {
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build()
         .await?;
     timeout(
         DEFAULT_READ_TIMEOUT,
         mcp.initialize_with_client_info(ClientInfo {
             name: TEST_ORIGINATOR.to_string(),
-            title: Some("Codex VS Code Extension".to_string()),
+            title: Some("Ditfa VS Code Extension".to_string()),
             version: "0.1.0".to_string(),
         }),
     )
@@ -434,7 +434,7 @@ async fn turn_start_emits_user_message_item_with_text_elements() -> Result<()> {
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -537,7 +537,7 @@ async fn turn_start_emits_thread_scoped_warning_notification_for_trimmed_skills(
 
     let isolated_home = ditfa_home.path().to_string_lossy();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .with_env_overrides(&[
             ("HOME", Some(isolated_home.as_ref())),
             ("USERPROFILE", Some(isolated_home.as_ref())),
@@ -615,7 +615,7 @@ async fn turn_start_sends_service_tier_id_to_model_request() -> Result<()> {
     let service_tier_id = service_tier_model.service_tiers[0].id.clone();
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -681,7 +681,7 @@ async fn turn_start_emits_raw_response_completed_with_upstream_usage() -> Result
     write_models_cache(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -752,7 +752,7 @@ async fn thread_start_omits_empty_instruction_overrides_from_model_request() -> 
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -848,7 +848,7 @@ async fn turn_start_tracks_thread_originator_in_analytics() -> Result<()> {
     mount_analytics_capture(&server, ditfa_home.path()).await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_managed_config()
         .build_initialized()
         .await?;
@@ -967,7 +967,7 @@ async fn turn_profile_tracks_blocking_tool_and_follow_up_sampling() -> Result<()
     mount_analytics_capture(&server, ditfa_home.path()).await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_managed_config()
         .build_initialized()
         .await?;
@@ -1060,7 +1060,7 @@ async fn turn_start_accepts_text_at_limit_with_mention_item() -> Result<()> {
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1110,7 +1110,7 @@ async fn turn_start_rejects_combined_oversized_text_input() -> Result<()> {
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1183,7 +1183,7 @@ async fn turn_start_rejects_invalid_permission_selection_before_starting_turn() 
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1270,7 +1270,7 @@ allow_local_binding = false
     )?;
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1323,7 +1323,7 @@ async fn turn_start_rejects_unknown_environment_before_starting_turn() -> Result
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1378,7 +1378,7 @@ async fn turn_start_rejects_unknown_environment_before_starting_turn() -> Result
 #[tokio::test]
 async fn turn_start_emits_notifications_and_accepts_model_override() -> Result<()> {
     // Provide a mock server and config so model wiring is valid.
-    // Three Codex turns hit the mock model (session start + two turn/start calls).
+    // Three Ditfa turns hit the mock model (session start + two turn/start calls).
     let responses = vec![
         create_final_assistant_message_sse_response("Done")?,
         create_final_assistant_message_sse_response("Done")?,
@@ -1392,7 +1392,7 @@ async fn turn_start_emits_notifications_and_accepts_model_override() -> Result<(
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1498,7 +1498,7 @@ async fn turn_start_accepts_collaboration_mode_override_v2() -> Result<()> {
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1572,7 +1572,7 @@ async fn turn_start_uses_thread_feature_overrides_for_request_user_input_tool_de
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1647,13 +1647,13 @@ async fn turn_start_accepts_personality_override_v2() -> Result<()> {
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
     let ThreadStartResponse { thread, .. } = mcp
         .start_thread(ThreadStartParams {
-            model: Some("exp-codex-personality".to_string()),
+            model: Some("exp-ditfa-personality".to_string()),
             ..Default::default()
         })
         .await?;
@@ -1714,7 +1714,7 @@ async fn turn_start_ignores_deprecated_multi_agent_mode() -> Result<()> {
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1781,7 +1781,7 @@ async fn thread_start_ignores_deprecated_multi_agent_mode() -> Result<()> {
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1859,13 +1859,13 @@ async fn turn_start_change_personality_mid_thread_v2() -> Result<()> {
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
     let ThreadStartResponse { thread, .. } = mcp
         .start_thread(ThreadStartParams {
-            model: Some("exp-codex-personality".to_string()),
+            model: Some("exp-ditfa-personality".to_string()),
             ..Default::default()
         })
         .await?;
@@ -2007,7 +2007,7 @@ async fn turn_start_exec_approval_toggle_v2() -> Result<()> {
         .write(ditfa_home.as_path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.as_path())
+        .with_ditfa_home(ditfa_home.as_path())
         .build_initialized()
         .await?;
     let expected_environment_id = mcp.auto_env_params()?.environment_id;
@@ -2176,7 +2176,7 @@ async fn run_turn_start_exec_approval_rejection_v2(
         .write(ditfa_home.as_path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.as_path())
+        .with_ditfa_home(ditfa_home.as_path())
         .build_initialized()
         .await?;
 
@@ -2314,7 +2314,7 @@ async fn turn_start_explicit_local_environment_updates_legacy_cwd_between_turns(
         .write(&ditfa_home)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .build_initialized()
         .await?;
 
@@ -2506,7 +2506,7 @@ stream_max_retries = 0
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .build_initialized()
         .await?;
 
@@ -2609,7 +2609,7 @@ url = "ws://127.0.0.1:1"
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         // This test owns environments.toml and explicitly compares local selections
         // with a configured remote environment, so auto env would change its subject.
         .without_auto_env()
@@ -2753,7 +2753,7 @@ async fn turn_start_file_change_approval_v2() -> Result<()> {
         .write(&ditfa_home)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .build_initialized()
         .await?;
 
@@ -2938,7 +2938,7 @@ async fn turn_start_does_not_stream_apply_patch_change_updates_without_feature_v
     MockResponsesConfig::new(&server.uri()).write(&ditfa_home)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .build_initialized()
         .await?;
 
@@ -3070,7 +3070,7 @@ async fn turn_start_streams_apply_patch_change_updates_v2() -> Result<()> {
     std::fs::write(&cache_path, serde_json::to_string_pretty(&cache)?)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .build_initialized()
         .await?;
 
@@ -3186,7 +3186,7 @@ async fn turn_start_emits_spawn_agent_item_with_model_metadata_v2() -> Result<()
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -3372,7 +3372,7 @@ async fn direct_input_to_multi_agent_v2_subagent_is_rejected() -> Result<()> {
     write_models_cache(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -3537,7 +3537,7 @@ config_file = "./custom-role.toml"
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -3669,7 +3669,7 @@ async fn turn_start_file_change_approval_accept_for_session_persists_v2() -> Res
         .write(&ditfa_home)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .build_initialized()
         .await?;
 
@@ -3849,7 +3849,7 @@ async fn run_turn_start_file_change_approval_rejection_v2(
         .write(&ditfa_home)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .build_initialized()
         .await?;
 
@@ -3985,7 +3985,7 @@ async fn command_execution_notifications_include_process_id() -> Result<()> {
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -4094,7 +4094,7 @@ async fn turn_start_with_elevated_override_does_not_persist_project_trust() -> R
     let workspace = TempDir::new()?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 

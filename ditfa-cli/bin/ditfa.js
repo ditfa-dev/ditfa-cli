@@ -14,12 +14,12 @@ const require = createRequire(import.meta.url);
 const ditfaPackageRoot = realpathSync(path.join(__dirname, ".."));
 
 const PLATFORM_PACKAGE_BY_TARGET = {
-  "x86_64-unknown-linux-musl": "@ditfa/cli-linux-x64",
-  "aarch64-unknown-linux-musl": "@ditfa/cli-linux-arm64",
-  "x86_64-apple-darwin": "@ditfa/cli-darwin-x64",
-  "aarch64-apple-darwin": "@ditfa/cli-darwin-arm64",
-  "x86_64-pc-windows-msvc": "@ditfa/cli-win32-x64",
-  "aarch64-pc-windows-msvc": "@ditfa/cli-win32-arm64",
+  "x86_64-unknown-linux-musl": "@ditfa/linux-x64",
+  "aarch64-unknown-linux-musl": "@ditfa/linux-arm64",
+  "x86_64-apple-darwin": "@ditfa/darwin-x64",
+  "aarch64-apple-darwin": "@ditfa/darwin-arm64",
+  "x86_64-pc-windows-msvc": "@ditfa/win32-x64",
+  "aarch64-pc-windows-msvc": "@ditfa/win32-arm64",
 };
 
 const { platform, arch } = process;
@@ -98,10 +98,10 @@ function findDitfaExecutable() {
   const packageManager = detectPackageManager();
   const updateCommand =
     packageManager === "bun"
-      ? "bun install -g @ditfa/cli@latest"
+      ? "bun install -g ditfa@latest"
       : packageManager === "pnpm"
-        ? "pnpm add -g @ditfa/cli@latest"
-        : "npm install -g @ditfa/cli@latest";
+        ? "pnpm add -g ditfa@latest"
+        : "npm install -g ditfa@latest";
   throw new Error(
     `Missing optional dependency ${platformPackage}. Reinstall Ditfa: ${updateCommand}`,
   );
@@ -179,17 +179,17 @@ function detectPackageManager() {
 const packageManager = detectPackageManager();
 const packageManagerEnvVar =
   packageManager === "bun"
-    ? "CODEX_MANAGED_BY_BUN"
+    ? "DITFA_MANAGED_BY_BUN"
     : packageManager === "pnpm"
-      ? "CODEX_MANAGED_BY_PNPM"
-      : "CODEX_MANAGED_BY_NPM";
+      ? "DITFA_MANAGED_BY_PNPM"
+      : "DITFA_MANAGED_BY_NPM";
 const env = {
   ...process.env,
-  CODEX_MANAGED_PACKAGE_ROOT: ditfaPackageRoot,
+  DITFA_MANAGED_PACKAGE_ROOT: ditfaPackageRoot,
 };
-delete env.CODEX_MANAGED_BY_NPM;
-delete env.CODEX_MANAGED_BY_BUN;
-delete env.CODEX_MANAGED_BY_PNPM;
+delete env.DITFA_MANAGED_BY_NPM;
+delete env.DITFA_MANAGED_BY_BUN;
+delete env.DITFA_MANAGED_BY_PNPM;
 env[packageManagerEnvVar] = "1";
 
 const child = spawn(binaryPath, process.argv.slice(2), {

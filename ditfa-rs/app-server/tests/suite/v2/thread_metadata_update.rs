@@ -86,7 +86,7 @@ async fn thread_metadata_update_pins_and_unpins_with_filtered_recency_pagination
     };
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build()
         .await?;
     timeout(DEFAULT_READ_TIMEOUT, mcp.initialize()).await??;
@@ -205,7 +205,7 @@ async fn thread_metadata_update_patches_git_branch_and_returns_updated_thread() 
     mock_responses_config(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build()
         .await?;
     timeout(DEFAULT_READ_TIMEOUT, mcp.initialize()).await??;
@@ -304,7 +304,7 @@ async fn thread_metadata_update_rejects_empty_git_info_patch() -> Result<()> {
     mock_responses_config(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build()
         .await?;
     timeout(DEFAULT_READ_TIMEOUT, mcp.initialize()).await??;
@@ -354,7 +354,7 @@ async fn thread_metadata_update_rejects_ephemeral_thread() -> Result<()> {
     mock_responses_config(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build()
         .await?;
     timeout(DEFAULT_READ_TIMEOUT, mcp.initialize()).await??;
@@ -420,7 +420,7 @@ async fn thread_metadata_update_repairs_missing_sqlite_row_for_stored_thread() -
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -490,7 +490,7 @@ async fn thread_metadata_update_repairs_loaded_thread_without_resetting_summary(
     .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -573,7 +573,7 @@ async fn thread_metadata_update_repairs_missing_sqlite_row_for_archived_thread()
     fs::rename(&archived_source, &archived_dest)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -628,13 +628,13 @@ async fn thread_metadata_update_can_clear_stored_git_fields() -> Result<()> {
         Some(RolloutGitInfo {
             commit_hash: Some(GitSha::new("abc123")),
             branch: Some("feature/sidebar-pr".to_string()),
-            repository_url: Some("git@example.com:openai/codex.git".to_string()),
+            repository_url: Some("git@example.com:openai/ditfa.git".to_string()),
         }),
     )?;
     let _state_db = init_state_db(ditfa_home.path()).await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;

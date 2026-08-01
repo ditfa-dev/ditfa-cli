@@ -4,7 +4,7 @@ use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use core_test_support::responses::ev_apply_patch_custom_tool_call;
 use core_test_support::responses::ev_apply_patch_shell_command_call_via_heredoc;
 use core_test_support::responses::ev_shell_command_call;
-use core_test_support::test_codex::ApplyPatchModelOutput;
+use core_test_support::test_ditfa::ApplyPatchModelOutput;
 use pretty_assertions::assert_eq;
 use std::fs;
 use std::path::PathBuf;
@@ -52,11 +52,11 @@ use core_test_support::skip_if_no_remote_env;
 use core_test_support::skip_if_remote;
 use core_test_support::skip_if_target_windows;
 use core_test_support::skip_if_wine_exec;
-use core_test_support::test_codex::TestCodexBuilder;
-use core_test_support::test_codex::TestCodexHarness;
-use core_test_support::test_codex::local;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfaBuilder;
+use core_test_support::test_ditfa::TestDitfaHarness;
+use core_test_support::test_ditfa::local;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::test_target_os;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_event_with_timeout;
@@ -67,20 +67,20 @@ use wiremock::ResponseTemplate;
 use wiremock::matchers::method;
 use wiremock::matchers::path_regex;
 
-pub async fn apply_patch_harness() -> Result<TestCodexHarness> {
+pub async fn apply_patch_harness() -> Result<TestDitfaHarness> {
     apply_patch_harness_with(|builder| builder).await
 }
 
 async fn apply_patch_harness_with(
-    configure: impl FnOnce(TestCodexBuilder) -> TestCodexBuilder,
-) -> Result<TestCodexHarness> {
-    let builder = configure(test_codex());
+    configure: impl FnOnce(TestDitfaBuilder) -> TestDitfaBuilder,
+) -> Result<TestDitfaHarness> {
+    let builder = configure(test_ditfa());
     // Box harness construction so apply_patch_cli tests do not inline the
     // full test-thread startup path into each test future.
-    Box::pin(TestCodexHarness::with_auto_env_builder(builder)).await
+    Box::pin(TestDitfaHarness::with_auto_env_builder(builder)).await
 }
 
-async fn submit_without_wait(harness: &TestCodexHarness, prompt: &str) -> Result<()> {
+async fn submit_without_wait(harness: &TestDitfaHarness, prompt: &str) -> Result<()> {
     submit_without_wait_with_turn_permissions(
         harness,
         prompt,
@@ -91,7 +91,7 @@ async fn submit_without_wait(harness: &TestCodexHarness, prompt: &str) -> Result
 }
 
 async fn submit_without_wait_with_turn_permissions(
-    harness: &TestCodexHarness,
+    harness: &TestDitfaHarness,
     prompt: &str,
     sandbox_policy: SandboxPolicy,
     permission_profile: Option<PermissionProfile>,
@@ -201,7 +201,7 @@ fn create_file_symlink(_source: &std::path::Path, _link: &std::path::Path) -> st
 }
 
 pub async fn mount_apply_patch(
-    harness: &TestCodexHarness,
+    harness: &TestDitfaHarness,
     call_id: &str,
     patch: &str,
     assistant_msg: &str,
@@ -219,7 +219,7 @@ pub async fn mount_apply_patch(
 }
 
 async fn mount_apply_patch_model_output(
-    harness: &TestCodexHarness,
+    harness: &TestDitfaHarness,
     call_id: &str,
     patch: &str,
     assistant_msg: &str,
@@ -259,7 +259,7 @@ fn apply_patch_responses(
 
 #[cfg(target_os = "linux")]
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn apply_patch_cli_uses_codex_self_exe_with_linux_sandbox_helper_alias() -> Result<()> {
+async fn apply_patch_cli_uses_ditfa_self_exe_with_linux_sandbox_helper_alias() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let harness = apply_patch_harness().await?;
@@ -268,7 +268,7 @@ async fn apply_patch_cli_uses_codex_self_exe_with_linux_sandbox_helper_alias() -
         .config
         .ditfa_linux_sandbox_exe
         .as_ref()
-        .expect("linux test config should include codex-linux-sandbox helper");
+        .expect("linux test config should include ditfa-linux-sandbox helper");
     assert_eq!(
         ditfa_linux_sandbox_exe
             .file_name()
@@ -452,7 +452,7 @@ async fn apply_patch_cli_move_without_content_change_has_no_turn_diff() -> Resul
 
     let harness = apply_patch_harness().await?;
     let test = harness.test();
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
 
     harness.write_file("old/name.txt", "same\n").await?;
 
@@ -463,7 +463,7 @@ async fn apply_patch_cli_move_without_content_change_has_no_turn_diff() -> Resul
     submit_without_wait(&harness, "rename without content change").await?;
 
     let mut saw_turn_diff = false;
-    wait_for_event(&codex, |event| match event {
+    wait_for_event(&ditfa, |event| match event {
         EventMsg::TurnDiff(_) => {
             saw_turn_diff = true;
             false
@@ -1177,7 +1177,7 @@ async fn apply_patch_custom_tool_streaming_emits_updated_changes() -> Result<()>
     })
     .await?;
     let test = harness.test();
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
     let call_id = "apply-patch-streaming";
     let patch = "*** Begin Patch\n*** Add File: streamed.txt\n+hello\n+world\n*** End Patch";
     mount_sse_sequence(
@@ -1223,7 +1223,7 @@ async fn apply_patch_custom_tool_streaming_emits_updated_changes() -> Result<()>
     submit_without_wait(&harness, "create streamed file").await?;
 
     let mut updates = Vec::new();
-    wait_for_event(&codex, |event| match event {
+    wait_for_event(&ditfa, |event| match event {
         EventMsg::PatchApplyUpdated(update) => {
             updates.push(update.clone());
             false
@@ -1275,7 +1275,7 @@ async fn apply_patch_shell_command_heredoc_with_cd_emits_turn_diff() -> Result<(
 
     let harness = apply_patch_harness_with(|builder| builder.with_model("gpt-5.4")).await?;
     let test = harness.test();
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
 
     // Prepare a file inside a subdir; update it via cd && apply_patch heredoc form.
     harness.write_file("sub/in_sub.txt", "before\n").await?;
@@ -1301,7 +1301,7 @@ async fn apply_patch_shell_command_heredoc_with_cd_emits_turn_diff() -> Result<(
     let mut saw_turn_diff = None;
     let mut saw_patch_begin = false;
     let mut patch_end_success = None;
-    wait_for_event(&codex, |event| match event {
+    wait_for_event(&ditfa, |event| match event {
         EventMsg::PatchApplyBegin(begin) => {
             saw_patch_begin = true;
             assert_eq!(begin.call_id, call_id);
@@ -1367,7 +1367,7 @@ async fn apply_patch_turn_diff_paths_stay_repo_relative_when_session_cwd_is_nest
     })
     .await?;
     let test = harness.test();
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
     let repo_root = harness
         .test()
         .config
@@ -1382,7 +1382,7 @@ async fn apply_patch_turn_diff_paths_stay_repo_relative_when_session_cwd_is_nest
     submit_without_wait(&harness, "update file outside nested cwd but inside repo").await?;
 
     let mut last_diff: Option<String> = None;
-    wait_for_event(&codex, |event| match event {
+    wait_for_event(&ditfa, |event| match event {
         EventMsg::TurnDiff(ev) => {
             last_diff = Some(ev.unified_diff.clone());
             false
@@ -1412,7 +1412,7 @@ async fn apply_patch_shell_command_failure_propagates_error_and_skips_diff() -> 
 
     let harness = apply_patch_harness_with(|builder| builder.with_model("gpt-5.4")).await?;
     let test = harness.test();
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
 
     harness.write_file("invalid.txt", "ok\n").await?;
 
@@ -1435,7 +1435,7 @@ async fn apply_patch_shell_command_failure_propagates_error_and_skips_diff() -> 
     submit_without_wait(&harness, "apply patch via shell").await?;
 
     let mut saw_turn_diff = false;
-    wait_for_event(&codex, |event| match event {
+    wait_for_event(&ditfa, |event| match event {
         EventMsg::TurnDiff(_) => {
             saw_turn_diff = true;
             false
@@ -1556,7 +1556,7 @@ async fn apply_patch_emits_turn_diff_event_with_unified_diff() -> Result<()> {
 
     let harness = apply_patch_harness().await?;
     let test = harness.test();
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
 
     let call_id = "apply-diff-event";
     let file = "udiff.txt";
@@ -1566,7 +1566,7 @@ async fn apply_patch_emits_turn_diff_event_with_unified_diff() -> Result<()> {
     submit_without_wait(&harness, "emit diff").await?;
 
     let mut saw_turn_diff = None;
-    wait_for_event(&codex, |event| match event {
+    wait_for_event(&ditfa, |event| match event {
         EventMsg::TurnDiff(ev) => {
             saw_turn_diff = Some(ev.unified_diff.clone());
             false
@@ -1591,7 +1591,7 @@ async fn apply_patch_turn_diff_emits_portable_paths_for_remote_cwd() -> Result<(
 
     let harness = apply_patch_harness().await?;
     let test = harness.test();
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
 
     let call_id = "apply-foreign-windows-diff";
     let file = "nested/foreign.txt";
@@ -1601,7 +1601,7 @@ async fn apply_patch_turn_diff_emits_portable_paths_for_remote_cwd() -> Result<(
     submit_without_wait(&harness, "emit diff for a foreign Windows cwd").await?;
 
     let mut last_diff = None;
-    wait_for_event(&codex, |event| match event {
+    wait_for_event(&ditfa, |event| match event {
         EventMsg::TurnDiff(ev) => {
             last_diff = Some(ev.unified_diff.clone());
             false
@@ -1652,11 +1652,11 @@ async fn apply_patch_turn_diff_tracks_local_and_remote_environment_paths() -> Re
     skip_if_no_remote_env!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build_with_remote_and_local_env(&server).await?;
     let file_name = "shared-turn-diff.txt";
     let shared_cwd = PathBuf::from(format!(
-        "/tmp/codex-remote-turn-diff-{}",
+        "/tmp/ditfa-remote-turn-diff-{}",
         SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis()
     ))
     .abs();
@@ -1811,7 +1811,7 @@ async fn apply_patch_aggregates_diff_across_multiple_tool_calls() -> Result<()> 
 
     let harness = apply_patch_harness().await?;
     let test = harness.test();
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
 
     let call1 = "agg-1";
     let call2 = "agg-2";
@@ -1837,7 +1837,7 @@ async fn apply_patch_aggregates_diff_across_multiple_tool_calls() -> Result<()> 
     submit_without_wait(&harness, "aggregate diffs").await?;
 
     let mut last_diff: Option<String> = None;
-    wait_for_event(&codex, |event| match event {
+    wait_for_event(&ditfa, |event| match event {
         EventMsg::TurnDiff(ev) => {
             last_diff = Some(ev.unified_diff.clone());
             false
@@ -1861,7 +1861,7 @@ async fn apply_patch_aggregates_diff_preserves_success_after_failure() -> Result
 
     let harness = apply_patch_harness().await?;
     let test = harness.test();
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
 
     let call_success = "agg-success";
     let call_failure = "agg-failure";
@@ -1891,7 +1891,7 @@ async fn apply_patch_aggregates_diff_preserves_success_after_failure() -> Result
 
     let mut last_diff: Option<String> = None;
     wait_for_event_with_timeout(
-        &codex,
+        &ditfa,
         |event| match event {
             EventMsg::TurnDiff(ev) => {
                 last_diff = Some(ev.unified_diff.clone());
@@ -1946,7 +1946,7 @@ async fn apply_patch_clears_aggregated_diff_after_inexact_delta() -> Result<()> 
     })
     .await?;
     let test = harness.test();
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
 
     let call_success = "agg-success";
     let call_inexact = "agg-inexact";
@@ -1975,7 +1975,7 @@ async fn apply_patch_clears_aggregated_diff_after_inexact_delta() -> Result<()> 
 
     let mut last_diff: Option<String> = None;
     wait_for_event_with_timeout(
-        &codex,
+        &ditfa,
         |event| match event {
             EventMsg::TurnDiff(ev) => {
                 last_diff = Some(ev.unified_diff.clone());

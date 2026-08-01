@@ -245,7 +245,7 @@ mod thread_processor_behavior_tests {
     #[test]
     fn validate_dynamic_tools_accepts_responses_compatible_identifiers() {
         let tools = vec![dynamic_tool(
-            Some("Codex-App_2"),
+            Some("Ditfa-App_2"),
             "lookup-ticket_2",
             json!({
                 "type": "object",
@@ -379,7 +379,7 @@ mod thread_processor_behavior_tests {
     #[test]
     fn validate_dynamic_tools_rejects_namespace_not_supported_by_responses() {
         let tools = vec![dynamic_tool(
-            Some("codex.app"),
+            Some("ditfa.app"),
             "lookup_ticket",
             json!({
                 "type": "object",
@@ -389,7 +389,7 @@ mod thread_processor_behavior_tests {
             /*defer_loading*/ true,
         )];
         let err = validate_dynamic_tools(&tools).expect_err("invalid namespace");
-        assert!(err.contains("codex.app"), "unexpected error: {err}");
+        assert!(err.contains("ditfa.app"), "unexpected error: {err}");
         assert!(
             err.contains("Responses API") && err.contains("^[a-zA-Z0-9_-]+$"),
             "unexpected error: {err}"

@@ -14,13 +14,13 @@ import wrapper_common
 class WrapperCommonTest(unittest.TestCase):
     def test_defaults_to_workspace_and_all_targets(self) -> None:
         parsed = wrapper_common.parse_wrapper_args([])
-        final_args = wrapper_common.build_final_args(parsed, Path("/repo/codex-rs/Cargo.toml"))
+        final_args = wrapper_common.build_final_args(parsed, Path("/repo/ditfa-rs/Cargo.toml"))
 
         self.assertEqual(
             final_args,
             [
                 "--manifest-path",
-                "/repo/codex-rs/Cargo.toml",
+                "/repo/ditfa-rs/Cargo.toml",
                 "--workspace",
                 "--no-deps",
                 "--",
@@ -29,35 +29,35 @@ class WrapperCommonTest(unittest.TestCase):
         )
 
     def test_forwarded_cargo_args_keep_single_separator(self) -> None:
-        parsed = wrapper_common.parse_wrapper_args(["-p", "codex-core", "--", "--tests"])
-        final_args = wrapper_common.build_final_args(parsed, Path("/repo/codex-rs/Cargo.toml"))
+        parsed = wrapper_common.parse_wrapper_args(["-p", "ditfa-core", "--", "--tests"])
+        final_args = wrapper_common.build_final_args(parsed, Path("/repo/ditfa-rs/Cargo.toml"))
 
         self.assertEqual(
             final_args,
             [
                 "--manifest-path",
-                "/repo/codex-rs/Cargo.toml",
+                "/repo/ditfa-rs/Cargo.toml",
                 "--no-deps",
                 "-p",
-                "codex-core",
+                "ditfa-core",
                 "--",
                 "--tests",
             ],
         )
 
     def test_fix_does_not_add_all_targets(self) -> None:
-        parsed = wrapper_common.parse_wrapper_args(["--fix", "-p", "codex-core"])
-        final_args = wrapper_common.build_final_args(parsed, Path("/repo/codex-rs/Cargo.toml"))
+        parsed = wrapper_common.parse_wrapper_args(["--fix", "-p", "ditfa-core"])
+        final_args = wrapper_common.build_final_args(parsed, Path("/repo/ditfa-rs/Cargo.toml"))
 
         self.assertEqual(
             final_args,
             [
                 "--manifest-path",
-                "/repo/codex-rs/Cargo.toml",
+                "/repo/ditfa-rs/Cargo.toml",
                 "--no-deps",
                 "--fix",
                 "-p",
-                "codex-core",
+                "ditfa-core",
             ],
         )
 
@@ -72,7 +72,7 @@ class WrapperCommonTest(unittest.TestCase):
                 "--bins",
             ]
         )
-        final_args = wrapper_common.build_final_args(parsed, Path("/repo/codex-rs/Cargo.toml"))
+        final_args = wrapper_common.build_final_args(parsed, Path("/repo/ditfa-rs/Cargo.toml"))
 
         self.assertEqual(
             final_args,
@@ -93,7 +93,7 @@ class WrapperCommonTest(unittest.TestCase):
                 "/tmp/custom/Cargo.toml",
             ]
         )
-        final_args = wrapper_common.build_final_args(parsed, Path("/repo/codex-rs/Cargo.toml"))
+        final_args = wrapper_common.build_final_args(parsed, Path("/repo/ditfa-rs/Cargo.toml"))
 
         self.assertEqual(
             final_args,

@@ -170,7 +170,7 @@ pub(crate) async fn spawn_windows_sandbox_session_elevated_for_permission_profil
             permission_profile: permission_profile.clone(),
             workspace_roots: workspace_roots.to_vec(),
             ditfa_home: elevated.sandbox_base,
-            real_codex_home: ditfa_home.to_path_buf(),
+            real_ditfa_home: ditfa_home.to_path_buf(),
             cap_sids: elevated.cap_sids,
             network_proxy_restricting_sid,
             timeout_ms,

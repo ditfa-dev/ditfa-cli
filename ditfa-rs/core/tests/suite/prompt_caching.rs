@@ -28,10 +28,10 @@ use core_test_support::responses::start_mock_server;
 use core_test_support::responses::strip_metadata_from_json;
 use core_test_support::responses::strip_response_item_ids_from_json;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use tempfile::TempDir;
@@ -133,12 +133,12 @@ async fn prompt_tools_are_consistent_across_requests() -> anyhow::Result<()> {
     )
     .await;
 
-    let TestCodex {
-        codex,
+    let TestDitfa {
+        ditfa,
         config,
         thread_manager,
         ..
-    } = test_codex()
+    } = test_ditfa()
         .with_pre_build_hook(write_global_instructions)
         .with_config(|config| {
             config.model = Some("gpt-5.2".to_string());
@@ -166,7 +166,7 @@ async fn prompt_tools_are_consistent_across_requests() -> anyhow::Result<()> {
         .await
         .base_instructions;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello 1".into(),
@@ -178,9 +178,9 @@ async fn prompt_tools_are_consistent_across_requests() -> anyhow::Result<()> {
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello 2".into(),
@@ -192,7 +192,7 @@ async fn prompt_tools_are_consistent_across_requests() -> anyhow::Result<()> {
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let mut expected_tools_names = if cfg!(windows) {
         vec!["shell_command"]
@@ -248,7 +248,7 @@ async fn gpt_5_tools_without_apply_patch_append_apply_patch_instructions() -> an
     )
     .await;
 
-    let TestCodex { codex, .. } = test_codex()
+    let TestDitfa { ditfa, .. } = test_ditfa()
         .with_pre_build_hook(write_global_instructions)
         .with_config(|config| {
             config
@@ -260,7 +260,7 @@ async fn gpt_5_tools_without_apply_patch_append_apply_patch_instructions() -> an
         .build(&server)
         .await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello 1".into(),
@@ -273,8 +273,8 @@ async fn gpt_5_tools_without_apply_patch_append_apply_patch_instructions() -> an
         })
         .await?;
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
-    codex
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello 2".into(),
@@ -287,7 +287,7 @@ async fn gpt_5_tools_without_apply_patch_append_apply_patch_instructions() -> an
         })
         .await?;
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let body0 = req1.single_request().body_json();
     let instructions0 = body0["instructions"]
@@ -328,7 +328,7 @@ async fn prefixes_context_and_instructions_once_and_consistently_across_requests
     )
     .await;
 
-    let TestCodex { codex, config, .. } = test_codex()
+    let TestDitfa { ditfa, config, .. } = test_ditfa()
         .with_pre_build_hook(write_global_instructions)
         .with_config(|config| {
             config
@@ -339,7 +339,7 @@ async fn prefixes_context_and_instructions_once_and_consistently_across_requests
         .build(&server)
         .await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello 1".into(),
@@ -351,9 +351,9 @@ async fn prefixes_context_and_instructions_once_and_consistently_across_requests
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello 2".into(),
@@ -365,7 +365,7 @@ async fn prefixes_context_and_instructions_once_and_consistently_across_requests
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let body1 = req1.single_request().body_json();
     let input1 = body1["input"].as_array().expect("input array");
@@ -429,7 +429,7 @@ async fn overrides_turn_context_but_keeps_cached_prefix_and_key_constant() -> an
     )
     .await;
 
-    let TestCodex { codex, config, .. } = test_codex()
+    let TestDitfa { ditfa, config, .. } = test_ditfa()
         .with_pre_build_hook(write_global_instructions)
         .with_config(|config| {
             config
@@ -441,7 +441,7 @@ async fn overrides_turn_context_but_keeps_cached_prefix_and_key_constant() -> an
         .await?;
 
     // First turn
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello 1".into(),
@@ -453,7 +453,7 @@ async fn overrides_turn_context_but_keeps_cached_prefix_and_key_constant() -> an
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let writable = TempDir::new().unwrap();
     let permission_profile = PermissionProfile::workspace_write_with(
@@ -466,7 +466,7 @@ async fn overrides_turn_context_but_keeps_cached_prefix_and_key_constant() -> an
         .to_legacy_sandbox_policy(config.cwd.as_path())
         .expect("workspace profile should have legacy projection");
     core_test_support::submit_thread_settings(
-        &codex,
+        &ditfa,
         ditfa_protocol::protocol::ThreadSettingsOverrides {
             approval_policy: Some(AskForApproval::Never),
             sandbox_policy: Some(sandbox_policy),
@@ -479,7 +479,7 @@ async fn overrides_turn_context_but_keeps_cached_prefix_and_key_constant() -> an
     .await?;
 
     // Second turn after overrides
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello 2".into(),
@@ -491,7 +491,7 @@ async fn overrides_turn_context_but_keeps_cached_prefix_and_key_constant() -> an
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request1 = req1.single_request();
     let request2 = req2.single_request();
@@ -556,7 +556,7 @@ async fn override_before_first_turn_emits_environment_context() -> anyhow::Resul
     )
     .await;
 
-    let TestCodex { codex, .. } = test_codex().build(&server).await?;
+    let TestDitfa { ditfa, .. } = test_ditfa().build(&server).await?;
 
     let collaboration_mode = CollaborationMode {
         mode: ModeKind::Default,
@@ -568,7 +568,7 @@ async fn override_before_first_turn_emits_environment_context() -> anyhow::Resul
     };
 
     core_test_support::submit_thread_settings(
-        &codex,
+        &ditfa,
         ditfa_protocol::protocol::ThreadSettingsOverrides {
             approval_policy: Some(AskForApproval::Never),
             model: Some("gpt-5.4".to_string()),
@@ -579,7 +579,7 @@ async fn override_before_first_turn_emits_environment_context() -> anyhow::Resul
     )
     .await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "first message".into(),
@@ -592,7 +592,7 @@ async fn override_before_first_turn_emits_environment_context() -> anyhow::Resul
         })
         .await?;
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let body = req.single_request().body_json();
     assert_eq!(body["model"].as_str(), Some("gpt-5.4"));
@@ -715,7 +715,7 @@ async fn per_turn_overrides_keep_cached_prefix_and_key_constant() -> anyhow::Res
     )
     .await;
 
-    let TestCodex { codex, .. } = test_codex()
+    let TestDitfa { ditfa, .. } = test_ditfa()
         .with_pre_build_hook(write_global_instructions)
         .with_config(|config| {
             config
@@ -727,7 +727,7 @@ async fn per_turn_overrides_keep_cached_prefix_and_key_constant() -> anyhow::Res
         .await?;
 
     // First turn
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello 1".into(),
@@ -739,7 +739,7 @@ async fn per_turn_overrides_keep_cached_prefix_and_key_constant() -> anyhow::Res
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     // Second turn using per-turn thread-settings overrides.
     let new_cwd = TempDir::new().unwrap();
@@ -752,7 +752,7 @@ async fn per_turn_overrides_keep_cached_prefix_and_key_constant() -> anyhow::Res
     );
     let (sandbox_policy, permission_profile) =
         turn_permission_fields(permission_profile, new_cwd.path());
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello 2".into(),
@@ -773,7 +773,7 @@ async fn per_turn_overrides_keep_cached_prefix_and_key_constant() -> anyhow::Res
             },
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request1 = req1.single_request();
     let request2 = req2.single_request();
@@ -851,12 +851,12 @@ async fn send_user_turn_with_no_changes_does_not_send_environment_context() -> a
     )
     .await;
 
-    let TestCodex {
-        codex,
+    let TestDitfa {
+        ditfa,
         config,
         session_configured,
         ..
-    } = test_codex()
+    } = test_ditfa()
         .with_pre_build_hook(write_global_instructions)
         .with_config(|config| {
             config
@@ -874,7 +874,7 @@ async fn send_user_turn_with_no_changes_does_not_send_environment_context() -> a
     let default_effort = config.model_reasoning_effort.clone();
     let default_summary = config.model_reasoning_summary;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello 1".into(),
@@ -900,9 +900,9 @@ async fn send_user_turn_with_no_changes_does_not_send_environment_context() -> a
             },
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello 2".into(),
@@ -928,7 +928,7 @@ async fn send_user_turn_with_no_changes_does_not_send_environment_context() -> a
             },
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request1 = req1.single_request();
     let request2 = req2.single_request();
@@ -990,12 +990,12 @@ async fn send_user_turn_with_changes_sends_environment_context() -> anyhow::Resu
         sse(vec![ev_response_created("resp-2"), ev_completed("resp-2")]),
     )
     .await;
-    let TestCodex {
-        codex,
+    let TestDitfa {
+        ditfa,
         config,
         session_configured,
         ..
-    } = test_codex()
+    } = test_ditfa()
         .with_pre_build_hook(write_global_instructions)
         .with_config(|config| {
             config
@@ -1013,7 +1013,7 @@ async fn send_user_turn_with_changes_sends_environment_context() -> anyhow::Resu
     let default_effort = config.model_reasoning_effort.clone();
     let default_summary = config.model_reasoning_summary;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello 1".into(),
@@ -1039,11 +1039,11 @@ async fn send_user_turn_with_changes_sends_environment_context() -> anyhow::Resu
             },
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let (sandbox_policy, permission_profile) =
         turn_permission_fields(PermissionProfile::Disabled, default_cwd.as_path());
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello 2".into(),
@@ -1070,7 +1070,7 @@ async fn send_user_turn_with_changes_sends_environment_context() -> anyhow::Resu
             },
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request1 = req1.single_request();
     let request2 = req2.single_request();

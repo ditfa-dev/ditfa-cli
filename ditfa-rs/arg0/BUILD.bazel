@@ -1,6 +1,6 @@
-load("//:defs.bzl", "codex_rust_crate")
+load("//:defs.bzl", "ditfa_rust_crate")
 
-codex_rust_crate(
+ditfa_rust_crate(
     name = "arg0",
-    crate_name = "codex_arg0",
+    crate_name = "ditfa_arg0",
 )

@@ -82,7 +82,7 @@ pub(crate) fn start_turn_for_thread(
     thread_id: &str,
     turn_id: &str,
 ) -> anyhow::Result<()> {
-    writer.append(RawTraceEventPayload::CodexTurnStarted {
+    writer.append(RawTraceEventPayload::DitfaTurnStarted {
         ditfa_turn_id: turn_id.to_string(),
         thread_id: thread_id.to_string(),
     })?;

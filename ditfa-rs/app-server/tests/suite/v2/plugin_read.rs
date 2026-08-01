@@ -62,7 +62,7 @@ const DEFAULT_TIMEOUT: Duration = Duration::from_secs(10);
 async fn plugin_read_rejects_missing_read_source() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -94,7 +94,7 @@ async fn plugin_read_rejects_missing_read_source() -> Result<()> {
 async fn plugin_read_rejects_multiple_read_sources() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -245,7 +245,7 @@ apps = true
         .and(path("/backend-api/ps/apps/batch"))
         .and(header("authorization", "Bearer chatgpt-token"))
         .and(header("chatgpt-account-id", "account-123"))
-        .and(header("oai-product-sku", "codex"))
+        .and(header("oai-product-sku", "ditfa"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "apps": [{
                 "id": "example-app",
@@ -259,7 +259,7 @@ apps = true
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -433,7 +433,7 @@ async fn plugin_read_returns_share_context_for_shared_remote_plugin() -> Result<
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -640,7 +640,7 @@ async fn plugin_read_includes_share_url_for_admin_disabled_remote_plugin() -> Re
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -772,7 +772,7 @@ async fn plugin_skill_read_reads_remote_skill_contents_when_remote_plugin_enable
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -823,7 +823,7 @@ async fn plugin_read_maps_missing_remote_plugin_to_invalid_request() -> Result<(
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -878,7 +878,7 @@ remote_plugin = true
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -911,7 +911,7 @@ async fn plugin_read_rejects_invalid_remote_plugin_name() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     write_remote_plugin_catalog_config(ditfa_home.path(), "https://example.invalid/backend-api/")?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -972,7 +972,7 @@ enabled = true
     write_installed_plugin(&ditfa_home, "openai-curated", "demo-plugin")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1021,7 +1021,7 @@ async fn plugin_read_returns_share_context_for_shared_local_plugin() -> Result<(
     )?;
     write_plugin_marketplace(
         repo_root.path(),
-        "codex-curated",
+        "ditfa-curated",
         "demo-plugin",
         "./demo-plugin",
     )?;
@@ -1080,7 +1080,7 @@ async fn plugin_read_returns_share_context_for_shared_local_plugin() -> Result<(
         .mount(&server)
         .await;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1163,7 +1163,7 @@ async fn plugin_read_keeps_remote_version_when_share_principals_are_missing() ->
     )?;
     write_plugin_marketplace(
         repo_root.path(),
-        "codex-curated",
+        "ditfa-curated",
         "demo-plugin",
         "./demo-plugin",
     )?;
@@ -1209,7 +1209,7 @@ async fn plugin_read_keeps_remote_version_when_share_principals_are_missing() ->
         .mount(&server)
         .await;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1255,7 +1255,7 @@ async fn plugin_read_falls_back_to_local_share_context_without_remote_auth() -> 
     write_plugins_enabled_config(&ditfa_home)?;
     write_plugin_marketplace(
         repo_root.path(),
-        "codex-curated",
+        "ditfa-curated",
         "demo-plugin",
         "./demo-plugin",
     )?;
@@ -1264,7 +1264,7 @@ async fn plugin_read_falls_back_to_local_share_context_without_remote_auth() -> 
     write_plugin_share_local_path_mapping(ditfa_home.path(), "plugins_123", &plugin_path)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1307,7 +1307,7 @@ async fn plugin_read_fails_on_malformed_share_mapping() -> Result<()> {
     write_plugins_enabled_config(&ditfa_home)?;
     write_plugin_marketplace(
         repo_root.path(),
-        "codex-curated",
+        "ditfa-curated",
         "demo-plugin",
         "./demo-plugin",
     )?;
@@ -1321,7 +1321,7 @@ async fn plugin_read_fails_on_malformed_share_mapping() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1366,7 +1366,7 @@ async fn plugin_read_returns_plugin_details_with_bundle_contents() -> Result<()>
     std::fs::write(
         repo_root.path().join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "demo-plugin",
@@ -1436,7 +1436,7 @@ description: Visible only for ChatGPT
         plugin_root.join("skills/thread-summarizer/agents/openai.yaml"),
         r#"policy:
   products:
-    - CODEX
+    - DITFA
 "#,
     )?;
     std::fs::create_dir_all(plugin_root.join("skills/chatgpt-only/agents"))?;
@@ -1508,17 +1508,17 @@ plugins = true
 name = "demo-plugin:thread-summarizer"
 enabled = false
 
-[plugins."demo-plugin@codex-curated"]
+[plugins."demo-plugin@ditfa-curated"]
 enabled = true
 
-[hooks.state."demo-plugin@codex-curated:hooks/hooks.json:pre_tool_use:0:0"]
+[hooks.state."demo-plugin@ditfa-curated:hooks/hooks.json:pre_tool_use:0:0"]
 enabled = false
 "#,
     )?;
-    write_installed_plugin(&ditfa_home, "codex-curated", "demo-plugin")?;
+    write_installed_plugin(&ditfa_home, "ditfa-curated", "demo-plugin")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -1536,9 +1536,9 @@ enabled = false
     let response: PluginReadResponse =
         timeout(DEFAULT_TIMEOUT, mcp.read_response(request_id)).await??;
 
-    assert_eq!(response.plugin.marketplace_name, "codex-curated");
+    assert_eq!(response.plugin.marketplace_name, "ditfa-curated");
     assert_eq!(response.plugin.marketplace_path, Some(marketplace_path));
-    assert_eq!(response.plugin.summary.id, "demo-plugin@codex-curated");
+    assert_eq!(response.plugin.summary.id, "demo-plugin@ditfa-curated");
     assert_eq!(response.plugin.summary.name, "demo-plugin");
     assert_eq!(
         response.plugin.description.as_deref(),
@@ -1614,15 +1614,15 @@ enabled = false
         response.plugin.hooks,
         vec![
             ditfa_app_server_protocol::PluginHookSummary {
-                key: "demo-plugin@codex-curated:hooks/hooks.json:pre_tool_use:0:0".to_string(),
+                key: "demo-plugin@ditfa-curated:hooks/hooks.json:pre_tool_use:0:0".to_string(),
                 event_name: HookEventName::PreToolUse,
             },
             ditfa_app_server_protocol::PluginHookSummary {
-                key: "demo-plugin@codex-curated:hooks/hooks.json:pre_tool_use:0:1".to_string(),
+                key: "demo-plugin@ditfa-curated:hooks/hooks.json:pre_tool_use:0:1".to_string(),
                 event_name: HookEventName::PreToolUse,
             },
             ditfa_app_server_protocol::PluginHookSummary {
-                key: "demo-plugin@codex-curated:hooks/hooks.json:session_start:0:0".to_string(),
+                key: "demo-plugin@ditfa-curated:hooks/hooks.json:session_start:0:0".to_string(),
                 event_name: HookEventName::SessionStart,
             },
         ]
@@ -1697,7 +1697,7 @@ async fn plugin_read_batches_large_app_metadata_requests() -> Result<()> {
         AbsolutePathBuf::try_from(repo_root.path().join(".agents/plugins/marketplace.json"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -1792,7 +1792,7 @@ async fn plugin_read_stops_batching_after_app_metadata_failure() -> Result<()> {
         AbsolutePathBuf::try_from(repo_root.path().join(".agents/plugins/marketplace.json"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -1902,7 +1902,7 @@ async fn plugin_read_hides_apps_for_api_key_auth() -> Result<()> {
         AbsolutePathBuf::try_from(repo_root.path().join(".agents/plugins/marketplace.json"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("DITFA_ACCESS_TOKEN", None),
@@ -1942,7 +1942,7 @@ async fn plugin_read_accepts_legacy_string_default_prompt() -> Result<()> {
     std::fs::write(
         repo_root.path().join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "demo-plugin",
@@ -1966,7 +1966,7 @@ async fn plugin_read_accepts_legacy_string_default_prompt() -> Result<()> {
     write_plugins_enabled_config(&ditfa_home)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -2027,7 +2027,7 @@ async fn plugin_read_describes_uninstalled_git_source_without_cloning() -> Resul
     write_plugins_enabled_config(&ditfa_home)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -2074,7 +2074,7 @@ async fn plugin_read_returns_invalid_request_when_plugin_is_missing() -> Result<
     std::fs::write(
         repo_root.path().join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "demo-plugin",
@@ -2089,7 +2089,7 @@ async fn plugin_read_returns_invalid_request_when_plugin_is_missing() -> Result<
     write_plugins_enabled_config(&ditfa_home)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -2130,7 +2130,7 @@ async fn plugin_read_returns_invalid_request_when_plugin_manifest_is_missing() -
     std::fs::write(
         repo_root.path().join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "demo-plugin",
@@ -2145,7 +2145,7 @@ async fn plugin_read_returns_invalid_request_when_plugin_manifest_is_missing() -
     write_plugins_enabled_config(&ditfa_home)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -2237,7 +2237,7 @@ async fn batch_apps(
     let product_sku_ok = headers
         .get("oai-product-sku")
         .and_then(|value| value.to_str().ok())
-        .is_some_and(|value| value == "codex");
+        .is_some_and(|value| value == "ditfa");
 
     if !bearer_ok || !account_ok || !product_sku_ok {
         Err(StatusCode::UNAUTHORIZED)

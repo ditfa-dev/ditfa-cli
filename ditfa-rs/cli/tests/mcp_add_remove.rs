@@ -8,7 +8,7 @@ use pretty_assertions::assert_eq;
 use tempfile::TempDir;
 
 fn ditfa_command(ditfa_home: &Path) -> Result<assert_cmd::Command> {
-    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("codex")?);
+    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa")?);
     cmd.env("DITFA_HOME", ditfa_home);
     Ok(cmd)
 }
@@ -211,7 +211,7 @@ async fn add_streamable_http_with_oauth_options() -> Result<()> {
             "--url",
             "https://example.com/mcp",
             "--oauth-client-id",
-            "eci-prd-pub-codex-123",
+            "eci-prd-pub-ditfa-123",
             "--oauth-resource",
             "https://resource.example.com",
         ])
@@ -224,7 +224,7 @@ async fn add_streamable_http_with_oauth_options() -> Result<()> {
         .expect("oauth server should exist");
     assert_eq!(
         oauth_server.oauth_client_id(),
-        Some("eci-prd-pub-codex-123")
+        Some("eci-prd-pub-ditfa-123")
     );
     assert_eq!(
         oauth_server.oauth_resource.as_deref(),

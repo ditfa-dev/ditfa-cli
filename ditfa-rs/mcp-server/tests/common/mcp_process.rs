@@ -10,7 +10,7 @@ use tokio::process::ChildStdin;
 use tokio::process::ChildStdout;
 
 use anyhow::Context;
-use ditfa_mcp_server::CodexToolCallParam;
+use ditfa_mcp_server::DitfaToolCallParam;
 use ditfa_terminal_detection::user_agent;
 
 use pretty_assertions::assert_eq;
@@ -57,8 +57,8 @@ impl McpProcess {
         ditfa_home: &Path,
         env_overrides: &[(&str, Option<&str>)],
     ) -> anyhow::Result<Self> {
-        let program = ditfa_utils_cargo_bin::cargo_bin("codex-mcp-server")
-            .context("should find binary for codex-mcp-server")?;
+        let program = ditfa_utils_cargo_bin::cargo_bin("ditfa-mcp-server")
+            .context("should find binary for ditfa-mcp-server")?;
         let mut cmd = Command::new(program);
 
         cmd.stdin(Stdio::piped());
@@ -81,7 +81,7 @@ impl McpProcess {
         let mut process = cmd
             .kill_on_drop(true)
             .spawn()
-            .context("codex-mcp-server proc should start")?;
+            .context("ditfa-mcp-server proc should start")?;
         let stdin = process
             .stdin
             .take()
@@ -165,8 +165,8 @@ impl McpProcess {
                     },
                 },
                 "serverInfo": {
-                    "name": "codex-mcp-server",
-                    "title": "Codex",
+                    "name": "ditfa-mcp-server",
+                    "title": "Ditfa",
                     "version": "0.0.0",
                     "user_agent": user_agent
                 },
@@ -186,11 +186,11 @@ impl McpProcess {
 
     /// Returns the id used to make the request so it can be used when
     /// correlating notifications.
-    pub async fn send_codex_tool_call(
+    pub async fn send_ditfa_tool_call(
         &mut self,
-        params: CodexToolCallParam,
+        params: DitfaToolCallParam,
     ) -> anyhow::Result<i64> {
-        let ditfa_tool_call_params = CallToolRequestParams::new("codex").with_arguments(
+        let ditfa_tool_call_params = CallToolRequestParams::new("ditfa").with_arguments(
             match serde_json::to_value(params)? {
                 serde_json::Value::Object(map) => map,
                 _ => unreachable!("params serialize to object"),
@@ -309,7 +309,7 @@ impl McpProcess {
     }
 
     /// Reads notifications until a legacy TurnComplete event is observed:
-    /// Method "codex/event" with params.msg.type == "task_complete".
+    /// Method "ditfa/event" with params.msg.type == "task_complete".
     pub async fn read_stream_until_legacy_task_complete_notification(
         &mut self,
     ) -> anyhow::Result<JsonRpcNotification<CustomNotification>> {
@@ -319,7 +319,7 @@ impl McpProcess {
             let message = self.read_jsonrpc_message().await?;
             match message {
                 JsonRpcMessage::Notification(notification) => {
-                    let is_match = if notification.notification.method == "codex/event" {
+                    let is_match = if notification.notification.method == "ditfa/event" {
                         if let Some(params) = &notification.notification.params {
                             params
                                 .get("msg")
@@ -355,7 +355,7 @@ impl McpProcess {
 
 impl Drop for McpProcess {
     fn drop(&mut self) {
-        // These tests spawn a `codex-mcp-server` child process.
+        // These tests spawn a `ditfa-mcp-server` child process.
         //
         // We keep that child alive for the test and rely on Tokio's `kill_on_drop(true)` when this
         // helper is dropped. Tokio documents kill-on-drop as best-effort: dropping requests

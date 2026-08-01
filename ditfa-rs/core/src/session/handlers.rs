@@ -25,7 +25,7 @@ use crate::tasks::execute_user_shell_command;
 use ditfa_protocol::models::ContentItem;
 use ditfa_protocol::models::ResponseInputItem;
 use ditfa_protocol::models::ResponseItem;
-use ditfa_protocol::protocol::CodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::ErrorEvent;
 use ditfa_protocol::protocol::Event;
 use ditfa_protocol::protocol::EventMsg;
@@ -106,7 +106,7 @@ pub async fn update_thread_settings(
                 id: sub_id,
                 msg: EventMsg::Error(ErrorEvent {
                     message: format!("invalid thread settings override: {err}"),
-                    ditfa_error_info: Some(CodexErrorInfo::BadRequest),
+                    ditfa_error_info: Some(DitfaErrorInfo::BadRequest),
                 }),
             })
             .await;
@@ -442,7 +442,7 @@ pub async fn thread_rollback(sess: &Arc<Session>, sub_id: String, num_turns: u32
             id: sub_id,
             msg: EventMsg::Error(ErrorEvent {
                 message: "num_turns must be >= 1".to_string(),
-                ditfa_error_info: Some(CodexErrorInfo::ThreadRollbackFailed),
+                ditfa_error_info: Some(DitfaErrorInfo::ThreadRollbackFailed),
             }),
         })
         .await;
@@ -455,7 +455,7 @@ pub async fn thread_rollback(sess: &Arc<Session>, sub_id: String, num_turns: u32
             id: sub_id,
             msg: EventMsg::Error(ErrorEvent {
                 message: "Cannot rollback while a turn is in progress.".to_string(),
-                ditfa_error_info: Some(CodexErrorInfo::ThreadRollbackFailed),
+                ditfa_error_info: Some(DitfaErrorInfo::ThreadRollbackFailed),
             }),
         })
         .await;
@@ -470,7 +470,7 @@ pub async fn thread_rollback(sess: &Arc<Session>, sub_id: String, num_turns: u32
                 id: turn_context.sub_id.clone(),
                 msg: EventMsg::Error(ErrorEvent {
                     message: "thread rollback requires persisted thread history".to_string(),
-                    ditfa_error_info: Some(CodexErrorInfo::ThreadRollbackFailed),
+                    ditfa_error_info: Some(DitfaErrorInfo::ThreadRollbackFailed),
                 }),
             })
             .await;
@@ -482,7 +482,7 @@ pub async fn thread_rollback(sess: &Arc<Session>, sub_id: String, num_turns: u32
             id: turn_context.sub_id.clone(),
             msg: EventMsg::Error(ErrorEvent {
                 message: format!("failed to flush thread persistence for rollback replay: {err}"),
-                ditfa_error_info: Some(CodexErrorInfo::ThreadRollbackFailed),
+                ditfa_error_info: Some(DitfaErrorInfo::ThreadRollbackFailed),
             }),
         })
         .await;
@@ -496,7 +496,7 @@ pub async fn thread_rollback(sess: &Arc<Session>, sub_id: String, num_turns: u32
                 id: turn_context.sub_id.clone(),
                 msg: EventMsg::Error(ErrorEvent {
                     message: format!("failed to load thread history for rollback replay: {err}"),
-                    ditfa_error_info: Some(CodexErrorInfo::ThreadRollbackFailed),
+                    ditfa_error_info: Some(DitfaErrorInfo::ThreadRollbackFailed),
                 }),
             })
             .await;
@@ -526,7 +526,7 @@ pub async fn thread_rollback(sess: &Arc<Session>, sub_id: String, num_turns: u32
             turn_context.as_ref(),
             EventMsg::Warning(WarningEvent {
                 message: format!(
-                    "Rolled the thread back, but failed to save the rollback marker. Codex will continue retrying. Error: {err}"
+                    "Rolled the thread back, but failed to save the rollback marker. Ditfa will continue retrying. Error: {err}"
                 ),
             }),
         )
@@ -565,7 +565,7 @@ pub async fn set_thread_memory_mode(sess: &Arc<Session>, sub_id: String, mode: T
             id: sub_id,
             msg: EventMsg::Error(ErrorEvent {
                 message: err.to_string(),
-                ditfa_error_info: Some(CodexErrorInfo::Other),
+                ditfa_error_info: Some(DitfaErrorInfo::Other),
             }),
         };
         sess.send_event_raw(event).await;
@@ -606,7 +606,7 @@ async fn emit_thread_stop_lifecycle(sess: &Session) {
 
 pub async fn shutdown(sess: &Arc<Session>, sub_id: String) -> bool {
     shutdown_session_runtime(sess).await;
-    info!("Shutting down Codex instance");
+    info!("Shutting down Ditfa instance");
     let history = sess.clone_history().await;
     let turn_count = history
         .raw_items()
@@ -614,7 +614,7 @@ pub async fn shutdown(sess: &Arc<Session>, sub_id: String) -> bool {
         .filter(|item| is_user_turn_boundary(item))
         .count();
     sess.services.session_telemetry.counter(
-        "codex.conversation.turn.count",
+        "ditfa.conversation.turn.count",
         i64::try_from(turn_count).unwrap_or(0),
         &[],
     );
@@ -631,7 +631,7 @@ pub async fn shutdown(sess: &Arc<Session>, sub_id: String) -> bool {
             id: sub_id.clone(),
             msg: EventMsg::Error(ErrorEvent {
                 message: "Failed to shutdown thread persistence".to_string(),
-                ditfa_error_info: Some(CodexErrorInfo::Other),
+                ditfa_error_info: Some(DitfaErrorInfo::Other),
             }),
         };
         sess.send_event_raw(event).await;
@@ -677,7 +677,7 @@ pub async fn review(
                 id: sub_id,
                 msg: EventMsg::Error(ErrorEvent {
                     message: err.to_string(),
-                    ditfa_error_info: Some(CodexErrorInfo::Other),
+                    ditfa_error_info: Some(DitfaErrorInfo::Other),
                 }),
             };
             sess.send_event(&turn_context, event.msg).await;
@@ -713,7 +713,7 @@ pub(super) async fn submission_loop(
                             id: sub.id.clone(),
                             msg: EventMsg::Error(ErrorEvent {
                                 message: err.to_string(),
-                                ditfa_error_info: Some(CodexErrorInfo::Other),
+                                ditfa_error_info: Some(DitfaErrorInfo::Other),
                             }),
                         })
                         .await;
@@ -898,14 +898,14 @@ pub(super) fn submission_dispatch_span(sub: &Submission) -> tracing::Span {
                 "submission_dispatch",
                 otel.name = span_name.as_str(),
                 submission.id = sub.id.as_str(),
-                codex.op = op_name
+                ditfa.op = op_name
             )
         }
         _ => info_span!(
             "submission_dispatch",
             otel.name = span_name.as_str(),
             submission.id = sub.id.as_str(),
-            codex.op = op_name
+            ditfa.op = op_name
         ),
     };
     if let Some(trace) = sub.trace.as_ref()

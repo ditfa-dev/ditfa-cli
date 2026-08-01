@@ -1,4 +1,4 @@
-//! Ambient terminal rendering for the Codex companion.
+//! Ambient terminal rendering for the Ditfa companion.
 //!
 //! Ambient pets reuse the same extracted image frames as the full-screen viewer
 //! but are rendered through a different ownership split: ratatui still owns the
@@ -149,7 +149,7 @@ impl AmbientPet {
         frame_requester: FrameRequester,
         animations_enabled: bool,
     ) -> Result<Self> {
-        let pet = Pet::load_with_codex_home(
+        let pet = Pet::load_with_ditfa_home(
             selected_pet.unwrap_or(DEFAULT_PET_ID),
             /*ditfa_home*/ Some(ditfa_home),
         )
@@ -495,7 +495,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn notification_labels_match_codex_app_vocabulary() {
+    fn notification_labels_match_ditfa_app_vocabulary() {
         assert_eq!(PetNotificationKind::Running.label(), "Running");
         assert_eq!(PetNotificationKind::Waiting.label(), "Needs input");
         assert_eq!(PetNotificationKind::Review.label(), "Ready");

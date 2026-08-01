@@ -62,7 +62,7 @@ const DEMO_SKILL_CONTENTS: &str =
 
 #[tokio::test]
 async fn installed_extension_uses_host_service_snapshot() -> TestResult {
-    let ditfa_home = test_codex_home();
+    let ditfa_home = test_ditfa_home();
     let skill_path = ditfa_home.join("skills").join("demo").join("SKILL.md");
     std::fs::create_dir_all(
         skill_path
@@ -1068,10 +1068,10 @@ fn skills_extension_config(config: &TestConfig) -> SkillsExtensionConfig {
     }
 }
 
-fn test_codex_home() -> PathBuf {
+fn test_ditfa_home() -> PathBuf {
     let id = NEXT_DITFA_HOME_ID.fetch_add(1, Ordering::Relaxed);
     std::env::temp_dir().join(format!(
-        "codex-skills-extension-test-{}-{id}",
+        "ditfa-skills-extension-test-{}-{id}",
         std::process::id(),
     ))
 }

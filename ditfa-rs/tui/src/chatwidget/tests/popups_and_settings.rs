@@ -42,9 +42,9 @@ async fn experimental_mode_plan_is_ignored_on_startup() {
         initial_user_message: None,
         enhanced_keys_supported: false,
         has_chatgpt_account: false,
-        has_codex_backend_auth: false,
+        has_ditfa_backend_auth: false,
         model_catalog: test_model_catalog(&cfg),
-        feedback: ditfa_feedback::CodexFeedback::new(),
+        feedback: ditfa_feedback::DitfaFeedback::new(),
         is_first_run: true,
         status_account_display: None,
         runtime_model_provider_base_url: None,
@@ -3163,7 +3163,7 @@ async fn server_overloaded_error_does_not_switch_models() {
     handle_error(
         &mut chat,
         "server overloaded",
-        Some(CodexErrorInfo::ServerOverloaded),
+        Some(DitfaErrorInfo::ServerOverloaded),
     );
 
     while let Ok(event) = rx.try_recv() {
@@ -3494,7 +3494,7 @@ async fn reasoning_shortcut_is_ignored_with_model_popup_open() {
 async fn reasoning_up_shortcut_does_not_silently_enter_advanced_effort() {
     for (model, model_path) in [
         ("gpt-5.4", "All models → gpt-5.4"),
-        ("codex-auto-test", "codex-auto-test"),
+        ("ditfa-auto-test", "ditfa-auto-test"),
     ] {
         let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(Some("gpt-5.4")).await;
         chat.thread_id = Some(ThreadId::new());
@@ -3674,9 +3674,9 @@ async fn advanced_only_reasoning_option_requires_explicit_selection() {
 async fn auto_model_advertising_advanced_effort_opens_reasoning_picker() {
     let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(/*model_override*/ None).await;
     let mut preset = get_available_model(&chat, "gpt-5.6-terra");
-    preset.id = "codex-auto-test".to_string();
-    preset.model = "codex-auto-test".to_string();
-    preset.display_name = "codex-auto-test".to_string();
+    preset.id = "ditfa-auto-test".to_string();
+    preset.model = "ditfa-auto-test".to_string();
+    preset.display_name = "ditfa-auto-test".to_string();
     preset.default_reasoning_effort = ReasoningEffortConfig::Medium;
     preset
         .supported_reasoning_efforts

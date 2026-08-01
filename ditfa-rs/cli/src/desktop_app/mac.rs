@@ -6,20 +6,20 @@ use tempfile::Builder;
 use tokio::process::Command;
 
 const DITFA_BUNDLE_IDENTIFIER: &str = "com.openai.ditfa";
-const DITFA_DMG_URL_ARM64: &str = "https://persistent.oaistatic.com/codex-app-prod/Codex.dmg";
+const DITFA_DMG_URL_ARM64: &str = "https://persistent.oaistatic.com/ditfa-app-prod/Ditfa.dmg";
 const DITFA_DMG_URL_X64: &str =
-    "https://persistent.oaistatic.com/codex-app-prod/Codex-latest-x64.dmg";
+    "https://persistent.oaistatic.com/ditfa-app-prod/Ditfa-latest-x64.dmg";
 
 pub async fn run_mac_app_open_or_install(
     workspace: PathBuf,
     download_url_override: Option<String>,
 ) -> anyhow::Result<()> {
-    if let Some(app_path) = find_existing_codex_app_path(&ditfa_app_search_dirs()) {
+    if let Some(app_path) = find_existing_ditfa_app_path(&ditfa_app_search_dirs()) {
         eprintln!(
             "Opening Desktop app at {app_path}...",
             app_path = app_path.display()
         );
-        open_codex_app(&app_path, &workspace).await?;
+        open_ditfa_app(&app_path, &workspace).await?;
         return Ok(());
     }
     eprintln!("Desktop app not found; downloading installer...");
@@ -31,14 +31,14 @@ pub async fn run_mac_app_open_or_install(
         };
         default_url.to_string()
     });
-    let installed_app = download_and_install_codex_to_user_applications(&download_url)
+    let installed_app = download_and_install_ditfa_to_user_applications(&download_url)
         .await
         .context("failed to download/install Desktop app")?;
     eprintln!(
         "Launching Desktop app from {installed_app}...",
         installed_app = installed_app.display()
     );
-    open_codex_app(&installed_app, &workspace).await?;
+    open_ditfa_app(&installed_app, &workspace).await?;
     Ok(())
 }
 
@@ -64,11 +64,11 @@ fn is_apple_silicon_mac() -> bool {
         || macos_sysctl_flag("hw.optional.arm64").unwrap_or(false)
 }
 
-fn find_existing_codex_app_path(applications_dirs: &[PathBuf]) -> Option<PathBuf> {
+fn find_existing_ditfa_app_path(applications_dirs: &[PathBuf]) -> Option<PathBuf> {
     applications_dirs
         .iter()
-        .flat_map(|dir| ["ChatGPT.app", "Codex.app"].map(|app_name| dir.join(app_name)))
-        .find(|candidate| is_codex_app_bundle(candidate))
+        .flat_map(|dir| ["ChatGPT.app", "Ditfa.app"].map(|app_name| dir.join(app_name)))
+        .find(|candidate| is_ditfa_app_bundle(candidate))
 }
 
 fn ditfa_app_search_dirs() -> Vec<PathBuf> {
@@ -79,7 +79,7 @@ fn ditfa_app_search_dirs() -> Vec<PathBuf> {
     paths
 }
 
-fn is_codex_app_bundle(app_path: &Path) -> bool {
+fn is_ditfa_app_bundle(app_path: &Path) -> bool {
     if !app_path.is_dir() {
         return false;
     }
@@ -98,7 +98,7 @@ fn is_codex_app_bundle(app_path: &Path) -> bool {
         })
 }
 
-async fn open_codex_app(app_path: &Path, workspace: &Path) -> anyhow::Result<()> {
+async fn open_ditfa_app(app_path: &Path, workspace: &Path) -> anyhow::Result<()> {
     eprintln!(
         "Opening workspace {workspace}...",
         workspace = workspace.display()
@@ -128,18 +128,18 @@ fn ditfa_new_thread_url(workspace: &Path) -> String {
     let mut serializer = url::form_urlencoded::Serializer::new(String::new());
     serializer.append_pair("path", workspace.as_ref());
     let query = serializer.finish();
-    format!("codex://threads/new?{query}")
+    format!("ditfa://threads/new?{query}")
 }
 
-async fn download_and_install_codex_to_user_applications(dmg_url: &str) -> anyhow::Result<PathBuf> {
+async fn download_and_install_ditfa_to_user_applications(dmg_url: &str) -> anyhow::Result<PathBuf> {
     let temp_dir = Builder::new()
-        .prefix("codex-app-installer-")
+        .prefix("ditfa-app-installer-")
         .tempdir()
         .context("failed to create temp dir")?;
     let tmp_root = temp_dir.path().to_path_buf();
     let _temp_dir = temp_dir;
 
-    let dmg_path = tmp_root.join("Codex.dmg");
+    let dmg_path = tmp_root.join("Ditfa.dmg");
     download_dmg(dmg_url, &dmg_path).await?;
 
     eprintln!("Mounting Desktop app installer...");
@@ -149,9 +149,9 @@ async fn download_and_install_codex_to_user_applications(dmg_url: &str) -> anyho
         mount_point = mount_point.display()
     );
     let result = async {
-        let app_in_volume = find_codex_app_in_mount(&mount_point)
-            .context("failed to locate Codex.app in mounted dmg")?;
-        install_codex_app_bundle(&app_in_volume).await
+        let app_in_volume = find_ditfa_app_in_mount(&mount_point)
+            .context("failed to locate Ditfa.app in mounted dmg")?;
+        install_ditfa_app_bundle(&app_in_volume).await
     }
     .await;
 
@@ -166,7 +166,7 @@ async fn download_and_install_codex_to_user_applications(dmg_url: &str) -> anyho
     result
 }
 
-async fn install_codex_app_bundle(app_in_volume: &Path) -> anyhow::Result<PathBuf> {
+async fn install_ditfa_app_bundle(app_in_volume: &Path) -> anyhow::Result<PathBuf> {
     for applications_dir in candidate_applications_dirs()? {
         eprintln!(
             "Installing Desktop app into {applications_dir}...",
@@ -179,7 +179,7 @@ async fn install_codex_app_bundle(app_in_volume: &Path) -> anyhow::Result<PathBu
             )
         })?;
 
-        let dest_app = applications_dir.join("Codex.app");
+        let dest_app = applications_dir.join("Ditfa.app");
         if dest_app.is_dir() {
             return Ok(dest_app);
         }
@@ -263,8 +263,8 @@ async fn detach_dmg(mount_point: &Path) -> anyhow::Result<()> {
     anyhow::bail!("hdiutil detach failed with {status}");
 }
 
-fn find_codex_app_in_mount(mount_point: &Path) -> anyhow::Result<PathBuf> {
-    let direct = mount_point.join("Codex.app");
+fn find_ditfa_app_in_mount(mount_point: &Path) -> anyhow::Result<PathBuf> {
+    let direct = mount_point.join("Ditfa.app");
     if direct.is_dir() {
         return Ok(direct);
     }
@@ -324,7 +324,7 @@ fn parse_hdiutil_attach_mount_point(output: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::ditfa_new_thread_url;
-    use super::find_existing_codex_app_path;
+    use super::find_existing_ditfa_app_path;
     use super::parse_hdiutil_attach_mount_point;
     use pretty_assertions::assert_eq;
     use std::fs;
@@ -343,13 +343,13 @@ mod tests {
     }
 
     #[test]
-    fn finds_chatgpt_app_with_codex_bundle_identifier() {
+    fn finds_chatgpt_app_with_ditfa_bundle_identifier() {
         let temp_dir = tempfile::tempdir().expect("create temp dir");
         let app_path = temp_dir.path().join("ChatGPT.app");
         write_app_bundle(&app_path, "com.openai.ditfa");
 
         assert_eq!(
-            find_existing_codex_app_path(&[temp_dir.path().to_path_buf()]),
+            find_existing_ditfa_app_path(&[temp_dir.path().to_path_buf()]),
             Some(app_path)
         );
     }
@@ -358,36 +358,36 @@ mod tests {
     fn ignores_classic_chatgpt_app() {
         let temp_dir = tempfile::tempdir().expect("create temp dir");
         write_app_bundle(&temp_dir.path().join("ChatGPT.app"), "com.openai.chat");
-        let ditfa_app_path = temp_dir.path().join("Codex.app");
+        let ditfa_app_path = temp_dir.path().join("Ditfa.app");
         write_app_bundle(&ditfa_app_path, "com.openai.ditfa");
 
         assert_eq!(
-            find_existing_codex_app_path(&[temp_dir.path().to_path_buf()]),
+            find_existing_ditfa_app_path(&[temp_dir.path().to_path_buf()]),
             Some(ditfa_app_path)
         );
     }
 
     #[test]
     fn parses_mount_point_from_tab_separated_hdiutil_output() {
-        let output = "/dev/disk2s1\tApple_HFS\tCodex\t/Volumes/Codex\n";
+        let output = "/dev/disk2s1\tApple_HFS\tDitfa\t/Volumes/Ditfa\n";
         assert_eq!(
             parse_hdiutil_attach_mount_point(output).as_deref(),
-            Some("/Volumes/Codex")
+            Some("/Volumes/Ditfa")
         );
     }
 
     #[test]
     fn parses_mount_point_with_spaces() {
-        let output = "/dev/disk2s1\tApple_HFS\tCodex Installer\t/Volumes/Codex Installer\n";
+        let output = "/dev/disk2s1\tApple_HFS\tDitfa Installer\t/Volumes/Ditfa Installer\n";
         assert_eq!(
             parse_hdiutil_attach_mount_point(output).as_deref(),
-            Some("/Volumes/Codex Installer")
+            Some("/Volumes/Ditfa Installer")
         );
     }
 
     #[test]
     fn ditfa_new_thread_url_encodes_workspace_path() {
-        let url = url::Url::parse(&ditfa_new_thread_url(Path::new("/tmp/codex workspace/#1")))
+        let url = url::Url::parse(&ditfa_new_thread_url(Path::new("/tmp/ditfa workspace/#1")))
             .expect("deep link should parse");
 
         assert_eq!(
@@ -398,10 +398,10 @@ mod tests {
                 url.query_pairs().into_owned().collect::<Vec<_>>(),
             ),
             (
-                "codex".to_string(),
+                "ditfa".to_string(),
                 Some("threads".to_string()),
                 "/new".to_string(),
-                vec![("path".to_string(), "/tmp/codex workspace/#1".to_string())],
+                vec![("path".to_string(), "/tmp/ditfa workspace/#1".to_string())],
             )
         );
     }

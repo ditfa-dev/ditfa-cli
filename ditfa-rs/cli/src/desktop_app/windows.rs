@@ -31,12 +31,12 @@ pub async fn run_windows_app_open_or_install(
 }
 
 async fn ditfa_app_is_installed() -> anyhow::Result<bool> {
-    // This package identity is stable across Codex- and ChatGPT-branded builds.
+    // This package identity is stable across Ditfa- and ChatGPT-branded builds.
     let output = Command::new("powershell.exe")
         .arg("-NoProfile")
         .arg("-Command")
         .arg(
-            "Get-StartApps | Where-Object AppID -Like 'OpenAI.Codex_*!App' | Select-Object -First 1 -ExpandProperty AppID",
+            "Get-StartApps | Where-Object AppID -Like 'OpenAI.Ditfa_*!App' | Select-Object -First 1 -ExpandProperty AppID",
         )
         .output()
         .await
@@ -70,7 +70,7 @@ fn ditfa_new_thread_url(workspace: &str) -> String {
     let mut serializer = url::form_urlencoded::Serializer::new(String::new());
     serializer.append_pair("path", workspace);
     let query = serializer.finish();
-    format!("codex://threads/new?{query}")
+    format!("ditfa://threads/new?{query}")
 }
 
 fn display_workspace_path(workspace: &Path) -> String {
@@ -94,24 +94,24 @@ mod tests {
     #[test]
     fn display_workspace_path_removes_windows_extended_prefix() {
         assert_eq!(
-            display_workspace_path(Path::new(r"\\?\C:\Users\fcoury\code\codex")),
-            r"C:\Users\fcoury\code\codex"
+            display_workspace_path(Path::new(r"\\?\C:\Users\fcoury\code\ditfa")),
+            r"C:\Users\fcoury\code\ditfa"
         );
     }
 
     #[test]
     fn display_workspace_path_preserves_unc_prefix() {
         assert_eq!(
-            display_workspace_path(Path::new(r"\\?\UNC\server\share\codex")),
-            r"\\server\share\codex"
+            display_workspace_path(Path::new(r"\\?\UNC\server\share\ditfa")),
+            r"\\server\share\ditfa"
         );
     }
 
     #[test]
     fn display_workspace_path_leaves_regular_paths_unchanged() {
         assert_eq!(
-            display_workspace_path(Path::new(r"C:\Users\fcoury\code\codex")),
-            r"C:\Users\fcoury\code\codex"
+            display_workspace_path(Path::new(r"C:\Users\fcoury\code\ditfa")),
+            r"C:\Users\fcoury\code\ditfa"
         );
     }
 
@@ -119,7 +119,7 @@ mod tests {
     fn ditfa_new_thread_url_encodes_windows_workspace_path() {
         assert_eq!(
             ditfa_new_thread_url(r"C:\Users\akuma\repos\koba"),
-            r"codex://threads/new?path=C%3A%5CUsers%5Cakuma%5Crepos%5Ckoba"
+            r"ditfa://threads/new?path=C%3A%5CUsers%5Cakuma%5Crepos%5Ckoba"
         );
     }
 
@@ -127,7 +127,7 @@ mod tests {
     fn ditfa_new_thread_url_preserves_verbatim_workspace_path() {
         assert_eq!(
             ditfa_new_thread_url(r"\\?\C:\Users\akuma\repos\koba"),
-            r"codex://threads/new?path=%5C%5C%3F%5CC%3A%5CUsers%5Cakuma%5Crepos%5Ckoba"
+            r"ditfa://threads/new?path=%5C%5C%3F%5CC%3A%5CUsers%5Cakuma%5Crepos%5Ckoba"
         );
     }
 }

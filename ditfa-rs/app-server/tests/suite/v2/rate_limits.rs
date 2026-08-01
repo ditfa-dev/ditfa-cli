@@ -41,7 +41,7 @@ async fn get_account_rate_limits_requires_auth() -> Result<()> {
     let ditfa_home = TempDir::new()?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -59,7 +59,7 @@ async fn get_account_rate_limits_requires_auth() -> Result<()> {
     assert_eq!(error.error.code, INVALID_REQUEST_ERROR_CODE);
     assert_eq!(
         error.error.message,
-        "codex account authentication required to read rate limits"
+        "ditfa account authentication required to read rate limits"
     );
 
     Ok(())
@@ -70,7 +70,7 @@ async fn get_account_rate_limits_requires_chatgpt_auth() -> Result<()> {
     let ditfa_home = TempDir::new()?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -218,7 +218,7 @@ async fn get_account_rate_limits_returns_snapshot() -> Result<()> {
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -231,7 +231,7 @@ async fn get_account_rate_limits_returns_snapshot() -> Result<()> {
 
     let expected = GetAccountRateLimitsResponse {
         rate_limits: RateLimitSnapshot {
-            limit_id: Some("codex".to_string()),
+            limit_id: Some("ditfa".to_string()),
             limit_name: None,
             primary: Some(RateLimitWindow {
                 used_percent: 42,
@@ -257,9 +257,9 @@ async fn get_account_rate_limits_returns_snapshot() -> Result<()> {
         rate_limits_by_limit_id: Some(
             [
                 (
-                    "codex".to_string(),
+                    "ditfa".to_string(),
                     RateLimitSnapshot {
-                        limit_id: Some("codex".to_string()),
+                        limit_id: Some("ditfa".to_string()),
                         limit_name: None,
                         primary: Some(RateLimitWindow {
                             used_percent: 42,
@@ -312,7 +312,7 @@ async fn get_account_rate_limits_returns_snapshot() -> Result<()> {
             credits: Some(vec![
                 RateLimitResetCredit {
                     id: "credit-1".to_string(),
-                    reset_type: RateLimitResetType::CodexRateLimits,
+                    reset_type: RateLimitResetType::DitfaRateLimits,
                     status: RateLimitResetCreditStatus::Available,
                     granted_at: reset_credit_granted_at,
                     expires_at: Some(reset_credit_expires_at),
@@ -377,7 +377,7 @@ async fn get_account_rate_limits_preserves_count_when_reset_credit_details_fail(
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -403,7 +403,7 @@ async fn send_add_credits_nudge_email_requires_auth() -> Result<()> {
     let ditfa_home = TempDir::new()?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -425,7 +425,7 @@ async fn send_add_credits_nudge_email_requires_auth() -> Result<()> {
     assert_eq!(error.error.code, INVALID_REQUEST_ERROR_CODE);
     assert_eq!(
         error.error.message,
-        "codex account authentication required to notify workspace owner"
+        "ditfa account authentication required to notify workspace owner"
     );
 
     Ok(())
@@ -436,7 +436,7 @@ async fn send_add_credits_nudge_email_requires_chatgpt_auth() -> Result<()> {
     let ditfa_home = TempDir::new()?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -493,7 +493,7 @@ async fn send_add_credits_nudge_email_posts_expected_body() -> Result<()> {
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -536,7 +536,7 @@ async fn send_add_credits_nudge_email_maps_cooldown() -> Result<()> {
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -579,7 +579,7 @@ async fn send_add_credits_nudge_email_surfaces_backend_failure() -> Result<()> {
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)

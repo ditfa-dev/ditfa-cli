@@ -91,7 +91,7 @@ pub struct StateRuntime {
 }
 
 impl StateRuntime {
-    /// Initialize the state runtime using the provided Codex home and default provider.
+    /// Initialize the state runtime using the provided Ditfa home and default provider.
     ///
     /// This opens (and migrates) the SQLite databases under `ditfa_home`.
     /// Logs and paginated thread history live in dedicated files to reduce
@@ -244,7 +244,7 @@ impl StateRuntime {
         Ok(runtime)
     }
 
-    /// Return the configured Codex home directory for this runtime.
+    /// Return the configured Ditfa home directory for this runtime.
     pub fn ditfa_home(&self) -> &Path {
         self.ditfa_home.as_path()
     }
@@ -418,7 +418,7 @@ mod tests {
         let ditfa_home = unique_temp_dir();
         tokio::fs::create_dir_all(&ditfa_home)
             .await
-            .expect("create codex home");
+            .expect("create ditfa home");
         let sqlite = crate::SqliteConfig::new_for_testing(ditfa_home.as_path().abs());
         let path = sqlite.state_db_path();
         let pool = sqlite
@@ -444,7 +444,7 @@ mod tests {
         let ditfa_home = unique_temp_dir();
         tokio::fs::create_dir_all(&ditfa_home)
             .await
-            .expect("create codex home");
+            .expect("create ditfa home");
         let sqlite = crate::SqliteConfig::new_for_testing(ditfa_home.as_path().abs());
         let state_path = sqlite.state_db_path();
         let pool = sqlite

@@ -50,7 +50,7 @@ pub(super) async fn load_remote_control_auth(
             reloaded = true;
             continue;
         };
-        if !auth.uses_codex_backend() {
+        if !auth.uses_ditfa_backend() {
             break auth;
         }
         if auth.get_account_id().is_none() && !reloaded {
@@ -61,7 +61,7 @@ pub(super) async fn load_remote_control_auth(
         break auth;
     };
 
-    if !auth.uses_codex_backend() {
+    if !auth.uses_ditfa_backend() {
         return Err(io::Error::new(
             ErrorKind::PermissionDenied,
             "remote control requires ChatGPT authentication; API key auth is not supported",

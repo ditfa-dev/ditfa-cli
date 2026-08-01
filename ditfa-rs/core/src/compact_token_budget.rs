@@ -10,8 +10,8 @@ use crate::session::session::Session;
 use crate::session::step_context::StepContext;
 use crate::session::turn_context::TurnContext;
 use ditfa_analytics::CompactionTrigger;
-use ditfa_protocol::error::CodexErr;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::DitfaErr;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::items::ContextCompactionItem;
 use ditfa_protocol::items::TurnItem;
 use ditfa_protocol::protocol::EventMsg;
@@ -26,7 +26,7 @@ use tokio_util::sync::CancellationToken;
 pub(crate) async fn run_manual_compact_task(
     sess: Arc<Session>,
     turn_context: Arc<TurnContext>,
-) -> CodexResult<()> {
+) -> DitfaResult<()> {
     let start_event = EventMsg::TurnStarted(TurnStartedEvent {
         turn_id: turn_context.sub_id.clone(),
         trace_id: turn_context.trace_id.clone(),
@@ -53,7 +53,7 @@ pub(crate) async fn run_inline_auto_compact_task(
     sess: Arc<Session>,
     step_context: Arc<StepContext>,
     initial_context_injection: InitialContextInjection,
-) -> CodexResult<()> {
+) -> DitfaResult<()> {
     let world_state = match initial_context_injection {
         InitialContextInjection::BeforeLastUserMessage { world_state, .. } => world_state,
         InitialContextInjection::DoNotInject => {
@@ -68,12 +68,12 @@ async fn run_compact_task_inner(
     step_context: &Arc<StepContext>,
     world_state: Arc<WorldState>,
     trigger: CompactionTrigger,
-) -> CodexResult<()> {
+) -> DitfaResult<()> {
     let turn_context = &step_context.turn;
     let pre_compact_outcome = run_pre_compact_hooks(sess, turn_context, trigger).await;
     match pre_compact_outcome {
         PreCompactHookOutcome::Continue => {}
-        PreCompactHookOutcome::Stopped => return Err(CodexErr::TurnAborted),
+        PreCompactHookOutcome::Stopped => return Err(DitfaErr::TurnAborted),
     }
 
     let compaction_item = TurnItem::ContextCompaction(ContextCompactionItem::new());
@@ -86,7 +86,7 @@ async fn run_compact_task_inner(
 
     let post_compact_outcome = run_post_compact_hooks(sess, turn_context, trigger).await;
     if let PostCompactHookOutcome::Stopped = post_compact_outcome {
-        return Err(CodexErr::TurnAborted);
+        return Err(DitfaErr::TurnAborted);
     }
 
     Ok(())

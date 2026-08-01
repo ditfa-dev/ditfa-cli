@@ -188,9 +188,9 @@ impl AccountRequestProcessor {
         AccountUpdatedNotification {
             auth_mode: auth
                 .as_ref()
-                .map(CodexAuth::api_auth_mode)
+                .map(DitfaAuth::api_auth_mode)
                 .map(auth_mode_to_api),
-            plan_type: auth.as_ref().and_then(CodexAuth::account_plan_type),
+            plan_type: auth.as_ref().and_then(DitfaAuth::account_plan_type),
         }
     }
 
@@ -211,11 +211,11 @@ impl AccountRequestProcessor {
     async fn maybe_refresh_plugin_caches_for_current_config(
         config_manager: &ConfigManager,
         thread_manager: &Arc<ThreadManager>,
-        auth: Option<CodexAuth>,
+        auth: Option<DitfaAuth>,
     ) {
         thread_manager
             .plugins_manager()
-            .set_auth_mode(auth.as_ref().map(CodexAuth::api_auth_mode));
+            .set_auth_mode(auth.as_ref().map(DitfaAuth::api_auth_mode));
         thread_manager
             .plugins_manager()
             .clear_recommended_plugins_cache();
@@ -284,12 +284,12 @@ impl AccountRequestProcessor {
             } => {
                 let login_success_page = if use_hosted_login_success_page {
                     let app_brand = match app_brand.unwrap_or_default() {
-                        LoginAppBrand::Codex => LoginSuccessPageBrand::Codex,
+                        LoginAppBrand::Ditfa => LoginSuccessPageBrand::Ditfa,
                         LoginAppBrand::Chatgpt => LoginSuccessPageBrand::Chatgpt,
                     };
                     LoginSuccessPage::Hosted {
                         url: DITFA_OPEN_APP_URL.parse().map_err(|err| {
-                            internal_error(format!("invalid Codex open app URL: {err}"))
+                            internal_error(format!("invalid Ditfa open app URL: {err}"))
                         })?,
                         app_brand,
                     }
@@ -486,7 +486,7 @@ impl AccountRequestProcessor {
             {
                 *url = open_app_url
                     .parse()
-                    .map_err(|err| internal_error(format!("invalid Codex open app URL: {err}")))?;
+                    .map_err(|err| internal_error(format!("invalid Ditfa open app URL: {err}")))?;
             }
             opts
         };
@@ -740,7 +740,7 @@ impl AccountRequestProcessor {
             )));
         }
 
-        let auth = CodexAuth::from_external_chatgpt_tokens(
+        let auth = DitfaAuth::from_external_chatgpt_tokens(
             &access_token,
             &chatgpt_account_id,
             chatgpt_plan_type.as_deref(),
@@ -831,9 +831,9 @@ impl AccountRequestProcessor {
             let payload_v2 = AccountUpdatedNotification {
                 auth_mode: auth
                     .as_ref()
-                    .map(CodexAuth::api_auth_mode)
+                    .map(DitfaAuth::api_auth_mode)
                     .map(auth_mode_to_api),
-                plan_type: auth.as_ref().and_then(CodexAuth::account_plan_type),
+                plan_type: auth.as_ref().and_then(DitfaAuth::account_plan_type),
             };
             outgoing
                 .send_server_notification(ServerNotification::AccountUpdated(payload_v2))
@@ -844,12 +844,12 @@ impl AccountRequestProcessor {
     async fn logout_common(&self) -> std::result::Result<Option<AuthMode>, JSONRPCErrorError> {
         let managed_bedrock_auth = matches!(
             self.auth_manager.auth_cached(),
-            Some(CodexAuth::BedrockApiKey(_))
+            Some(DitfaAuth::BedrockApiKey(_))
         );
         let config = self.load_latest_config().await;
         if config.model_provider.is_amazon_bedrock() && !managed_bedrock_auth {
             return Err(invalid_request(
-                "cannot log out while Amazon Bedrock is using AWS-managed credentials; manage those credentials through AWS or switch model providers before logging out Codex authentication",
+                "cannot log out while Amazon Bedrock is using AWS-managed credentials; manage those credentials through AWS or switch model providers before logging out Ditfa authentication",
             ));
         }
 
@@ -884,7 +884,7 @@ impl AccountRequestProcessor {
             .auth_manager
             .auth_cached()
             .as_ref()
-            .map(CodexAuth::api_auth_mode)
+            .map(DitfaAuth::api_auth_mode)
             .map(auth_mode_to_api))
     }
 
@@ -960,9 +960,9 @@ impl AccountRequestProcessor {
                     let auth_mode = auth_mode_to_api(auth.api_auth_mode());
                     let (reported_auth_method, token_opt) = if matches!(
                         auth,
-                        CodexAuth::Headers(_)
-                            | CodexAuth::AgentIdentity(_)
-                            | CodexAuth::PersonalAccessToken(_)
+                        DitfaAuth::Headers(_)
+                            | DitfaAuth::AgentIdentity(_)
+                            | DitfaAuth::PersonalAccessToken(_)
                     ) || include_token
                         && permanent_refresh_failure
                     {
@@ -1027,11 +1027,11 @@ impl AccountRequestProcessor {
     ) -> Result<GetAccountRateLimitsResponse, JSONRPCErrorError> {
         let Some(auth) = self.auth_manager.auth().await else {
             return Err(invalid_request(
-                "codex account authentication required to read rate limits",
+                "ditfa account authentication required to read rate limits",
             ));
         };
 
-        if !auth.uses_codex_backend() {
+        if !auth.uses_ditfa_backend() {
             return Err(invalid_request(
                 "chatgpt authentication required to read rate limits",
             ));
@@ -1048,10 +1048,10 @@ impl AccountRequestProcessor {
             Self::detailed_rate_limit_reset_credits(&client),
         );
         let response = response
-            .map_err(|err| internal_error(format!("failed to fetch codex rate limits: {err}")))?;
+            .map_err(|err| internal_error(format!("failed to fetch ditfa rate limits: {err}")))?;
         if response.rate_limits.is_empty() {
             return Err(internal_error(
-                "failed to fetch codex rate limits: no snapshots returned",
+                "failed to fetch ditfa rate limits: no snapshots returned",
             ));
         }
 
@@ -1063,14 +1063,14 @@ impl AccountRequestProcessor {
                 let limit_id = snapshot
                     .limit_id
                     .clone()
-                    .unwrap_or_else(|| "codex".to_string());
+                    .unwrap_or_else(|| "ditfa".to_string());
                 (limit_id, snapshot)
             })
             .collect();
         let rate_limits = response
             .rate_limits
             .iter()
-            .find(|snapshot| snapshot.limit_id.as_deref() == Some("codex"))
+            .find(|snapshot| snapshot.limit_id.as_deref() == Some("ditfa"))
             .cloned()
             .unwrap_or_else(|| response.rate_limits[0].clone());
 
@@ -1100,11 +1100,11 @@ impl AccountRequestProcessor {
     ) -> Result<GetAccountTokenUsageResponse, JSONRPCErrorError> {
         let Some(auth) = self.auth_manager.auth().await else {
             return Err(invalid_request(
-                "codex account authentication required to read token usage",
+                "ditfa account authentication required to read token usage",
             ));
         };
 
-        if !auth.uses_codex_backend() {
+        if !auth.uses_ditfa_backend() {
             return Err(invalid_request(
                 "chatgpt authentication required to read token usage",
             ));
@@ -1130,11 +1130,11 @@ impl AccountRequestProcessor {
     ) -> Result<GetWorkspaceMessagesResponse, JSONRPCErrorError> {
         let Some(auth) = self.auth_manager.auth().await else {
             return Err(invalid_request(
-                "codex account authentication required to read workspace messages",
+                "ditfa account authentication required to read workspace messages",
             ));
         };
 
-        if !auth.uses_codex_backend() {
+        if !auth.uses_ditfa_backend() {
             return Err(invalid_request(
                 "chatgpt authentication required to read workspace messages",
             ));
@@ -1221,11 +1221,11 @@ impl AccountRequestProcessor {
     ) -> Result<AddCreditsNudgeEmailStatus, JSONRPCErrorError> {
         let Some(auth) = self.auth_manager.auth().await else {
             return Err(invalid_request(
-                "codex account authentication required to notify workspace owner",
+                "ditfa account authentication required to notify workspace owner",
             ));
         };
 
-        if !auth.uses_codex_backend() {
+        if !auth.uses_ditfa_backend() {
             return Err(invalid_request(
                 "chatgpt authentication required to notify workspace owner",
             ));

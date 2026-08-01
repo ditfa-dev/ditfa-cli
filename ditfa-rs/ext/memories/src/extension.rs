@@ -18,7 +18,7 @@ use crate::local::LocalMemoriesBackend;
 use crate::prompts::build_memory_tool_developer_instructions;
 use crate::tools;
 
-/// Contributes Codex memory read-path prompt context and memory read tools.
+/// Contributes Ditfa memory read-path prompt context and memory read tools.
 #[derive(Clone, Default)]
 pub(crate) struct MemoriesExtension {
     metrics_client: Option<MetricsClient>,
@@ -109,7 +109,7 @@ impl ToolContributor for MemoriesExtension {
         }
 
         tools::memory_tools(
-            LocalMemoriesBackend::from_codex_home(&config.ditfa_home),
+            LocalMemoriesBackend::from_ditfa_home(&config.ditfa_home),
             self.metrics_client.clone(),
         )
     }

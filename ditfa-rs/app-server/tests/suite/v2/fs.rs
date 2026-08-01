@@ -38,7 +38,7 @@ const OPTIONAL_FS_CHANGE_TIMEOUT: Duration = Duration::from_secs(2);
 
 async fn initialized_mcp(ditfa_home: &TempDir) -> Result<TestAppServer> {
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -129,7 +129,7 @@ async fn fs_methods_return_error_when_local_environment_is_disabled() -> Result<
     let absolute_file = ditfa_home.path().join("absolute.txt");
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[(DITFA_EXEC_SERVER_URL_ENV_VAR, Some("none"))])
         .build()

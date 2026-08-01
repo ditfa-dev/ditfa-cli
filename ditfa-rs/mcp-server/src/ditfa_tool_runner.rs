@@ -1,4 +1,4 @@
-//! Asynchronous worker that executes a **Codex** tool-call inside a spawned
+//! Asynchronous worker that executes a **Ditfa** tool-call inside a spawned
 //! Tokio task. Separated from `message_processor.rs` to keep that file small
 //! and to make future feature-growth easier to manage.
 
@@ -9,11 +9,11 @@ use crate::exec_approval::handle_exec_approval_request;
 use crate::outgoing_message::OutgoingMessageSender;
 use crate::outgoing_message::OutgoingNotificationMeta;
 use crate::patch_approval::handle_patch_approval_request;
-use ditfa_core::CodexThread;
+use ditfa_core::DitfaThread;
 use ditfa_core::NewThread;
 use ditfa_core::StartThreadOptions;
 use ditfa_core::ThreadManager;
-use ditfa_core::config::Config as CodexConfig;
+use ditfa_core::config::Config as DitfaConfig;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::protocol::AgentMessageEvent;
 use ditfa_protocol::protocol::ApplyPatchApprovalRequestEvent;
@@ -30,7 +30,7 @@ use rmcp::model::RequestId;
 use serde_json::json;
 use tokio::sync::Mutex;
 
-/// To adhere to MCP `tools/call` response format, include the Codex
+/// To adhere to MCP `tools/call` response format, include the Ditfa
 /// `threadId` in the `structured_content` field of the response.
 /// Some MCP clients ignore `content` when `structuredContent` is present, so
 /// mirror the text there as well.
@@ -51,17 +51,17 @@ pub(crate) fn create_call_tool_result_with_thread_id(
     result
 }
 
-/// Run a complete Codex session and stream events back to the client.
+/// Run a complete Ditfa session and stream events back to the client.
 ///
 /// On completion (success or error) the function sends the appropriate
 /// `tools/call` response so the LLM can continue the conversation.
-pub async fn run_codex_tool_session(
+pub async fn run_ditfa_tool_session(
     id: RequestId,
     initial_prompt: String,
-    config: CodexConfig,
+    config: DitfaConfig,
     outgoing: Arc<OutgoingMessageSender>,
     thread_manager: Arc<ThreadManager>,
-    running_requests_id_to_codex_uuid: Arc<Mutex<HashMap<RequestId, ThreadId>>>,
+    running_requests_id_to_ditfa_uuid: Arc<Mutex<HashMap<RequestId, ThreadId>>>,
 ) {
     let NewThread {
         thread_id,
@@ -74,7 +74,7 @@ pub async fn run_codex_tool_session(
         Ok(res) => res,
         Err(e) => {
             let result = CallToolResult::error(vec![Content::text(format!(
-                "Failed to start Codex session: {e}"
+                "Failed to start Ditfa session: {e}"
             ))]);
             outgoing.send_response(id.clone(), result).await;
             return;
@@ -96,11 +96,11 @@ pub async fn run_codex_tool_session(
         )
         .await;
 
-    // Use the original MCP request ID as the `sub_id` for the Codex submission so that
+    // Use the original MCP request ID as the `sub_id` for the Ditfa submission so that
     // any events emitted for this tool-call can be correlated with the
     // originating `tools/call` request.
     let sub_id = id.to_string();
-    running_requests_id_to_codex_uuid
+    running_requests_id_to_ditfa_uuid
         .lock()
         .await
         .insert(id.clone(), thread_id);
@@ -130,29 +130,29 @@ pub async fn run_codex_tool_session(
         );
         outgoing.send_response(id.clone(), result).await;
         // unregister the id so we don't keep it in the map
-        running_requests_id_to_codex_uuid.lock().await.remove(&id);
+        running_requests_id_to_ditfa_uuid.lock().await.remove(&id);
         return;
     }
 
-    run_codex_tool_session_inner(
+    run_ditfa_tool_session_inner(
         thread_id,
         thread,
         outgoing,
         id,
-        running_requests_id_to_codex_uuid,
+        running_requests_id_to_ditfa_uuid,
     )
     .await;
 }
 
-pub async fn run_codex_tool_session_reply(
+pub async fn run_ditfa_tool_session_reply(
     thread_id: ThreadId,
-    thread: Arc<CodexThread>,
+    thread: Arc<DitfaThread>,
     outgoing: Arc<OutgoingMessageSender>,
     request_id: RequestId,
     prompt: String,
-    running_requests_id_to_codex_uuid: Arc<Mutex<HashMap<RequestId, ThreadId>>>,
+    running_requests_id_to_ditfa_uuid: Arc<Mutex<HashMap<RequestId, ThreadId>>>,
 ) {
-    running_requests_id_to_codex_uuid
+    running_requests_id_to_ditfa_uuid
         .lock()
         .await
         .insert(request_id.clone(), thread_id);
@@ -178,29 +178,29 @@ pub async fn run_codex_tool_session_reply(
         );
         outgoing.send_response(request_id.clone(), result).await;
         // unregister the id so we don't keep it in the map
-        running_requests_id_to_codex_uuid
+        running_requests_id_to_ditfa_uuid
             .lock()
             .await
             .remove(&request_id);
         return;
     }
 
-    run_codex_tool_session_inner(
+    run_ditfa_tool_session_inner(
         thread_id,
         thread,
         outgoing,
         request_id,
-        running_requests_id_to_codex_uuid,
+        running_requests_id_to_ditfa_uuid,
     )
     .await;
 }
 
-async fn run_codex_tool_session_inner(
+async fn run_ditfa_tool_session_inner(
     thread_id: ThreadId,
-    thread: Arc<CodexThread>,
+    thread: Arc<DitfaThread>,
     outgoing: Arc<OutgoingMessageSender>,
     request_id: RequestId,
-    running_requests_id_to_codex_uuid: Arc<Mutex<HashMap<RequestId, ThreadId>>>,
+    running_requests_id_to_ditfa_uuid: Arc<Mutex<HashMap<RequestId, ThreadId>>>,
 ) {
     let request_id_str = request_id.to_string();
 
@@ -316,7 +316,7 @@ async fn run_codex_tool_session_inner(
                         );
                         outgoing.send_response(request_id.clone(), result).await;
                         // unregister the id so we don't keep it in the map
-                        running_requests_id_to_codex_uuid
+                        running_requests_id_to_ditfa_uuid
                             .lock()
                             .await
                             .remove(&request_id);
@@ -409,7 +409,7 @@ async fn run_codex_tool_session_inner(
             Err(e) => {
                 let result = create_call_tool_result_with_thread_id(
                     thread_id,
-                    format!("Codex runtime error: {e}"),
+                    format!("Ditfa runtime error: {e}"),
                     Some(true),
                 );
                 outgoing.send_response(request_id.clone(), result).await;

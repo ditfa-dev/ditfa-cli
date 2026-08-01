@@ -14,7 +14,7 @@ pub(crate) struct FeedbackRequestProcessor {
     auth_manager: Arc<AuthManager>,
     thread_manager: Arc<ThreadManager>,
     config: Arc<Config>,
-    feedback: CodexFeedback,
+    feedback: DitfaFeedback,
     log_db: Option<LogDbLayer>,
     state_db: Option<StateDbHandle>,
 }
@@ -24,7 +24,7 @@ impl FeedbackRequestProcessor {
         auth_manager: Arc<AuthManager>,
         thread_manager: Arc<ThreadManager>,
         config: Arc<Config>,
-        feedback: CodexFeedback,
+        feedback: DitfaFeedback,
         log_db: Option<LogDbLayer>,
         state_db: Option<StateDbHandle>,
     ) -> Self {
@@ -78,13 +78,13 @@ impl FeedbackRequestProcessor {
         let auth = self.auth_manager.auth_cached();
         if let Some(chatgpt_user_id) = auth
             .as_ref()
-            .and_then(ditfa_login::CodexAuth::get_chatgpt_user_id)
+            .and_then(ditfa_login::DitfaAuth::get_chatgpt_user_id)
         {
             tracing::info!(target: "feedback_tags", chatgpt_user_id);
         }
         if let Some(account_id) = auth
             .as_ref()
-            .and_then(ditfa_login::CodexAuth::get_account_id)
+            .and_then(ditfa_login::DitfaAuth::get_account_id)
         {
             tracing::info!(target: "feedback_tags", account_id);
         }
@@ -288,7 +288,7 @@ impl FeedbackRequestProcessor {
 fn tool_cache_feedback_attachments(
     ditfa_home: &Path,
     chatgpt_base_url: &str,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
 ) -> Vec<FeedbackAttachmentPath> {
     let mut attachments = Vec::with_capacity(2);
     let tools_cache_path = connector_runtime_cache_path(ditfa_home, auth);
@@ -301,7 +301,7 @@ fn tool_cache_feedback_attachments(
         });
     }
 
-    let Some(auth) = auth.filter(|auth| auth.uses_codex_backend()) else {
+    let Some(auth) = auth.filter(|auth| auth.uses_ditfa_backend()) else {
         return attachments;
     };
     let directory_cache_context = ConnectorDirectoryCacheContext::new(
@@ -332,7 +332,7 @@ fn auto_review_rollout_filename(thread_id: ThreadId) -> String {
 
 #[cfg(target_os = "windows")]
 fn windows_sandbox_log_attachment(ditfa_home: &Path) -> Option<FeedbackAttachmentPath> {
-    let sandbox_log_path = ditfa_windows_sandbox::current_log_file_path_for_codex_home(ditfa_home);
+    let sandbox_log_path = ditfa_windows_sandbox::current_log_file_path_for_ditfa_home(ditfa_home);
     sandbox_log_path
         .is_file()
         .then_some(FeedbackAttachmentPath {
@@ -342,7 +342,7 @@ fn windows_sandbox_log_attachment(ditfa_home: &Path) -> Option<FeedbackAttachmen
 }
 
 #[cfg(not(target_os = "windows"))]
-fn windows_sandbox_log_attachment(_codex_home: &Path) -> Option<FeedbackAttachmentPath> {
+fn windows_sandbox_log_attachment(_ditfa_home: &Path) -> Option<FeedbackAttachmentPath> {
     None
 }
 
@@ -354,7 +354,7 @@ mod tests {
     #[test]
     fn tool_cache_feedback_attachments_include_existing_active_cache_files() {
         let ditfa_home = tempfile::tempdir().expect("create tempdir");
-        let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+        let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
         let tools_cache_path = connector_runtime_cache_path(ditfa_home.path(), Some(&auth));
         std::fs::create_dir_all(tools_cache_path.parent().expect("tools cache parent"))
             .expect("create tools cache directory");
@@ -406,7 +406,7 @@ mod tests {
     #[test]
     fn tool_cache_feedback_attachments_include_directory_cache_without_account_id() {
         let ditfa_home = tempfile::tempdir().expect("create tempdir");
-        let auth = CodexAuth::Headers(ditfa_login::AuthHeaders::new(
+        let auth = DitfaAuth::Headers(ditfa_login::AuthHeaders::new(
             reqwest::header::HeaderMap::new(),
         ));
         let directory_cache_context = ConnectorDirectoryCacheContext::new(
@@ -452,7 +452,7 @@ mod tests {
         let sandbox_dir = ditfa_windows_sandbox::sandbox_dir(ditfa_home.path());
         std::fs::create_dir_all(&sandbox_dir).expect("create sandbox dir");
         let sandbox_log_path =
-            ditfa_windows_sandbox::current_log_file_path_for_codex_home(ditfa_home.path());
+            ditfa_windows_sandbox::current_log_file_path_for_ditfa_home(ditfa_home.path());
         std::fs::write(&sandbox_log_path, "sandbox log").expect("write sandbox log");
 
         let attachment = windows_sandbox_log_attachment(ditfa_home.path())

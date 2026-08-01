@@ -1,9 +1,9 @@
-use crate::test_codex::TestCodexBuilder;
-use crate::test_codex::test_codex;
+use crate::test_ditfa::TestDitfaBuilder;
+use crate::test_ditfa::test_ditfa;
 use anyhow::Result;
 use ditfa_core::config::Config;
 use ditfa_features::Feature;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_models_manager::bundled_models_response;
 use serde_json::Value;
 use serde_json::json;
@@ -26,22 +26,22 @@ const CONNECTOR_NAME: &str = "Calendar";
 const DISCOVERABLE_CALENDAR_ID: &str = "connector_2128aebfecb84f64a069897515042a44";
 const DISCOVERABLE_GMAIL_ID: &str = "connector_68df038e0ba48191908c8434991bbac2";
 const CONNECTOR_DESCRIPTION: &str = "Plan events and manage your calendar.";
-const DITFA_APPS_META_KEY: &str = "_codex_apps";
+const DITFA_APPS_META_KEY: &str = "_ditfa_apps";
 const DITFA_APPS_MCP_PATH_REGEX: &str = "^/api/codex/ps/mcp/?$";
 const HOSTED_PLUGIN_RUNTIME_MCP_PATH_REGEX: &str = "^/api/codex/ps/mcp/?$";
 const PROTOCOL_VERSION: &str = "2025-11-25";
-const SERVER_NAME: &str = "codex-apps-test";
+const SERVER_NAME: &str = "ditfa-apps-test";
 const SERVER_VERSION: &str = "1.0.0";
 const SEARCHABLE_TOOL_COUNT: usize = 100;
 const CALENDAR_CREATE_EVENT_TOOL_NAME: &str = "calendar_create_event";
 const CALENDAR_APP_ONLY_TOOL_NAME: &str = "calendar_app_only_action";
 pub const CALENDAR_EXTRACT_TEXT_TOOL_NAME: &str = "calendar_extract_text";
 const CALENDAR_LIST_EVENTS_TOOL_NAME: &str = "calendar_list_events";
-pub const DIRECT_CALENDAR_CREATE_EVENT_TOOL: &str = "mcp__codex_apps__calendar__create_event";
-pub const DIRECT_CALENDAR_APP_ONLY_TOOL: &str = "mcp__codex_apps__calendar__app_only_action";
-pub const DIRECT_CALENDAR_LIST_EVENTS_TOOL: &str = "mcp__codex_apps__calendar__list_events";
-pub const DIRECT_CALENDAR_EXTRACT_TEXT_TOOL: &str = "mcp__codex_apps__calendar__extract_text";
-pub const SEARCH_CALENDAR_NAMESPACE: &str = "mcp__codex_apps__calendar";
+pub const DIRECT_CALENDAR_CREATE_EVENT_TOOL: &str = "mcp__ditfa_apps__calendar__create_event";
+pub const DIRECT_CALENDAR_APP_ONLY_TOOL: &str = "mcp__ditfa_apps__calendar__app_only_action";
+pub const DIRECT_CALENDAR_LIST_EVENTS_TOOL: &str = "mcp__ditfa_apps__calendar__list_events";
+pub const DIRECT_CALENDAR_EXTRACT_TEXT_TOOL: &str = "mcp__ditfa_apps__calendar__extract_text";
+pub const SEARCH_CALENDAR_NAMESPACE: &str = "mcp__ditfa_apps__calendar";
 pub const SEARCH_CALENDAR_APP_ONLY_TOOL: &str = "_app_only_action";
 pub const SEARCH_CALENDAR_CREATE_TOOL: &str = "_create_event";
 pub const SEARCH_CALENDAR_EXTRACT_TEXT_TOOL: &str = "_extract_text";
@@ -260,17 +260,17 @@ pub fn configure_search_capable_apps(config: &mut Config, apps_base_url: &str) {
     configure_search_capable_model(config);
 }
 
-pub fn apps_enabled_builder(apps_base_url: impl Into<String>) -> TestCodexBuilder {
+pub fn apps_enabled_builder(apps_base_url: impl Into<String>) -> TestDitfaBuilder {
     let apps_base_url = apps_base_url.into();
-    test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(move |config| configure_apps(config, apps_base_url.as_str()))
 }
 
-pub fn search_capable_apps_builder(apps_base_url: impl Into<String>) -> TestCodexBuilder {
+pub fn search_capable_apps_builder(apps_base_url: impl Into<String>) -> TestDitfaBuilder {
     let apps_base_url = apps_base_url.into();
-    test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(move |config| configure_search_capable_apps(config, apps_base_url.as_str()))
 }
 
@@ -431,7 +431,7 @@ async fn mount_streamable_http_json_rpc_with_startup_control(
 ) {
     Mock::given(method("POST"))
         .and(path_regex(mcp_path_regex))
-        .respond_with(CodexAppsJsonRpcResponder {
+        .respond_with(DitfaAppsJsonRpcResponder {
             connector_name,
             connector_description,
             searchable,
@@ -444,7 +444,7 @@ async fn mount_streamable_http_json_rpc_with_startup_control(
         .await;
 }
 
-struct CodexAppsJsonRpcResponder {
+struct DitfaAppsJsonRpcResponder {
     connector_name: String,
     connector_description: String,
     searchable: bool,
@@ -552,7 +552,7 @@ impl Respond for DitfaAppsJsonRpcResponder {
                                     "connector_name": self.connector_name.clone(),
                                     "connector_description": self.connector_description.clone(),
                                     "openai/outputTemplate": CALENDAR_CREATE_EVENT_MCP_APP_RESOURCE_URI,
-                                    "_codex_apps": {
+                                    "_ditfa_apps": {
                                         "resource_uri": CALENDAR_CREATE_EVENT_RESOURCE_URI,
                                         "contains_mcp_source": true,
                                         "connector_id": CONNECTOR_ID
@@ -578,7 +578,7 @@ impl Respond for DitfaAppsJsonRpcResponder {
                                     "link_id": LINK_ID,
                                     "connector_name": self.connector_name.clone(),
                                     "connector_description": self.connector_description.clone(),
-                                    "_codex_apps": {
+                                    "_ditfa_apps": {
                                         "resource_uri": CALENDAR_LIST_EVENTS_RESOURCE_URI,
                                         "contains_mcp_source": true,
                                         "connector_id": CONNECTOR_ID
@@ -614,7 +614,7 @@ impl Respond for DitfaAppsJsonRpcResponder {
                                     "connector_name": self.connector_name.clone(),
                                     "connector_description": self.connector_description.clone(),
                                     "openai/fileParams": ["file"],
-                                    "_codex_apps": {
+                                    "_ditfa_apps": {
                                         "resource_uri": DOCUMENT_EXTRACT_TEXT_RESOURCE_URI,
                                         "contains_mcp_source": true,
                                         "connector_id": CONNECTOR_ID
@@ -704,7 +704,7 @@ impl Respond for DitfaAppsJsonRpcResponder {
                     .pointer("/params/arguments/file/file_id")
                     .and_then(Value::as_str)
                     .unwrap_or_default();
-                let ditfa_apps_meta = body.pointer("/params/_meta/_codex_apps").cloned();
+                let ditfa_apps_meta = body.pointer("/params/_meta/_ditfa_apps").cloned();
 
                 ResponseTemplate::new(200).set_body_json(json!({
                     "jsonrpc": "2.0",
@@ -715,7 +715,7 @@ impl Respond for DitfaAppsJsonRpcResponder {
                             "text": format!("called {tool_name} for {title} at {starts_at} with {file_id}")
                         }],
                         "structuredContent": {
-                            "_codex_apps": ditfa_apps_meta,
+                            "_ditfa_apps": ditfa_apps_meta,
                         },
                         "isError": false
                     }

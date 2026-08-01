@@ -1,6 +1,6 @@
 //! Optional smoke tests that hit the real OpenAI /v1/responses endpoint. They are `#[ignore]` by
 //! default so CI stays deterministic and free. Developers can run them locally with
-//! `just test -p codex-core --test all --run-ignored only live_cli` provided they set a valid
+//! `just test -p ditfa-core --test all --run-ignored only live_cli` provided they set a valid
 //! `OPENAI_API_KEY`.
 
 use assert_cmd::prelude::*;
@@ -32,7 +32,7 @@ fn run_live(prompt: &str) -> (assert_cmd::assert::Assert, TempDir) {
     // implementation). Instead we configure the std `Command` ourselves, then later hand the
     // resulting `Output` to `assert_cmd` for the familiar assertions.
 
-    let mut cmd = Command::new(ditfa_utils_cargo_bin::cargo_bin("codex-rs").unwrap());
+    let mut cmd = Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa-rs").unwrap());
     cmd.current_dir(dir.path());
     cmd.env("OPENAI_API_KEY", require_api_key());
     cmd.env("HOME", home.path());
@@ -59,7 +59,7 @@ fn run_live(prompt: &str) -> (assert_cmd::assert::Assert, TempDir) {
     cmd.stdout(Stdio::piped());
     cmd.stderr(Stdio::piped());
 
-    let mut child = cmd.spawn().expect("failed to spawn codex-rs");
+    let mut child = cmd.spawn().expect("failed to spawn ditfa-rs");
 
     // Send the terminating newline so Session::run exits after the first turn.
     child

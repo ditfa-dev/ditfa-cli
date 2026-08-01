@@ -5,8 +5,8 @@ use ditfa_config::ConfigLayer;
 use ditfa_config::ConfigLayerMetadata;
 use ditfa_config::ConfigLayerSource;
 
-/// Converts a config-layer source owned by `codex-config` into the app-server wire type owned by
-/// `codex-app-server-protocol`.
+/// Converts a config-layer source owned by `ditfa-config` into the app-server wire type owned by
+/// `ditfa-app-server-protocol`.
 ///
 /// The types stay separate so app-server protocol ownership does not leak into the config domain
 /// crate. Because this crate owns neither type, Rust's orphan rules require an explicit conversion
@@ -19,8 +19,8 @@ pub(crate) fn config_layer_source_to_api(source: ConfigLayerSource) -> ApiConfig
             ApiConfigLayerSource::EnterpriseManaged { id, name }
         }
         ConfigLayerSource::User { file, profile } => ApiConfigLayerSource::User { file, profile },
-        ConfigLayerSource::Project { dot_codex_folder } => {
-            ApiConfigLayerSource::Project { dot_codex_folder }
+        ConfigLayerSource::Project { dot_ditfa_folder } => {
+            ApiConfigLayerSource::Project { dot_ditfa_folder }
         }
         ConfigLayerSource::SessionFlags => ApiConfigLayerSource::SessionFlags,
         ConfigLayerSource::LegacyManagedConfigTomlFromFile { file } => {
@@ -32,8 +32,8 @@ pub(crate) fn config_layer_source_to_api(source: ConfigLayerSource) -> ApiConfig
     }
 }
 
-/// Converts config-layer metadata owned by `codex-config` into the app-server wire type owned by
-/// `codex-app-server-protocol`.
+/// Converts config-layer metadata owned by `ditfa-config` into the app-server wire type owned by
+/// `ditfa-app-server-protocol`.
 ///
 /// The types stay separate so app-server protocol ownership does not leak into the config domain
 /// crate. Because this crate owns neither type, Rust's orphan rules require an explicit conversion
@@ -47,8 +47,8 @@ pub(crate) fn config_layer_metadata_to_api(
     }
 }
 
-/// Converts a config layer owned by `codex-config` into the app-server wire type owned by
-/// `codex-app-server-protocol`.
+/// Converts a config layer owned by `ditfa-config` into the app-server wire type owned by
+/// `ditfa-app-server-protocol`.
 ///
 /// The types stay separate so app-server protocol ownership does not leak into the config domain
 /// crate. Because this crate owns neither type, Rust's orphan rules require an explicit conversion

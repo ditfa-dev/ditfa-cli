@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use ditfa_features::Feature;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_protocol::config_types::ServiceTier;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::Op;
@@ -16,8 +16,8 @@ use core_test_support::responses;
 use core_test_support::responses::ResponseMock;
 use core_test_support::responses::strip_response_item_ids_from_json;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::TestCodexHarness;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::TestDitfaHarness;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
@@ -42,10 +42,10 @@ enum AuthCase {
 }
 
 impl AuthCase {
-    fn build(self) -> CodexAuth {
+    fn build(self) -> DitfaAuth {
         match self {
-            AuthCase::ChatGpt => CodexAuth::create_dummy_chatgpt_auth_for_testing(),
-            AuthCase::ApiKey => CodexAuth::from_api_key("dummy"),
+            AuthCase::ChatGpt => DitfaAuth::create_dummy_chatgpt_auth_for_testing(),
+            AuthCase::ApiKey => DitfaAuth::from_api_key("dummy"),
         }
     }
 }
@@ -304,20 +304,20 @@ async fn run_manual_session(
 
     let harness = build_harness(mode, settings, /*hooks*/ false).await?;
     let rollout_path = rollout_path(&harness);
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     let responses_mock = responses::mount_sse_sequence(harness.server(), response_bodies).await;
     let compact_mock = mount_legacy_compact_if_needed(&harness, mode).await;
 
     for (idx, step) in scenario.steps.iter().enumerate() {
-        submit_user_input(&codex, user_input_for_step(scenario.name, idx, *step)).await?;
+        submit_user_input(&ditfa, user_input_for_step(scenario.name, idx, *step)).await?;
     }
 
-    codex.submit(Op::Compact).await?;
-    wait_for_turn_complete(&codex).await;
+    ditfa.submit(Op::Compact).await?;
+    wait_for_turn_complete(&ditfa).await;
 
     submit_user_input(
-        &codex,
+        &ditfa,
         vec![UserInput::Text {
             text: format!("{}_AFTER_COMPACT_USER", scenario.name),
             text_elements: Vec::new(),
@@ -327,7 +327,7 @@ async fn run_manual_session(
 
     capture_from_requests(
         mode,
-        &codex,
+        &ditfa,
         &rollout_path,
         &responses_mock,
         compact_mock.as_ref(),
@@ -362,12 +362,12 @@ async fn run_pre_turn_auto_session(mode: Mode) -> Result<Capture> {
     };
     let harness = build_auto_harness(mode).await?;
     let rollout_path = rollout_path(&harness);
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
     let responses_mock = responses::mount_sse_sequence(harness.server(), response_bodies).await;
     let compact_mock = mount_legacy_compact_if_needed(&harness, mode).await;
 
     submit_user_input(
-        &codex,
+        &ditfa,
         vec![UserInput::Text {
             text: "pre_turn_auto_before".to_string(),
             text_elements: Vec::new(),
@@ -375,7 +375,7 @@ async fn run_pre_turn_auto_session(mode: Mode) -> Result<Capture> {
     )
     .await?;
     submit_user_input(
-        &codex,
+        &ditfa,
         vec![UserInput::Text {
             text: "pre_turn_auto_after".to_string(),
             text_elements: Vec::new(),
@@ -385,7 +385,7 @@ async fn run_pre_turn_auto_session(mode: Mode) -> Result<Capture> {
 
     capture_from_requests(
         mode,
-        &codex,
+        &ditfa,
         &rollout_path,
         &responses_mock,
         compact_mock.as_ref(),
@@ -420,12 +420,12 @@ async fn run_mid_turn_auto_session(mode: Mode) -> Result<Capture> {
     };
     let harness = build_auto_harness(mode).await?;
     let rollout_path = rollout_path(&harness);
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
     let responses_mock = responses::mount_sse_sequence(harness.server(), response_bodies).await;
     let compact_mock = mount_legacy_compact_if_needed(&harness, mode).await;
 
     submit_user_input(
-        &codex,
+        &ditfa,
         vec![UserInput::Text {
             text: "mid_turn_auto_user".to_string(),
             text_elements: Vec::new(),
@@ -435,7 +435,7 @@ async fn run_mid_turn_auto_session(mode: Mode) -> Result<Capture> {
 
     capture_from_requests(
         mode,
-        &codex,
+        &ditfa,
         &rollout_path,
         &responses_mock,
         compact_mock.as_ref(),
@@ -459,20 +459,20 @@ async fn run_manual_hook_session(mode: Mode) -> Result<Value> {
         ],
     };
     let harness = build_harness(mode, RunSettings::default(), /*hooks*/ true).await?;
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
     responses::mount_sse_sequence(harness.server(), response_bodies).await;
     let compact_mock = mount_legacy_compact_if_needed(&harness, mode).await;
 
     submit_user_input(
-        &codex,
+        &ditfa,
         vec![UserInput::Text {
             text: "manual_hooks_before".to_string(),
             text_elements: Vec::new(),
         }],
     )
     .await?;
-    codex.submit(Op::Compact).await?;
-    wait_for_turn_complete(&codex).await;
+    ditfa.submit(Op::Compact).await?;
+    wait_for_turn_complete(&ditfa).await;
 
     if let Some(compact_mock) = compact_mock {
         assert_eq!(compact_mock.requests().len(), 1);
@@ -487,7 +487,7 @@ async fn run_manual_hook_session(mode: Mode) -> Result<Value> {
     }))
 }
 
-async fn build_auto_harness(mode: Mode) -> Result<TestCodexHarness> {
+async fn build_auto_harness(mode: Mode) -> Result<TestDitfaHarness> {
     build_harness_inner(
         mode,
         RunSettings::default(),
@@ -497,7 +497,7 @@ async fn build_auto_harness(mode: Mode) -> Result<TestCodexHarness> {
     .await
 }
 
-async fn build_harness(mode: Mode, settings: RunSettings, hooks: bool) -> Result<TestCodexHarness> {
+async fn build_harness(mode: Mode, settings: RunSettings, hooks: bool) -> Result<TestDitfaHarness> {
     build_harness_inner(mode, settings, hooks, /*auto_compact_limit*/ None).await
 }
 
@@ -506,9 +506,9 @@ async fn build_harness_inner(
     settings: RunSettings,
     hooks: bool,
     auto_compact_limit: Option<i64>,
-) -> Result<TestCodexHarness> {
+) -> Result<TestDitfaHarness> {
     fs::create_dir_all(FIXED_CWD)?;
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_auth(settings.auth.build())
         .with_pre_build_hook(|home| {
             fs::write(home.join("AGENTS.md"), USER_INSTRUCTIONS)
@@ -517,7 +517,7 @@ async fn build_harness_inner(
     if hooks {
         builder = builder.with_pre_build_hook(write_manual_compact_hooks);
     }
-    TestCodexHarness::with_builder(builder.with_config(move |config| {
+    TestDitfaHarness::with_builder(builder.with_config(move |config| {
         config.cwd = ditfa_utils_absolute_path::AbsolutePathBuf::from_absolute_path(PathBuf::from(
             FIXED_CWD,
         ))
@@ -537,7 +537,7 @@ async fn build_harness_inner(
     .await
 }
 
-fn rollout_path(harness: &TestCodexHarness) -> PathBuf {
+fn rollout_path(harness: &TestDitfaHarness) -> PathBuf {
     harness
         .test()
         .session_configured
@@ -547,7 +547,7 @@ fn rollout_path(harness: &TestCodexHarness) -> PathBuf {
 }
 
 async fn mount_legacy_compact_if_needed(
-    harness: &TestCodexHarness,
+    harness: &TestDitfaHarness,
     mode: Mode,
 ) -> Option<ResponseMock> {
     match mode {
@@ -565,7 +565,7 @@ fn follow_up_index(request_count: usize) -> usize {
 
 async fn capture_from_requests(
     mode: Mode,
-    codex: &ditfa_core::CodexThread,
+    ditfa: &ditfa_core::DitfaThread,
     rollout_path: &Path,
     responses_mock: &ResponseMock,
     compact_mock: Option<&ResponseMock>,
@@ -591,8 +591,8 @@ async fn capture_from_requests(
         (Mode::Legacy, None) | (Mode::V2, Some(_)) => panic!("unexpected compact mock state"),
     };
 
-    codex.submit(Op::Shutdown).await?;
-    wait_for_event(codex, |ev| matches!(ev, EventMsg::ShutdownComplete)).await;
+    ditfa.submit(Op::Shutdown).await?;
+    wait_for_event(ditfa, |ev| matches!(ev, EventMsg::ShutdownComplete)).await;
 
     Ok(Capture {
         compact_body,
@@ -603,8 +603,8 @@ async fn capture_from_requests(
     })
 }
 
-async fn submit_user_input(codex: &ditfa_core::CodexThread, items: Vec<UserInput>) -> Result<()> {
-    codex
+async fn submit_user_input(ditfa: &ditfa_core::DitfaThread, items: Vec<UserInput>) -> Result<()> {
+    ditfa
         .submit(Op::UserInput {
             items,
             final_output_json_schema: None,
@@ -613,12 +613,12 @@ async fn submit_user_input(codex: &ditfa_core::CodexThread, items: Vec<UserInput
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_turn_complete(codex).await;
+    wait_for_turn_complete(ditfa).await;
     Ok(())
 }
 
-async fn wait_for_turn_complete(codex: &ditfa_core::CodexThread) {
-    wait_for_event(codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+async fn wait_for_turn_complete(ditfa: &ditfa_core::DitfaThread) {
+    wait_for_event(ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 }
 
 fn user_input_for_step(scenario_name: &str, idx: usize, step: Step) -> Vec<UserInput> {

@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::env;
 use std::ffi::OsString;
 
-const MCP_USER_AGENT: &str = concat!("codex-mcp-client/", env!("CARGO_PKG_VERSION"));
+const MCP_USER_AGENT: &str = concat!("ditfa-mcp-client/", env!("CARGO_PKG_VERSION"));
 
 pub(crate) fn create_env_for_mcp_server(
     extra_env: Option<HashMap<OsString, OsString>>,
@@ -300,7 +300,7 @@ mod tests {
     fn create_env_preserves_path_when_it_is_not_utf8() {
         use std::os::unix::ffi::OsStrExt;
 
-        let raw_path = std::ffi::OsStr::from_bytes(b"/tmp/codex-\xFF/bin");
+        let raw_path = std::ffi::OsStr::from_bytes(b"/tmp/ditfa-\xFF/bin");
         let expected = raw_path.to_os_string();
         let _guard = EnvVarGuard::set("PATH", raw_path);
 

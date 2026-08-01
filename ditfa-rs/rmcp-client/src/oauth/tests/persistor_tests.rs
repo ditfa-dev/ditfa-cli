@@ -29,7 +29,7 @@ use wiremock::matchers::method;
 use wiremock::matchers::path;
 
 use super::MockKeyringStore;
-use super::TempCodexHome;
+use super::TempDitfaHome;
 use super::assert_tokens_match_without_expiry;
 use super::sample_tokens;
 use crate::oauth::OAuthPersistor;
@@ -353,8 +353,8 @@ async fn persistor_for(tokens: &StoredOAuthTokens) -> Result<OAuthPersistor> {
     ))
 }
 
-async fn test_context() -> Result<(TempCodexHome, MockServer, StoredOAuthTokens)> {
-    let env = TempCodexHome::new();
+async fn test_context() -> Result<(TempDitfaHome, MockServer, StoredOAuthTokens)> {
+    let env = TempDitfaHome::new();
     let server = MockServer::start().await;
     mount_oauth_metadata(&server).await;
     let tokens = expired_tokens(&format!("{}/mcp", server.uri()));

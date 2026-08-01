@@ -5,12 +5,12 @@ use ditfa_config::McpServerTransportConfig;
 use ditfa_core::config::ConfigBuilder;
 use ditfa_core::config::Constrained;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::ExternalAuth;
 use ditfa_login::ExternalAuthFuture;
 use ditfa_login::ExternalAuthRefreshContext;
 use ditfa_mcp::DITFA_APPS_MCP_SERVER_NAME;
-use ditfa_mcp::CodexAppsToolsCache;
+use ditfa_mcp::DitfaAppsToolsCache;
 use ditfa_mcp::EffectiveMcpServer;
 use ditfa_mcp::McpRuntime;
 use ditfa_mcp::McpRuntimeContext;
@@ -29,14 +29,14 @@ use tempfile::TempDir;
 use tokio_util::sync::CancellationToken;
 
 // Installs a known snapshot through AuthManager's public external-auth path.
-struct StaticExternalAuth(CodexAuth);
+struct StaticExternalAuth(DitfaAuth);
 
 impl ExternalAuth for StaticExternalAuth {
-    fn resolve(&self) -> ExternalAuthFuture<'_, CodexAuth> {
+    fn resolve(&self) -> ExternalAuthFuture<'_, DitfaAuth> {
         Box::pin(async { Ok(self.0.clone()) })
     }
 
-    fn refresh(&self, _context: ExternalAuthRefreshContext) -> ExternalAuthFuture<'_, CodexAuth> {
+    fn refresh(&self, _context: ExternalAuthRefreshContext) -> ExternalAuthFuture<'_, DitfaAuth> {
         Box::pin(async { Ok(self.0.clone()) })
     }
 }
@@ -48,7 +48,7 @@ async fn hosted_plugin_runtime_ps_mcp_tool_calls_use_current_auth_manager_token(
     let server = start_mock_server().await;
     let apps_server = AppsTestServer::mount_hosted_plugin_runtime_searchable(&server).await?;
     let home = Arc::new(TempDir::new()?);
-    let expected_auth = CodexAuth::from_external_chatgpt_tokens(
+    let expected_auth = DitfaAuth::from_external_chatgpt_tokens(
         "header.e30.first",
         "test-account",
         /*chatgpt_plan_type*/ None,
@@ -98,7 +98,7 @@ async fn hosted_plugin_runtime_ps_mcp_tool_calls_use_current_auth_manager_token(
             Arc::new(ditfa_exec_server::EnvironmentManager::without_environments()),
             home.path().to_path_buf(),
         ),
-        ditfa_apps_tools_cache: CodexAppsToolsCache::default(),
+        ditfa_apps_tools_cache: DitfaAppsToolsCache::default(),
         tool_catalog_cache: McpToolCatalogCache::default(),
         ditfa_apps_tools_cache_key: ditfa_mcp::ditfa_apps_tools_cache_key(Some(&expected_auth)),
         supports_openai_form_elicitation: false,
@@ -113,7 +113,7 @@ async fn hosted_plugin_runtime_ps_mcp_tool_calls_use_current_auth_manager_token(
     // manager after the MCP client has been created.
     auth_manager
         .set_external_auth(Arc::new(StaticExternalAuth(
-            CodexAuth::from_external_chatgpt_tokens(
+            DitfaAuth::from_external_chatgpt_tokens(
                 "header.e30.reloaded",
                 "test-account",
                 /*chatgpt_plan_type*/ None,
@@ -122,7 +122,7 @@ async fn hosted_plugin_runtime_ps_mcp_tool_calls_use_current_auth_manager_token(
         .await?;
 
     // The manager and its static fallback were created before the auth update,
-    // so this tool call only sees the new token if the Codex Apps provider
+    // so this tool call only sees the new token if the Ditfa Apps provider
     // reads the shared AuthManager at request time.
     let tool_result = runtime
         .latest_call_tool(
@@ -151,7 +151,7 @@ async fn hosted_plugin_runtime_ps_mcp_tool_calls_use_current_auth_manager_token(
                         body.get("method").and_then(Value::as_str) == Some("tools/call")
                     })
         })
-        .expect("Codex Apps should receive a tool call");
+        .expect("Ditfa Apps should receive a tool call");
     assert_eq!(
         tool_call_request
             .headers

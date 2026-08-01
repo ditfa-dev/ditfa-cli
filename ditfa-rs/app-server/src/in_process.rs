@@ -31,10 +31,10 @@
 //! `MessageProcessor` with overload or internal errors so approval flows do
 //! not hang indefinitely.
 //!
-//! # Relationship to `codex-app-server-client`
+//! # Relationship to `ditfa-app-server-client`
 //!
 //! This module provides the low-level runtime handle ([`InProcessClientHandle`]).
-//! Higher-level callers (TUI, exec) should go through `codex-app-server-client`,
+//! Higher-level callers (TUI, exec) should go through `ditfa-app-server-client`,
 //! which wraps this module behind a worker task with async request/response
 //! helpers, surface-specific startup policy, and bounded shutdown.
 
@@ -84,7 +84,7 @@ use ditfa_core::check_execpolicy_for_warnings;
 use ditfa_core::config::Config;
 use ditfa_core::resolve_installation_id;
 use ditfa_exec_server::EnvironmentManager;
-use ditfa_feedback::CodexFeedback;
+use ditfa_feedback::DitfaFeedback;
 use ditfa_login::AuthManager;
 use ditfa_protocol::protocol::SessionSource;
 pub use ditfa_rollout::StateDbHandle;
@@ -134,7 +134,7 @@ pub struct InProcessStartArgs {
     /// Loader used to fetch typed thread config sources before a thread starts.
     pub thread_config_loader: Arc<dyn ThreadConfigLoader>,
     /// Feedback sink used by app-server/core telemetry and logs.
-    pub feedback: CodexFeedback,
+    pub feedback: DitfaFeedback,
     /// SQLite tracing layer used to flush recently emitted logs before feedback upload.
     pub log_db: Option<LogDbLayer>,
     /// Process-wide SQLite state handle shared with embedded app-server consumers.
@@ -146,7 +146,7 @@ pub struct InProcessStartArgs {
     /// Session source stamped into thread/session metadata.
     pub session_source: SessionSource,
     /// Whether auth loading should honor the `DITFA_API_KEY` environment variable.
-    pub enable_codex_api_key_env: bool,
+    pub enable_ditfa_api_key_env: bool,
     /// Initialize params used for initial handshake.
     pub initialize: InitializeParams,
     /// Capacity used for all runtime queues (clamped to at least 1).
@@ -258,14 +258,14 @@ impl InProcessClientSender {
 /// Handle used by an in-process client to call app-server and consume events.
 ///
 /// This is the low-level runtime handle. Higher-level callers should usually go
-/// through `codex-app-server-client`, which adds worker-task buffering,
+/// through `ditfa-app-server-client`, which adds worker-task buffering,
 /// request/response helpers, and surface-specific startup policy.
 pub struct InProcessClientHandle {
     client: InProcessClientSender,
     event_rx: mpsc::Receiver<InProcessServerEvent>,
     runtime_handle: tokio::task::JoinHandle<()>,
     #[cfg(test)]
-    _test_codex_home: Option<tempfile::TempDir>,
+    _test_ditfa_home: Option<tempfile::TempDir>,
 }
 
 impl InProcessClientHandle {
@@ -392,7 +392,7 @@ async fn start_uninitialized(args: InProcessStartArgs) -> IoResult<InProcessClie
     let runtime_handle = tokio::spawn(async move {
         let (outgoing_tx, mut outgoing_rx) = mpsc::channel::<OutgoingEnvelope>(channel_capacity);
         let auth_manager =
-            AuthManager::shared_from_config(args.config.as_ref(), args.enable_codex_api_key_env)
+            AuthManager::shared_from_config(args.config.as_ref(), args.enable_ditfa_api_key_env)
                 .await;
         let analytics_events_client =
             analytics_events_client_from_config(Arc::clone(&auth_manager), args.config.as_ref());
@@ -738,7 +738,7 @@ async fn start_uninitialized(args: InProcessStartArgs) -> IoResult<InProcessClie
         event_rx,
         runtime_handle,
         #[cfg(test)]
-        _test_codex_home: None,
+        _test_ditfa_home: None,
     })
 }
 
@@ -767,7 +767,7 @@ mod tests {
             .await
         {
             Ok(config) => config,
-            Err(_) => Config::load_default_with_cli_overrides_for_codex_home(
+            Err(_) => Config::load_default_with_cli_overrides_for_ditfa_home(
                 ditfa_home.to_path_buf(),
                 Vec::new(),
             )
@@ -793,16 +793,16 @@ mod tests {
             strict_config: false,
             cloud_config_bundle: CloudConfigBundleLoader::default(),
             thread_config_loader: Arc::new(ditfa_config::NoopThreadConfigLoader),
-            feedback: CodexFeedback::new(),
+            feedback: DitfaFeedback::new(),
             log_db: None,
             state_db: Some(state_db),
             environment_manager: Arc::new(EnvironmentManager::default_for_tests()),
             config_warnings: Vec::new(),
             session_source,
-            enable_codex_api_key_env: false,
+            enable_ditfa_api_key_env: false,
             initialize: InitializeParams {
                 client_info: ClientInfo {
-                    name: "codex-in-process-test".to_string(),
+                    name: "ditfa-in-process-test".to_string(),
                     title: None,
                     version: "0.0.0".to_string(),
                 },
@@ -811,7 +811,7 @@ mod tests {
             channel_capacity,
         };
         let mut client = start(args).await.expect("in-process runtime should start");
-        client._test_codex_home = Some(ditfa_home);
+        client._test_ditfa_home = Some(ditfa_home);
         client
     }
 
@@ -914,7 +914,7 @@ mod tests {
             client: InProcessClientSender { client_tx },
             event_rx,
             runtime_handle,
-            _test_codex_home: None,
+            _test_ditfa_home: None,
         };
 
         client

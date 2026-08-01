@@ -4,7 +4,7 @@
 use anyhow::Result;
 use ditfa_core::config::AgentRoleConfig;
 use ditfa_features::Feature;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_models_manager::manager::RefreshStrategy;
 use ditfa_models_manager::manager::SharedModelsManager;
 use ditfa_protocol::config_types::ReasoningSummary;
@@ -24,7 +24,7 @@ use core_test_support::responses::mount_sse_once;
 use core_test_support::responses::namespace_child_tool;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use serde_json::Value;
 use std::time::Duration;
 use std::time::Instant;
@@ -174,8 +174,8 @@ async fn spawn_agent_description_lists_visible_models_and_reasoning_efforts() ->
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_model("visible-model")
         .with_config(|config| {
             config
@@ -266,7 +266,7 @@ async fn configured_agent_roles_control_spawn_agent_type(
         sse(vec![ev_response_created("resp1"), ev_completed("resp1")]),
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(move |config| {
             config
                 .features
@@ -337,7 +337,7 @@ wait_agent_enabled = {wait_agent_enabled}
         sse(vec![ev_response_created("resp1"), ev_completed("resp1")]),
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_pre_build_hook(move |home| {
             std::fs::write(home.join("config.toml"), &config_toml)
                 .expect("write multi-agent configuration");

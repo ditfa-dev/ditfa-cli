@@ -173,16 +173,16 @@ fn test_get_command_rejects_explicit_shell_in_zsh_fork_mode() -> anyhow::Result<
     let json = r#"{"cmd": "echo hello", "shell": "/bin/bash"}"#;
     let args: ExecCommandArgs = parse_arguments(json)?;
     let shell_zsh_path = AbsolutePathBuf::from_absolute_path(if cfg!(windows) {
-        r"C:\opt\codex\zsh"
+        r"C:\opt\ditfa\zsh"
     } else {
-        "/opt/codex/zsh"
+        "/opt/ditfa/zsh"
     })?;
     let shell_mode = UnifiedExecShellMode::ZshFork(ZshForkConfig {
         shell_zsh_path,
         main_execve_wrapper_exe: AbsolutePathBuf::from_absolute_path(if cfg!(windows) {
-            r"C:\opt\codex\codex-execve-wrapper"
+            r"C:\opt\ditfa\ditfa-execve-wrapper"
         } else {
-            "/opt/codex/codex-execve-wrapper"
+            "/opt/ditfa/ditfa-execve-wrapper"
         })?,
     });
 
@@ -205,16 +205,16 @@ fn test_get_command_rejects_explicit_shell_in_zsh_fork_mode() -> anyhow::Result<
 async fn shell_mode_for_environment_uses_direct_mode_for_remote_environments() -> anyhow::Result<()>
 {
     let shell_zsh_path = AbsolutePathBuf::from_absolute_path(if cfg!(windows) {
-        r"C:\opt\codex\zsh"
+        r"C:\opt\ditfa\zsh"
     } else {
-        "/opt/codex/zsh"
+        "/opt/ditfa/zsh"
     })?;
     let shell_mode = UnifiedExecShellMode::ZshFork(ZshForkConfig {
         shell_zsh_path,
         main_execve_wrapper_exe: AbsolutePathBuf::from_absolute_path(if cfg!(windows) {
-            r"C:\opt\codex\codex-execve-wrapper"
+            r"C:\opt\ditfa\ditfa-execve-wrapper"
         } else {
-            "/opt/codex/codex-execve-wrapper"
+            "/opt/ditfa/ditfa-execve-wrapper"
         })?,
     });
     let local_environment = Environment::default_for_tests();

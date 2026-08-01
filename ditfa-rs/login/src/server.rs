@@ -961,20 +961,20 @@ fn login_error_response(
     }
 }
 
-/// Returns true when the OAuth callback represents a missing Codex entitlement.
-fn is_missing_codex_entitlement_error(error_code: &str, error_description: Option<&str>) -> bool {
+/// Returns true when the OAuth callback represents a missing Ditfa entitlement.
+fn is_missing_ditfa_entitlement_error(error_code: &str, error_description: Option<&str>) -> bool {
     error_code == "access_denied"
         && error_description.is_some_and(|description| {
             description
                 .to_ascii_lowercase()
-                .contains("missing_codex_entitlement")
+                .contains("missing_ditfa_entitlement")
         })
 }
 
 /// Converts OAuth callback errors into a user-facing message.
 fn oauth_callback_error_message(error_code: &str, error_description: Option<&str>) -> String {
-    if is_missing_codex_entitlement_error(error_code, error_description) {
-        return "Codex is not enabled for your workspace. Contact your workspace administrator to request access to Ditfa.".to_string();
+    if is_missing_ditfa_entitlement_error(error_code, error_description) {
+        return "Ditfa is not enabled for your workspace. Contact your workspace administrator to request access to Ditfa.".to_string();
     }
 
     if let Some(description) = error_description
@@ -1063,7 +1063,7 @@ fn render_login_error_page(
 ) -> Vec<u8> {
     let code = error_code.unwrap_or("unknown_error");
     let (title, display_message, display_description, help_text) =
-        if is_missing_codex_entitlement_error(code, error_description) {
+        if is_missing_ditfa_entitlement_error(code, error_description) {
             (
                 "You do not have access to Ditfa".to_string(),
                 "This account is not currently authorized to use Ditfa in this workspace."
@@ -1152,7 +1152,7 @@ mod tests {
 
     use super::TokenEndpointErrorDetail;
     use super::html_escape;
-    use super::is_missing_codex_entitlement_error;
+    use super::is_missing_ditfa_entitlement_error;
     use super::parse_token_endpoint_error;
     use super::redact_sensitive_query_value;
     use super::redact_sensitive_url_parts;
@@ -1274,8 +1274,8 @@ mod tests {
 
     #[test]
     fn render_login_error_page_uses_entitlement_copy() {
-        let error_description = Some("missing_codex_entitlement");
-        assert!(is_missing_codex_entitlement_error(
+        let error_description = Some("missing_ditfa_entitlement");
+        assert!(is_missing_ditfa_entitlement_error(
             "access_denied",
             error_description
         ));
@@ -1289,6 +1289,6 @@ mod tests {
 
         assert!(body.contains("You do not have access to Ditfa"));
         assert!(body.contains("Contact your workspace administrator"));
-        assert!(!body.contains("missing_codex_entitlement"));
+        assert!(!body.contains("missing_ditfa_entitlement"));
     }
 }

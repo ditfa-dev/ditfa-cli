@@ -30,9 +30,9 @@ use core_test_support::responses::mount_sse_once;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_event_with_timeout;
 use core_test_support::zsh_fork::build_unified_exec_zsh_fork_test;
@@ -273,7 +273,7 @@ async fn build_unified_exec_zsh_fork_test_or_skip<F>(
     approval_policy: AskForApproval,
     permission_profile: PermissionProfile,
     pre_build_hook: F,
-) -> Result<Option<(MockServer, TestCodex)>>
+) -> Result<Option<(MockServer, TestDitfa)>>
 where
     F: FnOnce(&Path) + Send + 'static,
 {
@@ -393,7 +393,7 @@ async fn mount_unified_exec_command(
 }
 
 async fn submit_turn_with_session_permissions(
-    test: &TestCodex,
+    test: &TestDitfa,
     prompt: &str,
     approval_policy: AskForApproval,
 ) -> Result<()> {
@@ -433,12 +433,12 @@ async fn submit_turn_with_session_permissions(
     Ok(())
 }
 
-async fn approve_expected_exec(test: &TestCodex, expected_command: &str) -> Result<()> {
+async fn approve_expected_exec(test: &TestDitfa, expected_command: &str) -> Result<()> {
     let approval = expect_exec_approval(test, expected_command).await;
     approve_exec(test, approval.effective_approval_id()).await
 }
 
-async fn approve_exec(test: &TestCodex, approval_id: String) -> Result<()> {
+async fn approve_exec(test: &TestDitfa, approval_id: String) -> Result<()> {
     test.ditfa
         .submit(Op::ExecApproval {
             id: approval_id,
@@ -513,7 +513,7 @@ fn parsed_regex_result(pattern: &str, output_str: &str) -> Option<CommandResult>
 }
 
 async fn expect_exec_approval(
-    test: &TestCodex,
+    test: &TestDitfa,
     expected_command: &str,
 ) -> ExecApprovalRequestEvent {
     let event = wait_for_event(&test.ditfa, |event| {
@@ -542,7 +542,7 @@ async fn expect_exec_approval(
     }
 }
 
-async fn wait_for_completion_without_approval(test: &TestCodex) {
+async fn wait_for_completion_without_approval(test: &TestDitfa) {
     let event = wait_for_event(&test.ditfa, |event| {
         matches!(
             event,
@@ -560,7 +560,7 @@ async fn wait_for_completion_without_approval(test: &TestCodex) {
     }
 }
 
-async fn wait_for_completion(test: &TestCodex) {
+async fn wait_for_completion(test: &TestDitfa) {
     wait_for_event(&test.ditfa, |event| {
         matches!(event, EventMsg::TurnComplete(_))
     })

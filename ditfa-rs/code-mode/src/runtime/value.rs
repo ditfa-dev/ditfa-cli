@@ -11,7 +11,7 @@ const INVALID_IMAGE_URL_ERROR: &str =
     "Tool call failed: invalid image output. Pass a base64 data URI instead";
 const INVALID_AUDIO_URL_ERROR: &str =
     "Tool call failed: invalid audio output. Pass a base64 data URI instead";
-const DITFA_IMAGE_DETAIL_META_KEY: &str = "codex/imageDetail";
+const DITFA_IMAGE_DETAIL_META_KEY: &str = "ditfa/imageDetail";
 
 pub(super) fn serialize_output_text(
     scope: &mut v8::PinScope<'_, '_>,

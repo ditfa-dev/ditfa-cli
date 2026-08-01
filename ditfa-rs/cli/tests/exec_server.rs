@@ -31,7 +31,7 @@ use wiremock::matchers::method;
 use wiremock::matchers::path;
 
 fn ditfa_command(ditfa_home: &Path) -> Result<assert_cmd::Command> {
-    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("codex")?);
+    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa")?);
     cmd.env("DITFA_HOME", ditfa_home);
     Ok(cmd)
 }
@@ -104,7 +104,7 @@ metrics_exporter = {{ otlp-http = {{ endpoint = "{base_url}/v1/metrics", protoco
     let argv = vec!["ping.exe", "-n", "61", "127.0.0.1"];
     #[cfg(not(windows))]
     let argv = vec!["/bin/sleep", "60"];
-    let ditfa_bin = ditfa_utils_cargo_bin::cargo_bin("codex")?;
+    let ditfa_bin = ditfa_utils_cargo_bin::cargo_bin("ditfa")?;
     let ditfa_home = ditfa_home.path().to_path_buf();
     let subprocess = async move {
         let mut command = tokio::process::Command::new(ditfa_bin);
@@ -238,7 +238,7 @@ async fn send_json_line(
 #[test]
 fn local_exec_server_exits_successfully_on_sigterm() -> Result<()> {
     let ditfa_home = TempDir::new()?;
-    let mut child = std::process::Command::new(ditfa_utils_cargo_bin::cargo_bin("codex")?)
+    let mut child = std::process::Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa")?)
         .env("DITFA_HOME", ditfa_home.path())
         .args(["exec-server", "--listen", "ws://127.0.0.1:0"])
         .stdout(Stdio::piped())

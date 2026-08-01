@@ -9,16 +9,16 @@ from _bootstrap import ensure_local_sdk_src, runtime_config
 
 ensure_local_sdk_src()
 
-from openai_codex import (
-    Codex,
+from ditfa import (
+    Ditfa,
     JsonRpcError,
     ServerBusyError,
     retry_on_overload,
 )
-from openai_codex.types import TurnStatus
+from ditfa.types import TurnStatus
 
-with Codex(config=runtime_config()) as codex:
-    thread = codex.thread_start(model="gpt-5.4", config={"model_reasoning_effort": "high"})
+with Ditfa(config=runtime_config()) as ditfa:
+    thread = ditfa.thread_start(model="gpt-5.4", config={"model_reasoning_effort": "high"})
 
     try:
         result = retry_on_overload(

@@ -112,7 +112,7 @@ def load_manifest(manifest_path: Path) -> dict:
 
 
 def default_cache_root() -> Path:
-    return Path(tempfile.gettempdir()) / "codex-package"
+    return Path(tempfile.gettempdir()) / "ditfa-package"
 
 
 def archive_filename(url: str) -> str:

@@ -6,7 +6,7 @@ use crate::client::ModelClientSession;
 use crate::session::session::Session;
 use crate::session::turn_context::TurnContext;
 use crate::util::backoff;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::WarningEvent;
 use tracing::warn;
@@ -22,12 +22,12 @@ pub(crate) enum ResponsesStreamRequest {
 pub(crate) async fn handle_retryable_response_stream_error(
     retries: &mut u64,
     max_retries: u64,
-    err: CodexErr,
+    err: DitfaErr,
     client_session: &mut ModelClientSession,
     sess: &Session,
     turn_context: &TurnContext,
     request: ResponsesStreamRequest,
-) -> Result<(), CodexErr> {
+) -> Result<(), DitfaErr> {
     if *retries >= max_retries
         && client_session.try_switch_fallback_transport(
             &turn_context.session_telemetry,
@@ -49,7 +49,7 @@ pub(crate) async fn handle_retryable_response_stream_error(
         *retries += 1;
         let retry_count = *retries;
         let delay = match &err {
-            CodexErr::Stream(_, requested_delay) => {
+            DitfaErr::Stream(_, requested_delay) => {
                 requested_delay.unwrap_or_else(|| backoff(retry_count))
             }
             _ => backoff(retry_count),
@@ -81,7 +81,7 @@ pub(crate) async fn handle_retryable_response_stream_error(
 fn log_retry(
     request: ResponsesStreamRequest,
     turn_context: &TurnContext,
-    err: &CodexErr,
+    err: &DitfaErr,
     retries: u64,
     max_retries: u64,
     delay: Duration,

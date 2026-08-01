@@ -8,14 +8,14 @@
 //!   and rewrite only the declared arguments into the provided-file payload
 //!   shape expected by the downstream Apps tool.
 //!
-//! The model-facing local-path schema is owned by `codex-mcp` alongside MCP tool inventory, so this
+//! The model-facing local-path schema is owned by `ditfa-mcp` alongside MCP tool inventory, so this
 //! module only handles uploading the files and rewriting the execution-time arguments.
 
 use crate::session::session::Session;
 use crate::session::turn_context::TurnContext;
 use ditfa_api::OPENAI_FILE_UPLOAD_LIMIT_BYTES;
 use ditfa_api::upload_openai_file;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_utils_path_uri::PathUri;
 use serde_json::Value as JsonValue;
 use std::collections::HashMap;
@@ -66,7 +66,7 @@ pub(crate) async fn rewrite_mcp_tool_arguments_for_openai_files(
 
 async fn rewrite_argument_value_for_openai_files(
     turn_context: &TurnContext,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     field_name: &str,
     optional_fields: &[String],
     value: &JsonValue,
@@ -109,7 +109,7 @@ async fn rewrite_argument_value_for_openai_files(
 
 async fn build_uploaded_argument_value(
     turn_context: &TurnContext,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     field_name: &str,
     index: Option<usize>,
     optional_fields: &[String],
@@ -124,7 +124,7 @@ async fn build_uploaded_argument_value(
     let Some(auth) = auth else {
         return Err("ChatGPT auth is required to upload files for Ditfa Apps tools".to_string());
     };
-    if !auth.uses_codex_backend() {
+    if !auth.uses_ditfa_backend() {
         return Err("ChatGPT auth is required to upload files for Ditfa Apps tools".to_string());
     }
     let Some(turn_environment) = turn_context.environments.primary() else {
@@ -238,7 +238,7 @@ mod tests {
     async fn openai_file_argument_rewrite_requires_declared_file_params() {
         let (session, turn_context) = make_session_and_context().await;
         let arguments = Some(serde_json::json!({
-            "file": "/tmp/codex-smoke-file.txt"
+            "file": "/tmp/ditfa-smoke-file.txt"
         }));
 
         let rewritten = rewrite_mcp_tool_arguments_for_openai_files(
@@ -270,7 +270,7 @@ mod tests {
             .and(body_json(serde_json::json!({
                 "file_name": "file_report.csv",
                 "file_size": 5,
-                "use_case": "codex",
+                "use_case": "ditfa",
             })))
             .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
                 "file_id": "file_123",
@@ -299,7 +299,7 @@ mod tests {
             .await;
 
         let (_, mut turn_context) = make_session_and_context().await;
-        let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+        let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
         let dir = tempdir().expect("temp dir");
         let local_path = dir.path().join("file_report.csv");
         tokio::fs::write(&local_path, b"hello")
@@ -336,7 +336,7 @@ mod tests {
     #[tokio::test]
     async fn build_uploaded_argument_value_rejects_oversized_file_before_reading() {
         let (_, mut turn_context) = make_session_and_context().await;
-        let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+        let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
         let dir = tempdir().expect("temp dir");
         let file_path = dir.path().join("oversized.bin");
         let file = std::fs::File::create(&file_path).expect("create sparse file");
@@ -376,7 +376,7 @@ mod tests {
             .and(body_json(serde_json::json!({
                 "file_name": "file_report.csv",
                 "file_size": 5,
-                "use_case": "codex",
+                "use_case": "ditfa",
             })))
             .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
                 "file_id": "file_123",
@@ -405,7 +405,7 @@ mod tests {
             .await;
 
         let (_, mut turn_context) = make_session_and_context().await;
-        let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+        let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
         let dir = tempdir().expect("temp dir");
         let local_path = dir.path().join("file_report.csv");
         tokio::fs::write(&local_path, b"hello")
@@ -452,7 +452,7 @@ mod tests {
             .and(body_json(serde_json::json!({
                 "file_name": "one.csv",
                 "file_size": 3,
-                "use_case": "codex",
+                "use_case": "ditfa",
             })))
             .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
                 "file_id": "file_1",
@@ -467,7 +467,7 @@ mod tests {
             .and(body_json(serde_json::json!({
                 "file_name": "two.csv",
                 "file_size": 3,
-                "use_case": "codex",
+                "use_case": "ditfa",
             })))
             .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
                 "file_id": "file_2",
@@ -514,7 +514,7 @@ mod tests {
             .await;
 
         let (_, mut turn_context) = make_session_and_context().await;
-        let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+        let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
         let dir = tempdir().expect("temp dir");
         tokio::fs::write(dir.path().join("one.csv"), b"one")
             .await
@@ -556,7 +556,7 @@ mod tests {
     async fn rewrite_mcp_tool_arguments_for_openai_files_surfaces_upload_failures() {
         let (mut session, turn_context) = make_session_and_context().await;
         session.services.auth_manager = crate::test_support::auth_manager_from_auth(
-            CodexAuth::create_dummy_chatgpt_auth_for_testing(),
+            DitfaAuth::create_dummy_chatgpt_auth_for_testing(),
         );
         let error = rewrite_mcp_tool_arguments_for_openai_files(
             &session,

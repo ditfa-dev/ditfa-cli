@@ -25,7 +25,7 @@ const REMOTE_CONTROL_ENROLL_TIMEOUT: Duration = Duration::from_secs(30);
 const REMOTE_CONTROL_SERVER_TOKEN_REFRESH_BACKOFF_MIN_SECS: u64 = 24;
 const REMOTE_CONTROL_SERVER_TOKEN_REFRESH_BACKOFF_MAX_SECS: u64 = 36;
 
-pub(super) const REMOTE_CONTROL_INSTALLATION_ID_HEADER: &str = "x-codex-installation-id";
+pub(super) const REMOTE_CONTROL_INSTALLATION_ID_HEADER: &str = "x-ditfa-installation-id";
 
 #[derive(Debug)]
 struct RemoteControlServerRequestError {

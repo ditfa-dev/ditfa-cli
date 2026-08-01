@@ -9,10 +9,10 @@ use tokio::io::AsyncWriteExt;
 
 const MIGRATION_MARKER_FILENAME: &str = ".sandbox_migration";
 
-/// removes legacy allow rules that newer codex versions no longer offer.
+/// removes legacy allow rules that newer ditfa versions no longer offer.
 ///
 /// this migration is intentionally one-shot. once complete, a marker in `ditfa_home` prevents
-/// policies saved by newer codex versions from being removed on later startups.
+/// policies saved by newer ditfa versions from being removed on later startups.
 pub async fn prefix_rule_migration(
     ditfa_home: &Path,
     policy_path: &Path,
@@ -28,7 +28,7 @@ pub async fn prefix_rule_migration(
     Ok(())
 }
 
-// atomically writes the marker after creating codex home when needed.
+// atomically writes the marker after creating ditfa home when needed.
 async fn write_migration_marker(ditfa_home: &Path, marker_path: &Path) -> io::Result<()> {
     tokio::fs::create_dir_all(ditfa_home).await?;
     let ditfa_home = ditfa_home.to_owned();

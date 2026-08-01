@@ -4,7 +4,7 @@ use std::time::Duration;
 use std::time::Instant;
 
 use ditfa_core::config::Config;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use serde::Deserialize;
 
 use crate::chatgpt_client::chatgpt_get_request_with_timeout;
@@ -38,7 +38,7 @@ struct CachedWorkspaceSettings {
 }
 
 impl WorkspaceSettingsCache {
-    fn get_codex_plugins_enabled(&self, key: &WorkspaceSettingsCacheKey) -> Option<bool> {
+    fn get_ditfa_plugins_enabled(&self, key: &WorkspaceSettingsCacheKey) -> Option<bool> {
         {
             let entry = match self.entry.read() {
                 Ok(entry) => entry,
@@ -67,7 +67,7 @@ impl WorkspaceSettingsCache {
         None
     }
 
-    fn set_codex_plugins_enabled(&self, key: WorkspaceSettingsCacheKey, enabled: bool) {
+    fn set_ditfa_plugins_enabled(&self, key: WorkspaceSettingsCacheKey, enabled: bool) {
         let mut entry = match self.entry.write() {
             Ok(entry) => entry,
             Err(err) => err.into_inner(),
@@ -82,7 +82,7 @@ impl WorkspaceSettingsCache {
 
 pub async fn ditfa_plugins_enabled_for_workspace(
     config: &Config,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     cache: Option<&WorkspaceSettingsCache>,
 ) -> anyhow::Result<bool> {
     let Some(auth) = auth else {
@@ -105,7 +105,7 @@ pub async fn ditfa_plugins_enabled_for_workspace(
         account_id: account_id.clone(),
     };
     if let Some(cache) = cache
-        && let Some(enabled) = cache.get_codex_plugins_enabled(&cache_key)
+        && let Some(enabled) = cache.get_ditfa_plugins_enabled(&cache_key)
     {
         return Ok(enabled);
     }
@@ -125,7 +125,7 @@ pub async fn ditfa_plugins_enabled_for_workspace(
         .unwrap_or(true);
 
     if let Some(cache) = cache {
-        cache.set_codex_plugins_enabled(cache_key, ditfa_plugins_enabled);
+        cache.set_ditfa_plugins_enabled(cache_key, ditfa_plugins_enabled);
     }
 
     Ok(ditfa_plugins_enabled)

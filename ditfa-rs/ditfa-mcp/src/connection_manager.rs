@@ -18,7 +18,7 @@ use startup::chatgpt_auth_provider_for_server;
 use startup::emit_update;
 use startup::mcp_init_error_display;
 use startup::mcp_startup_failure_reason;
-use startup::should_share_codex_apps_tools_cache;
+use startup::should_share_ditfa_apps_tools_cache;
 pub use tool_catalog::tool_is_model_visible;
 
 use std::collections::HashMap;
@@ -34,7 +34,7 @@ use crate::rmcp_client::AsyncManagedClient;
 use crate::rmcp_client::DEFAULT_TOOL_TIMEOUT;
 use crate::rmcp_client::ManagedClient;
 use crate::rmcp_client::StartupOutcomeError;
-use crate::rmcp_client::prepare_codex_apps_tools_for_model;
+use crate::rmcp_client::prepare_ditfa_apps_tools_for_model;
 use crate::rmcp_client::prepare_regular_mcp_tools_for_model;
 use crate::runtime::McpPublicationGate;
 use crate::runtime::McpRuntimeInput;
@@ -132,8 +132,8 @@ impl McpServerView {
     ) -> Option<Vec<ToolInfo>> {
         let tools = self.connection.client.listed_tools().await?;
         let tools = filter_tools(tools, &self.tool_filter);
-        Some(if self.connection.client.is_codex_apps_mcp_server {
-            prepare_codex_apps_tools_for_model(tools, tool_plugin_provenance)
+        Some(if self.connection.client.is_ditfa_apps_mcp_server {
+            prepare_ditfa_apps_tools_for_model(tools, tool_plugin_provenance)
         } else {
             prepare_regular_mcp_tools_for_model(tools, tool_plugin_provenance)
         })
@@ -220,10 +220,10 @@ impl McpConnectionSet {
         let tool_plugin_provenance = Arc::new(tool_plugin_provenance);
         let startup_submit_id = submit_id;
         let static_chatgpt_auth_provider = auth
-            .filter(|auth| auth.uses_codex_backend())
+            .filter(|auth| auth.uses_ditfa_backend())
             .map(ditfa_model_provider::auth_provider_from_auth);
         let ditfa_apps_auth_provider = ditfa_apps_auth_manager.and_then(|auth_manager| {
-            auth.filter(|auth| auth.uses_codex_backend()).map(|auth| {
+            auth.filter(|auth| auth.uses_ditfa_backend()).map(|auth| {
                 ditfa_model_provider::auth_provider_from_auth_manager(auth_manager, auth)
             })
         });
@@ -251,13 +251,13 @@ impl McpConnectionSet {
                 } => bearer_token_env_var.is_some(),
                 McpServerTransportConfig::Stdio { .. } => false,
             };
-            let shares_codex_apps_tools_cache =
-                should_share_codex_apps_tools_cache(&server_name, uses_env_bearer_token);
-            let ditfa_apps_tools_cache_context = shares_codex_apps_tools_cache.then(|| {
+            let shares_ditfa_apps_tools_cache =
+                should_share_ditfa_apps_tools_cache(&server_name, uses_env_bearer_token);
+            let ditfa_apps_tools_cache_context = shares_ditfa_apps_tools_cache.then(|| {
                 ditfa_apps_tools_cache
                     .context(ditfa_home.clone(), ditfa_apps_tools_cache_key.clone())
             });
-            // The reserved Codex Apps registration follows the shared
+            // The reserved Ditfa Apps registration follows the shared
             // AuthManager across refreshes. In the hosted-plugin path, this
             // is the ChatGPT /ps/mcp connection. User-configured MCP
             // registrations keep their existing configured auth path.
@@ -268,8 +268,8 @@ impl McpConnectionSet {
             } else {
                 static_chatgpt_auth_provider.clone()
             };
-            // If Codex Apps has an env bearer token, that is its auth path. Do
-            // not also attach the ambient CodexAuth provider.
+            // If Ditfa Apps has an env bearer token, that is its auth path. Do
+            // not also attach the ambient DitfaAuth provider.
             let runtime_auth_provider =
                 if server_name == DITFA_APPS_MCP_SERVER_NAME && uses_env_bearer_token {
                     None
@@ -285,7 +285,7 @@ impl McpConnectionSet {
                 &runtime_context,
                 runtime_auth_provider.as_ref(),
                 auth,
-                shares_codex_apps_tools_cache
+                shares_ditfa_apps_tools_cache
                     .then(|| (ditfa_home.clone(), ditfa_apps_tools_cache_key.clone())),
                 client_elicitation_capability.clone(),
                 supports_openai_form_elicitation,

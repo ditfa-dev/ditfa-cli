@@ -9,12 +9,12 @@ use ditfa_model_provider::SharedModelProvider;
 use http::HeaderMap;
 
 #[derive(Clone)]
-pub(crate) struct CodexImagesBackend {
+pub(crate) struct DitfaImagesBackend {
     provider: SharedModelProvider,
     originator: Option<String>,
 }
 
-impl CodexImagesBackend {
+impl DitfaImagesBackend {
     /// Creates a backend that sends image requests through the active model provider.
     pub(crate) fn new(provider: SharedModelProvider, originator: Option<String>) -> Self {
         Self {

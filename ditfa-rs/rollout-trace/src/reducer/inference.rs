@@ -56,13 +56,13 @@ impl TraceReducer {
         let request_payload = started.request_payload.clone();
         let Some(turn) = self.rollout.ditfa_turns.get(&ditfa_turn_id) else {
             bail!(
-                "inference start {inference_call_id} referenced unknown codex turn {ditfa_turn_id}"
+                "inference start {inference_call_id} referenced unknown ditfa turn {ditfa_turn_id}"
             );
         };
         if turn.thread_id != thread_id {
             bail!(
                 "inference start {inference_call_id} used thread {thread_id}, \
-                 but codex turn {ditfa_turn_id} belongs to {}",
+                 but ditfa turn {ditfa_turn_id} belongs to {}",
                 turn.thread_id
             );
         }
@@ -108,7 +108,7 @@ impl TraceReducer {
     /// Closes any inference streams that are still live when the owning turn ends.
     ///
     /// Normal completion events close the active inference before the turn ends.
-    /// If a call is still `Running`, Codex stopped observing that provider stream
+    /// If a call is still `Running`, Ditfa stopped observing that provider stream
     /// earlier and the reduced graph should not present it as live.
     pub(super) fn close_running_inference_calls_for_turn_end(
         &mut self,

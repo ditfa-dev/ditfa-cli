@@ -7,7 +7,7 @@ use base64::Engine;
 use chrono::DateTime;
 use chrono::Utc;
 use ditfa_protocol::auth::PlanType;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::RetryLimitReachedError;
 use ditfa_protocol::error::UnexpectedResponseError;
 use ditfa_protocol::error::UsageLimitReachedError;
@@ -15,17 +15,17 @@ use http::HeaderMap;
 use serde::Deserialize;
 use serde_json::Value;
 
-pub fn map_api_error(err: ApiError) -> CodexErr {
+pub fn map_api_error(err: ApiError) -> DitfaErr {
     match err {
-        ApiError::ContextWindowExceeded => CodexErr::ContextWindowExceeded,
-        ApiError::QuotaExceeded => CodexErr::QuotaExceeded,
-        ApiError::UsageNotIncluded => CodexErr::UsageNotIncluded,
-        ApiError::Retryable { message, delay } => CodexErr::Stream(message, delay),
-        ApiError::Stream(msg) => CodexErr::Stream(msg, None),
-        ApiError::ServerOverloaded => CodexErr::ServerOverloaded,
+        ApiError::ContextWindowExceeded => DitfaErr::ContextWindowExceeded,
+        ApiError::QuotaExceeded => DitfaErr::QuotaExceeded,
+        ApiError::UsageNotIncluded => DitfaErr::UsageNotIncluded,
+        ApiError::Retryable { message, delay } => DitfaErr::Stream(message, delay),
+        ApiError::Stream(msg) => DitfaErr::Stream(msg, None),
+        ApiError::ServerOverloaded => DitfaErr::ServerOverloaded,
         ApiError::Api { status, message } => {
             let user_message = api_error_user_message(status, &message);
-            CodexErr::UnexpectedStatus(UnexpectedResponseError {
+            DitfaErr::UnexpectedStatus(UnexpectedResponseError {
                 status,
                 body: message,
                 user_message,
@@ -36,8 +36,8 @@ pub fn map_api_error(err: ApiError) -> CodexErr {
                 identity_error_code: None,
             })
         }
-        ApiError::InvalidRequest { message } => CodexErr::InvalidRequest(message),
-        ApiError::CyberPolicy { message } => CodexErr::CyberPolicy { message },
+        ApiError::InvalidRequest { message } => DitfaErr::InvalidRequest(message),
+        ApiError::CyberPolicy { message } => DitfaErr::CyberPolicy { message },
         ApiError::Transport(transport) => match transport {
             TransportError::Http {
                 status,
@@ -57,7 +57,7 @@ pub fn map_api_error(err: ApiError) -> CodexErr {
                         Some("server_is_overloaded" | "slow_down")
                     )
                 {
-                    return CodexErr::ServerOverloaded;
+                    return DitfaErr::ServerOverloaded;
                 }
 
                 if status == http::StatusCode::BAD_REQUEST {
@@ -72,16 +72,16 @@ pub fn map_api_error(err: ApiError) -> CodexErr {
                             .filter(|message| !message.trim().is_empty())
                             .map(str::to_string)
                             .unwrap_or_else(|| CYBER_POLICY_FALLBACK_MESSAGE.to_string());
-                        CodexErr::CyberPolicy { message }
+                        DitfaErr::CyberPolicy { message }
                     } else if body_text
                         .contains("The image data you provided does not represent a valid image")
                     {
-                        CodexErr::InvalidImageRequest()
+                        DitfaErr::InvalidImageRequest()
                     } else {
-                        CodexErr::InvalidRequest(body_text)
+                        DitfaErr::InvalidRequest(body_text)
                     }
                 } else if status == http::StatusCode::INTERNAL_SERVER_ERROR {
-                    CodexErr::InternalServerError
+                    DitfaErr::InternalServerError
                 } else if status == http::StatusCode::TOO_MANY_REQUESTS {
                     if let Ok(err) = serde_json::from_str::<UsageErrorResponse>(&body_text) {
                         if err.error.error_type.as_deref() == Some("usage_limit_reached") {
@@ -102,7 +102,7 @@ pub fn map_api_error(err: ApiError) -> CodexErr {
                                 .error
                                 .resets_at
                                 .and_then(|seconds| DateTime::<Utc>::from_timestamp(seconds, 0));
-                            return CodexErr::UsageLimitReached(UsageLimitReachedError {
+                            return DitfaErr::UsageLimitReached(UsageLimitReachedError {
                                 plan_type: err.error.plan_type,
                                 resets_at,
                                 rate_limits: rate_limits.map(Box::new),
@@ -110,16 +110,16 @@ pub fn map_api_error(err: ApiError) -> CodexErr {
                                 rate_limit_reached_type,
                             });
                         } else if err.error.error_type.as_deref() == Some("usage_not_included") {
-                            return CodexErr::UsageNotIncluded;
+                            return DitfaErr::UsageNotIncluded;
                         }
                     }
 
-                    CodexErr::RetryLimit(RetryLimitReachedError {
+                    DitfaErr::RetryLimit(RetryLimitReachedError {
                         status,
                         request_id: extract_request_tracking_id(headers.as_ref()),
                     })
                 } else {
-                    CodexErr::UnexpectedStatus(UnexpectedResponseError {
+                    DitfaErr::UnexpectedStatus(UnexpectedResponseError {
                         status,
                         user_message: api_error_user_message(status, &body_text),
                         body: body_text,
@@ -134,20 +134,20 @@ pub fn map_api_error(err: ApiError) -> CodexErr {
                     })
                 }
             }
-            TransportError::RetryLimit => CodexErr::RetryLimit(RetryLimitReachedError {
+            TransportError::RetryLimit => DitfaErr::RetryLimit(RetryLimitReachedError {
                 status: http::StatusCode::INTERNAL_SERVER_ERROR,
                 request_id: None,
             }),
-            TransportError::Timeout => CodexErr::RequestTimeout,
+            TransportError::Timeout => DitfaErr::RequestTimeout,
             TransportError::Network(msg) | TransportError::Build(msg) => {
-                CodexErr::Stream(msg, None)
+                DitfaErr::Stream(msg, None)
             }
         },
-        ApiError::RateLimit(msg) => CodexErr::Stream(msg, None),
+        ApiError::RateLimit(msg) => DitfaErr::Stream(msg, None),
     }
 }
 
-const ACTIVE_LIMIT_HEADER: &str = "x-codex-active-limit";
+const ACTIVE_LIMIT_HEADER: &str = "x-ditfa-active-limit";
 const REQUEST_ID_HEADER: &str = "x-request-id";
 const OAI_REQUEST_ID_HEADER: &str = "x-oai-request-id";
 const CF_RAY_HEADER: &str = "cf-ray";

@@ -18,14 +18,14 @@ use serde_json::Value as JsonValue;
 use uuid::Uuid;
 
 use crate::model::AgentThreadId;
-use crate::model::CodexTurnId;
+use crate::model::DitfaTurnId;
 use crate::model::InferenceCallId;
 use crate::payload::RawPayloadKind;
 use crate::raw_event::RawTraceEventContext;
 use crate::raw_event::RawTraceEventPayload;
 use crate::writer::TraceWriter;
 
-const INFERENCE_CALL_ID_HEADER: &str = "x-codex-inference-call-id";
+const INFERENCE_CALL_ID_HEADER: &str = "x-ditfa-inference-call-id";
 
 /// Turn-local inference tracing context.
 ///
@@ -48,14 +48,14 @@ enum InferenceTraceContextState {
 struct EnabledInferenceTraceContext {
     writer: Arc<TraceWriter>,
     thread_id: AgentThreadId,
-    ditfa_turn_id: CodexTurnId,
+    ditfa_turn_id: DitfaTurnId,
     model: String,
     provider_name: String,
 }
 
 /// One concrete upstream request attempt.
 ///
-/// A Codex turn can create multiple attempts when auth recovery retries the
+/// A Ditfa turn can create multiple attempts when auth recovery retries the
 /// HTTP request or WebSocket setup falls back to HTTP. Completion is often
 /// observed after the client returns the response stream, so the attempt owns
 /// the terminal guard that prevents duplicate lifecycle events.
@@ -99,11 +99,11 @@ impl InferenceTraceContext {
         }
     }
 
-    /// Builds an enabled context for all upstream attempts made by one Codex turn.
+    /// Builds an enabled context for all upstream attempts made by one Ditfa turn.
     pub fn enabled(
         writer: Arc<TraceWriter>,
         thread_id: AgentThreadId,
-        ditfa_turn_id: CodexTurnId,
+        ditfa_turn_id: DitfaTurnId,
         model: String,
         provider_name: String,
     ) -> Self {
@@ -199,7 +199,7 @@ impl InferenceTraceAttempt {
     /// Records successful provider completion and serializes the observed output items.
     ///
     /// Callers pass protocol-native response items so this crate owns the
-    /// trace-specific serialization rules. That keeps codex-core focused on
+    /// trace-specific serialization rules. That keeps ditfa-core focused on
     /// transport behavior while preserving trace evidence that normal request
     /// serialization intentionally omits.
     pub fn record_completed(
@@ -265,7 +265,7 @@ impl InferenceTraceAttempt {
         );
     }
 
-    /// Records a provider stream that Codex intentionally stopped consuming.
+    /// Records a provider stream that Ditfa intentionally stopped consuming.
     ///
     /// This happens when the turn is interrupted or when mailbox delivery
     /// preempts the current sampling request. Complete output items observed
@@ -454,7 +454,7 @@ mod tests {
             agent_path: "/root".to_string(),
             metadata_payload: None,
         })?;
-        writer.append(RawTraceEventPayload::CodexTurnStarted {
+        writer.append(RawTraceEventPayload::DitfaTurnStarted {
             ditfa_turn_id: "turn-1".to_string(),
             thread_id: "thread-root".to_string(),
         })?;

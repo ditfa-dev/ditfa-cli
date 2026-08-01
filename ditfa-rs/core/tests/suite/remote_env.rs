@@ -65,11 +65,11 @@ use core_test_support::skip_if_no_network;
 use core_test_support::skip_if_no_remote_env;
 use core_test_support::skip_if_target_windows;
 use core_test_support::submit_thread_settings;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::local;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::test_env;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::local;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::test_env;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::test_docker_container_name;
 use core_test_support::test_target_os;
 use core_test_support::wait_for_event;
@@ -97,8 +97,8 @@ use tokio::time::timeout;
 use tokio_tungstenite::WebSocketStream;
 use tokio_tungstenite::accept_async;
 use tokio_tungstenite::tungstenite::Message;
-async fn unified_exec_test(server: &wiremock::MockServer) -> Result<TestCodex> {
-    let mut builder = test_codex().with_config(|config| {
+async fn unified_exec_test(server: &wiremock::MockServer) -> Result<TestDitfa> {
+    let mut builder = test_ditfa().with_config(|config| {
         config.use_experimental_unified_exec_tool = true;
         let result = config.features.enable(Feature::UnifiedExec);
         assert!(
@@ -110,7 +110,7 @@ async fn unified_exec_test(server: &wiremock::MockServer) -> Result<TestCodex> {
 }
 
 async fn submit_turn_with_approval_and_environments(
-    test: &TestCodex,
+    test: &TestDitfa,
     prompt: &str,
     environments: Vec<TurnEnvironmentSelection>,
     approval_policy: AskForApproval,
@@ -150,7 +150,7 @@ async fn submit_turn_with_approval_and_environments(
 }
 
 async fn expect_patch_approval(
-    test: &TestCodex,
+    test: &TestDitfa,
     expected_call_id: &str,
 ) -> ApplyPatchApprovalRequestEvent {
     let event = wait_for_event(&test.ditfa, |event| {
@@ -171,7 +171,7 @@ async fn expect_patch_approval(
     }
 }
 
-async fn wait_for_completion_without_patch_approval(test: &TestCodex) {
+async fn wait_for_completion_without_patch_approval(test: &TestDitfa) {
     let event = wait_for_event(&test.ditfa, |event| {
         matches!(
             event,
@@ -235,7 +235,7 @@ async fn remote_test_env_exposes_target_shell_to_model() -> Result<()> {
         ]),
     )
     .await;
-    let test = test_codex().build_with_auto_env(&server).await?;
+    let test = test_ditfa().build_with_auto_env(&server).await?;
 
     test.submit_turn("report remote environment").await?;
 
@@ -272,11 +272,11 @@ async fn explicit_remote_shell_runs_in_remote_cwd() -> Result<()> {
     let (shell, command) = match test_target_os() {
         TestTargetOs::Linux => (
             "bash",
-            r#"case "$PWD" in /tmp/codex-core-test-cwd-*) ;; *) echo "unexpected cwd: $PWD" >&2; exit 1 ;; esac"#,
+            r#"case "$PWD" in /tmp/ditfa-core-test-cwd-*) ;; *) echo "unexpected cwd: $PWD" >&2; exit 1 ;; esac"#,
         ),
         TestTargetOs::Windows => (
             "powershell",
-            r#"$cwd = (Get-Location).Path; if ($cwd -notlike 'C:\codex-core-test-cwd-*') { Write-Error "unexpected cwd: $cwd"; exit 1 }"#,
+            r#"$cwd = (Get-Location).Path; if ($cwd -notlike 'C:\ditfa-core-test-cwd-*') { Write-Error "unexpected cwd: $cwd"; exit 1 }"#,
         ),
         TestTargetOs::MacOs => unreachable!("remote test targets do not run macOS"),
     };
@@ -288,7 +288,7 @@ async fn explicit_remote_shell_runs_in_remote_cwd() -> Result<()> {
         "login": false,
         "yield_time_ms": 10_000,
     }))?;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.use_experimental_unified_exec_tool = true;
         config
             .features
@@ -350,7 +350,7 @@ async fn step_world_state_does_not_duplicate_initial_environment_context() -> Re
             ]),
         )
         .await;
-        let mut builder = test_codex().with_config(move |config| {
+        let mut builder = test_ditfa().with_config(move |config| {
             if deferred_executor_enabled {
                 assert!(config.features.enable(Feature::DeferredExecutor).is_ok());
             }
@@ -415,7 +415,7 @@ async fn settings_update_does_not_retarget_active_turn_environment() -> Result<(
         ],
     )
     .await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         assert!(config.features.enable(Feature::DeferredExecutor).is_ok());
         assert!(
             config
@@ -679,7 +679,7 @@ async fn deferred_executor_starts_noise_connection_after_registration() -> Resul
         ],
     )
     .await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.use_experimental_unified_exec_tool = true;
         assert!(config.features.enable(Feature::DeferredExecutor).is_ok());
         assert!(config.features.enable(Feature::UnifiedExec).is_ok());
@@ -776,7 +776,7 @@ async fn deferred_executor_loads_agents_md_when_environment_becomes_ready() -> R
         ],
     )
     .await;
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_exec_server_url(format!("ws://{}", listener.local_addr()?))
         .with_config(|config| {
             assert!(config.features.enable(Feature::DeferredExecutor).is_ok());
@@ -872,7 +872,7 @@ async fn deferred_executor_wait_reports_startup_failure() -> Result<()> {
         ],
     )
     .await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.use_experimental_unified_exec_tool = true;
         assert!(config.features.enable(Feature::DeferredExecutor).is_ok());
         assert!(config.features.enable(Feature::UnifiedExec).is_ok());
@@ -983,7 +983,7 @@ async fn deferred_executor_compaction_preserves_then_updates_environment_once() 
         ],
     )
     .await;
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_exec_server_url(format!("ws://{}", listener.local_addr()?))
         .with_config(|config| {
             config.project_doc_max_bytes = 0;
@@ -1184,7 +1184,7 @@ fn remote_exec(script: &str) -> Result<()> {
 }
 
 async fn exec_command_routing_output(
-    test: &TestCodex,
+    test: &TestDitfa,
     server: &wiremock::MockServer,
     call_id: &str,
     arguments: Value,
@@ -1228,7 +1228,7 @@ async fn exec_command_routes_to_selected_remote_environment() -> Result<()> {
     fs::write(local_cwd.path().join("marker.txt"), "local-routing")?;
     let local_selection = local(local_cwd.path().abs());
     let remote_cwd = PathBuf::from(format!(
-        "/tmp/codex-remote-routing-{}",
+        "/tmp/ditfa-remote-routing-{}",
         SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis()
     ))
     .abs();
@@ -1307,7 +1307,7 @@ async fn remote_exec_materializes_target_roots_before_sandbox_selection() -> Res
     let test = unified_exec_test(&server).await?;
     let local_cwd = TempDir::new()?;
     let remote_cwd = PathBuf::from(format!(
-        "/tmp/codex-remote-target-roots-{}",
+        "/tmp/ditfa-remote-target-roots-{}",
         SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis()
     ))
     .abs();
@@ -1456,7 +1456,7 @@ async fn remote_request_permissions_grant_unblocks_later_remote_exec() -> Result
     skip_if_no_remote_env!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.use_experimental_unified_exec_tool = true;
         config.permissions.approval_policy = Constrained::allow_any(AskForApproval::OnRequest);
         config.approvals_reviewer = ApprovalsReviewer::User;
@@ -1477,7 +1477,7 @@ async fn remote_request_permissions_grant_unblocks_later_remote_exec() -> Result
 
     let local_cwd = TempDir::new()?;
     let remote_cwd = PathBuf::from(format!(
-        "/tmp/codex-remote-request-permissions-{}",
+        "/tmp/ditfa-remote-request-permissions-{}",
         SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis()
     ))
     .abs();
@@ -1662,12 +1662,12 @@ async fn apply_patch_freeform_routes_to_selected_remote_environment() -> Result<
     skip_if_no_remote_env!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build_with_remote_and_local_env(&server).await?;
     let local_cwd = TempDir::new()?;
     let file_name = "apply_patch_remote_freeform.txt";
     let remote_cwd = PathBuf::from(format!(
-        "/tmp/codex-remote-apply-patch-freeform-{}",
+        "/tmp/ditfa-remote-apply-patch-freeform-{}",
         SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis()
     ))
     .abs();
@@ -1749,14 +1749,14 @@ async fn apply_patch_approvals_are_remembered_per_environment() -> Result<()> {
     skip_if_no_remote_env!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.permissions.approval_policy = Constrained::allow_any(AskForApproval::OnRequest);
         config.approvals_reviewer = ApprovalsReviewer::User;
     });
     let test = builder.build_with_remote_and_local_env(&server).await?;
     let local_cwd = TempDir::new()?;
     let remote_cwd = PathBuf::from(format!(
-        "/tmp/codex-remote-apply-patch-approval-cwd-{}",
+        "/tmp/ditfa-remote-apply-patch-approval-cwd-{}",
         SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis()
     ))
     .abs();
@@ -1770,7 +1770,7 @@ async fn apply_patch_approvals_are_remembered_per_environment() -> Result<()> {
         .await?;
 
     let target_path = PathBuf::from(format!(
-        "/tmp/codex-apply-patch-approval-scope-{}.txt",
+        "/tmp/ditfa-apply-patch-approval-scope-{}.txt",
         SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis()
     ))
     .abs();
@@ -1943,7 +1943,7 @@ async fn apply_patch_intercepted_exec_command_routes_to_selected_remote_environm
     let local_cwd = TempDir::new()?;
     let file_name = "apply_patch_remote_exec.txt";
     let remote_cwd = PathBuf::from(format!(
-        "/tmp/codex-remote-apply-patch-exec-{}",
+        "/tmp/ditfa-remote-apply-patch-exec-{}",
         SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis()
     ))
     .abs();
@@ -2037,7 +2037,7 @@ async fn remote_test_env_sandboxed_read_allows_readable_root() -> Result<()> {
     let test_env = test_env().await?;
     let file_system = test_env.environment().get_filesystem();
 
-    let allowed_dir = PathBuf::from(format!("/tmp/codex-remote-readable-{}", std::process::id()));
+    let allowed_dir = PathBuf::from(format!("/tmp/ditfa-remote-readable-{}", std::process::id()));
     let file_path = allowed_dir.join("note.txt");
     let allowed_dir_uri = PathUri::from_host_native_path(&allowed_dir)?;
     let file_path_uri = PathUri::from_host_native_path(&file_path)?;
@@ -2085,7 +2085,7 @@ async fn remote_test_env_sandboxed_read_rejects_symlink_parent_dotdot_escape() -
     let test_env = test_env().await?;
     let file_system = test_env.environment().get_filesystem();
 
-    let root = PathBuf::from(format!("/tmp/codex-remote-dotdot-{}", std::process::id()));
+    let root = PathBuf::from(format!("/tmp/ditfa-remote-dotdot-{}", std::process::id()));
     let allowed_dir = root.join("allowed");
     let outside_dir = root.join("outside");
     let secret_path = root.join("secret.txt");
@@ -2120,7 +2120,7 @@ async fn remote_test_env_remove_removes_symlink_not_target() -> Result<()> {
     let file_system = test_env.environment().get_filesystem();
 
     let root = PathBuf::from(format!(
-        "/tmp/codex-remote-remove-link-{}",
+        "/tmp/ditfa-remote-remove-link-{}",
         std::process::id()
     ));
     let allowed_dir = root.join("allowed");
@@ -2192,7 +2192,7 @@ async fn remote_test_env_copy_preserves_symlink_source() -> Result<()> {
     let file_system = test_env.environment().get_filesystem();
 
     let root = PathBuf::from(format!(
-        "/tmp/codex-remote-copy-link-{}",
+        "/tmp/ditfa-remote-copy-link-{}",
         std::process::id()
     ));
     let allowed_dir = root.join("allowed");

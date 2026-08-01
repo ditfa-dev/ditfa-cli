@@ -17,7 +17,7 @@ use std::collections::BTreeMap;
 // Ensures SessionTelemetry attaches metadata tags when forwarding metrics.
 #[test]
 fn manager_attaches_metadata_tags_to_metrics() -> Result<()> {
-    let (metrics, exporter) = build_metrics_with_defaults(&[("service", "codex-cli")])?;
+    let (metrics, exporter) = build_metrics_with_defaults(&[("service", "ditfa-cli")])?;
     let manager = SessionTelemetry::new(
         ThreadId::new(),
         "gpt-5.1",
@@ -33,7 +33,7 @@ fn manager_attaches_metadata_tags_to_metrics() -> Result<()> {
     .with_metrics(metrics);
 
     manager.counter(
-        "codex.session_started",
+        "ditfa.session_started",
         /*inc*/ 1,
         &[("source", "tui")],
     );
@@ -41,7 +41,7 @@ fn manager_attaches_metadata_tags_to_metrics() -> Result<()> {
 
     let resource_metrics = latest_metrics(&exporter);
     let metric =
-        find_metric(&resource_metrics, "codex.session_started").expect("counter metric missing");
+        find_metric(&resource_metrics, "ditfa.session_started").expect("counter metric missing");
     let attrs = match metric.data() {
         AggregatedMetrics::U64(data) => match data {
             MetricData::Sum(sum) => {
@@ -65,7 +65,7 @@ fn manager_attaches_metadata_tags_to_metrics() -> Result<()> {
         ),
         ("model".to_string(), "gpt-5.1".to_string()),
         ("originator".to_string(), "test_originator".to_string()),
-        ("service".to_string(), "codex-cli".to_string()),
+        ("service".to_string(), "ditfa-cli".to_string()),
         ("session_source".to_string(), "cli".to_string()),
         ("source".to_string(), "tui".to_string()),
     ]);
@@ -93,7 +93,7 @@ fn manager_allows_disabling_metadata_tags() -> Result<()> {
     .with_metrics_without_metadata_tags(metrics);
 
     manager.counter(
-        "codex.session_started",
+        "ditfa.session_started",
         /*inc*/ 1,
         &[("source", "tui")],
     );
@@ -101,7 +101,7 @@ fn manager_allows_disabling_metadata_tags() -> Result<()> {
 
     let resource_metrics = latest_metrics(&exporter);
     let metric =
-        find_metric(&resource_metrics, "codex.session_started").expect("counter metric missing");
+        find_metric(&resource_metrics, "ditfa.session_started").expect("counter metric missing");
     let attrs = match metric.data() {
         AggregatedMetrics::U64(data) => match data {
             MetricData::Sum(sum) => {
@@ -138,12 +138,12 @@ fn manager_attaches_optional_service_name_tag() -> Result<()> {
     .with_metrics_service_name("my_app_server_client")
     .with_metrics(metrics);
 
-    manager.counter("codex.session_started", /*inc*/ 1, &[]);
+    manager.counter("ditfa.session_started", /*inc*/ 1, &[]);
     manager.shutdown_metrics()?;
 
     let resource_metrics = latest_metrics(&exporter);
     let metric =
-        find_metric(&resource_metrics, "codex.session_started").expect("counter metric missing");
+        find_metric(&resource_metrics, "ditfa.session_started").expect("counter metric missing");
     let attrs = match metric.data() {
         AggregatedMetrics::U64(data) => match data {
             MetricData::Sum(sum) => {

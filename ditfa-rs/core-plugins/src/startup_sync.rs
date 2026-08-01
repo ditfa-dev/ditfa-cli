@@ -28,7 +28,7 @@ const CURATED_PLUGINS_BACKUP_ARCHIVE_API_URL: &str =
 const OPENAI_PLUGINS_OWNER: &str = "openai";
 const OPENAI_PLUGINS_REPO: &str = "plugins";
 const OPENAI_PLUGINS_GIT_URL: &str = "https://github.com/openai/plugins.git";
-const CURATED_PLUGINS_FETCH_REF: &str = "refs/codex/curated-sync";
+const CURATED_PLUGINS_FETCH_REF: &str = "refs/ditfa/curated-sync";
 const CURATED_PLUGINS_RELATIVE_DIR: &str = ".tmp/plugins";
 const CURATED_PLUGINS_SHA_FILE: &str = ".tmp/plugins.sha";
 const CURATED_PLUGINS_SYNC_LOCK_FILE: &str = ".tmp/plugins.sync.lock";
@@ -36,7 +36,7 @@ const CURATED_PLUGINS_BACKUP_ARCHIVE_FALLBACK_VERSION: &str = "export-backup";
 const CURATED_PLUGINS_GIT_TIMEOUT: Duration = Duration::from_secs(30);
 const CURATED_PLUGINS_HTTP_TIMEOUT: Duration = Duration::from_secs(30);
 const CURATED_PLUGINS_BACKUP_ARCHIVE_TIMEOUT: Duration = Duration::from_secs(30);
-// Keep this comfortably above a normal sync attempt so we do not race another Codex process.
+// Keep this comfortably above a normal sync attempt so we do not race another Ditfa process.
 const CURATED_PLUGINS_STALE_TEMP_DIR_MAX_AGE: Duration = Duration::from_secs(10 * 60);
 // These variables can redirect Git away from the repository selected by `-C`,
 // or inject command-scoped configuration into the sync commands.

@@ -83,7 +83,7 @@ pub async fn run_command_under_seatbelt(
 #[cfg(not(target_os = "macos"))]
 pub async fn run_command_under_seatbelt(
     _command: SeatbeltCommand,
-    _codex_linux_sandbox_exe: Option<PathBuf>,
+    _ditfa_linux_sandbox_exe: Option<PathBuf>,
     _loader_overrides: LoaderOverrides,
 ) -> anyhow::Result<()> {
     anyhow::bail!("Seatbelt sandbox is only available on macOS");
@@ -409,7 +409,7 @@ async fn run_command_under_sandbox(
             #[expect(clippy::expect_used)]
             let ditfa_linux_sandbox_exe = config
                 .ditfa_linux_sandbox_exe
-                .expect("codex-linux-sandbox executable not found");
+                .expect("ditfa-linux-sandbox executable not found");
             let network_sandbox_policy = runtime_permission_profile.network_sandbox_policy();
             let args = create_linux_sandbox_command_args_for_permission_profile(
                 command,
@@ -422,7 +422,7 @@ async fn run_command_under_sandbox(
             spawn_debug_sandbox_child(
                 ditfa_linux_sandbox_exe,
                 args,
-                Some("codex-linux-sandbox"),
+                Some("ditfa-linux-sandbox"),
                 cwd.to_path_buf(),
                 network_sandbox_policy,
                 env,
@@ -550,7 +550,7 @@ async fn load_debug_sandbox_config(
     options: DebugSandboxConfigOptions,
     strict_config: bool,
 ) -> anyhow::Result<Config> {
-    load_debug_sandbox_config_with_codex_home(
+    load_debug_sandbox_config_with_ditfa_home(
         cli_overrides,
         ditfa_linux_sandbox_exe,
         options,
@@ -560,7 +560,7 @@ async fn load_debug_sandbox_config(
     .await
 }
 
-async fn load_debug_sandbox_config_with_codex_home(
+async fn load_debug_sandbox_config_with_ditfa_home(
     cli_overrides: Vec<(String, TomlValue)>,
     ditfa_linux_sandbox_exe: Option<PathBuf>,
     options: DebugSandboxConfigOptions,
@@ -583,7 +583,7 @@ async fn load_debug_sandbox_config_with_codex_home(
         ));
     }
 
-    // For legacy configs, `codex sandbox` historically defaulted to read-only
+    // For legacy configs, `ditfa sandbox` historically defaulted to read-only
     // instead of inheriting ambient `sandbox_mode` settings from user/system
     // config. Keep that behavior unless this invocation explicitly passes a
     // legacy `sandbox_mode` CLI override for compatibility with older callers.
@@ -750,7 +750,7 @@ mod tests {
         )
         .await?;
 
-        let config = load_debug_sandbox_config_with_codex_home(
+        let config = load_debug_sandbox_config_with_ditfa_home(
             Vec::new(),
             /*ditfa_linux_sandbox_exe*/ None,
             DebugSandboxConfigOptions {
@@ -819,7 +819,7 @@ mod tests {
         )
         .await?;
 
-        let config = load_debug_sandbox_config_with_codex_home(
+        let config = load_debug_sandbox_config_with_ditfa_home(
             Vec::new(),
             /*ditfa_linux_sandbox_exe*/ None,
             DebugSandboxConfigOptions {
@@ -877,7 +877,7 @@ mod tests {
         )
         .await?;
 
-        let config = load_debug_sandbox_config_with_codex_home(
+        let config = load_debug_sandbox_config_with_ditfa_home(
             cli_overrides,
             /*ditfa_linux_sandbox_exe*/ None,
             DebugSandboxConfigOptions {
@@ -936,7 +936,7 @@ mod tests {
         )
         .await?;
 
-        let config = load_debug_sandbox_config_with_codex_home(
+        let config = load_debug_sandbox_config_with_ditfa_home(
             Vec::new(),
             /*ditfa_linux_sandbox_exe*/ None,
             DebugSandboxConfigOptions {
@@ -964,7 +964,7 @@ mod tests {
     async fn debug_sandbox_honors_explicit_builtin_permission_profile() -> anyhow::Result<()> {
         let ditfa_home = TempDir::new()?;
 
-        let config = load_debug_sandbox_config_with_codex_home(
+        let config = load_debug_sandbox_config_with_ditfa_home(
             Vec::new(),
             /*ditfa_linux_sandbox_exe*/ None,
             DebugSandboxConfigOptions {
@@ -1004,7 +1004,7 @@ mod tests {
         let private = docs.join("private");
         write_permissions_profile_config(&ditfa_home, &docs, &private)?;
 
-        let config = load_debug_sandbox_config_with_codex_home(
+        let config = load_debug_sandbox_config_with_ditfa_home(
             Vec::new(),
             /*ditfa_linux_sandbox_exe*/ None,
             DebugSandboxConfigOptions {
@@ -1044,7 +1044,7 @@ mod tests {
         let ditfa_home = TempDir::new()?;
         let cwd = TempDir::new()?;
 
-        let config = load_debug_sandbox_config_with_codex_home(
+        let config = load_debug_sandbox_config_with_ditfa_home(
             Vec::new(),
             /*ditfa_linux_sandbox_exe*/ None,
             DebugSandboxConfigOptions {

@@ -6,7 +6,7 @@ use crate::elicitation::ElicitationRequestRouter;
 use crate::elicitation::elicitation_is_rejected_by_policy;
 use crate::rmcp_client::AsyncManagedClient;
 use crate::rmcp_client::DITFA_APPS_RECONNECT_INITIAL_BACKOFF;
-use crate::rmcp_client::CodexAppsStartupReconnect;
+use crate::rmcp_client::DitfaAppsStartupReconnect;
 use crate::rmcp_client::ManagedClient;
 use crate::rmcp_client::ManagedClientFuture;
 use crate::rmcp_client::StartupOutcomeError;
@@ -32,7 +32,7 @@ use ditfa_connectors::ConnectorRuntimeContextKey;
 use ditfa_connectors::ConnectorRuntimeFetchSource;
 use ditfa_connectors::ConnectorRuntimeManager;
 use ditfa_exec_server::EnvironmentManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_protocol::ToolName;
 use ditfa_protocol::mcp::McpServerInfo;
 use ditfa_protocol::models::PermissionProfile;
@@ -166,7 +166,7 @@ fn create_test_tool(server_name: &str, tool_name: &str) -> ToolInfo {
     }
 }
 
-fn create_codex_apps_tools_cache_context(
+fn create_ditfa_apps_tools_cache_context(
     ditfa_home: PathBuf,
     account_id: Option<&str>,
     chatgpt_user_id: Option<&str>,
@@ -183,7 +183,7 @@ fn create_codex_apps_tools_cache_context(
 fn store_current_tools(cache_context: &ConnectorRuntimeContext<ToolInfo>, tools: Vec<ToolInfo>) {
     let _ = cache_context.publish_if_newest_accepted(
         cache_context.begin_fetch(ConnectorRuntimeFetchSource::HardRefresh),
-        &create_test_server_info("Codex Apps"),
+        &create_test_server_info("Ditfa Apps"),
         tools,
     );
 }
@@ -199,7 +199,7 @@ async fn capture_binding(manager: &Arc<McpConnectionSet>) -> McpBinding {
 
 fn create_test_server_info(title: &str) -> McpServerInfo {
     McpServerInfo {
-        name: "codex-apps".to_string(),
+        name: "ditfa-apps".to_string(),
         title: Some(title.to_string()),
         version: "1.0.0".to_string(),
         description: None,
@@ -372,7 +372,7 @@ async fn create_ready_async_managed_client(tools: Vec<ToolInfo>) -> AsyncManaged
         ))
         .boxed()
         .shared(),
-        is_codex_apps_mcp_server: false,
+        is_ditfa_apps_mcp_server: false,
         cached_server_info: None,
         ditfa_apps_tools_cache_context: None,
         tool_catalog_cache_context: None,
@@ -401,7 +401,7 @@ async fn create_test_manager_with_ready_apps_client(
         .initialize(
             InitializeRequestParams::new(
                 ClientCapabilities::default(),
-                Implementation::new("codex-test", "0.0.0-test"),
+                Implementation::new("ditfa-test", "0.0.0-test"),
             )
             .with_protocol_version(ProtocolVersion::V_2025_06_18),
             Some(Duration::from_secs(5)),
@@ -411,7 +411,7 @@ async fn create_test_manager_with_ready_apps_client(
 
     let managed_client = ManagedClient {
         client,
-        server_info: create_test_server_info("Codex Apps"),
+        server_info: create_test_server_info("Ditfa Apps"),
         tools: vec![tool],
         tool_timeout: Some(Duration::from_secs(5)),
         server_instructions: None,
@@ -433,8 +433,8 @@ async fn create_test_manager_with_ready_apps_client(
             ))
             .boxed()
             .shared(),
-            is_codex_apps_mcp_server: true,
-            cached_server_info: Some(create_test_server_info("Codex Apps")),
+            is_ditfa_apps_mcp_server: true,
+            cached_server_info: Some(create_test_server_info("Ditfa Apps")),
             ditfa_apps_tools_cache_context: Some(cache_context),
             tool_catalog_cache_context: None,
             startup_complete: Arc::new(std::sync::atomic::AtomicBool::new(true)),
@@ -467,7 +467,7 @@ fn create_test_manager_with_failed_apps_startup(
     .boxed()
     .shared();
     let ditfa_home = tempdir().expect("tempdir");
-    let cache_context = create_codex_apps_tools_cache_context(
+    let cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("reconnect-test-account"),
         Some("reconnect-test-user"),
@@ -484,12 +484,12 @@ fn create_test_manager_with_failed_apps_startup(
         DITFA_APPS_MCP_SERVER_NAME.to_string(),
         AsyncManagedClient {
             client,
-            is_codex_apps_mcp_server: true,
+            is_ditfa_apps_mcp_server: true,
             cached_server_info: None,
             ditfa_apps_tools_cache_context: Some(cache_context),
             tool_catalog_cache_context: None,
             startup_complete: Arc::new(std::sync::atomic::AtomicBool::new(true)),
-            startup_reconnect: Some(Arc::new(CodexAppsStartupReconnect::new(reconnect_factory))),
+            startup_reconnect: Some(Arc::new(DitfaAppsStartupReconnect::new(reconnect_factory))),
             cancel_token: CancellationToken::new(),
         },
     );
@@ -750,7 +750,7 @@ async fn shared_elicitation_router_targets_the_exact_pending_request() {
         ditfa_protocol::mcp::RequestId::String(request_b_id),
     ) = (request_a.id, request_b.id)
     else {
-        panic!("expected Codex-owned string request IDs");
+        panic!("expected Ditfa-owned string request IDs");
     };
     assert_ne!(request_a_id, request_b_id);
 
@@ -1043,16 +1043,16 @@ fn filter_tools_applies_per_server_filters() {
 
 #[test]
 fn ditfa_apps_env_bearer_token_bypasses_shared_tools_cache() {
-    assert!(!should_share_codex_apps_tools_cache(
+    assert!(!should_share_ditfa_apps_tools_cache(
         DITFA_APPS_MCP_SERVER_NAME,
         /*uses_env_bearer_token*/ true,
     ));
 }
 
 #[tokio::test]
-async fn list_all_tools_uses_shared_codex_apps_cache_while_client_is_pending() {
+async fn list_all_tools_uses_shared_ditfa_apps_cache_while_client_is_pending() {
     let ditfa_home = tempdir().expect("tempdir");
-    let cache_context = create_codex_apps_tools_cache_context(
+    let cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -1078,7 +1078,7 @@ async fn list_all_tools_uses_shared_codex_apps_cache_while_client_is_pending() {
         DITFA_APPS_MCP_SERVER_NAME.to_string(),
         AsyncManagedClient {
             client: pending_client,
-            is_codex_apps_mcp_server: true,
+            is_ditfa_apps_mcp_server: true,
             cached_server_info: None,
             ditfa_apps_tools_cache_context: Some(cache_context),
             tool_catalog_cache_context: None,
@@ -1093,7 +1093,7 @@ async fn list_all_tools_uses_shared_codex_apps_cache_while_client_is_pending() {
         .iter()
         .find(|tool| {
             tool.canonical_tool_name()
-                == ToolName::namespaced("mcp__codex_apps", "calendar_create_event")
+                == ToolName::namespaced("mcp__ditfa_apps", "calendar_create_event")
         })
         .expect("tool from shared cache");
     assert_eq!(tool.server_name, DITFA_APPS_MCP_SERVER_NAME);
@@ -1103,7 +1103,7 @@ async fn list_all_tools_uses_shared_codex_apps_cache_while_client_is_pending() {
 #[tokio::test]
 async fn capture_binding_uses_the_ready_clients_own_tools() {
     let ditfa_home = tempdir().expect("tempdir");
-    let cache_context = create_codex_apps_tools_cache_context(
+    let cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -1136,7 +1136,7 @@ async fn capture_binding_uses_the_ready_clients_own_tools() {
         DITFA_APPS_MCP_SERVER_NAME.to_string(),
         AsyncManagedClient {
             client: futures::future::ready(Ok(ready_client)).boxed().shared(),
-            is_codex_apps_mcp_server: true,
+            is_ditfa_apps_mcp_server: true,
             cached_server_info: None,
             ditfa_apps_tools_cache_context: Some(cache_context),
             tool_catalog_cache_context: None,
@@ -1225,11 +1225,11 @@ async fn hard_refresh_keeps_binding_override_local_when_shared_cache_loses_race(
     let manager_a_for_refresh = Arc::clone(&manager_a);
     let refresh_a = tokio::spawn(async move {
         manager_a_for_refresh
-            .hard_refresh_codex_apps_tools_cache()
+            .hard_refresh_ditfa_apps_tools_cache()
             .await
     });
     list_started.notified().await;
-    let tools_b = manager_b.hard_refresh_codex_apps_tools_cache().await?;
+    let tools_b = manager_b.hard_refresh_ditfa_apps_tools_cache().await?;
     release_list.notify_one();
     let tools_a = refresh_a.await??;
 
@@ -1390,12 +1390,12 @@ async fn list_available_server_infos_uses_cache_while_client_is_pending() {
         &permission_profile,
         /*prefix_mcp_tool_names*/ true,
     );
-    let server_info = create_test_server_info("Codex Apps");
+    let server_info = create_test_server_info("Ditfa Apps");
     manager.insert_test_client(
         DITFA_APPS_MCP_SERVER_NAME.to_string(),
         AsyncManagedClient {
             client: pending_client,
-            is_codex_apps_mcp_server: true,
+            is_ditfa_apps_mcp_server: true,
             cached_server_info: Some(server_info.clone()),
             ditfa_apps_tools_cache_context: None,
             tool_catalog_cache_context: None,
@@ -1451,7 +1451,7 @@ async fn list_all_tools_accepts_canonical_namespaced_tool_names() {
 #[tokio::test]
 async fn capture_binding_waits_for_fresh_startup_even_with_cached_tools() {
     let ditfa_home = tempdir().expect("tempdir");
-    let cache_context = create_codex_apps_tools_cache_context(
+    let cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -1490,7 +1490,7 @@ async fn capture_binding_waits_for_fresh_startup_even_with_cached_tools() {
         DITFA_APPS_MCP_SERVER_NAME.to_string(),
         AsyncManagedClient {
             client: pending_client,
-            is_codex_apps_mcp_server: true,
+            is_ditfa_apps_mcp_server: true,
             cached_server_info: None,
             ditfa_apps_tools_cache_context: Some(cache_context),
             tool_catalog_cache_context: None,
@@ -1575,7 +1575,7 @@ async fn list_all_tools_blocks_while_client_is_pending_without_cached_tools() {
         DITFA_APPS_MCP_SERVER_NAME.to_string(),
         AsyncManagedClient {
             client: pending_client,
-            is_codex_apps_mcp_server: true,
+            is_ditfa_apps_mcp_server: true,
             cached_server_info: None,
             ditfa_apps_tools_cache_context: None,
             tool_catalog_cache_context: None,
@@ -1629,7 +1629,7 @@ async fn shutdown_cancels_pending_tool_listing() {
         DITFA_APPS_MCP_SERVER_NAME.to_string(),
         AsyncManagedClient {
             client: pending_client,
-            is_codex_apps_mcp_server: true,
+            is_ditfa_apps_mcp_server: true,
             cached_server_info: None,
             ditfa_apps_tools_cache_context: None,
             tool_catalog_cache_context: None,
@@ -1675,7 +1675,7 @@ async fn shutdown_continues_after_caller_is_aborted() {
         DITFA_APPS_MCP_SERVER_NAME.to_string(),
         AsyncManagedClient {
             client: blocking_client,
-            is_codex_apps_mcp_server: true,
+            is_ditfa_apps_mcp_server: true,
             cached_server_info: None,
             ditfa_apps_tools_cache_context: None,
             tool_catalog_cache_context: None,
@@ -1705,9 +1705,9 @@ async fn shutdown_continues_after_caller_is_aborted() {
 }
 
 #[tokio::test]
-async fn list_all_tools_does_not_block_when_shared_codex_apps_cache_is_empty() {
+async fn list_all_tools_does_not_block_when_shared_ditfa_apps_cache_is_empty() {
     let ditfa_home = tempdir().expect("tempdir");
-    let cache_context = create_codex_apps_tools_cache_context(
+    let cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -1727,7 +1727,7 @@ async fn list_all_tools_does_not_block_when_shared_codex_apps_cache_is_empty() {
         DITFA_APPS_MCP_SERVER_NAME.to_string(),
         AsyncManagedClient {
             client: pending_client,
-            is_codex_apps_mcp_server: true,
+            is_ditfa_apps_mcp_server: true,
             cached_server_info: None,
             ditfa_apps_tools_cache_context: Some(cache_context),
             tool_catalog_cache_context: None,
@@ -1744,9 +1744,9 @@ async fn list_all_tools_does_not_block_when_shared_codex_apps_cache_is_empty() {
 }
 
 #[tokio::test]
-async fn list_all_tools_uses_shared_codex_apps_cache_when_client_startup_fails() {
+async fn list_all_tools_uses_shared_ditfa_apps_cache_when_client_startup_fails() {
     let ditfa_home = tempdir().expect("tempdir");
-    let cache_context = create_codex_apps_tools_cache_context(
+    let cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -1758,7 +1758,7 @@ async fn list_all_tools_uses_shared_codex_apps_cache_when_client_startup_fails()
             "calendar_create_event",
         )],
     );
-    let server_info = create_test_server_info("Codex Apps");
+    let server_info = create_test_server_info("Ditfa Apps");
     let failed_client = futures::future::ready::<Result<ManagedClient, StartupOutcomeError>>(Err(
         StartupOutcomeError::Failed {
             error: "startup failed".to_string(),
@@ -1779,7 +1779,7 @@ async fn list_all_tools_uses_shared_codex_apps_cache_when_client_startup_fails()
         DITFA_APPS_MCP_SERVER_NAME.to_string(),
         AsyncManagedClient {
             client: failed_client,
-            is_codex_apps_mcp_server: true,
+            is_ditfa_apps_mcp_server: true,
             cached_server_info: Some(server_info.clone()),
             ditfa_apps_tools_cache_context: Some(cache_context),
             tool_catalog_cache_context: None,
@@ -1794,7 +1794,7 @@ async fn list_all_tools_uses_shared_codex_apps_cache_when_client_startup_fails()
         .iter()
         .find(|tool| {
             tool.canonical_tool_name()
-                == ToolName::namespaced("mcp__codex_apps", "calendar_create_event")
+                == ToolName::namespaced("mcp__ditfa_apps", "calendar_create_event")
         })
         .expect("tool from shared cache");
     assert_eq!(tool.server_name, DITFA_APPS_MCP_SERVER_NAME);
@@ -1809,7 +1809,7 @@ async fn list_all_tools_uses_shared_codex_apps_cache_when_client_startup_fails()
 }
 
 #[tokio::test]
-async fn list_all_tools_reconnects_failed_codex_apps_startup_and_reuses_client() {
+async fn list_all_tools_reconnects_failed_ditfa_apps_startup_and_reuses_client() {
     let recovered_client = create_test_managed_client(vec![create_test_tool(
         DITFA_APPS_MCP_SERVER_NAME,
         "drive_search",
@@ -1990,7 +1990,7 @@ async fn later_tool_list_retries_after_failed_reconnect_and_keeps_cached_tools()
 }
 
 #[tokio::test]
-async fn tool_lists_do_not_block_and_share_codex_apps_startup_reconnect() {
+async fn tool_lists_do_not_block_and_share_ditfa_apps_startup_reconnect() {
     let recovered_client = create_test_managed_client(vec![create_test_tool(
         DITFA_APPS_MCP_SERVER_NAME,
         "drive_search",
@@ -2342,7 +2342,7 @@ fn mcp_init_error_display_prompts_for_login_when_auth_required() {
     let display = mcp_init_error_display(server_name, /*config*/ None, &err);
 
     let expected = format!(
-        "The {server_name} MCP server is not logged in. Run `codex mcp login {server_name}`."
+        "The {server_name} MCP server is not logged in. Run `ditfa mcp login {server_name}`."
     );
 
     assert_eq!(expected, display);
@@ -2583,7 +2583,7 @@ async fn reconciliation_reuses_connection_without_relisting_regular_tools() -> a
         .initialize(
             InitializeRequestParams::new(
                 ClientCapabilities::default(),
-                Implementation::new("codex-test", "0.0.0-test"),
+                Implementation::new("ditfa-test", "0.0.0-test"),
             )
             .with_protocol_version(ProtocolVersion::V_2025_06_18),
             /*timeout*/ None,
@@ -2601,7 +2601,7 @@ async fn reconciliation_reuses_connection_without_relisting_regular_tools() -> a
         .await?;
     let initial_tools = list_tools_for_client_uncached(
         "docs",
-        /*is_codex_apps_mcp_server*/ false,
+        /*is_ditfa_apps_mcp_server*/ false,
         /*ditfa_apps_refresh_trigger*/ "test",
         &client,
         /*timeout*/ None,
@@ -2634,7 +2634,7 @@ async fn reconciliation_reuses_connection_without_relisting_regular_tools() -> a
                 identity: Some(reusable_server_identity(&config, &runtime_context)),
                 client: AsyncManagedClient {
                     client: futures::future::ready(Ok(managed_client)).boxed().shared(),
-                    is_codex_apps_mcp_server: false,
+                    is_ditfa_apps_mcp_server: false,
                     cached_server_info: None,
                     ditfa_apps_tools_cache_context: None,
                     tool_catalog_cache_context: None,
@@ -2785,7 +2785,7 @@ async fn reconciliation_replaces_closed_connections() -> anyhow::Result<()> {
         .initialize(
             InitializeRequestParams::new(
                 ClientCapabilities::default(),
-                Implementation::new("codex-test", "0.0.0-test"),
+                Implementation::new("ditfa-test", "0.0.0-test"),
             )
             .with_protocol_version(ProtocolVersion::V_2025_06_18),
             /*timeout*/ None,
@@ -2804,7 +2804,7 @@ async fn reconciliation_replaces_closed_connections() -> anyhow::Result<()> {
             client: futures::future::ready(Ok(connected_client))
                 .boxed()
                 .shared(),
-            is_codex_apps_mcp_server: false,
+            is_ditfa_apps_mcp_server: false,
             cached_server_info: None,
             ditfa_apps_tools_cache_context: None,
             tool_catalog_cache_context: None,
@@ -2857,17 +2857,17 @@ async fn connection_identity_distinguishes_accounts_with_the_same_token() -> any
     let config = reusable_server_config("http://127.0.0.1:1");
     let server = EffectiveMcpServer::configured(config);
     let access_token = "header.e30.same";
-    let previous_auth = CodexAuth::from_external_chatgpt_tokens(
+    let previous_auth = DitfaAuth::from_external_chatgpt_tokens(
         access_token,
         "account-a",
         /*chatgpt_plan_type*/ None,
     )?;
-    let changed_auth = CodexAuth::from_external_chatgpt_tokens(
+    let changed_auth = DitfaAuth::from_external_chatgpt_tokens(
         access_token,
         "account-b",
         /*chatgpt_plan_type*/ None,
     )?;
-    let connection_identity = |auth: &CodexAuth| {
+    let connection_identity = |auth: &DitfaAuth| {
         let provider = ditfa_model_provider::auth_provider_from_auth(auth);
         McpServerConnectionIdentity::new(
             "docs",
@@ -2910,7 +2910,7 @@ async fn connection_identity_distinguishes_agent_account_runtime_and_task() -> a
         task_id: Some("task-a".to_string()),
     };
     let auth_route_config = ditfa_login::test_support::transport_default_auth_route_config();
-    let previous_auth = CodexAuth::AgentIdentity(
+    let previous_auth = DitfaAuth::AgentIdentity(
         ditfa_login::auth::AgentIdentityAuth::from_record(
             record.clone(),
             "http://localhost:3000/auth/api/accounts",
@@ -2918,7 +2918,7 @@ async fn connection_identity_distinguishes_agent_account_runtime_and_task() -> a
         )
         .await?,
     );
-    let connection_identity = |auth: &CodexAuth| {
+    let connection_identity = |auth: &DitfaAuth| {
         let provider = ditfa_model_provider::auth_provider_from_auth(auth);
         McpServerConnectionIdentity::new(
             DITFA_APPS_MCP_SERVER_NAME,
@@ -2958,7 +2958,7 @@ async fn connection_identity_distinguishes_agent_account_runtime_and_task() -> a
             ..record.clone()
         },
     ] {
-        let changed_auth = CodexAuth::AgentIdentity(
+        let changed_auth = DitfaAuth::AgentIdentity(
             ditfa_login::auth::AgentIdentityAuth::from_record(
                 changed_record,
                 "http://localhost:3000/auth/api/accounts",

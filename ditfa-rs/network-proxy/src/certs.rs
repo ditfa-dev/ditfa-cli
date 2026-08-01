@@ -2,7 +2,7 @@ use anyhow::Context as _;
 use anyhow::Result;
 use anyhow::anyhow;
 use base64::Engine as _;
-use ditfa_utils_home_dir::find_codex_home;
+use ditfa_utils_home_dir::find_ditfa_home;
 use rama_net::tls::ApplicationProtocol;
 use rama_tls_rustls::dep::pki_types::CertificateDer;
 use rama_tls_rustls::dep::pki_types::PrivateKeyDer;
@@ -185,7 +185,7 @@ pub(crate) struct ManagedMitmCaTrustBundle {
 
 fn managed_ca_dir() -> Result<PathBuf> {
     let ditfa_home =
-        find_codex_home().context("failed to resolve DITFA_HOME for managed MITM CA")?;
+        find_ditfa_home().context("failed to resolve DITFA_HOME for managed MITM CA")?;
     Ok(ditfa_home.join(MANAGED_MITM_CA_DIR).to_path_buf())
 }
 
@@ -454,7 +454,7 @@ fn is_generated_managed_ca_artifact_path(path: &Path, proxy_dir: &Path, prefix: 
     format!("{:x}", Sha256::digest(trust_bundle)) == expected_hash
 }
 
-/// Returns whether `path` points at a current Codex-generated MITM CA bundle.
+/// Returns whether `path` points at a current Ditfa-generated MITM CA bundle.
 pub fn is_managed_mitm_ca_trust_bundle_path(path: &str) -> bool {
     let Ok(proxy_dir) = managed_ca_dir() else {
         return false;

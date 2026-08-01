@@ -1,5 +1,5 @@
 use ditfa_extension_api::ExtensionData;
-use ditfa_protocol::protocol::CodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::TokenUsage;
 use ditfa_protocol::protocol::TurnAbortReason;
 
@@ -76,7 +76,7 @@ impl Session {
     pub(crate) async fn emit_turn_error_lifecycle(
         &self,
         turn_context: &TurnContext,
-        error: CodexErrorInfo,
+        error: DitfaErrorInfo,
     ) {
         for contributor in self.services.extensions.turn_lifecycle_contributors() {
             contributor

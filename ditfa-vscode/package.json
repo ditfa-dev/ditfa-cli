@@ -2,7 +2,7 @@
   "name": "ditfa-code",
   "displayName": "Ditfa Code",
   "description": "Multi-provider AI coding agent inside VS Code. Connect to OpenAI, Anthropic, Gemini, or local models via Ollama and LM Studio.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "ditfa",
   "license": "Apache-2.0",
   "icon": "media/icon.png",
@@ -12,13 +12,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Foshati/arlenta.git",
-    "directory": "ditfa-code/ditfa-vscode"
+    "url": "git+https://github.com/Teamtem-dev/ditfa-code.git",
+    "directory": "ditfa-vscode"
   },
   "bugs": {
-    "url": "https://github.com/Foshati/arlenta/issues"
+    "url": "https://github.com/Teamtem-dev/ditfa-code/issues"
   },
-  "categories": ["AI", "Chat", "Programming Languages", "Machine Learning"],
+  "categories": [
+    "AI",
+    "Chat",
+    "Programming Languages",
+    "Machine Learning"
+  ],
   "keywords": [
     "ai",
     "agent",
@@ -34,7 +39,9 @@
     "theme": "dark"
   },
   "main": "./dist/extension.js",
-  "activationEvents": ["onStartupFinished"],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": false,
@@ -277,7 +284,14 @@
         },
         "ditfa.reasoningEffort": {
           "type": "string",
-          "enum": ["", "minimal", "low", "medium", "high", "xhigh"],
+          "enum": [
+            "",
+            "minimal",
+            "low",
+            "medium",
+            "high",
+            "xhigh"
+          ],
           "enumDescriptions": [
             "Use the model default",
             "Minimal reasoning",
@@ -292,7 +306,11 @@
         },
         "ditfa.approvalPolicy": {
           "type": "string",
-          "enum": ["untrusted", "on-request", "never"],
+          "enum": [
+            "untrusted",
+            "on-request",
+            "never"
+          ],
           "enumDescriptions": [
             "Ask before running anything not on the trusted list",
             "Ask only when the agent requests escalation",
@@ -304,7 +322,11 @@
         },
         "ditfa.sandboxMode": {
           "type": "string",
-          "enum": ["read-only", "workspace-write", "danger-full-access"],
+          "enum": [
+            "read-only",
+            "workspace-write",
+            "danger-full-access"
+          ],
           "enumDescriptions": [
             "The agent can read files but not write or run network commands",
             "The agent can write inside the workspace",
@@ -326,14 +348,22 @@
         },
         "ditfa.logLevel": {
           "type": "string",
-          "enum": ["error", "warn", "info", "debug", "trace"],
+          "enum": [
+            "error",
+            "warn",
+            "info",
+            "debug",
+            "trace"
+          ],
           "default": "info",
           "description": "Verbosity of the Ditfa Code output channel."
         },
         "ditfa.env": {
           "type": "object",
           "default": {},
-          "additionalProperties": { "type": "string" },
+          "additionalProperties": {
+            "type": "string"
+          },
           "markdownDescription": "Extra environment variables passed to the `ditfa` process, for example `{ \"ANTHROPIC_API_KEY\": \"...\" }`. Prefer `config.toml` for secrets.",
           "scope": "machine-overridable"
         }
@@ -361,5 +391,6 @@
     "ovsx": "^0.10.1",
     "typescript": "^5.9.2",
     "vitest": "^2.1.8"
-  }
+  },
+  "homepage": "https://github.com/Teamtem-dev/ditfa-code"
 }

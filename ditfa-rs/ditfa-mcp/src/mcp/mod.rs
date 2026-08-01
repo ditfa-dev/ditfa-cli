@@ -32,7 +32,7 @@ use ditfa_config::types::OAuthCredentialsStoreMode;
 use ditfa_connectors::ConnectorRuntimeManager;
 use ditfa_connectors::ConnectorSnapshot;
 use ditfa_connectors::connector_runtime_context_key;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_model_provider::CHATGPT_DITFA_BASE_URL;
 use ditfa_protocol::mcp::McpServerInfo;
 use ditfa_protocol::mcp::Resource;
@@ -57,7 +57,7 @@ use crate::server::EffectiveMcpServer;
 use crate::tools::ToolInfo;
 
 pub const DITFA_APPS_MCP_SERVER_NAME: &str = "ditfa_apps";
-const DEFAULT_DITFA_APPS_MCP_PRODUCT_SKU: &str = "codex";
+const DEFAULT_DITFA_APPS_MCP_PRODUCT_SKU: &str = "ditfa";
 const MCP_TOOL_NAME_PREFIX: &str = "mcp";
 const MCP_TOOL_NAME_DELIMITER: &str = "__";
 const DITFA_CONNECTORS_TOKEN_ENV_VAR: &str = "DITFA_CONNECTORS_TOKEN";
@@ -143,7 +143,7 @@ pub struct McpConfig {
     pub approvals_reviewer: ApprovalsReviewer,
     /// Working directories for the exact environment handles used by this runtime.
     pub environment_cwds: HashMap<String, PathUri>,
-    /// Optional path to `codex-linux-sandbox` for sandboxed MCP tool execution.
+    /// Optional path to `ditfa-linux-sandbox` for sandboxed MCP tool execution.
     pub ditfa_linux_sandbox_exe: Option<PathBuf>,
     /// Whether to use legacy Landlock behavior in the MCP sandbox state.
     pub use_legacy_landlock: bool,
@@ -250,8 +250,8 @@ impl ToolPluginProvenance {
     }
 }
 
-pub fn host_owned_codex_apps_enabled(config: &McpConfig, auth: Option<&CodexAuth>) -> bool {
-    config.apps_enabled && auth.is_some_and(CodexAuth::uses_codex_backend)
+pub fn host_owned_ditfa_apps_enabled(config: &McpConfig, auth: Option<&DitfaAuth>) -> bool {
+    config.apps_enabled && auth.is_some_and(DitfaAuth::uses_ditfa_backend)
 }
 
 pub fn configured_mcp_servers(config: &McpConfig) -> HashMap<String, McpServerConfig> {
@@ -260,7 +260,7 @@ pub fn configured_mcp_servers(config: &McpConfig) -> HashMap<String, McpServerCo
 
 pub fn effective_mcp_servers(
     config: &McpConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
 ) -> HashMap<String, EffectiveMcpServer> {
     effective_mcp_servers_from_configured(configured_mcp_servers(config), config, auth)
 }
@@ -272,7 +272,7 @@ pub fn effective_mcp_servers(
 pub fn effective_mcp_servers_from_configured(
     configured_servers: HashMap<String, McpServerConfig>,
     config: &McpConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
 ) -> HashMap<String, EffectiveMcpServer> {
     let chatgpt_origin = url::Url::parse(CHATGPT_DITFA_BASE_URL)
         .ok()
@@ -300,7 +300,7 @@ pub fn effective_mcp_servers_from_configured(
             (name, EffectiveMcpServer::configured(server))
         })
         .collect::<HashMap<_, _>>();
-    if !host_owned_codex_apps_enabled(config, auth) {
+    if !host_owned_ditfa_apps_enabled(config, auth) {
         servers.remove(DITFA_APPS_MCP_SERVER_NAME);
     }
     servers
@@ -312,7 +312,7 @@ pub fn tool_plugin_provenance(config: &McpConfig) -> ToolPluginProvenance {
 
 pub async fn read_mcp_resource(
     config: &McpConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     runtime_context: McpRuntimeContext,
     ditfa_apps_tools_cache: ConnectorRuntimeManager<ToolInfo>,
     tool_catalog_cache: crate::McpToolCatalogCache,
@@ -368,7 +368,7 @@ pub struct McpServerStatusSnapshot {
 
 pub async fn collect_mcp_server_status_snapshot_with_detail(
     config: &McpConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     submit_id: String,
     runtime_context: McpRuntimeContext,
     ditfa_apps_tools_cache: ConnectorRuntimeManager<ToolInfo>,
@@ -468,7 +468,7 @@ fn ditfa_apps_mcp_bearer_token_env_var() -> Option<String> {
     }
 }
 
-fn normalize_codex_apps_base_url(base_url: &str) -> String {
+fn normalize_ditfa_apps_base_url(base_url: &str) -> String {
     let mut base_url = base_url.trim_end_matches('/').to_string();
     if (base_url.starts_with("http://localhost:3000")
         || base_url.starts_with("https://chat.openai.com"))
@@ -480,7 +480,7 @@ fn normalize_codex_apps_base_url(base_url: &str) -> String {
 }
 
 fn ditfa_apps_mcp_url_for_base_url(base_url: &str) -> String {
-    let base_url = normalize_codex_apps_base_url(base_url);
+    let base_url = normalize_ditfa_apps_base_url(base_url);
     let base_url = if base_url.contains("/backend-api") || base_url.contains("/api/codex") {
         base_url
     } else {

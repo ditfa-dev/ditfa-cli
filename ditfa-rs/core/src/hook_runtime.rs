@@ -25,7 +25,7 @@ use ditfa_protocol::items::TurnItem;
 use ditfa_protocol::items::UserMessageItem;
 use ditfa_protocol::models::ResponseItem;
 use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::CodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::HookCompletedEvent;
 use ditfa_protocol::protocol::HookEventName;
@@ -523,7 +523,7 @@ pub(crate) async fn run_legacy_after_agent_hook(
     };
     let event = EventMsg::Error(ditfa_protocol::protocol::ErrorEvent {
         message,
-        ditfa_error_info: Some(CodexErrorInfo::Other),
+        ditfa_error_info: Some(DitfaErrorInfo::Other),
     });
     sess.send_event(turn_context, event).await;
     true

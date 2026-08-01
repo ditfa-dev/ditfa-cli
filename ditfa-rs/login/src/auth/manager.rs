@@ -26,8 +26,8 @@ use ditfa_protocol::auth::AuthMode;
 use ditfa_protocol::config_types::ForcedLoginMethod;
 use ditfa_protocol::config_types::ModelProviderAuthInfo;
 
-use super::access_token::CodexAccessToken;
-use super::access_token::classify_codex_access_token;
+use super::access_token::DitfaAccessToken;
+use super::access_token::classify_ditfa_access_token;
 use super::agent_identity::ManagedChatGptAgentIdentityBinding;
 use super::agent_identity::agent_identity_authapi_base_url;
 use super::agent_identity::classify_bootstrap_error;
@@ -70,7 +70,7 @@ use thiserror::Error;
 
 /// Authentication mechanism used by the current user.
 #[derive(Debug, Clone)]
-pub enum CodexAuth {
+pub enum DitfaAuth {
     ApiKey(ApiKeyAuth),
     Chatgpt(ChatgptAuth),
     ChatgptAuthTokens(ChatgptAuthTokens),
@@ -80,7 +80,7 @@ pub enum CodexAuth {
     BedrockApiKey(BedrockApiKeyAuth),
 }
 
-/// Policy for resolving Agent Identity auth from a broader Codex auth snapshot.
+/// Policy for resolving Agent Identity auth from a broader Ditfa auth snapshot.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AgentIdentityAuthPolicy {
     /// Use Agent Identity auth only when the current auth is already Agent Identity.
@@ -146,7 +146,7 @@ impl AgentIdentityBootstrapCooldown {
     }
 }
 
-impl PartialEq for CodexAuth {
+impl PartialEq for DitfaAuth {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Headers(a), Self::Headers(b)) => a == b,
@@ -219,10 +219,10 @@ pub struct ExternalAuthRefreshContext {
 /// Implementations own the current auth value and any source-specific refresh mechanism.
 pub trait ExternalAuth: Send + Sync {
     /// Returns the provider's current auth value.
-    fn resolve(&self) -> ExternalAuthFuture<'_, CodexAuth>;
+    fn resolve(&self) -> ExternalAuthFuture<'_, DitfaAuth>;
 
     /// Refreshes auth and makes the returned value current for future `resolve()` calls.
-    fn refresh(&self, context: ExternalAuthRefreshContext) -> ExternalAuthFuture<'_, CodexAuth>;
+    fn refresh(&self, context: ExternalAuthRefreshContext) -> ExternalAuthFuture<'_, DitfaAuth>;
 }
 
 pub type ExternalAuthFuture<'a, T> = Pin<Box<dyn Future<Output = std::io::Result<T>> + Send + 'a>>;
@@ -245,7 +245,7 @@ impl From<RefreshTokenError> for std::io::Error {
     }
 }
 
-impl CodexAuth {
+impl DitfaAuth {
     async fn from_auth_dot_json(
         ditfa_home: &Path,
         auth_dot_json: AuthDotJson,
@@ -359,7 +359,7 @@ impl CodexAuth {
             agent_identity_authapi_base_url(chatgpt_base_url).ok();
         load_auth(
             ditfa_home,
-            /*enable_codex_api_key_env*/ false,
+            /*enable_ditfa_api_key_env*/ false,
             auth_credentials_store_mode,
             /*forced_chatgpt_workspace_id*/ None,
             chatgpt_base_url,
@@ -454,8 +454,8 @@ impl CodexAuth {
         self.api_auth_mode().has_chatgpt_account()
     }
 
-    pub fn uses_codex_backend(&self) -> bool {
-        self.api_auth_mode().uses_codex_backend()
+    pub fn uses_ditfa_backend(&self) -> bool {
+        self.api_auth_mode().uses_ditfa_backend()
     }
 
     pub fn is_external_chatgpt_tokens(&self) -> bool {
@@ -511,12 +511,12 @@ impl CodexAuth {
             )),
             Self::PersonalAccessToken(auth) => Ok(auth.access_token().to_string()),
             Self::BedrockApiKey(_) => Err(std::io::Error::other(
-                "Bedrock API key auth does not expose a Codex bearer token",
+                "Bedrock API key auth does not expose a Ditfa bearer token",
             )),
         }
     }
 
-    /// Returns `None` if Codex backend auth does not expose an account id.
+    /// Returns `None` if Ditfa backend auth does not expose an account id.
     pub fn get_account_id(&self) -> Option<String> {
         match self {
             Self::Headers(_) => None,
@@ -526,7 +526,7 @@ impl CodexAuth {
         }
     }
 
-    /// Returns false if Codex backend auth omits the FedRAMP claim.
+    /// Returns false if Ditfa backend auth omits the FedRAMP claim.
     pub fn is_fedramp_account(&self) -> bool {
         match self {
             Self::Headers(_) => false,
@@ -538,7 +538,7 @@ impl CodexAuth {
         }
     }
 
-    /// Returns `None` if Codex backend auth does not expose an account email.
+    /// Returns `None` if Ditfa backend auth does not expose an account email.
     pub fn get_account_email(&self) -> Option<String> {
         match self {
             Self::Headers(_) => None,
@@ -548,7 +548,7 @@ impl CodexAuth {
         }
     }
 
-    /// Returns `None` if Codex backend auth does not expose a ChatGPT user id.
+    /// Returns `None` if Ditfa backend auth does not expose a ChatGPT user id.
     pub fn get_chatgpt_user_id(&self) -> Option<String> {
         match self {
             Self::Headers(_) => None,
@@ -669,7 +669,7 @@ impl CodexAuth {
             ManagedChatGptAgentIdentityBinding::from_auth(self, forced_chatgpt_workspace_id)
                 .ok_or_else(|| std::io::Error::other("ChatGPT auth is unavailable"))?;
 
-        // JWT auth is loaded as CodexAuth::AgentIdentity; this path only reuses
+        // JWT auth is loaded as DitfaAuth::AgentIdentity; this path only reuses
         // records created by the managed ChatGPT Agent Identity bootstrap.
         if let Some(record) = self.stored_managed_chatgpt_agent_identity_record(&binding.account_id)
             && record_matches_managed_chatgpt_binding(&record, &binding)
@@ -755,7 +755,7 @@ impl CodexAuth {
 }
 
 impl ManagedChatGptAgentIdentityBinding {
-    fn from_auth(auth: &CodexAuth, forced_workspace_id: Option<Vec<String>>) -> Option<Self> {
+    fn from_auth(auth: &DitfaAuth, forced_workspace_id: Option<Vec<String>>) -> Option<Self> {
         if !auth.is_chatgpt_auth() {
             return None;
         }
@@ -846,11 +846,11 @@ pub fn read_openai_api_key_from_env() -> Option<String> {
         .filter(|value| !value.is_empty())
 }
 
-pub fn read_codex_api_key_from_env() -> Option<String> {
+pub fn read_ditfa_api_key_from_env() -> Option<String> {
     read_non_empty_env_var(DITFA_API_KEY_ENV_VAR)
 }
 
-pub fn read_codex_access_token_from_env() -> Option<String> {
+pub fn read_ditfa_access_token_from_env() -> Option<String> {
     read_non_empty_env_var(DITFA_ACCESS_TOKEN_ENV_VAR)
 }
 
@@ -937,12 +937,12 @@ pub async fn login_with_access_token(
     keyring_backend_kind: AuthKeyringBackendKind,
     auth_route_config: &AuthRouteConfig,
 ) -> std::io::Result<()> {
-    let auth_dot_json = match classify_codex_access_token(access_token) {
-        CodexAccessToken::PersonalAccessToken(access_token) => {
+    let auth_dot_json = match classify_ditfa_access_token(access_token) {
+        DitfaAccessToken::PersonalAccessToken(access_token) => {
             let auth = PersonalAccessTokenAuth::load(access_token, auth_route_config).await?;
             ensure_personal_access_token_workspace_allowed(forced_chatgpt_workspace_id, &auth)?;
             AuthDotJson {
-                // Infer PAT auth from the credential field so older Codex builds can still
+                // Infer PAT auth from the credential field so older Ditfa builds can still
                 // deserialize auth.json after a rollback.
                 auth_mode: None,
                 openai_api_key: None,
@@ -953,7 +953,7 @@ pub async fn login_with_access_token(
                 bedrock_api_key: None,
             }
         }
-        CodexAccessToken::AgentIdentityJwt(jwt) => {
+        DitfaAccessToken::AgentIdentityJwt(jwt) => {
             let base_url = chatgpt_base_url
                 .unwrap_or(ChatGptEnvironment::default().chatgpt_base_url())
                 .trim_end_matches('/')
@@ -1067,7 +1067,7 @@ async fn enforce_login_restrictions_with_agent_identity_authapi_base_url(
 ) -> std::io::Result<()> {
     let Some(auth) = load_auth(
         &config.ditfa_home,
-        /*enable_codex_api_key_env*/ true,
+        /*enable_ditfa_api_key_env*/ true,
         config.auth_credentials_store_mode,
         /*forced_chatgpt_workspace_id*/ None,
         config.chatgpt_base_url.as_deref(),
@@ -1116,13 +1116,13 @@ async fn enforce_login_restrictions_with_agent_identity_authapi_base_url(
 
     if let Some(expected_account_ids) = config.forced_chatgpt_workspace_id.as_deref() {
         let chatgpt_account_id = match &auth {
-            CodexAuth::ApiKey(_) | CodexAuth::Headers(_) | CodexAuth::BedrockApiKey(_) => {
+            DitfaAuth::ApiKey(_) | DitfaAuth::Headers(_) | DitfaAuth::BedrockApiKey(_) => {
                 return Ok(());
             }
-            CodexAuth::AgentIdentity(_) | CodexAuth::PersonalAccessToken(_) => {
+            DitfaAuth::AgentIdentity(_) | DitfaAuth::PersonalAccessToken(_) => {
                 auth.get_account_id()
             }
-            CodexAuth::Chatgpt(_) | CodexAuth::ChatgptAuthTokens(_) => {
+            DitfaAuth::Chatgpt(_) | DitfaAuth::ChatgptAuthTokens(_) => {
                 let token_data = match auth.get_token_data() {
                     Ok(data) => data,
                     Err(err) => {
@@ -1216,17 +1216,17 @@ fn logout_all_stores(
 #[allow(clippy::too_many_arguments)]
 async fn load_auth(
     ditfa_home: &Path,
-    enable_codex_api_key_env: bool,
+    enable_ditfa_api_key_env: bool,
     auth_credentials_store_mode: AuthCredentialsStoreMode,
     forced_chatgpt_workspace_id: Option<&[String]>,
     chatgpt_base_url: Option<&str>,
     keyring_backend_kind: AuthKeyringBackendKind,
     agent_identity_authapi_base_url: Option<&str>,
     auth_route_config: &AuthRouteConfig,
-) -> std::io::Result<Option<CodexAuth>> {
+) -> std::io::Result<Option<DitfaAuth>> {
     // API key via env var takes precedence over any other auth method.
-    if enable_codex_api_key_env && let Some(api_key) = read_codex_api_key_from_env() {
-        return Ok(Some(CodexAuth::from_api_key(api_key.as_str())));
+    if enable_ditfa_api_key_env && let Some(api_key) = read_ditfa_api_key_from_env() {
+        return Ok(Some(DitfaAuth::from_api_key(api_key.as_str())));
     }
 
     // External ChatGPT auth tokens live in the in-memory (ephemeral) store. Always check this
@@ -1237,7 +1237,7 @@ async fn load_auth(
         AuthKeyringBackendKind::default(),
     );
     if let Some(auth_dot_json) = ephemeral_storage.load()? {
-        let auth = CodexAuth::from_auth_dot_json(
+        let auth = DitfaAuth::from_auth_dot_json(
             ditfa_home,
             auth_dot_json,
             AuthCredentialsStoreMode::Ephemeral,
@@ -1247,21 +1247,21 @@ async fn load_auth(
             auth_route_config,
         )
         .await?;
-        if let CodexAuth::PersonalAccessToken(auth) = &auth {
+        if let DitfaAuth::PersonalAccessToken(auth) = &auth {
             ensure_personal_access_token_workspace_allowed(forced_chatgpt_workspace_id, auth)?;
         }
         return Ok(Some(auth));
     }
 
-    if let Some(access_token) = read_codex_access_token_from_env() {
-        return match classify_codex_access_token(&access_token) {
-            CodexAccessToken::PersonalAccessToken(access_token) => {
+    if let Some(access_token) = read_ditfa_access_token_from_env() {
+        return match classify_ditfa_access_token(&access_token) {
+            DitfaAccessToken::PersonalAccessToken(access_token) => {
                 let auth = PersonalAccessTokenAuth::load(access_token, auth_route_config).await?;
                 ensure_personal_access_token_workspace_allowed(forced_chatgpt_workspace_id, &auth)?;
-                Ok(Some(CodexAuth::PersonalAccessToken(auth)))
+                Ok(Some(DitfaAuth::PersonalAccessToken(auth)))
             }
-            CodexAccessToken::AgentIdentityJwt(jwt) => {
-                CodexAuth::from_agent_identity_jwt_with_authapi_base_url(
+            DitfaAccessToken::AgentIdentityJwt(jwt) => {
+                DitfaAuth::from_agent_identity_jwt_with_authapi_base_url(
                     jwt,
                     chatgpt_base_url,
                     require_agent_identity_authapi_base_url(agent_identity_authapi_base_url)?,
@@ -1289,7 +1289,7 @@ async fn load_auth(
         None => return Ok(None),
     };
 
-    let auth = CodexAuth::from_auth_dot_json(
+    let auth = DitfaAuth::from_auth_dot_json(
         ditfa_home,
         auth_dot_json,
         auth_credentials_store_mode,
@@ -1299,7 +1299,7 @@ async fn load_auth(
         auth_route_config,
     )
     .await?;
-    if let CodexAuth::PersonalAccessToken(auth) = &auth {
+    if let DitfaAuth::PersonalAccessToken(auth) = &auth {
         ensure_personal_access_token_workspace_allowed(forced_chatgpt_workspace_id, auth)?;
     }
     Ok(Some(auth))
@@ -1521,7 +1521,7 @@ impl AuthDotJson {
 /// Internal cached auth state.
 #[derive(Clone)]
 struct CachedAuth {
-    auth: Option<CodexAuth>,
+    auth: Option<DitfaAuth>,
     /// Permanent refresh failure cached for the current auth snapshot so
     /// later refresh attempts for the same credentials fail fast without network.
     permanent_refresh_failure: Option<AuthScopedRefreshFailure>,
@@ -1529,7 +1529,7 @@ struct CachedAuth {
 
 #[derive(Clone)]
 struct AuthScopedRefreshFailure {
-    auth: CodexAuth,
+    auth: DitfaAuth,
     error: RefreshTokenFailedError,
 }
 
@@ -1538,7 +1538,7 @@ impl Debug for CachedAuth {
         f.debug_struct("CachedAuth")
             .field(
                 "auth_mode",
-                &self.auth.as_ref().map(CodexAuth::api_auth_mode),
+                &self.auth.as_ref().map(DitfaAuth::api_auth_mode),
             )
             .field(
                 "permanent_refresh_failure",
@@ -1607,7 +1607,7 @@ impl UnauthorizedRecoveryStepResult {
 impl UnauthorizedRecovery {
     fn new(manager: Arc<AuthManager>) -> Self {
         let cached_auth = manager.auth_cached();
-        let expected_account_id = cached_auth.as_ref().and_then(CodexAuth::get_account_id);
+        let expected_account_id = cached_auth.as_ref().and_then(DitfaAuth::get_account_id);
         let mode = if manager.has_external_auth() {
             UnauthorizedRecoveryMode::External
         } else {
@@ -1634,7 +1634,7 @@ impl UnauthorizedRecovery {
             .manager
             .auth_cached()
             .as_ref()
-            .is_some_and(CodexAuth::supports_unauthorized_recovery)
+            .is_some_and(DitfaAuth::supports_unauthorized_recovery)
         {
             return false;
         }
@@ -1659,7 +1659,7 @@ impl UnauthorizedRecovery {
             .manager
             .auth_cached()
             .as_ref()
-            .is_some_and(CodexAuth::is_personal_access_token_auth)
+            .is_some_and(DitfaAuth::is_personal_access_token_auth)
         {
             return "not_refreshable_auth";
         }
@@ -1668,7 +1668,7 @@ impl UnauthorizedRecovery {
             .manager
             .auth_cached()
             .as_ref()
-            .is_some_and(CodexAuth::supports_unauthorized_recovery)
+            .is_some_and(DitfaAuth::supports_unauthorized_recovery)
         {
             return "not_chatgpt_auth";
         }
@@ -1760,7 +1760,7 @@ impl UnauthorizedRecovery {
 
 /// Central manager providing a single source of truth for auth.json derived
 /// authentication data. It loads once (or on preference change) and then
-/// hands out cloned `CodexAuth` values so the rest of the program has a
+/// hands out cloned `DitfaAuth` values so the rest of the program has a
 /// consistent snapshot.
 ///
 /// External modifications to `auth.json` will NOT be observed until
@@ -1770,7 +1770,7 @@ pub struct AuthManager {
     ditfa_home: PathBuf,
     inner: RwLock<CachedAuth>,
     auth_change_tx: watch::Sender<u64>,
-    enable_codex_api_key_env: bool,
+    enable_ditfa_api_key_env: bool,
     auth_credentials_store_mode: AuthCredentialsStoreMode,
     keyring_backend_kind: AuthKeyringBackendKind,
     forced_chatgpt_workspace_id: RwLock<Option<Vec<String>>>,
@@ -1787,10 +1787,10 @@ pub struct AuthManager {
 ///
 /// Implementations should return the auth-related config values for the
 /// already-resolved runtime configuration. The primary implementation is
-/// `ditfa_core::config::Config`, but this trait keeps `codex-login` independent
-/// from `codex-core`.
+/// `ditfa_core::config::Config`, but this trait keeps `ditfa-login` independent
+/// from `ditfa-core`.
 pub trait AuthManagerConfig {
-    /// Returns the Codex home directory used for auth storage.
+    /// Returns the Ditfa home directory used for auth storage.
     fn ditfa_home(&self) -> PathBuf;
 
     /// Returns the CLI auth credential storage mode for auth loading.
@@ -1814,7 +1814,7 @@ impl Debug for AuthManager {
         f.debug_struct("AuthManager")
             .field("ditfa_home", &self.ditfa_home)
             .field("inner", &self.inner)
-            .field("enable_codex_api_key_env", &self.enable_codex_api_key_env)
+            .field("enable_ditfa_api_key_env", &self.enable_ditfa_api_key_env)
             .field(
                 "auth_credentials_store_mode",
                 &self.auth_credentials_store_mode,
@@ -1842,7 +1842,7 @@ impl AuthManager {
     /// unauthenticated state.
     pub async fn new(
         ditfa_home: PathBuf,
-        enable_codex_api_key_env: bool,
+        enable_ditfa_api_key_env: bool,
         auth_credentials_store_mode: AuthCredentialsStoreMode,
         forced_chatgpt_workspace_id: Option<Vec<String>>,
         chatgpt_base_url: Option<String>,
@@ -1853,7 +1853,7 @@ impl AuthManager {
             agent_identity_authapi_base_url(chatgpt_base_url.as_deref()).ok();
         let managed_auth = load_auth(
             &ditfa_home,
-            enable_codex_api_key_env,
+            enable_ditfa_api_key_env,
             auth_credentials_store_mode,
             forced_chatgpt_workspace_id.as_deref(),
             chatgpt_base_url.as_deref(),
@@ -1872,7 +1872,7 @@ impl AuthManager {
                 permanent_refresh_failure: None,
             }),
             auth_change_tx,
-            enable_codex_api_key_env,
+            enable_ditfa_api_key_env,
             auth_credentials_store_mode,
             keyring_backend_kind,
             forced_chatgpt_workspace_id: RwLock::new(forced_chatgpt_workspace_id),
@@ -1886,8 +1886,8 @@ impl AuthManager {
         }
     }
 
-    /// Create an AuthManager with a specific CodexAuth, for testing only.
-    pub fn from_auth_for_testing(auth: CodexAuth) -> Arc<Self> {
+    /// Create an AuthManager with a specific DitfaAuth, for testing only.
+    pub fn from_auth_for_testing(auth: DitfaAuth) -> Arc<Self> {
         let cached = CachedAuth {
             auth: Some(auth),
             permanent_refresh_failure: None,
@@ -1898,7 +1898,7 @@ impl AuthManager {
             ditfa_home: PathBuf::from("non-existent"),
             inner: RwLock::new(cached),
             auth_change_tx,
-            enable_codex_api_key_env: false,
+            enable_ditfa_api_key_env: false,
             auth_credentials_store_mode: AuthCredentialsStoreMode::File,
             keyring_backend_kind: AuthKeyringBackendKind::default(),
             forced_chatgpt_workspace_id: RwLock::new(None),
@@ -1912,8 +1912,8 @@ impl AuthManager {
         })
     }
 
-    /// Create an AuthManager with a specific CodexAuth and codex home, for testing only.
-    pub fn from_auth_for_testing_with_home(auth: CodexAuth, ditfa_home: PathBuf) -> Arc<Self> {
+    /// Create an AuthManager with a specific DitfaAuth and ditfa home, for testing only.
+    pub fn from_auth_for_testing_with_home(auth: DitfaAuth, ditfa_home: PathBuf) -> Arc<Self> {
         let cached = CachedAuth {
             auth: Some(auth),
             permanent_refresh_failure: None,
@@ -1923,7 +1923,7 @@ impl AuthManager {
             ditfa_home,
             inner: RwLock::new(cached),
             auth_change_tx,
-            enable_codex_api_key_env: false,
+            enable_ditfa_api_key_env: false,
             auth_credentials_store_mode: AuthCredentialsStoreMode::File,
             keyring_backend_kind: AuthKeyringBackendKind::default(),
             forced_chatgpt_workspace_id: RwLock::new(None),
@@ -1937,10 +1937,10 @@ impl AuthManager {
         })
     }
 
-    /// Create an AuthManager with a specific CodexAuth and Agent Identity AuthAPI base URL, for testing only.
+    /// Create an AuthManager with a specific DitfaAuth and Agent Identity AuthAPI base URL, for testing only.
     #[doc(hidden)]
     pub fn from_auth_for_testing_with_agent_identity_authapi_base_url(
-        auth: CodexAuth,
+        auth: DitfaAuth,
         agent_identity_authapi_base_url: String,
     ) -> Arc<Self> {
         let cached = CachedAuth {
@@ -1952,7 +1952,7 @@ impl AuthManager {
             ditfa_home: PathBuf::from("non-existent"),
             inner: RwLock::new(cached),
             auth_change_tx,
-            enable_codex_api_key_env: false,
+            enable_ditfa_api_key_env: false,
             auth_credentials_store_mode: AuthCredentialsStoreMode::File,
             keyring_backend_kind: AuthKeyringBackendKind::default(),
             forced_chatgpt_workspace_id: RwLock::new(None),
@@ -1979,7 +1979,7 @@ impl AuthManager {
                 permanent_refresh_failure: None,
             }),
             auth_change_tx,
-            enable_codex_api_key_env: false,
+            enable_ditfa_api_key_env: false,
             auth_credentials_store_mode: AuthCredentialsStoreMode::File,
             keyring_backend_kind: AuthKeyringBackendKind::default(),
             forced_chatgpt_workspace_id: RwLock::new(None),
@@ -2000,7 +2000,7 @@ impl AuthManager {
     }
 
     /// Current cached auth (clone) without attempting a refresh.
-    pub fn auth_cached(&self) -> Option<CodexAuth> {
+    pub fn auth_cached(&self) -> Option<DitfaAuth> {
         self.inner
             .read()
             .ok()
@@ -2012,7 +2012,7 @@ impl AuthManager {
         self.auth_change_tx.subscribe()
     }
 
-    pub fn refresh_failure_for_auth(&self, auth: &CodexAuth) -> Option<RefreshTokenFailedError> {
+    pub fn refresh_failure_for_auth(&self, auth: &DitfaAuth) -> Option<RefreshTokenFailedError> {
         self.inner.read().ok().and_then(|cached| {
             cached
                 .permanent_refresh_failure
@@ -2026,7 +2026,7 @@ impl AuthManager {
     /// For managed ChatGPT auth that needs a proactive refresh, first performs
     /// a guarded reload and then refreshes only if the on-disk auth is unchanged.
     #[instrument(level = "trace", skip_all)]
-    pub async fn auth(&self) -> Option<CodexAuth> {
+    pub async fn auth(&self) -> Option<DitfaAuth> {
         if self.has_external_auth() {
             self.reload().await;
             return self.auth_cached();
@@ -2050,7 +2050,7 @@ impl AuthManager {
         let Some(auth) = self.auth().await else {
             return Ok(None);
         };
-        if policy == AgentIdentityAuthPolicy::ChatGptAuth && matches!(auth, CodexAuth::Chatgpt(_)) {
+        if policy == AgentIdentityAuthPolicy::ChatGptAuth && matches!(auth, DitfaAuth::Chatgpt(_)) {
             let _bootstrap_permit = self
                 .agent_identity_lock
                 .acquire()
@@ -2125,7 +2125,7 @@ impl AuthManager {
         };
 
         let new_auth = self.load_auth().await;
-        let new_account_id = new_auth.as_ref().and_then(CodexAuth::get_account_id);
+        let new_account_id = new_auth.as_ref().and_then(DitfaAuth::get_account_id);
 
         if new_account_id.as_deref() != Some(expected_account_id) {
             let found_account_id = new_account_id.as_deref().unwrap_or("unknown");
@@ -2147,7 +2147,7 @@ impl AuthManager {
         }
     }
 
-    fn auths_equal_for_refresh(a: Option<&CodexAuth>, b: Option<&CodexAuth>) -> bool {
+    fn auths_equal_for_refresh(a: Option<&DitfaAuth>, b: Option<&DitfaAuth>) -> bool {
         match (a, b) {
             (None, None) => true,
             (Some(a), Some(b)) => match (a.api_auth_mode(), b.api_auth_mode()) {
@@ -2158,7 +2158,7 @@ impl AuthManager {
                 }
                 (AuthMode::Headers, AuthMode::Headers) => a == b,
                 (AuthMode::AgentIdentity, AuthMode::AgentIdentity) => match (a, b) {
-                    (CodexAuth::AgentIdentity(a), CodexAuth::AgentIdentity(b)) => {
+                    (DitfaAuth::AgentIdentity(a), DitfaAuth::AgentIdentity(b)) => {
                         a.record() == b.record()
                     }
                     _ => false,
@@ -2171,7 +2171,7 @@ impl AuthManager {
         }
     }
 
-    fn auths_equal(a: Option<&CodexAuth>, b: Option<&CodexAuth>) -> bool {
+    fn auths_equal(a: Option<&DitfaAuth>, b: Option<&DitfaAuth>) -> bool {
         match (a, b) {
             (None, None) => true,
             (Some(a), Some(b)) => a == b,
@@ -2183,7 +2183,7 @@ impl AuthManager {
     /// attempted against the auth snapshot that is still cached.
     fn record_permanent_refresh_failure_if_unchanged(
         &self,
-        attempted_auth: &CodexAuth,
+        attempted_auth: &DitfaAuth,
         error: &RefreshTokenFailedError,
     ) {
         if let Ok(mut guard) = self.inner.write() {
@@ -2198,7 +2198,7 @@ impl AuthManager {
         }
     }
 
-    async fn load_auth(&self) -> Option<CodexAuth> {
+    async fn load_auth(&self) -> Option<DitfaAuth> {
         if let Some(external_auth) = self.external_auth() {
             return match self.resolve_external_auth(&external_auth).await {
                 Ok(auth) => Some(auth),
@@ -2212,7 +2212,7 @@ impl AuthManager {
         let forced_chatgpt_workspace_id = self.forced_chatgpt_workspace_id();
         load_auth(
             &self.ditfa_home,
-            self.enable_codex_api_key_env,
+            self.enable_ditfa_api_key_env,
             self.auth_credentials_store_mode,
             forced_chatgpt_workspace_id.as_deref(),
             self.chatgpt_base_url.as_deref(),
@@ -2225,7 +2225,7 @@ impl AuthManager {
         .flatten()
     }
 
-    fn set_cached_auth(&self, new_auth: Option<CodexAuth>) -> bool {
+    fn set_cached_auth(&self, new_auth: Option<DitfaAuth>) -> bool {
         if let Ok(mut guard) = self.inner.write() {
             let previous = guard.auth.as_ref();
             let changed = !AuthManager::auths_equal(previous, new_auth.as_ref());
@@ -2286,17 +2286,17 @@ impl AuthManager {
     pub fn is_external_chatgpt_auth_active(&self) -> bool {
         self.auth_cached()
             .as_ref()
-            .is_some_and(CodexAuth::is_external_chatgpt_tokens)
+            .is_some_and(DitfaAuth::is_external_chatgpt_tokens)
     }
 
     pub fn ditfa_api_key_env_enabled(&self) -> bool {
-        self.enable_codex_api_key_env
+        self.enable_ditfa_api_key_env
     }
 
     /// Convenience constructor returning an `Arc` wrapper.
     pub async fn shared(
         ditfa_home: PathBuf,
-        enable_codex_api_key_env: bool,
+        enable_ditfa_api_key_env: bool,
         auth_credentials_store_mode: AuthCredentialsStoreMode,
         forced_chatgpt_workspace_id: Option<Vec<String>>,
         chatgpt_base_url: Option<String>,
@@ -2306,7 +2306,7 @@ impl AuthManager {
         Arc::new(
             Self::new(
                 ditfa_home,
-                enable_codex_api_key_env,
+                enable_ditfa_api_key_env,
                 auth_credentials_store_mode,
                 forced_chatgpt_workspace_id,
                 chatgpt_base_url,
@@ -2320,11 +2320,11 @@ impl AuthManager {
     /// Convenience constructor returning an `Arc` wrapper from resolved config.
     pub async fn shared_from_config(
         config: &impl AuthManagerConfig,
-        enable_codex_api_key_env: bool,
+        enable_ditfa_api_key_env: bool,
     ) -> Arc<Self> {
         Self::shared(
             config.ditfa_home(),
-            enable_codex_api_key_env,
+            enable_ditfa_api_key_env,
             config.cli_auth_credentials_store_mode(),
             config.forced_chatgpt_workspace_id(),
             Some(config.chatgpt_base_url()),
@@ -2350,13 +2350,13 @@ impl AuthManager {
             && self
                 .auth_cached()
                 .as_ref()
-                .is_some_and(CodexAuth::is_api_key_auth)
+                .is_some_and(DitfaAuth::is_api_key_auth)
     }
 
     async fn resolve_external_auth(
         &self,
         external_auth: &Arc<dyn ExternalAuth>,
-    ) -> Result<CodexAuth, RefreshTokenError> {
+    ) -> Result<DitfaAuth, RefreshTokenError> {
         let auth = external_auth
             .resolve()
             .await
@@ -2385,7 +2385,7 @@ impl AuthManager {
         }
         let expected_account_id = auth_before_reload
             .as_ref()
-            .and_then(CodexAuth::get_account_id);
+            .and_then(DitfaAuth::get_account_id);
 
         match self
             .reload_if_account_id_matches(expected_account_id.as_deref())
@@ -2435,7 +2435,7 @@ impl AuthManager {
                 .await
         } else {
             match auth {
-                CodexAuth::Chatgpt(chatgpt_auth) => {
+                DitfaAuth::Chatgpt(chatgpt_auth) => {
                     let token_data = chatgpt_auth.current_token_data().ok_or_else(|| {
                         RefreshTokenError::Transient(std::io::Error::other(
                             "Token data is not available.",
@@ -2444,12 +2444,12 @@ impl AuthManager {
                     self.refresh_and_persist_chatgpt_token(&chatgpt_auth, token_data.refresh_token)
                         .await
                 }
-                CodexAuth::ApiKey(_)
-                | CodexAuth::ChatgptAuthTokens(_)
-                | CodexAuth::Headers(_)
-                | CodexAuth::AgentIdentity(_)
-                | CodexAuth::PersonalAccessToken(_)
-                | CodexAuth::BedrockApiKey(_) => Ok(()),
+                DitfaAuth::ApiKey(_)
+                | DitfaAuth::ChatgptAuthTokens(_)
+                | DitfaAuth::Headers(_)
+                | DitfaAuth::AgentIdentity(_)
+                | DitfaAuth::PersonalAccessToken(_)
+                | DitfaAuth::BedrockApiKey(_) => Ok(()),
             }
         };
         if let Err(RefreshTokenError::Permanent(error)) = &result {
@@ -2495,22 +2495,22 @@ impl AuthManager {
 
     /// Returns the precise kind of credentials backing the current authentication.
     pub fn get_api_auth_mode(&self) -> Option<AuthMode> {
-        self.auth_cached().as_ref().map(CodexAuth::api_auth_mode)
+        self.auth_cached().as_ref().map(DitfaAuth::api_auth_mode)
     }
 
     /// Returns the effective backend auth mode for the current authentication.
     pub fn auth_mode(&self) -> Option<AuthMode> {
-        self.auth_cached().as_ref().map(CodexAuth::auth_mode)
+        self.auth_cached().as_ref().map(DitfaAuth::auth_mode)
     }
 
-    pub fn current_auth_uses_codex_backend(&self) -> bool {
+    pub fn current_auth_uses_ditfa_backend(&self) -> bool {
         self.get_api_auth_mode()
-            .is_some_and(AuthMode::uses_codex_backend)
+            .is_some_and(AuthMode::uses_ditfa_backend)
     }
 
-    fn should_refresh_proactively(auth: &CodexAuth) -> bool {
+    fn should_refresh_proactively(auth: &DitfaAuth) -> bool {
         let chatgpt_auth = match auth {
-            CodexAuth::Chatgpt(chatgpt_auth) => chatgpt_auth,
+            DitfaAuth::Chatgpt(chatgpt_auth) => chatgpt_auth,
             _ => return false,
         };
 
@@ -2544,7 +2544,7 @@ impl AuthManager {
         let previous_account_id = self
             .auth_cached()
             .as_ref()
-            .and_then(CodexAuth::get_account_id);
+            .and_then(DitfaAuth::get_account_id);
         let context = ExternalAuthRefreshContext {
             reason,
             previous_account_id,
@@ -2559,7 +2559,7 @@ impl AuthManager {
         Ok(())
     }
 
-    fn commit_external_auth(&self, auth: CodexAuth) -> Result<(), RefreshTokenError> {
+    fn commit_external_auth(&self, auth: DitfaAuth) -> Result<(), RefreshTokenError> {
         if auth.is_external_chatgpt_tokens() {
             let auth_dot_json = auth.get_current_auth_json().ok_or_else(|| {
                 RefreshTokenError::Transient(std::io::Error::other(
@@ -2581,7 +2581,7 @@ impl AuthManager {
         Ok(())
     }
 
-    fn validate_external_auth(&self, auth: &CodexAuth) -> Result<(), RefreshTokenError> {
+    fn validate_external_auth(&self, auth: &DitfaAuth) -> Result<(), RefreshTokenError> {
         if let Some(account_id) = auth.get_account_id()
             && let Some(expected_workspace_ids) = self.forced_chatgpt_workspace_id()
             && !expected_workspace_ids.contains(&account_id)

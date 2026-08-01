@@ -52,7 +52,7 @@ use crate::IMAGE_GEN_NAMESPACE;
 use crate::IMAGEGEN_TOOL_NAME;
 use crate::artifact::image_generation_artifact_path;
 use crate::artifact::image_generation_output_hint;
-use crate::backend::CodexImagesBackend;
+use crate::backend::DitfaImagesBackend;
 
 const IMAGE_MODEL: &str = "gpt-image-2";
 const MAX_EDIT_IMAGES: usize = 5;
@@ -60,7 +60,7 @@ const IMAGEGEN_DESCRIPTION: &str = include_str!("../imagegen_description.md");
 
 #[derive(Clone)]
 pub(crate) struct ImageGenerationTool {
-    backend: CodexImagesBackend,
+    backend: DitfaImagesBackend,
     save_root: Option<AbsolutePathBuf>,
     thread_id: String,
 }
@@ -68,7 +68,7 @@ pub(crate) struct ImageGenerationTool {
 impl ImageGenerationTool {
     /// Creates an image-generation tool backed by an image API executor.
     pub(crate) fn new(
-        backend: CodexImagesBackend,
+        backend: DitfaImagesBackend,
         save_root: Option<AbsolutePathBuf>,
         thread_id: String,
     ) -> Self {

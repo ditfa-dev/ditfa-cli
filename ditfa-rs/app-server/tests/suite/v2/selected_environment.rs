@@ -42,7 +42,7 @@ async fn thread_start_reports_selected_environment_metadata() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     write_mock_config(ditfa_home.path(), &server.uri())?;
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let selected_workspace_roots = app_server
@@ -92,7 +92,7 @@ async fn thread_start_reports_selected_environment_instruction_source() -> Resul
     let ditfa_home = TempDir::new()?;
     write_mock_config(ditfa_home.path(), &server.uri())?;
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -155,7 +155,7 @@ async fn turn_model_context_uses_selected_environment() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     write_mock_config(ditfa_home.path(), &server.uri())?;
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let (environment_cwd, environment_shell) = {

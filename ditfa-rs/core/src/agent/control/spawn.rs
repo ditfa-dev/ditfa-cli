@@ -100,7 +100,7 @@ async fn load_agent_model_context(
     state: &ThreadManagerState,
     thread_id: ThreadId,
     history_mode: ThreadHistoryMode,
-) -> CodexResult<Option<Vec<RolloutItem>>> {
+) -> DitfaResult<Option<Vec<RolloutItem>>> {
     match history_mode {
         ThreadHistoryMode::Legacy => Ok(state
             .read_stored_thread(ReadThreadParams {
@@ -170,7 +170,7 @@ impl AgentControl {
                     .map(AgentPath::try_from)
                     .transpose()
                     .map_err(|err| {
-                        CodexErr::InvalidRequest(format!("invalid stored agent path: {err}"))
+                        DitfaErr::InvalidRequest(format!("invalid stored agent path: {err}"))
                     })?;
                 let mut reservation = self.state.reserve_spawn_slot(/*max_threads*/ None)?;
                 let mut metadata = self.prepare_agent_metadata(
@@ -186,7 +186,7 @@ impl AgentControl {
                 )?;
                 metadata.agent_id = Some(thread_id);
                 reservation.commit(metadata);
-                Ok::<(), CodexErr>(())
+                Ok::<(), DitfaErr>(())
             }
             .await;
             if let Err(err) = restore_result {
@@ -202,7 +202,7 @@ impl AgentControl {
         config: Config,
         initial_input: Vec<UserInput>,
         session_source: Option<SessionSource>,
-    ) -> CodexResult<ThreadId> {
+    ) -> DitfaResult<ThreadId> {
         let spawned_agent = Box::pin(self.spawn_agent_internal(
             config,
             SpawnInitialInput::UserInput(initial_input),
@@ -220,7 +220,7 @@ impl AgentControl {
         initial_input: Vec<UserInput>,
         session_source: Option<SessionSource>,
         options: SpawnAgentOptions, // TODO(jif) drop with new fork.
-    ) -> CodexResult<LiveAgent> {
+    ) -> DitfaResult<LiveAgent> {
         Box::pin(self.spawn_agent_internal(
             config,
             SpawnInitialInput::UserInput(initial_input),
@@ -237,7 +237,7 @@ impl AgentControl {
         context: AgentCommunicationContext,
         session_source: Option<SessionSource>,
         options: SpawnAgentOptions,
-    ) -> CodexResult<LiveAgent> {
+    ) -> DitfaResult<LiveAgent> {
         Box::pin(self.spawn_agent_internal(
             config,
             SpawnInitialInput::InterAgentCommunication(communication, context),
@@ -251,14 +251,14 @@ impl AgentControl {
         &self,
         mut config: Config,
         thread_id: ThreadId,
-    ) -> CodexResult<()> {
+    ) -> DitfaResult<()> {
         let state = self.upgrade()?;
         if state.get_thread(thread_id).await.is_ok() {
             self.touch_loaded_v2_residency(&state, thread_id).await;
             return Ok(());
         }
         if self.state.agent_metadata_for_thread(thread_id).is_none() {
-            return Err(CodexErr::ThreadNotFound(thread_id));
+            return Err(DitfaErr::ThreadNotFound(thread_id));
         }
 
         let stored_thread = state
@@ -272,14 +272,14 @@ impl AgentControl {
         let stored_parent_thread_id = stored_thread.parent_thread_id;
         let history = load_agent_model_context(&state, thread_id, stored_thread.history_mode)
             .await?
-            .ok_or(CodexErr::ThreadNotFound(thread_id))?;
+            .ok_or(DitfaErr::ThreadNotFound(thread_id))?;
         let initial_history = InitialHistory::Resumed(ResumedHistory {
             conversation_id: thread_id,
             history: Arc::new(history),
             rollout_path: stored_thread.rollout_path,
         });
         if initial_history.get_multi_agent_version() != Some(MultiAgentVersion::V2) {
-            return Err(CodexErr::ThreadNotFound(thread_id));
+            return Err(DitfaErr::ThreadNotFound(thread_id));
         }
         let (session_source, _) = initial_history
             .get_resumed_session_sources()
@@ -303,13 +303,13 @@ impl AgentControl {
 
             apply_role_to_config(&mut config, Some(&role_name))
                 .await
-                .map_err(CodexErr::InvalidRequest)?;
+                .map_err(DitfaErr::InvalidRequest)?;
             config
                 .permissions
                 .approval_policy
                 .set(runtime_approval_policy)
                 .map_err(|err| {
-                    CodexErr::InvalidRequest(format!("approval_policy is invalid: {err}"))
+                    DitfaErr::InvalidRequest(format!("approval_policy is invalid: {err}"))
                 })?;
             config.approvals_reviewer = runtime_approvals_reviewer;
             config.cwd = runtime_cwd;
@@ -317,7 +317,7 @@ impl AgentControl {
                 .permissions
                 .set_permission_profile_from_session_snapshot(runtime_permission_profile)
                 .map_err(|err| {
-                    CodexErr::InvalidRequest(format!("permission_profile is invalid: {err}"))
+                    DitfaErr::InvalidRequest(format!("permission_profile is invalid: {err}"))
                 })?;
         }
         let residency_slot = self
@@ -368,7 +368,7 @@ impl AgentControl {
         initial_input: SpawnInitialInput,
         session_source: Option<SessionSource>,
         options: SpawnAgentOptions,
-    ) -> CodexResult<LiveAgent> {
+    ) -> DitfaResult<LiveAgent> {
         let state = self.upgrade()?;
         let multi_agent_version = state
             .effective_multi_agent_version_for_spawn(
@@ -569,18 +569,18 @@ impl AgentControl {
         options: &SpawnAgentOptions,
         inheritance: SpawnAgentThreadInheritance,
         multi_agent_version: MultiAgentVersion,
-    ) -> CodexResult<crate::thread_manager::NewThread> {
+    ) -> DitfaResult<crate::thread_manager::NewThread> {
         let SpawnAgentThreadInheritance {
             environments: inherited_environments,
             exec_policy: inherited_exec_policy,
         } = inheritance;
         if options.fork_parent_spawn_call_id.is_none() {
-            return Err(CodexErr::Fatal(
+            return Err(DitfaErr::Fatal(
                 "spawn_agent fork requires a parent spawn call id".to_string(),
             ));
         }
         let Some(fork_mode) = options.fork_mode.as_ref() else {
-            return Err(CodexErr::Fatal(
+            return Err(DitfaErr::Fatal(
                 "spawn_agent fork requires a fork mode".to_string(),
             ));
         };
@@ -588,7 +588,7 @@ impl AgentControl {
             parent_thread_id, ..
         }) = &session_source
         else {
-            return Err(CodexErr::Fatal(
+            return Err(DitfaErr::Fatal(
                 "spawn_agent fork requires a thread-spawn session source".to_string(),
             ));
         };
@@ -607,7 +607,7 @@ impl AgentControl {
             load_agent_model_context(state, parent_thread_id, parent_history_mode)
                 .await?
                 .ok_or_else(|| {
-                    CodexErr::Fatal(format!(
+                    DitfaErr::Fatal(format!(
                         "parent thread history unavailable for fork: {parent_thread_id}"
                     ))
                 })?;
@@ -719,7 +719,7 @@ impl AgentControl {
         config: Config,
         thread_id: ThreadId,
         session_source: SessionSource,
-    ) -> CodexResult<ThreadId> {
+    ) -> DitfaResult<ThreadId> {
         let root_depth = thread_spawn_depth(&session_source).unwrap_or(0);
         let (resumed_thread_id, resumed_multi_agent_version) = Box::pin(
             self.resume_single_agent_from_rollout(config.clone(), thread_id, session_source),
@@ -794,7 +794,7 @@ impl AgentControl {
         config: Config,
         thread_id: ThreadId,
         session_source: SessionSource,
-    ) -> CodexResult<(ThreadId, MultiAgentVersion)> {
+    ) -> DitfaResult<(ThreadId, MultiAgentVersion)> {
         let state = self.upgrade()?;
         let stored_thread = state
             .read_stored_thread(ReadThreadParams {
@@ -808,12 +808,12 @@ impl AgentControl {
             .as_deref()
             .map(AgentPath::try_from)
             .transpose()
-            .map_err(|err| CodexErr::InvalidRequest(format!("invalid stored agent path: {err}")))?;
+            .map_err(|err| DitfaErr::InvalidRequest(format!("invalid stored agent path: {err}")))?;
         let resumed_agent_nickname = stored_thread.agent_nickname.clone();
         let resumed_agent_role = stored_thread.agent_role.clone();
         let history = load_agent_model_context(&state, thread_id, stored_thread.history_mode)
             .await?
-            .ok_or(CodexErr::ThreadNotFound(thread_id))?;
+            .ok_or(DitfaErr::ThreadNotFound(thread_id))?;
         let initial_history = InitialHistory::Resumed(ResumedHistory {
             conversation_id: thread_id,
             history: Arc::new(history),

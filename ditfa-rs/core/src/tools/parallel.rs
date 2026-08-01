@@ -26,7 +26,7 @@ use crate::tools::registry::ToolArgumentDiffConsumer;
 use crate::tools::router::ToolCall;
 use crate::tools::router::ToolCallSource;
 use crate::tools::router::ToolRouter;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::models::ResponseInputItem;
 
 struct ToolCallTimingGuard {
@@ -76,14 +76,14 @@ impl ToolCallRuntime {
         self,
         call: ToolCall,
         cancellation_token: CancellationToken,
-    ) -> impl std::future::Future<Output = Result<ResponseInputItem, CodexErr>> {
+    ) -> impl std::future::Future<Output = Result<ResponseInputItem, DitfaErr>> {
         let error_call = call.clone();
         let future =
             self.handle_tool_call_with_source(call, ToolCallSource::Direct, cancellation_token);
         async move {
             match future.await {
                 Ok(response) => Ok(response.into_response()),
-                Err(FunctionCallError::Fatal(message)) => Err(CodexErr::Fatal(message)),
+                Err(FunctionCallError::Fatal(message)) => Err(DitfaErr::Fatal(message)),
                 Err(other) => Ok(Self::failure_response(error_call, other)),
             }
         }
@@ -310,7 +310,7 @@ impl Drop for ToolCallTimingGuard {
         macro_rules! log_tool_call {
             ($dispatch_duration_ms:expr, $handler_duration_ms:expr, $total_duration_ms:expr) => {
                 info!(
-                    event.name = "codex.tool_call",
+                    event.name = "ditfa.tool_call",
                     trace_id = %ditfa_otel::current_span_trace_id().unwrap_or_default(),
                     conversation.id = %self.conversation_id,
                     turn_id = %self.turn_id,
@@ -467,7 +467,7 @@ mod tests {
         )?;
         let timing_events = logs
             .lines()
-            .filter(|line| line.contains("event.name=\"codex.tool_call\""))
+            .filter(|line| line.contains("event.name=\"ditfa.tool_call\""))
             .collect::<Vec<_>>();
         assert_eq!(
             timing_events.len(),

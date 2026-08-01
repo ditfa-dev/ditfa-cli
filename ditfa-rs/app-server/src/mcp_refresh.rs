@@ -1,5 +1,5 @@
 use crate::config_manager::ConfigManager;
-use ditfa_core::CodexThread;
+use ditfa_core::DitfaThread;
 use ditfa_core::ThreadManager;
 use ditfa_core::config::Config;
 use ditfa_protocol::ThreadId;
@@ -54,7 +54,7 @@ pub(crate) async fn invalidate_loaded_threads(thread_manager: &Arc<ThreadManager
 }
 
 async fn load_refresh_config(
-    thread: &CodexThread,
+    thread: &DitfaThread,
     config_manager: &ConfigManager,
 ) -> io::Result<Config> {
     let thread_config = thread.config().await;
@@ -64,7 +64,7 @@ async fn load_refresh_config(
 }
 
 async fn build_refresh_config(
-    thread: &CodexThread,
+    thread: &DitfaThread,
     config_manager: &ConfigManager,
 ) -> io::Result<McpServerRefreshConfig> {
     let config = load_refresh_config(thread, config_manager).await?;
@@ -79,7 +79,7 @@ async fn build_refresh_config(
     })
 }
 
-async fn queue_invalidation(thread_id: ThreadId, thread: Arc<CodexThread>) -> io::Result<()> {
+async fn queue_invalidation(thread_id: ThreadId, thread: Arc<DitfaThread>) -> io::Result<()> {
     thread
         .submit(Op::RefreshMcpServers)
         .await
@@ -112,9 +112,9 @@ mod tests {
     use ditfa_core::thread_store_from_config;
     use ditfa_exec_server::EnvironmentManager;
     use ditfa_extension_api::NoopExtensionEventSink;
-    use ditfa_home::CodexHomeUserInstructionsProvider;
+    use ditfa_home::DitfaHomeUserInstructionsProvider;
     use ditfa_login::AuthManager;
-    use ditfa_login::CodexAuth;
+    use ditfa_login::DitfaAuth;
     use ditfa_protocol::protocol::SessionSource;
     use ditfa_utils_absolute_path::AbsolutePathBuf;
     use pretty_assertions::assert_eq;
@@ -307,7 +307,7 @@ enabled = false
             )
             .await?;
 
-        let auth_manager = AuthManager::from_auth_for_testing(CodexAuth::from_api_key("dummy"));
+        let auth_manager = AuthManager::from_auth_for_testing(DitfaAuth::from_api_key("dummy"));
         let state_db = init_state_db(&good_config)
             .await
             .expect("refresh tests require state db");
@@ -324,7 +324,7 @@ enabled = false
                 &good_config,
                 auth_manager.clone(),
                 ditfa_core::build_models_manager(&good_config, auth_manager.clone()),
-                ditfa_core::CodexAppsToolsCache::default(),
+                ditfa_core::DitfaAppsToolsCache::default(),
                 SessionSource::Exec,
                 Arc::clone(&environment_manager),
                 thread_extensions(
@@ -343,7 +343,7 @@ enabled = false
                         thread_store: Arc::clone(&thread_store),
                     },
                 ),
-                Arc::new(CodexHomeUserInstructionsProvider::new(
+                Arc::new(DitfaHomeUserInstructionsProvider::new(
                     good_config.ditfa_home.clone(),
                 )),
                 /*analytics_events_client*/ None,

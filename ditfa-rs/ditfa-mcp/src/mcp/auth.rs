@@ -8,7 +8,7 @@ use ditfa_config::McpServerTransportConfig;
 use ditfa_config::types::AuthKeyringBackendKind;
 use ditfa_config::types::OAuthCredentialsStoreMode;
 use ditfa_exec_server::HttpClient;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_rmcp_client::McpAuthState;
 use ditfa_rmcp_client::OAuthProviderError;
 use ditfa_rmcp_client::determine_streamable_http_auth_status;
@@ -184,7 +184,7 @@ pub async fn compute_auth_statuses<'a, I>(
     servers: I,
     store_mode: OAuthCredentialsStoreMode,
     keyring_backend_kind: AuthKeyringBackendKind,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     runtime_context: &McpRuntimeContext,
 ) -> HashMap<String, McpAuthStatusEntry>
 where
@@ -195,7 +195,7 @@ where
         let config = server.config().clone();
         let runtime_context = runtime_context.clone();
         let has_runtime_auth = matches!(&config.auth, McpServerAuth::ChatGpt)
-            && auth.is_some_and(CodexAuth::uses_codex_backend)
+            && auth.is_some_and(DitfaAuth::uses_ditfa_backend)
             && matches!(
                 &config.transport,
                 McpServerTransportConfig::StreamableHttp {

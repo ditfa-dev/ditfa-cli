@@ -50,7 +50,7 @@ async fn start_recording_app_server(
         ditfa_config::LoaderOverrides::default(),
         /*strict_config*/ false,
         ditfa_config::CloudConfigBundleLoader::default(),
-        ditfa_feedback::CodexFeedback::new(),
+        ditfa_feedback::DitfaFeedback::new(),
         /*log_db*/ None,
         state_db,
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -76,8 +76,8 @@ async fn start_recording_app_server(
                             serde_json::to_string(&JSONRPCMessage::Response(JSONRPCResponse {
                                 id: request.id,
                                 result: serde_json::json!({
-                                    "userAgent": "codex-tui-test",
-                                    "codexHome": ditfa_home,
+                                    "userAgent": "ditfa-tui-test",
+                                    "ditfaHome": ditfa_home,
                                 }),
                             }))?
                             .into(),

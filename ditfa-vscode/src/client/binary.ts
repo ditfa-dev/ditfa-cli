@@ -90,13 +90,10 @@ function findOnPath(name: string): string | undefined {
   return undefined;
 }
 
-/**
- * Cargo puts release and debug builds in sibling directories, and this repo has
- * historically used both `ditfa-rs` and `codex-rs` as the crate root.
- */
+/** Cargo puts release and debug builds in sibling directories. */
 function findWorkspaceBuild(): string | undefined {
   const folders = vscode.workspace.workspaceFolders ?? [];
-  const crateRoots = ["ditfa-rs", "codex-rs"];
+  const crateRoots = ["ditfa-rs"];
   const profiles = ["release", "debug"];
 
   for (const folder of folders) {
@@ -121,8 +118,8 @@ export function describeMissingBinary(error: BinaryNotFoundError): string {
     "Looked for:",
     ...error.attempts.map((attempt) => `  • ${attempt}`),
     "",
-    "Install it with `npm i -g @ditfa/cli`, build it with",
-    "`cargo build --release --manifest-path ditfa-rs/Cargo.toml`,",
+    "Install it with `npm i -g ditfa`, build it with",
+    "`cargo build --release --manifest-path ditfa-rs/Cargo.toml --bin ditfa`,",
     "or set `ditfa.executablePath` to its location.",
   ].join("\n");
 }

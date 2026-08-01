@@ -19,11 +19,11 @@ pub enum AuthMode {
     #[serde(rename = "headers")]
     #[strum(serialize = "headers")]
     Headers,
-    /// Programmatic Codex auth backed by a registered Agent Identity.
+    /// Programmatic Ditfa auth backed by a registered Agent Identity.
     #[serde(rename = "agentIdentity")]
     #[strum(serialize = "agentIdentity")]
     AgentIdentity,
-    /// Programmatic Codex auth backed by a personal access token.
+    /// Programmatic Ditfa auth backed by a personal access token.
     #[serde(rename = "personalAccessToken")]
     #[strum(serialize = "personalAccessToken")]
     PersonalAccessToken,
@@ -43,7 +43,7 @@ impl AuthMode {
     }
 
     /// Returns whether this mode is backed by Ditfa services rather than a direct model API.
-    pub fn uses_codex_backend(self) -> bool {
+    pub fn uses_ditfa_backend(self) -> bool {
         match self {
             Self::Chatgpt
             | Self::ChatgptAuthTokens

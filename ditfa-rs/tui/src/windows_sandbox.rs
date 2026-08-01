@@ -38,7 +38,7 @@ pub(crate) fn level_from_config(config: &Config) -> WindowsSandboxLevel {
 pub(crate) use ditfa_windows_sandbox::sandbox_setup_is_complete;
 
 #[cfg(not(target_os = "windows"))]
-pub(crate) fn sandbox_setup_is_complete(_codex_home: &Path) -> bool {
+pub(crate) fn sandbox_setup_is_complete(_ditfa_home: &Path) -> bool {
     false
 }
 
@@ -83,9 +83,9 @@ pub(crate) fn elevated_setup_failure_metric_name(err: &anyhow::Error) -> &'stati
             ditfa_windows_sandbox::SetupErrorCode::OrchestratorHelperLaunchCanceled
         )
     }) {
-        "codex.windows_sandbox.elevated_setup_canceled"
+        "ditfa.windows_sandbox.elevated_setup_canceled"
     } else {
-        "codex.windows_sandbox.elevated_setup_failure"
+        "ditfa.windows_sandbox.elevated_setup_failure"
     }
 }
 

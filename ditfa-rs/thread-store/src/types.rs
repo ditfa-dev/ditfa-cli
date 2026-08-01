@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use chrono::DateTime;
 use chrono::Utc;
-use ditfa_app_server_protocol::CodexErrorInfo;
+use ditfa_app_server_protocol::DitfaErrorInfo;
 use ditfa_protocol::SessionId;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::capabilities::SelectedCapabilityRoot;
@@ -331,8 +331,8 @@ pub enum StoredTurnStatus {
 pub struct StoredTurnError {
     /// User-visible error message.
     pub message: String,
-    /// Structured Codex error classification, when available.
-    pub ditfa_error_info: Option<CodexErrorInfo>,
+    /// Structured Ditfa error classification, when available.
+    pub ditfa_error_info: Option<DitfaErrorInfo>,
     /// Optional additional detail for clients that expose expanded error context.
     pub additional_details: Option<String>,
 }

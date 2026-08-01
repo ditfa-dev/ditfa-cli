@@ -130,7 +130,7 @@ async fn thread_fork_creates_new_thread_and_emits_started() -> Result<()> {
     let original_contents = std::fs::read_to_string(&original_path)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -272,7 +272,7 @@ async fn thread_fork_preserves_persisted_approvals_reviewer() -> Result<()> {
 
     let (source_thread_id, source_turn_id) = {
         let mut mcp = TestAppServer::builder()
-            .with_codex_home(ditfa_home.path())
+            .with_ditfa_home(ditfa_home.path())
             .build_initialized()
             .await?;
 
@@ -334,7 +334,7 @@ async fn thread_fork_preserves_persisted_approvals_reviewer() -> Result<()> {
     };
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let fork_id = mcp
@@ -365,7 +365,7 @@ async fn thread_fork_at_last_turn_id_keeps_only_terminal_prefix() -> Result<()> 
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -490,7 +490,7 @@ async fn thread_fork_defers_inherited_active_goal_until_next_turn() -> Result<()
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_managed_config()
         .build_initialized()
         .await?;
@@ -635,7 +635,7 @@ async fn thread_fork_defers_inherited_active_goal_until_next_turn() -> Result<()
     let forked_thread_id = ThreadId::from_string(&forked_thread.id)?;
     drop(mcp);
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_managed_config()
         .build_initialized()
         .await?;
@@ -731,7 +731,7 @@ async fn thread_fork_inherits_explicit_source_name_from_session_index() -> Resul
     append_thread_name(ditfa_home.path(), source_thread_id, source_name).await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -781,7 +781,7 @@ async fn thread_fork_can_load_source_by_path() -> Result<()> {
         ));
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -843,7 +843,7 @@ async fn thread_fork_can_cut_before_unfinished_stored_turn() -> Result<()> {
     .await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -893,7 +893,7 @@ async fn thread_fork_emits_restored_token_usage_before_next_turn() -> Result<()>
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -946,7 +946,7 @@ async fn thread_fork_can_exclude_turns_and_skip_restored_token_usage() -> Result
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -998,7 +998,7 @@ async fn thread_fork_tracks_thread_initialized_analytics() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .without_managed_config()
         .build_initialized()
@@ -1020,7 +1020,7 @@ async fn thread_fork_tracks_thread_initialized_analytics() -> Result<()> {
         event,
         &thread.id,
         &thread.session_id,
-        "codex",
+        "ditfa",
         "mock-model",
         "forked",
         "user",
@@ -1042,7 +1042,7 @@ async fn thread_fork_rejects_unmaterialized_thread() -> Result<()> {
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1114,7 +1114,7 @@ async fn thread_fork_rejects_paginated_thread() -> Result<()> {
     std::fs::write(&rollout_path, format!("{contents}\n"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -1155,7 +1155,7 @@ async fn thread_fork_with_empty_path_uses_thread_id() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -1226,7 +1226,7 @@ async fn thread_fork_surfaces_cloud_config_bundle_load_errors() -> Result<()> {
 
     let refresh_token_url = format!("{}/oauth/token", server.uri());
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("OPENAI_API_KEY", None),
@@ -1289,7 +1289,7 @@ async fn thread_fork_ephemeral_remains_pathless_and_omits_listing() -> Result<()
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -1438,7 +1438,7 @@ async fn thread_fork_rejects_incompatible_boundaries_and_ephemeral_goal_deferral
         /*git_info*/ None,
     )?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -1476,7 +1476,7 @@ async fn thread_fork_rejects_incompatible_boundaries_and_ephemeral_goal_deferral
 }
 
 #[tokio::test]
-async fn pathless_ephemeral_thread_rejects_codex_home_path_after_reload() -> Result<()> {
+async fn pathless_ephemeral_thread_rejects_ditfa_home_path_after_reload() -> Result<()> {
     let server = create_mock_responses_server_repeating_assistant("Done").await;
     let ditfa_home = TempDir::new()?;
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
@@ -1492,7 +1492,7 @@ async fn pathless_ephemeral_thread_rejects_codex_home_path_after_reload() -> Res
 
     let side_thread_id = {
         let mut app_server = TestAppServer::builder()
-            .with_codex_home(ditfa_home.path())
+            .with_ditfa_home(ditfa_home.path())
             .without_auto_env()
             .build_initialized()
             .await?;
@@ -1532,7 +1532,7 @@ async fn pathless_ephemeral_thread_rejects_codex_home_path_after_reload() -> Res
     };
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;

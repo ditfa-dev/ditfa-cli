@@ -46,12 +46,12 @@ use windows_sys::Win32::Security::FreeSid;
 use windows_sys::Win32::Security::SECURITY_NT_AUTHORITY;
 
 pub const SETUP_VERSION: u32 = 5;
-pub const OFFLINE_USERNAME: &str = "CodexSandboxOffline";
-pub const ONLINE_USERNAME: &str = "CodexSandboxOnline";
+pub const OFFLINE_USERNAME: &str = "DitfaSandboxOffline";
+pub const ONLINE_USERNAME: &str = "DitfaSandboxOnline";
 const ERROR_CANCELLED: u32 = 1223;
 const SECURITY_BUILTIN_DOMAIN_RID: u32 = 0x0000_0020;
 const DOMAIN_ALIAS_RID_ADMINS: u32 = 0x0000_0220;
-const SETUP_EXE_FILENAME: &str = "codex-windows-sandbox-setup.exe";
+const SETUP_EXE_FILENAME: &str = "ditfa-windows-sandbox-setup.exe";
 const USERPROFILE_ROOT_EXCLUSIONS: &[&str] = &[
     ".ssh",
     ".tsh",
@@ -1464,7 +1464,7 @@ mod tests {
     #[test]
     fn report_helper_failure_uses_setup_error_report_when_clear_succeeded() {
         let tmp = TempDir::new().expect("tempdir");
-        let ditfa_home = tmp.path().join("codex-home");
+        let ditfa_home = tmp.path().join("ditfa-home");
         write_setup_error_report(
             ditfa_home.as_path(),
             &SetupErrorReport {
@@ -1493,7 +1493,7 @@ mod tests {
     #[test]
     fn report_helper_failure_ignores_setup_error_report_when_clear_failed() {
         let tmp = TempDir::new().expect("tempdir");
-        let ditfa_home = tmp.path().join("codex-home");
+        let ditfa_home = tmp.path().join("ditfa-home");
         write_setup_error_report(
             ditfa_home.as_path(),
             &SetupErrorReport {
@@ -1523,7 +1523,7 @@ mod tests {
     fn setup_refresh_skips_profiles_without_managed_filesystem_permissions() {
         let tmp = TempDir::new().expect("tempdir");
         let command_cwd = tmp.path().join("workspace");
-        let ditfa_home = tmp.path().join("codex-home");
+        let ditfa_home = tmp.path().join("ditfa-home");
         fs::create_dir_all(&command_cwd).expect("create workspace");
         let workspace_roots = workspace_roots_for(command_cwd.as_path());
 
@@ -1580,9 +1580,9 @@ mod tests {
         let resources_dir = package_dir.join(RESOURCES_DIRNAME);
         fs::create_dir_all(&bin_dir).expect("create bin dir");
         fs::create_dir_all(&resources_dir).expect("create resources dir");
-        let exe = bin_dir.join("codex.exe");
-        let setup_exe = resources_dir.join("codex-windows-sandbox-setup.exe");
-        fs::write(&exe, b"codex").expect("write exe");
+        let exe = bin_dir.join("ditfa.exe");
+        let setup_exe = resources_dir.join("ditfa-windows-sandbox-setup.exe");
+        fs::write(&exe, b"ditfa").expect("write exe");
         fs::write(&setup_exe, b"setup").expect("write setup");
 
         let resolved = find_setup_exe_for_current_exe(&exe).expect("setup exe");
@@ -1853,12 +1853,12 @@ mod tests {
     }
 
     #[test]
-    fn expanded_write_roots_still_drop_protected_codex_home() {
+    fn expanded_write_roots_still_drop_protected_ditfa_home() {
         let tmp = TempDir::new().expect("tempdir");
         let user_profile = tmp.path().join("user-profile");
-        let ditfa_home = user_profile.join("CodexHome");
+        let ditfa_home = user_profile.join("DitfaHome");
         let documents = user_profile.join("Documents");
-        fs::create_dir_all(&ditfa_home).expect("create codex home");
+        fs::create_dir_all(&ditfa_home).expect("create ditfa home");
         fs::create_dir_all(&documents).expect("create documents");
 
         let mut roots =
@@ -1874,7 +1874,7 @@ mod tests {
     #[test]
     fn gather_read_roots_includes_helper_bin_dir() {
         let tmp = TempDir::new().expect("tempdir");
-        let ditfa_home = tmp.path().join("codex-home");
+        let ditfa_home = tmp.path().join("ditfa-home");
         let command_cwd = tmp.path().join("workspace");
         fs::create_dir_all(&command_cwd).expect("create workspace");
         let permission_profile = PermissionProfile::read_only();
@@ -1891,7 +1891,7 @@ mod tests {
     #[test]
     fn workspace_write_roots_remain_readable() {
         let tmp = TempDir::new().expect("tempdir");
-        let ditfa_home = tmp.path().join("codex-home");
+        let ditfa_home = tmp.path().join("ditfa-home");
         let command_cwd = tmp.path().join("workspace");
         let writable_root = tmp.path().join("extra-write-root");
         fs::create_dir_all(&command_cwd).expect("create workspace");
@@ -1917,7 +1917,7 @@ mod tests {
     #[test]
     fn build_payload_roots_preserves_helper_roots_when_read_override_is_provided() {
         let tmp = TempDir::new().expect("tempdir");
-        let ditfa_home = tmp.path().join("codex-home");
+        let ditfa_home = tmp.path().join("ditfa-home");
         let workspace_root = tmp.path().join("workspace-root");
         let command_cwd = tmp.path().join("workspace");
         let readable_root = tmp.path().join("docs");
@@ -1964,7 +1964,7 @@ mod tests {
     #[test]
     fn build_payload_roots_replaces_full_read_policy_when_read_override_is_provided() {
         let tmp = TempDir::new().expect("tempdir");
-        let ditfa_home = tmp.path().join("codex-home");
+        let ditfa_home = tmp.path().join("ditfa-home");
         let workspace_root = tmp.path().join("workspace-root");
         let command_cwd = tmp.path().join("workspace");
         let readable_root = tmp.path().join("docs");
@@ -2011,11 +2011,11 @@ mod tests {
     #[test]
     fn effective_write_roots_match_payload_filtering_for_overrides() {
         let tmp = TempDir::new().expect("tempdir");
-        let ditfa_home = tmp.path().join("codex-home");
+        let ditfa_home = tmp.path().join("ditfa-home");
         let command_cwd = tmp.path().join("workspace");
         let extra_root = tmp.path().join("extra-root");
         let sandbox_root = super::sandbox_dir(&ditfa_home);
-        fs::create_dir_all(&ditfa_home).expect("create codex home");
+        fs::create_dir_all(&ditfa_home).expect("create ditfa home");
         fs::create_dir_all(&command_cwd).expect("create workspace");
         fs::create_dir_all(&extra_root).expect("create extra root");
         fs::create_dir_all(&sandbox_root).expect("create sandbox root");
@@ -2058,22 +2058,22 @@ mod tests {
 
         let expected_workspace = dunce::canonicalize(&command_cwd).expect("canonical workspace");
         let expected_extra = dunce::canonicalize(&extra_root).expect("canonical extra root");
-        let forbidden_codex_home = dunce::canonicalize(&ditfa_home).expect("canonical codex home");
+        let forbidden_ditfa_home = dunce::canonicalize(&ditfa_home).expect("canonical ditfa home");
         let forbidden_sandbox = dunce::canonicalize(&sandbox_root).expect("canonical sandbox root");
         assert_eq!(effective_write_roots, payload_write_roots);
         assert!(effective_write_roots.contains(&expected_workspace));
         assert!(effective_write_roots.contains(&expected_extra));
-        assert!(!effective_write_roots.contains(&forbidden_codex_home));
+        assert!(!effective_write_roots.contains(&forbidden_ditfa_home));
         assert!(!effective_write_roots.contains(&forbidden_sandbox));
     }
 
     #[test]
     fn effective_write_roots_use_runtime_workspace_roots_for_workspace_root() {
         let tmp = TempDir::new().expect("tempdir");
-        let ditfa_home = tmp.path().join("codex-home");
+        let ditfa_home = tmp.path().join("ditfa-home");
         let workspace_root = tmp.path().join("workspace");
         let command_cwd = workspace_root.join("subdir");
-        fs::create_dir_all(&ditfa_home).expect("create codex home");
+        fs::create_dir_all(&ditfa_home).expect("create ditfa home");
         fs::create_dir_all(&command_cwd).expect("create command cwd");
 
         let permission_profile = workspace_write_profile(
@@ -2101,14 +2101,14 @@ mod tests {
     #[test]
     fn payload_deny_write_paths_merge_explicit_and_protected_children() {
         let tmp = TempDir::new().expect("tempdir");
-        let ditfa_home = tmp.path().join("codex-home");
+        let ditfa_home = tmp.path().join("ditfa-home");
         let command_cwd = tmp.path().join("workspace");
         let extra_write_root = tmp.path().join("extra-write-root");
         let command_git = command_cwd.join(".git");
-        let extra_codex = extra_write_root.join(".ditfa");
+        let extra_ditfa = extra_write_root.join(".ditfa");
         let explicit_deny = tmp.path().join("explicit-deny");
         fs::create_dir_all(&command_git).expect("create command .git");
-        fs::create_dir_all(&extra_codex).expect("create extra .ditfa");
+        fs::create_dir_all(&extra_ditfa).expect("create extra .ditfa");
         let writable_roots = vec![
             AbsolutePathBuf::from_absolute_path(&extra_write_root).expect("absolute writable root"),
         ];
@@ -2133,7 +2133,7 @@ mod tests {
         assert_eq!(
             [
                 dunce::canonicalize(&command_git).expect("canonical command .git"),
-                dunce::canonicalize(&extra_codex).expect("canonical extra .ditfa"),
+                dunce::canonicalize(&extra_ditfa).expect("canonical extra .ditfa"),
                 explicit_deny,
             ]
             .into_iter()
@@ -2145,7 +2145,7 @@ mod tests {
     #[test]
     fn full_read_roots_preserve_legacy_platform_defaults() {
         let tmp = TempDir::new().expect("tempdir");
-        let ditfa_home = tmp.path().join("codex-home");
+        let ditfa_home = tmp.path().join("ditfa-home");
         let command_cwd = tmp.path().join("workspace");
         fs::create_dir_all(&command_cwd).expect("create workspace");
         let permission_profile = PermissionProfile::read_only();

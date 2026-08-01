@@ -109,10 +109,10 @@ enabled = true
     Ok(())
 }
 
-fn write_project_hook_config(dot_codex_folder: &std::path::Path, command: &str) -> Result<()> {
-    std::fs::create_dir_all(dot_codex_folder)?;
+fn write_project_hook_config(dot_ditfa_folder: &std::path::Path, command: &str) -> Result<()> {
+    std::fs::create_dir_all(dot_ditfa_folder)?;
     std::fs::write(
-        dot_codex_folder.join("config.toml"),
+        dot_ditfa_folder.join("config.toml"),
         format!(
             r#"[features]
 hooks = true
@@ -139,7 +139,7 @@ async fn hooks_list_shows_discovered_hook() -> Result<()> {
     write_user_hook_config(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
 
@@ -215,7 +215,7 @@ async fn hooks_list_shows_discovered_plugin_hook() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -304,7 +304,7 @@ async fn hooks_list_warms_plugin_capabilities_for_thread_start() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
 
@@ -346,7 +346,7 @@ async fn hooks_list_shows_plugin_hook_load_warnings() -> Result<()> {
     write_plugin_hook_config(ditfa_home.path(), "{ not-json")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -401,7 +401,7 @@ timeout = 5
     set_project_trust_level(ditfa_home.path(), workspace.path(), TrustLevel::Trusted)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -484,7 +484,7 @@ async fn hooks_list_uses_root_repo_hooks_for_linked_worktrees() -> Result<()> {
     set_project_trust_level(ditfa_home.path(), &repo_root, TrustLevel::Trusted)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -543,7 +543,7 @@ async fn config_batch_write_toggles_user_hook() -> Result<()> {
     write_user_hook_config(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -663,7 +663,7 @@ command = "python3 {}"
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
 
@@ -866,7 +866,7 @@ command = "python3 {}"
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
 

@@ -104,7 +104,7 @@ pub trait CodeModeSessionDelegate: Send + Sync {
     fn cell_closed(&self, cell_id: &CellId);
 }
 
-/// A durable code-mode session owned by one Codex thread.
+/// A durable code-mode session owned by one Ditfa thread.
 ///
 /// Cells executed in the same session share stored values. Separate sessions
 /// must keep those values isolated. Implementations may execute cells

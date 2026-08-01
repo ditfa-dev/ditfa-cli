@@ -7,7 +7,7 @@ use app_test_support::ChatGptAuthFixture;
 use app_test_support::write_chatgpt_auth;
 use ditfa_config::types::AuthCredentialsStoreMode;
 use ditfa_core::spawn::DITFA_SANDBOX_NETWORK_DISABLED_ENV_VAR;
-use ditfa_mcp_server::CodexToolCallParam;
+use ditfa_mcp_server::DitfaToolCallParam;
 use ditfa_mcp_server::ExecApprovalElicitRequestParams;
 use ditfa_mcp_server::ExecApprovalResponse;
 use ditfa_mcp_server::PatchApprovalElicitRequestParams;
@@ -47,7 +47,7 @@ const DEFAULT_READ_TIMEOUT: std::time::Duration = std::time::Duration::from_secs
 async fn test_shell_command_approval_triggers_elicitation() {
     if env::var(DITFA_SANDBOX_NETWORK_DISABLED_ENV_VAR).is_ok() {
         println!(
-            "Skipping test because it cannot execute when network is disabled in a Codex sandbox."
+            "Skipping test because it cannot execute when network is disabled in a Ditfa sandbox."
         );
         return;
     }
@@ -105,11 +105,11 @@ async fn shell_command_approval_triggers_elicitation() -> anyhow::Result<()> {
     ])
     .await?;
 
-    // Send a "codex" tool request, which should hit the responses endpoint.
+    // Send a "ditfa" tool request, which should hit the responses endpoint.
     // In turn, it should reply with a tool call, which the MCP should forward
     // as an elicitation.
     let ditfa_request_id = mcp_process
-        .send_codex_tool_call(CodexToolCallParam {
+        .send_ditfa_tool_call(DitfaToolCallParam {
             prompt: "run `git init`".to_string(),
             ..Default::default()
         })
@@ -161,7 +161,7 @@ async fn shell_command_approval_triggers_elicitation() -> anyhow::Result<()> {
     .expect("task_complete_notification timeout")
     .expect("task_complete_notification resp");
 
-    // Verify the original `codex` tool call completes and that the file was created.
+    // Verify the original `ditfa` tool call completes and that the file was created.
     let ditfa_response = timeout(
         DEFAULT_READ_TIMEOUT,
         mcp_process.read_stream_until_response_message(RequestId::Number(ditfa_request_id)),
@@ -200,7 +200,7 @@ fn create_expected_elicitation_request_params(
     thread_id: ditfa_protocol::ThreadId,
 ) -> anyhow::Result<serde_json::Value> {
     let expected_message = format!(
-        "Allow Codex to run `{}` in `{}`?",
+        "Allow Ditfa to run `{}` in `{}`?",
         shlex::try_join(command.iter().map(std::convert::AsRef::as_ref))?,
         workdir.to_string_lossy()
     );
@@ -226,7 +226,7 @@ fn create_expected_elicitation_request_params(
 async fn test_patch_approval_triggers_elicitation() {
     if env::var(DITFA_SANDBOX_NETWORK_DISABLED_ENV_VAR).is_ok() {
         println!(
-            "Skipping test because it cannot execute when network is disabled in a Codex sandbox."
+            "Skipping test because it cannot execute when network is disabled in a Ditfa sandbox."
         );
         return;
     }
@@ -262,9 +262,9 @@ async fn patch_approval_triggers_elicitation() -> anyhow::Result<()> {
     ])
     .await?;
 
-    // Send a "codex" tool request that will trigger the apply_patch command
+    // Send a "ditfa" tool request that will trigger the apply_patch command
     let ditfa_request_id = mcp_process
-        .send_codex_tool_call(CodexToolCallParam {
+        .send_ditfa_tool_call(DitfaToolCallParam {
             cwd: Some(cwd.path().to_string_lossy().to_string()),
             prompt: "please modify the test file".to_string(),
             // This test exercises patch approval elicitation, not local sandbox setup.
@@ -324,7 +324,7 @@ async fn patch_approval_triggers_elicitation() -> anyhow::Result<()> {
         )
         .await?;
 
-    // Verify the original `codex` tool call completes
+    // Verify the original `ditfa` tool call completes
     let ditfa_response = timeout(
         DEFAULT_READ_TIMEOUT,
         mcp_process.read_stream_until_response_message(RequestId::Number(ditfa_request_id)),
@@ -357,14 +357,14 @@ async fn patch_approval_triggers_elicitation() -> anyhow::Result<()> {
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn test_codex_tool_passes_base_instructions() {
+async fn test_ditfa_tool_passes_base_instructions() {
     skip_if_no_network!();
 
     // Apparently `#[tokio::test]` must return `()`, so we create a helper
     // function that returns `Result` so we can use `?` in favor of `unwrap`.
     ditfa_tool_passes_base_instructions()
         .await
-        .expect("codex tool should pass base instructions");
+        .expect("ditfa tool should pass base instructions");
 }
 
 async fn ditfa_tool_passes_base_instructions() -> anyhow::Result<()> {
@@ -375,7 +375,7 @@ async fn ditfa_tool_passes_base_instructions() -> anyhow::Result<()> {
             .await;
     let caller_server = MockServer::start().await;
 
-    // Run `codex mcp` with a specific config.toml.
+    // Run `ditfa mcp` with a specific config.toml.
     let ditfa_home = TempDir::new()?;
     create_config_toml(ditfa_home.path(), &server.uri())?;
     write_chatgpt_auth(
@@ -398,9 +398,9 @@ async fn ditfa_tool_passes_base_instructions() -> anyhow::Result<()> {
     .await?;
     timeout(DEFAULT_READ_TIMEOUT, mcp_process.initialize()).await??;
 
-    // Send a "codex" tool request, which should hit the responses endpoint.
+    // Send a "ditfa" tool request, which should hit the responses endpoint.
     let ditfa_request_id = mcp_process
-        .send_codex_tool_call(CodexToolCallParam {
+        .send_ditfa_tool_call(DitfaToolCallParam {
             prompt: "How are you?".to_string(),
             config: Some(HashMap::from([(
                 "chatgpt_base_url".to_string(),
@@ -434,7 +434,7 @@ async fn ditfa_tool_passes_base_instructions() -> anyhow::Result<()> {
                     .get("structuredContent")
                     .and_then(|v| v.get("threadId"))
                     .and_then(serde_json::Value::as_str)
-                    .expect("codex tool response should include structuredContent.threadId"),
+                    .expect("ditfa tool response should include structuredContent.threadId"),
                 "content": "Enjoy!"
             }
         })
@@ -466,7 +466,7 @@ async fn ditfa_tool_passes_base_instructions() -> anyhow::Result<()> {
     let developer_text = developer_contents.join("\n");
     assert_eq!(
         developer_text
-            .matches("Co-authored-by: Codex <noreply@openai.com>")
+            .matches("Co-authored-by: Ditfa <noreply@openai.com>")
             .count(),
         1
     );
@@ -504,7 +504,7 @@ fn create_expected_patch_approval_elicitation_request_params(
     if let Some(r) = &reason {
         message_lines.push(r.clone());
     }
-    message_lines.push("Allow Codex to apply proposed code changes?".to_string());
+    message_lines.push("Allow Ditfa to apply proposed code changes?".to_string());
     let params_json = serde_json::to_value(PatchApprovalElicitRequestParams {
         message: message_lines.join("\n"),
         requested_schema: json!({"type":"object","properties":{}}),
@@ -546,7 +546,7 @@ async fn create_mcp_process(responses: Vec<String>) -> anyhow::Result<McpHandle>
     })
 }
 
-/// Create a Codex config that uses the mock server as the model provider.
+/// Create a Ditfa config that uses the mock server as the model provider.
 /// It also uses `approval_policy = "untrusted"` so that we exercise the
 /// elicitation code path for shell commands.
 fn create_config_toml(ditfa_home: &Path, server_uri: &str) -> std::io::Result<()> {

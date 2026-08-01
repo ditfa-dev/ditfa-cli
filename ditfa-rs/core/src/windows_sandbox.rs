@@ -94,7 +94,7 @@ pub fn sandbox_setup_is_complete(ditfa_home: &Path) -> bool {
 }
 
 #[cfg(not(target_os = "windows"))]
-pub fn sandbox_setup_is_complete(_codex_home: &Path) -> bool {
+pub fn sandbox_setup_is_complete(_ditfa_home: &Path) -> bool {
     false
 }
 
@@ -155,14 +155,14 @@ pub fn run_elevated_setup(
     _workspace_roots: &[AbsolutePathBuf],
     _command_cwd: &Path,
     _env_map: &HashMap<String, String>,
-    _codex_home: &Path,
+    _ditfa_home: &Path,
 ) -> anyhow::Result<()> {
     anyhow::bail!("elevated Windows sandbox setup is only supported on Windows")
 }
 
 #[cfg(not(target_os = "windows"))]
 pub fn run_elevated_provisioning_setup(
-    _codex_home: &Path,
+    _ditfa_home: &Path,
     _real_user: &str,
     _network: Option<&crate::config::NetworkProxySpec>,
 ) -> anyhow::Result<()> {
@@ -212,7 +212,7 @@ pub fn run_legacy_setup_preflight(
     _workspace_roots: &[AbsolutePathBuf],
     _command_cwd: &Path,
     _env_map: &HashMap<String, String>,
-    _codex_home: &Path,
+    _ditfa_home: &Path,
 ) -> anyhow::Result<()> {
     anyhow::bail!("legacy Windows sandbox setup is only supported on Windows")
 }
@@ -223,7 +223,7 @@ pub fn run_setup_refresh_with_extra_read_roots(
     _workspace_roots: &[AbsolutePathBuf],
     _command_cwd: &Path,
     _env_map: &HashMap<String, String>,
-    _codex_home: &Path,
+    _ditfa_home: &Path,
     _extra_read_roots: Vec<PathBuf>,
 ) -> anyhow::Result<()> {
     anyhow::bail!("Windows sandbox read-root refresh is only supported on Windows")
@@ -281,18 +281,18 @@ async fn run_windows_sandbox_setup_and_persist(
     let command_cwd = request.command_cwd;
     let env_map = request.env_map;
     let ditfa_home = request.ditfa_home;
-    let setup_codex_home = ditfa_home.clone();
+    let setup_ditfa_home = ditfa_home.clone();
 
     let setup_result = tokio::task::spawn_blocking(move || -> anyhow::Result<()> {
         match mode {
             WindowsSandboxSetupMode::Elevated => {
-                if !sandbox_setup_is_complete(setup_codex_home.as_path()) {
+                if !sandbox_setup_is_complete(setup_ditfa_home.as_path()) {
                     run_elevated_setup(
                         &permission_profile,
                         workspace_roots.as_slice(),
                         command_cwd.as_path(),
                         &env_map,
-                        setup_codex_home.as_path(),
+                        setup_ditfa_home.as_path(),
                     )?;
                 }
             }
@@ -302,7 +302,7 @@ async fn run_windows_sandbox_setup_and_persist(
                     workspace_roots.as_slice(),
                     command_cwd.as_path(),
                     &env_map,
-                    setup_codex_home.as_path(),
+                    setup_ditfa_home.as_path(),
                 )?;
             }
         }
@@ -331,7 +331,7 @@ fn emit_windows_sandbox_setup_success_metrics(
     };
     let mode_tag = windows_sandbox_setup_mode_tag(mode);
     let _ = metrics.record_duration(
-        "codex.windows_sandbox.setup_duration_ms",
+        "ditfa.windows_sandbox.setup_duration_ms",
         duration,
         &[
             ("result", "success"),
@@ -340,7 +340,7 @@ fn emit_windows_sandbox_setup_success_metrics(
         ],
     );
     let _ = metrics.counter(
-        "codex.windows_sandbox.setup_success",
+        "ditfa.windows_sandbox.setup_success",
         /*inc*/ 1,
         &[("originator", originator_tag), ("mode", mode_tag)],
     );
@@ -357,7 +357,7 @@ fn emit_windows_sandbox_setup_failure_metrics(
     };
     let mode_tag = windows_sandbox_setup_mode_tag(mode);
     let _ = metrics.record_duration(
-        "codex.windows_sandbox.setup_duration_ms",
+        "ditfa.windows_sandbox.setup_duration_ms",
         duration,
         &[
             ("result", "failure"),
@@ -366,7 +366,7 @@ fn emit_windows_sandbox_setup_failure_metrics(
         ],
     );
     let _ = metrics.counter(
-        "codex.windows_sandbox.setup_failure",
+        "ditfa.windows_sandbox.setup_failure",
         /*inc*/ 1,
         &[("originator", originator_tag), ("mode", mode_tag)],
     );
@@ -396,15 +396,15 @@ fn emit_windows_sandbox_setup_failure_metrics(
                         ditfa_windows_sandbox::SetupErrorCode::OrchestratorHelperLaunchCanceled
                     )
                 }) {
-                    "codex.windows_sandbox.elevated_setup_canceled"
+                    "ditfa.windows_sandbox.elevated_setup_canceled"
                 } else {
-                    "codex.windows_sandbox.elevated_setup_failure"
+                    "ditfa.windows_sandbox.elevated_setup_failure"
                 };
             let _ = metrics.counter(metric_name, /*inc*/ 1, &failure_tags);
         }
     } else {
         let _ = metrics.counter(
-            "codex.windows_sandbox.legacy_setup_preflight_failed",
+            "ditfa.windows_sandbox.legacy_setup_preflight_failed",
             /*inc*/ 1,
             &[("originator", originator_tag)],
         );

@@ -470,7 +470,7 @@ mod tests {
         let env = helper_env_from_vars(
             [
                 ("PATH", "/usr/bin:/bin"),
-                ("TMPDIR", "/tmp/codex"),
+                ("TMPDIR", "/tmp/ditfa"),
                 ("TMP", "/tmp"),
                 ("TEMP", "/tmp"),
                 ("HOME", "/home/user"),
@@ -484,7 +484,7 @@ mod tests {
             env,
             HashMap::from([
                 ("PATH".to_string(), "/usr/bin:/bin".to_string()),
-                ("TMPDIR".to_string(), "/tmp/codex".to_string()),
+                ("TMPDIR".to_string(), "/tmp/ditfa".to_string()),
                 ("TMP".to_string(), "/tmp".to_string()),
                 ("TEMP".to_string(), "/tmp".to_string()),
             ])
@@ -661,8 +661,8 @@ mod tests {
     #[test]
     fn helper_permissions_include_linux_sandbox_alias_parent() {
         let root = tempfile::tempdir().expect("temp dir");
-        let ditfa_self_exe = root.path().join("bin").join("codex");
-        let ditfa_linux_sandbox_exe = root.path().join("aliases").join("codex-linux-sandbox");
+        let ditfa_self_exe = root.path().join("bin").join("ditfa");
+        let ditfa_linux_sandbox_exe = root.path().join("aliases").join("ditfa-linux-sandbox");
         let runtime_paths =
             ExecServerRuntimePaths::new(ditfa_self_exe, Some(ditfa_linux_sandbox_exe))
                 .expect("runtime paths");
@@ -670,7 +670,7 @@ mod tests {
             .expect("absolute cwd");
         let mut policy = restricted_policy(Vec::new());
         let ditfa_parent = AbsolutePathBuf::from_absolute_path(root.path().join("bin"))
-            .expect("absolute codex parent");
+            .expect("absolute ditfa parent");
         let alias_parent = AbsolutePathBuf::from_absolute_path(root.path().join("aliases"))
             .expect("absolute alias parent");
 

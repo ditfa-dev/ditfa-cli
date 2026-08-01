@@ -176,7 +176,7 @@ fn aws_managed_bedrock_config() -> CreateConfigTomlParams {
         model_provider_id: Some("amazon-bedrock".to_string()),
         extra_provider_config: Some(
             r#"[model_providers.amazon-bedrock.aws]
-profile = "codex-bedrock"
+profile = "ditfa-bedrock"
 region = "us-west-2"
 "#
             .to_string(),
@@ -279,7 +279,7 @@ async fn logout_account_removes_auth_and_notifies() -> Result<()> {
     assert!(ditfa_home.path().join("auth.json").exists());
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -331,7 +331,7 @@ async fn logout_account_succeeds_when_config_reload_fails() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -377,7 +377,7 @@ async fn set_auth_token_updates_account_and_notifies() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -460,7 +460,7 @@ async fn account_read_refresh_token_is_noop_in_external_mode() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -593,7 +593,7 @@ async fn external_auth_refreshes_on_unauthorized() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -694,7 +694,7 @@ async fn external_auth_refresh_error_fails_turn() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -811,7 +811,7 @@ async fn external_auth_refresh_mismatched_workspace_fails_turn() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -921,7 +921,7 @@ async fn external_auth_refresh_invalid_access_token_fails_turn() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -1006,7 +1006,7 @@ async fn login_account_api_key_succeeds_and_notifies() -> Result<()> {
     create_config_toml(ditfa_home.path(), CreateConfigTomlParams::default())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -1058,7 +1058,7 @@ async fn login_amazon_bedrock_replaces_primary_auth_and_persists_provider() -> R
         AuthKeyringBackendKind::default(),
     )?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -1136,7 +1136,7 @@ async fn login_amazon_bedrock_rejects_non_bedrock_provider_override_without_chan
     let expected_auth = load_file_auth(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .with_args(&["-c", "model_provider=\"mock_provider\""])
@@ -1195,7 +1195,7 @@ async fn login_amazon_bedrock_allows_bedrock_provider_override() -> Result<()> {
         );
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .with_args(&["-c", "model_provider=\"amazon-bedrock\""])
@@ -1251,7 +1251,7 @@ async fn logout_managed_bedrock_restores_default_account() -> Result<()> {
         .remove("model_provider");
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -1278,7 +1278,7 @@ async fn logout_managed_bedrock_restores_default_account() -> Result<()> {
         read_account(&mut mcp).await?,
         GetAccountResponse {
             account: Some(Account::AmazonBedrock {
-                uses_codex_managed_credentials: true,
+                uses_ditfa_managed_credentials: true,
             }),
             requires_openai_auth: false,
         }
@@ -1320,7 +1320,7 @@ async fn logout_aws_managed_bedrock_errors_without_changing_auth_or_config() -> 
     let expected_auth = load_file_auth(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -1335,7 +1335,7 @@ async fn logout_aws_managed_bedrock_errors_without_changing_auth_or_config() -> 
     assert_eq!(error.error.code, -32600);
     assert_eq!(
         error.error.message,
-        "cannot log out while Amazon Bedrock is using AWS-managed credentials; manage those credentials through AWS or switch model providers before logging out Codex authentication"
+        "cannot log out while Amazon Bedrock is using AWS-managed credentials; manage those credentials through AWS or switch model providers before logging out Ditfa authentication"
     );
     assert_eq!(load_file_auth(ditfa_home.path())?, expected_auth);
     assert_eq!(read_config_toml(ditfa_home.path())?, expected_config);
@@ -1356,7 +1356,7 @@ async fn logout_managed_bedrock_preserves_changed_provider_without_experimental_
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -1406,7 +1406,7 @@ async fn managed_bedrock_login_requires_experimental_api() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     create_config_toml(ditfa_home.path(), CreateConfigTomlParams::default())?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -1447,7 +1447,7 @@ async fn login_managed_bedrock_updates_active_bedrock_account() -> Result<()> {
     create_config_toml(ditfa_home.path(), CreateConfigTomlParams::default())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -1474,7 +1474,7 @@ async fn login_managed_bedrock_updates_active_bedrock_account() -> Result<()> {
         read_account(&mut mcp).await?,
         GetAccountResponse {
             account: Some(Account::AmazonBedrock {
-                uses_codex_managed_credentials: true,
+                uses_ditfa_managed_credentials: true,
             }),
             requires_openai_auth: false,
         }
@@ -1490,7 +1490,7 @@ async fn login_account_amazon_bedrock_rejects_invalid_credentials_without_change
     create_config_toml(ditfa_home.path(), CreateConfigTomlParams::default())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -1540,7 +1540,7 @@ async fn login_account_amazon_bedrock_rejected_when_forced_chatgpt() -> Result<(
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -1573,7 +1573,7 @@ async fn login_account_amazon_bedrock_rejected_with_external_chatgpt_auth() -> R
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -1627,7 +1627,7 @@ async fn login_account_api_key_rejected_when_forced_chatgpt() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -1660,7 +1660,7 @@ async fn login_account_chatgpt_rejected_when_forced_api() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -1696,7 +1696,7 @@ async fn login_account_chatgpt_device_code_returns_error_when_disabled() -> Resu
 
     let issuer = mock_server.uri();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("OPENAI_API_KEY", None),
@@ -1761,7 +1761,7 @@ async fn login_account_chatgpt_device_code_succeeds_and_notifies() -> Result<()>
 
     let issuer = mock_server.uri();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("OPENAI_API_KEY", None),
@@ -1781,7 +1781,7 @@ async fn login_account_chatgpt_device_code_succeeds_and_notifies() -> Result<()>
     else {
         bail!("unexpected login response: {login:?}");
     };
-    assert_eq!(verification_url, format!("{issuer}/codex/device"));
+    assert_eq!(verification_url, format!("{issuer}/ditfa/device"));
     assert_eq!(user_code, "CODE-12345");
 
     let note = timeout(
@@ -1834,7 +1834,7 @@ async fn login_account_chatgpt_device_code_failure_notifies_without_account_upda
 
     let issuer = mock_server.uri();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("OPENAI_API_KEY", None),
@@ -1905,7 +1905,7 @@ async fn login_account_chatgpt_device_code_can_be_cancelled() -> Result<()> {
 
     let issuer = mock_server.uri();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("OPENAI_API_KEY", None),
@@ -1970,7 +1970,7 @@ async fn login_account_chatgpt_start_can_be_cancelled() -> Result<()> {
     create_config_toml(ditfa_home.path(), CreateConfigTomlParams::default())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -2030,7 +2030,7 @@ async fn login_account_chatgpt_uses_debug_oauth_overrides() -> Result<()> {
     create_config_toml(ditfa_home.path(), CreateConfigTomlParams::default())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             (CLIENT_ID_OVERRIDE_ENV_VAR, Some("staging-client")),
@@ -2082,13 +2082,13 @@ async fn login_account_chatgpt_redirects_to_hosted_success_page() -> Result<()> 
     let issuer = mock_server.uri();
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             (LOGIN_ISSUER_ENV_VAR, Some(issuer.as_str())),
             (
                 LOGIN_OPEN_APP_URL_ENV_VAR,
-                Some("http://localhost:3000/codex/open-app"),
+                Some("http://localhost:3000/ditfa/open-app"),
             ),
         ])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -2127,7 +2127,7 @@ async fn login_account_chatgpt_redirects_to_hosted_success_page() -> Result<()> 
     assert_eq!(response.status(), 302);
     assert_eq!(
         response.headers()["location"].to_str()?,
-        "http://localhost:3000/codex/open-app?source=login&app_brand=chatgpt"
+        "http://localhost:3000/ditfa/open-app?source=login&app_brand=chatgpt"
     );
     Ok(())
 }
@@ -2140,7 +2140,7 @@ async fn set_auth_token_cancels_active_chatgpt_login() -> Result<()> {
     create_config_toml(ditfa_home.path(), CreateConfigTomlParams::default())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -2205,7 +2205,7 @@ async fn login_account_chatgpt_includes_forced_workspace_query_param() -> Result
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -2240,7 +2240,7 @@ async fn login_account_chatgpt_includes_forced_workspace_allowlist_query_param()
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -2277,7 +2277,7 @@ async fn get_account_no_auth() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -2308,7 +2308,7 @@ async fn get_account_with_api_key() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -2347,7 +2347,7 @@ async fn get_account_when_auth_not_required() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -2377,7 +2377,7 @@ async fn get_account_with_aws_provider() -> Result<()> {
             model_provider_id: Some("amazon-bedrock".to_string()),
             extra_provider_config: Some(
                 r#"[model_providers.amazon-bedrock.aws]
-profile = "codex-bedrock"
+profile = "ditfa-bedrock"
 region = "us-west-2"
 "#
                 .to_string(),
@@ -2387,7 +2387,7 @@ region = "us-west-2"
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -2402,7 +2402,7 @@ region = "us-west-2"
 
     let expected = GetAccountResponse {
         account: Some(Account::AmazonBedrock {
-            uses_codex_managed_credentials: false,
+            uses_ditfa_managed_credentials: false,
         }),
         requires_openai_auth: false,
     };
@@ -2431,7 +2431,7 @@ command = "print-token"
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -2440,7 +2440,7 @@ command = "print-token"
         read_account(&mut mcp).await?,
         GetAccountResponse {
             account: Some(Account::AmazonBedrock {
-                uses_codex_managed_credentials: false,
+                uses_ditfa_managed_credentials: false,
             }),
             requires_openai_auth: false,
         }
@@ -2457,7 +2457,7 @@ async fn account_reads_use_startup_config_when_config_reload_fails() -> Result<(
             model_provider_id: Some("amazon-bedrock".to_string()),
             extra_provider_config: Some(
                 r#"[model_providers.amazon-bedrock.aws]
-profile = "codex-bedrock"
+profile = "ditfa-bedrock"
 region = "us-west-2"
 "#
                 .to_string(),
@@ -2467,7 +2467,7 @@ region = "us-west-2"
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -2478,7 +2478,7 @@ region = "us-west-2"
         read_account(&mut mcp).await?,
         GetAccountResponse {
             account: Some(Account::AmazonBedrock {
-                uses_codex_managed_credentials: false,
+                uses_ditfa_managed_credentials: false,
             }),
             requires_openai_auth: false,
         }
@@ -2526,7 +2526,7 @@ async fn get_account_with_managed_bedrock_provider() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -2543,7 +2543,7 @@ async fn get_account_with_managed_bedrock_provider() -> Result<()> {
         received,
         GetAccountResponse {
             account: Some(Account::AmazonBedrock {
-                uses_codex_managed_credentials: true,
+                uses_ditfa_managed_credentials: true,
             }),
             requires_openai_auth: false,
         }
@@ -2570,7 +2570,7 @@ async fn get_account_with_chatgpt() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -2612,7 +2612,7 @@ async fn get_account_with_chatgpt_without_email() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -2674,7 +2674,7 @@ async fn get_account_omits_chatgpt_after_permanent_refresh_failure() -> Result<(
 
     let refresh_url = format!("{}/oauth/token", server.uri());
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("OPENAI_API_KEY", None),
@@ -2735,7 +2735,7 @@ async fn get_account_with_chatgpt_missing_plan_claim_returns_unknown() -> Result
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)

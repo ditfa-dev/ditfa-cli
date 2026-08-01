@@ -47,8 +47,8 @@ fn write_marketplace_files(root: &Path, marketplace_name: &str, marker: &str) ->
 
 fn init_marketplace_repo(root: &Path, marketplace_name: &str, marker: &str) -> Result<String> {
     run_git(root, &["init"])?;
-    run_git(root, &["config", "user.email", "codex@example.com"])?;
-    run_git(root, &["config", "user.name", "Codex Tests"])?;
+    run_git(root, &["config", "user.email", "ditfa@example.com"])?;
+    run_git(root, &["config", "user.name", "Ditfa Tests"])?;
     write_marketplace_files(root, marketplace_name, marker)?;
     run_git(root, &["add", "."])?;
     run_git(root, &["commit", "-m", "initial marketplace"])?;
@@ -164,7 +164,7 @@ async fn marketplace_upgrade_all_configured_git_marketplaces() -> Result<()> {
     disable_plugin_startup_tasks(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -221,7 +221,7 @@ async fn marketplace_upgrade_named_marketplace_only() -> Result<()> {
     disable_plugin_startup_tasks(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -265,7 +265,7 @@ async fn marketplace_upgrade_returns_empty_roots_when_already_up_to_date() -> Re
     disable_plugin_startup_tasks(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -296,7 +296,7 @@ async fn marketplace_upgrade_rejects_unknown_or_non_git_marketplace() -> Result<
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;

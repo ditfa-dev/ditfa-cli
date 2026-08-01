@@ -5,7 +5,7 @@ use tempfile::TempDir;
 
 #[tokio::test]
 async fn seeds_instructions_without_overwriting_existing_file() {
-    let ditfa_home = TempDir::new().expect("create temp codex home");
+    let ditfa_home = TempDir::new().expect("create temp ditfa home");
     let memory_root = ditfa_home.path().join("memories");
     let instructions_path = memory_extensions_root(&memory_root).join("ad_hoc/instructions.md");
 

@@ -1,14 +1,14 @@
 use crate::StartThreadOptions;
 use crate::ThreadManager;
 use crate::agent::AgentControl;
-use crate::ditfa_thread::CodexThread;
+use crate::ditfa_thread::DitfaThread;
 use crate::config::Config;
 use crate::config::test_config;
 use crate::thread_manager::ThreadManagerState;
 use ditfa_features::Feature;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_protocol::ThreadId;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::SessionSource;
 use ditfa_protocol::protocol::SubAgentSource;
@@ -28,7 +28,7 @@ async fn residency_slot_reservation_unloads_oldest_idle_v2_agent() {
     config.ditfa_home = temp_home.path().to_path_buf().try_into().unwrap();
     config.cwd = temp_home.path().to_path_buf().try_into().unwrap();
     let manager = ThreadManager::with_models_provider_and_home_for_tests(
-        CodexAuth::from_api_key("dummy"),
+        DitfaAuth::from_api_key("dummy"),
         config.model_provider.clone(),
         config.ditfa_home.to_path_buf(),
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -54,7 +54,7 @@ async fn residency_slot_reservation_unloads_oldest_idle_v2_agent() {
         .await
         .expect("second resident slot should evict the first idle agent");
     match manager.get_thread(first.thread_id).await {
-        Err(CodexErr::ThreadNotFound(thread_id)) => assert_eq!(thread_id, first.thread_id),
+        Err(DitfaErr::ThreadNotFound(thread_id)) => assert_eq!(thread_id, first.thread_id),
         Err(err) => panic!("expected evicted thread to be missing, got {err:?}"),
         Ok(_) => panic!("expected evicted thread to be missing"),
     }
@@ -74,7 +74,7 @@ async fn interrupted_v2_agent_is_lost_after_residency_eviction() {
     config.ditfa_home = temp_home.path().to_path_buf().try_into().unwrap();
     config.cwd = temp_home.path().to_path_buf().try_into().unwrap();
     let manager = ThreadManager::with_models_provider_and_home_for_tests(
-        CodexAuth::from_api_key("dummy"),
+        DitfaAuth::from_api_key("dummy"),
         config.model_provider.clone(),
         config.ditfa_home.to_path_buf(),
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -100,7 +100,7 @@ async fn interrupted_v2_agent_is_lost_after_residency_eviction() {
         .await
         .expect("second resident slot should evict the first interrupted idle agent");
     match manager.get_thread(first.thread_id).await {
-        Err(CodexErr::ThreadNotFound(thread_id)) => assert_eq!(thread_id, first.thread_id),
+        Err(DitfaErr::ThreadNotFound(thread_id)) => assert_eq!(thread_id, first.thread_id),
         Err(err) => panic!("expected evicted thread to be missing, got {err:?}"),
         Ok(_) => panic!("expected evicted thread to be missing"),
     }
@@ -114,14 +114,14 @@ async fn interrupted_v2_agent_is_lost_after_residency_eviction() {
         .await
         .expect_err("evicted interrupted agent should stay lost");
     match err {
-        CodexErr::ThreadNotFound(thread_id) => assert_eq!(thread_id, first.thread_id),
+        DitfaErr::ThreadNotFound(thread_id) => assert_eq!(thread_id, first.thread_id),
         err => panic!("expected ThreadNotFound, got {err:?}"),
     }
 
     assert!(manager.get_thread(root.thread_id).await.is_ok());
     assert!(manager.get_thread(second.thread_id).await.is_ok());
     match manager.get_thread(first.thread_id).await {
-        Err(CodexErr::ThreadNotFound(thread_id)) => assert_eq!(thread_id, first.thread_id),
+        Err(DitfaErr::ThreadNotFound(thread_id)) => assert_eq!(thread_id, first.thread_id),
         Err(err) => panic!("expected evicted thread to be missing, got {err:?}"),
         Ok(_) => panic!("expected evicted thread to be missing"),
     }
@@ -152,7 +152,7 @@ async fn spawn_v2_subagent(
         .expect("spawn v2 subagent")
 }
 
-async fn mark_thread_completed(thread: &CodexThread) {
+async fn mark_thread_completed(thread: &DitfaThread) {
     let turn = thread.session.new_default_turn().await;
     thread
         .session
@@ -172,7 +172,7 @@ async fn mark_thread_completed(thread: &CodexThread) {
     clear_active_turn(thread).await;
 }
 
-async fn mark_thread_interrupted(thread: &CodexThread) {
+async fn mark_thread_interrupted(thread: &DitfaThread) {
     let turn = thread.session.new_default_turn().await;
     thread
         .session
@@ -190,7 +190,7 @@ async fn mark_thread_interrupted(thread: &CodexThread) {
     clear_active_turn(thread).await;
 }
 
-async fn clear_active_turn(thread: &CodexThread) {
+async fn clear_active_turn(thread: &DitfaThread) {
     // The fixture has no task runner to clear the turn after the terminal event.
     *thread.session.active_turn.lock().await = None;
 }

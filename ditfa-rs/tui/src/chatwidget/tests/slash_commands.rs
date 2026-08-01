@@ -146,7 +146,7 @@ async fn slash_compact_eagerly_queues_follow_up_before_turn_start() {
 
     assert!(chat.bottom_pane.is_task_running());
     match rx.try_recv() {
-        Ok(AppEvent::CodexOp(Op::Compact)) => {}
+        Ok(AppEvent::DitfaOp(Op::Compact)) => {}
         other => panic!("expected compact op to be submitted, got {other:?}"),
     }
 
@@ -191,7 +191,7 @@ async fn queued_slash_compact_dispatches_after_active_turn() {
     assert!(
         events
             .iter()
-            .any(|event| matches!(event, AppEvent::CodexOp(Op::Compact))),
+            .any(|event| matches!(event, AppEvent::DitfaOp(Op::Compact))),
         "expected queued /compact to submit compact op; events: {events:?}"
     );
 }
@@ -469,7 +469,7 @@ async fn queued_bare_rename_drains_next_input_after_name_update() {
     assert!(
         events.iter().any(|event| matches!(
             event,
-            AppEvent::CodexOp(Op::SetThreadName { name }) if name == "Queued rename"
+            AppEvent::DitfaOp(Op::SetThreadName { name }) if name == "Queued rename"
         )),
         "expected rename prompt to submit thread name; events: {events:?}"
     );
@@ -514,7 +514,7 @@ async fn queued_inline_rename_does_not_drain_again_before_turn_started() {
     assert!(
         events.iter().any(|event| matches!(
             event,
-            AppEvent::CodexOp(Op::SetThreadName { name }) if name == "Queued rename"
+            AppEvent::DitfaOp(Op::SetThreadName { name }) if name == "Queued rename"
         )),
         "expected queued /rename to submit thread name; events: {events:?}"
     );
@@ -1197,7 +1197,7 @@ async fn slash_rename_prefills_existing_thread_name() {
 
     assert_matches!(
         rx.try_recv(),
-        Ok(AppEvent::CodexOp(Op::SetThreadName { name })) if name == "Current project title"
+        Ok(AppEvent::DitfaOp(Op::SetThreadName { name })) if name == "Current project title"
     );
 }
 
@@ -1296,7 +1296,7 @@ async fn usage_command_runs_with_backend_auth_without_chatgpt_account_flag() {
     let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(/*model_override*/ None).await;
     chat.update_account_state(
         /*status_account_display*/ None, /*plan_type*/ None,
-        /*has_chatgpt_account*/ false, /*has_codex_backend_auth*/ true,
+        /*has_chatgpt_account*/ false, /*has_ditfa_backend_auth*/ true,
     );
 
     chat.dispatch_command_with_args(SlashCommand::Usage, "daily".to_string(), Vec::new());
@@ -1310,7 +1310,7 @@ async fn usage_command_runs_with_backend_auth_from_widget_init() {
     let (mut chat, mut rx, _op_rx) = make_chatwidget_manual_with_auth(
         /*model_override*/ None,
         /*has_chatgpt_account*/ false,
-        /*has_codex_backend_auth*/ true,
+        /*has_ditfa_backend_auth*/ true,
         FrameRequester::test_dummy(),
     )
     .await;
@@ -1319,7 +1319,7 @@ async fn usage_command_runs_with_backend_auth_from_widget_init() {
 
     assert_matches!(rx.try_recv(), Ok(AppEvent::RefreshTokenActivity { .. }));
     assert!(!chat.has_chatgpt_account());
-    assert!(chat.has_codex_backend_auth());
+    assert!(chat.has_ditfa_backend_auth());
 }
 
 #[tokio::test]
@@ -1364,7 +1364,7 @@ async fn account_state_change_discards_pending_token_activity_refresh() {
         }),
         /*plan_type*/ None,
         /*has_chatgpt_account*/ true,
-        /*has_codex_backend_auth*/ true,
+        /*has_ditfa_backend_auth*/ true,
     );
 
     assert!(chat.pending_token_activity_output().is_none());
@@ -1595,7 +1595,7 @@ async fn pending_token_activity_refresh_keeps_composer_visible_in_short_viewport
             .vt100()
             .screen()
             .contents()
-            .contains("Ask Codex to do anything")
+            .contains("Ask Ditfa to do anything")
     );
 }
 
@@ -2581,7 +2581,7 @@ async fn slash_app_without_thread_id_shows_starting_error() {
 #[tokio::test]
 async fn slash_rollout_displays_current_path() {
     let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(/*model_override*/ None).await;
-    let rollout_path = PathBuf::from("/tmp/codex-test-rollout.jsonl");
+    let rollout_path = PathBuf::from("/tmp/ditfa-test-rollout.jsonl");
     chat.current_rollout_path = Some(rollout_path.clone());
 
     chat.dispatch_command(SlashCommand::Rollout);
@@ -2627,7 +2627,7 @@ async fn fast_slash_command_updates_and_persists_local_service_tier() {
     assert!(
         events.iter().any(|event| matches!(
             event,
-            AppEvent::CodexOp(Op::OverrideTurnContext {
+            AppEvent::DitfaOp(Op::OverrideTurnContext {
                 service_tier: Some(Some(service_tier)),
                 ..
             }) if service_tier == ServiceTier::Fast.request_value()
@@ -2660,7 +2660,7 @@ async fn fast_keybinding_toggle_uses_same_events_as_fast_slash_command() {
     assert!(
         events.iter().any(|event| matches!(
             event,
-            AppEvent::CodexOp(Op::OverrideTurnContext {
+            AppEvent::DitfaOp(Op::OverrideTurnContext {
                 service_tier: Some(Some(service_tier)),
                 ..
             }) if service_tier == ServiceTier::Fast.request_value()
@@ -2780,7 +2780,7 @@ async fn queued_fast_slash_applies_before_next_queued_message() {
     assert!(
         events.iter().any(|event| matches!(
             event,
-            AppEvent::CodexOp(Op::OverrideTurnContext {
+            AppEvent::DitfaOp(Op::OverrideTurnContext {
                 service_tier: Some(Some(service_tier)),
                 ..
             }) if service_tier == ServiceTier::Fast.request_value()
@@ -2820,7 +2820,7 @@ async fn user_turn_sends_standard_override_after_fast_is_turned_off() {
     assert!(
         events.iter().any(|event| matches!(
             event,
-            AppEvent::CodexOp(Op::OverrideTurnContext {
+            AppEvent::DitfaOp(Op::OverrideTurnContext {
                 service_tier: Some(Some(service_tier)),
                 ..
             }) if service_tier == SERVICE_TIER_DEFAULT_REQUEST_VALUE
@@ -2913,7 +2913,7 @@ async fn compact_queues_user_messages_snapshot() {
     handle_error(
         &mut chat,
         "cannot steer a compact turn",
-        Some(CodexErrorInfo::ActiveTurnNotSteerable {
+        Some(DitfaErrorInfo::ActiveTurnNotSteerable {
             turn_kind: NonSteerableTurnKind::Compact,
         }),
     );

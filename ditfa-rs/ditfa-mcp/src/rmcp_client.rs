@@ -2,7 +2,7 @@
 //!
 //! This module owns startup of individual RMCP clients: building the transport,
 //! initializing the server, listing raw tools, applying per-server tool filters,
-//! and exposing cached Codex Apps tools while a client is still connecting.
+//! and exposing cached Ditfa Apps tools while a client is still connecting.
 //! Higher-level aggregation and resource/tool APIs live in
 //! [`crate::connection_manager`].
 
@@ -18,9 +18,9 @@ use std::sync::atomic::Ordering;
 use std::time::Duration;
 use std::time::Instant;
 
-use crate::ditfa_apps::normalize_codex_apps_callable_name;
-use crate::ditfa_apps::normalize_codex_apps_callable_namespace;
-use crate::ditfa_apps::normalize_codex_apps_tool_title;
+use crate::ditfa_apps::normalize_ditfa_apps_callable_name;
+use crate::ditfa_apps::normalize_ditfa_apps_callable_namespace;
+use crate::ditfa_apps::normalize_ditfa_apps_tool_title;
 use crate::ditfa_apps::prepare_openai_file_params_for_model;
 use crate::elicitation::ElicitationRequestManager;
 use crate::mcp::DITFA_APPS_MCP_SERVER_NAME;
@@ -74,19 +74,19 @@ use tracing::Instrument;
 use tracing::instrument;
 use tracing::warn;
 
-/// MCP server capability indicating that Codex should include [`SandboxState`]
+/// MCP server capability indicating that Ditfa should include [`SandboxState`]
 /// in tool-call request `_meta` under this key.
-pub const MCP_SANDBOX_STATE_META_CAPABILITY: &str = "codex/sandbox-state-meta";
+pub const MCP_SANDBOX_STATE_META_CAPABILITY: &str = "ditfa/sandbox-state-meta";
 /// Experimental MCP server capability for development and testing only; production servers should
 /// not use it. Its `cacheable: false` property disables sharing tool definitions across connections.
-const MCP_TOOL_CATALOG_CACHE_CAPABILITY: &str = "codex/tool-catalog-cache";
+const MCP_TOOL_CATALOG_CACHE_CAPABILITY: &str = "ditfa/tool-catalog-cache";
 const MCP_TOOL_CATALOG_CACHEABLE_PROPERTY: &str = "cacheable";
 pub const OPENAI_FORM_CAPABILITY: &str = "openai/form";
 
-pub(crate) const MCP_TOOLS_LIST_DURATION_METRIC: &str = "codex.mcp.tools.list.duration_ms";
+pub(crate) const MCP_TOOLS_LIST_DURATION_METRIC: &str = "ditfa.mcp.tools.list.duration_ms";
 pub(crate) const MCP_TOOLS_FETCH_UNCACHED_DURATION_METRIC: &str =
-    "codex.mcp.tools.fetch_uncached.duration_ms";
-pub(crate) const DITFA_APPS_REFRESH_DURATION_METRIC: &str = "codex.apps.refresh.duration_ms";
+    "ditfa.mcp.tools.fetch_uncached.duration_ms";
+pub(crate) const DITFA_APPS_REFRESH_DURATION_METRIC: &str = "ditfa.apps.refresh.duration_ms";
 pub(crate) const DEFAULT_STARTUP_TIMEOUT: Duration = Duration::from_secs(30);
 pub(crate) const DEFAULT_TOOL_TIMEOUT: Duration = Duration::from_secs(300);
 
@@ -144,7 +144,7 @@ pub(crate) type ManagedClientFuture =
     Shared<BoxFuture<'static, Result<ManagedClient, StartupOutcomeError>>>;
 
 #[derive(Default)]
-struct CodexAppsStartupReconnectState {
+struct DitfaAppsStartupReconnectState {
     current_client: Option<ManagedClient>,
     reconnect_in_flight: bool,
     consecutive_failures: u32,
@@ -152,23 +152,23 @@ struct CodexAppsStartupReconnectState {
 }
 
 #[derive(Clone)]
-struct CodexAppsStartupStatusContext {
+struct DitfaAppsStartupStatusContext {
     submit_id: String,
     server_name: String,
     tx_event: Sender<Event>,
 }
 
-pub(crate) struct CodexAppsStartupReconnect {
+pub(crate) struct DitfaAppsStartupReconnect {
     factory: Arc<dyn Fn() -> ManagedClientFuture + Send + Sync>,
-    state: StdMutex<CodexAppsStartupReconnectState>,
-    startup_status_context: Option<CodexAppsStartupStatusContext>,
+    state: StdMutex<DitfaAppsStartupReconnectState>,
+    startup_status_context: Option<DitfaAppsStartupStatusContext>,
 }
 
-impl CodexAppsStartupReconnect {
+impl DitfaAppsStartupReconnect {
     pub(crate) fn new(factory: Arc<dyn Fn() -> ManagedClientFuture + Send + Sync>) -> Self {
         Self {
             factory,
-            state: StdMutex::new(CodexAppsStartupReconnectState::default()),
+            state: StdMutex::new(DitfaAppsStartupReconnectState::default()),
             startup_status_context: None,
         }
     }
@@ -179,7 +179,7 @@ impl CodexAppsStartupReconnect {
         server_name: String,
         tx_event: Option<Sender<Event>>,
     ) -> Self {
-        self.startup_status_context = tx_event.map(|tx_event| CodexAppsStartupStatusContext {
+        self.startup_status_context = tx_event.map(|tx_event| DitfaAppsStartupStatusContext {
             submit_id,
             server_name,
             tx_event,
@@ -305,7 +305,7 @@ impl ManagedClientStartup {
             cancel_token,
             startup_complete,
         } = self.clone();
-        let is_codex_apps_mcp_server = server_name == DITFA_APPS_MCP_SERVER_NAME;
+        let is_ditfa_apps_mcp_server = server_name == DITFA_APPS_MCP_SERVER_NAME;
         let startup_timeout = server
             .config()
             .startup_timeout_sec
@@ -315,7 +315,7 @@ impl ManagedClientStartup {
             .as_ref()
             .map(McpToolCatalogCacheContext::begin_fetch);
         async move {
-            let refresh_start = is_codex_apps_mcp_server.then(Instant::now);
+            let refresh_start = is_ditfa_apps_mcp_server.then(Instant::now);
             let outcome = match async {
                 if let Err(error) = validate_mcp_server_name(&server_name) {
                     return Err(error.into());
@@ -346,7 +346,7 @@ impl ManagedClientStartup {
                     server_name,
                     client,
                     StartServerTaskParams {
-                        is_codex_apps_mcp_server,
+                        is_ditfa_apps_mcp_server,
                         startup_timeout: Some(startup_timeout),
                         tx_event,
                         elicitation_requests,
@@ -387,12 +387,12 @@ impl ManagedClientStartup {
 #[derive(Clone)]
 pub(crate) struct AsyncManagedClient {
     pub(crate) client: ManagedClientFuture,
-    pub(crate) is_codex_apps_mcp_server: bool,
+    pub(crate) is_ditfa_apps_mcp_server: bool,
     pub(crate) cached_server_info: Option<McpServerInfo>,
     pub(crate) ditfa_apps_tools_cache_context: Option<ConnectorRuntimeContext<ToolInfo>>,
     pub(crate) tool_catalog_cache_context: Option<McpToolCatalogCacheContext>,
     pub(crate) startup_complete: Arc<AtomicBool>,
-    pub(crate) startup_reconnect: Option<Arc<CodexAppsStartupReconnect>>,
+    pub(crate) startup_reconnect: Option<Arc<DitfaAppsStartupReconnect>>,
     pub(crate) cancel_token: CancellationToken,
 }
 
@@ -418,10 +418,10 @@ impl AsyncManagedClient {
         client_elicitation_capability: ElicitationCapability,
         supports_openai_form_elicitation: bool,
     ) -> Self {
-        let is_codex_apps_mcp_server = server_name == DITFA_APPS_MCP_SERVER_NAME;
+        let is_ditfa_apps_mcp_server = server_name == DITFA_APPS_MCP_SERVER_NAME;
         let reconnect_server_name = server_name.clone();
         let reconnect_tx_event = tx_event.clone();
-        let cached_server_info = if is_codex_apps_mcp_server {
+        let cached_server_info = if is_ditfa_apps_mcp_server {
             ditfa_apps_tools_cache_context
                 .as_ref()
                 .and_then(ConnectorRuntimeContext::cached_server_info)
@@ -447,10 +447,10 @@ impl AsyncManagedClient {
             startup_complete: Arc::clone(&startup_complete),
         });
         let client = startup.start();
-        let startup_reconnect = is_codex_apps_mcp_server.then(|| {
+        let startup_reconnect = is_ditfa_apps_mcp_server.then(|| {
             let startup = Arc::clone(&startup);
             Arc::new(
-                CodexAppsStartupReconnect::new(Arc::new(move || startup.start()))
+                DitfaAppsStartupReconnect::new(Arc::new(move || startup.start()))
                     .with_startup_status_context(
                         startup_submit_id,
                         reconnect_server_name,
@@ -460,7 +460,7 @@ impl AsyncManagedClient {
         });
         Self {
             client,
-            is_codex_apps_mcp_server,
+            is_ditfa_apps_mcp_server,
             cached_server_info,
             ditfa_apps_tools_cache_context,
             tool_catalog_cache_context,
@@ -534,7 +534,7 @@ impl AsyncManagedClient {
         } else {
             match self.client().await {
                 Ok(client) => Some(client.listed_tools()),
-                Err(_) if self.is_codex_apps_mcp_server => self.cached_tools(),
+                Err(_) if self.is_ditfa_apps_mcp_server => self.cached_tools(),
                 Err(_) => None,
             }
         }
@@ -579,7 +579,7 @@ impl From<anyhow::Error> for StartupOutcomeError {
 #[instrument(level = "trace", skip_all, fields(server_name = %server_name))]
 pub(crate) async fn list_tools_for_client_uncached(
     server_name: &str,
-    is_codex_apps_mcp_server: bool,
+    is_ditfa_apps_mcp_server: bool,
     ditfa_apps_refresh_trigger: &'static str,
     client: &Arc<RmcpClient>,
     timeout: Option<Duration>,
@@ -595,13 +595,13 @@ pub(crate) async fn list_tools_for_client_uncached(
         .map(|tool| {
             tool_info_from_listed_tool(
                 server_name,
-                is_codex_apps_mcp_server,
+                is_ditfa_apps_mcp_server,
                 server_instructions,
                 tool,
             )
         })
         .collect();
-    if is_codex_apps_mcp_server {
+    if is_ditfa_apps_mcp_server {
         emit_duration(
             MCP_TOOLS_FETCH_UNCACHED_DURATION_METRIC,
             fetch_start.elapsed(),
@@ -617,10 +617,10 @@ pub(crate) async fn list_tools_for_client_uncached(
     Ok(tools)
 }
 
-/// Presents declared Codex Apps file parameters to the model as local-path inputs and adds plugin
+/// Presents declared Ditfa Apps file parameters to the model as local-path inputs and adds plugin
 /// names to each tool. Plugin membership is resolved by connector ID, falling back to the MCP
 /// server when absent.
-pub(crate) fn prepare_codex_apps_tools_for_model(
+pub(crate) fn prepare_ditfa_apps_tools_for_model(
     mut tools: Vec<ToolInfo>,
     tool_plugin_provenance: &ToolPluginProvenance,
 ) -> Vec<ToolInfo> {
@@ -688,18 +688,18 @@ pub(crate) fn prepare_regular_mcp_tools_for_model(
 
 fn tool_info_from_listed_tool(
     server_name: &str,
-    is_codex_apps_mcp_server: bool,
+    is_ditfa_apps_mcp_server: bool,
     server_instructions: Option<&str>,
     tool: ToolWithConnectorId,
 ) -> ToolInfo {
-    if is_codex_apps_mcp_server {
+    if is_ditfa_apps_mcp_server {
         ditfa_apps_tool_info_from_listed_tool(server_name, server_instructions, tool)
     } else {
         regular_mcp_tool_info_from_listed_tool(server_name, server_instructions, tool)
     }
 }
 
-/// Converts a Codex Apps tool by preserving connector fields, removing connector prefixes from
+/// Converts a Ditfa Apps tool by preserving connector fields, removing connector prefixes from
 /// model-visible names and titles, and using the connector description for its tool namespace.
 fn ditfa_apps_tool_info_from_listed_tool(
     server_name: &str,
@@ -710,15 +710,15 @@ fn ditfa_apps_tool_info_from_listed_tool(
     let connector_id = tool.connector_id;
     let connector_name = tool.connector_name;
     let connector_description = tool.connector_description;
-    let callable_name = normalize_codex_apps_callable_name(
+    let callable_name = normalize_ditfa_apps_callable_name(
         &tool_def.name,
         connector_id.as_deref(),
         connector_name.as_deref(),
     );
     let callable_namespace =
-        normalize_codex_apps_callable_namespace(server_name, connector_name.as_deref());
+        normalize_ditfa_apps_callable_namespace(server_name, connector_name.as_deref());
     if let Some(title) = tool_def.title.as_deref() {
-        let normalized_title = normalize_codex_apps_tool_title(connector_name.as_deref(), title);
+        let normalized_title = normalize_ditfa_apps_tool_title(connector_name.as_deref(), title);
         if tool_def.title.as_deref() != Some(normalized_title.as_str()) {
             tool_def.title = Some(normalized_title);
         }
@@ -824,7 +824,7 @@ async fn start_server_task(
     params: StartServerTaskParams,
 ) -> Result<ManagedClient, StartupOutcomeError> {
     let StartServerTaskParams {
-        is_codex_apps_mcp_server,
+        is_ditfa_apps_mcp_server,
         startup_timeout,
         tx_event,
         elicitation_requests,
@@ -870,7 +870,7 @@ async fn start_server_task(
         .map(|cache_context| cache_context.begin_fetch(ConnectorRuntimeFetchSource::Startup));
     let client_tools = list_tools_for_client_uncached(
         &server_name,
-        is_codex_apps_mcp_server,
+        is_ditfa_apps_mcp_server,
         /*ditfa_apps_refresh_trigger*/ "initial",
         &client,
         startup_timeout,
@@ -886,9 +886,9 @@ async fn start_server_task(
             client_tools.clone(),
         ),
         (None, None) => client_tools.clone(),
-        _ => unreachable!("Codex Apps fetch ticket requires cache context"),
+        _ => unreachable!("Ditfa Apps fetch ticket requires cache context"),
     };
-    let has_shared_tool_catalog = is_codex_apps_mcp_server || tool_catalog_cache_context.is_some();
+    let has_shared_tool_catalog = is_ditfa_apps_mcp_server || tool_catalog_cache_context.is_some();
     if let (Some(cache_context), Some(fetch_ticket)) = (
         tool_catalog_cache_context.as_ref(),
         tool_catalog_fetch_ticket,
@@ -929,7 +929,7 @@ fn mcp_initialize_request_params(
     }
     InitializeRequestParams::new(
         capabilities,
-        Implementation::new("codex-mcp-client", env!("CARGO_PKG_VERSION")).with_title("Codex"),
+        Implementation::new("ditfa-mcp-client", env!("CARGO_PKG_VERSION")).with_title("Ditfa"),
     )
     .with_protocol_version(ProtocolVersion::V_2025_06_18)
 }
@@ -951,7 +951,7 @@ fn mcp_server_info_from_implementation(server_info: Implementation) -> McpServer
 }
 
 struct StartServerTaskParams {
-    is_codex_apps_mcp_server: bool,
+    is_ditfa_apps_mcp_server: bool,
     startup_timeout: Option<Duration>, // TODO: cancel_token should handle this.
     tx_event: Option<Sender<Event>>,
     elicitation_requests: ElicitationRequestManager,
@@ -1144,7 +1144,7 @@ mod tests {
 
         let tool_info = tool_info_from_listed_tool(
             DITFA_APPS_MCP_SERVER_NAME,
-            /*is_codex_apps_mcp_server*/ true,
+            /*is_ditfa_apps_mcp_server*/ true,
             /*server_instructions*/ None,
             ToolWithConnectorId {
                 tool,

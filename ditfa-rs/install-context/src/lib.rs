@@ -6,10 +6,10 @@ use std::sync::OnceLock;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
 
 const BIN_DIRNAME: &str = "bin";
-const PACKAGE_METADATA_FILENAME: &str = "codex-package.json";
-const PATH_DIRNAME: &str = "codex-path";
+const PACKAGE_METADATA_FILENAME: &str = "ditfa-package.json";
+const PATH_DIRNAME: &str = "ditfa-path";
 const RELEASES_DIRNAME: &str = "releases";
-const RESOURCES_DIRNAME: &str = "codex-resources";
+const RESOURCES_DIRNAME: &str = "ditfa-resources";
 const STANDALONE_PACKAGES_DIRNAME: &str = "standalone";
 const ZSH_DIRNAME: &str = "zsh";
 static INSTALL_CONTEXT: OnceLock<InstallContext> = OnceLock::new();
@@ -21,10 +21,10 @@ pub enum StandalonePlatform {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct CodexPackageLayout {
+pub struct DitfaPackageLayout {
     /// The package root that contains the metadata file and layout directories.
     pub package_dir: AbsolutePathBuf,
-    /// Directory containing the Codex entrypoint executable.
+    /// Directory containing the Ditfa entrypoint executable.
     pub bin_dir: AbsolutePathBuf,
     /// Directory containing managed helper binaries and data files, when present.
     pub resources_dir: Option<AbsolutePathBuf>,
@@ -35,7 +35,7 @@ pub struct CodexPackageLayout {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct InstallContext {
     pub method: InstallMethod,
-    pub package_layout: Option<CodexPackageLayout>,
+    pub package_layout: Option<DitfaPackageLayout>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -45,25 +45,25 @@ pub enum InstallMethod {
         /// such as
         /// `~/.ditfa/packages/standalone/releases/0.111.0-x86_64-unknown-linux-musl`.
         /// Package-layout installs use the package root that contains `bin/`,
-        /// `codex-resources/`, and `codex-path/`.
+        /// `ditfa-resources/`, and `ditfa-path/`.
         release_dir: AbsolutePathBuf,
         /// The bundled resource directory for managed dependencies.
         resources_dir: Option<AbsolutePathBuf>,
         /// The platform of the standalone release, either `Unix` or `Windows`.
         platform: StandalonePlatform,
     },
-    /// A Codex binary launched through the npm-managed `codex.js` shim.
+    /// A Ditfa binary launched through the npm-managed `ditfa.js` shim.
     Npm,
-    /// A Codex binary launched through the bun-managed `codex.js` shim.
+    /// A Ditfa binary launched through the bun-managed `ditfa.js` shim.
     Bun,
-    /// A Codex binary launched through the pnpm-managed `codex.js` shim.
+    /// A Ditfa binary launched through the pnpm-managed `ditfa.js` shim.
     Pnpm,
-    /// A Codex binary that appears to come from a Homebrew install prefix.
+    /// A Ditfa binary that appears to come from a Homebrew install prefix.
     Brew,
     /// Any other execution environment.
     ///
-    /// This commonly covers `cargo run`, app-bundled Codex binaries, custom
-    /// internal launchers, and tests that execute Codex from an arbitrary path.
+    /// This commonly covers `cargo run`, app-bundled Ditfa binaries, custom
+    /// internal launchers, and tests that execute Ditfa from an arbitrary path.
     Other,
 }
 
@@ -73,8 +73,8 @@ impl InstallContext {
         current_exe: Option<&Path>,
         method_override: Option<InstallMethod>,
     ) -> Self {
-        let ditfa_home = ditfa_utils_home_dir::find_codex_home().ok();
-        Self::from_exe_with_codex_home(
+        let ditfa_home = ditfa_utils_home_dir::find_ditfa_home().ok();
+        Self::from_exe_with_ditfa_home(
             is_macos,
             current_exe,
             method_override,
@@ -82,13 +82,13 @@ impl InstallContext {
         )
     }
 
-    fn from_exe_with_codex_home(
+    fn from_exe_with_ditfa_home(
         is_macos: bool,
         current_exe: Option<&Path>,
         method_override: Option<InstallMethod>,
         ditfa_home: Option<&Path>,
     ) -> Self {
-        let package_layout = current_exe.and_then(CodexPackageLayout::from_exe);
+        let package_layout = current_exe.and_then(DitfaPackageLayout::from_exe);
         let method = if let Some(method) = method_override {
             method
         } else if let Some(exe_path) = current_exe {
@@ -184,7 +184,7 @@ impl InstallContext {
     }
 }
 
-impl CodexPackageLayout {
+impl DitfaPackageLayout {
     fn from_exe(exe_path: &Path) -> Option<Self> {
         let canonical_exe = canonical_absolute_path(exe_path)?;
         let exe_dir = canonical_exe.parent()?;
@@ -212,7 +212,7 @@ impl CodexPackageLayout {
 fn install_method_from_exe(
     exe_path: &Path,
     ditfa_home: Option<&Path>,
-    package_layout: Option<&CodexPackageLayout>,
+    package_layout: Option<&DitfaPackageLayout>,
     is_macos: bool,
 ) -> InstallMethod {
     if let Some(standalone_method) = standalone_install_method(exe_path, ditfa_home, package_layout)
@@ -230,15 +230,15 @@ fn install_method_from_exe(
 fn standalone_install_method(
     exe_path: &Path,
     ditfa_home: Option<&Path>,
-    package_layout: Option<&CodexPackageLayout>,
+    package_layout: Option<&DitfaPackageLayout>,
 ) -> Option<InstallMethod> {
-    let canonical_codex_home = canonical_absolute_path(ditfa_home?)?;
+    let canonical_ditfa_home = canonical_absolute_path(ditfa_home?)?;
     let release_dir = if let Some(package_layout) = package_layout {
         package_layout.package_dir.clone()
     } else {
         canonical_absolute_path(exe_path)?.parent()?
     };
-    let releases_root = canonical_codex_home
+    let releases_root = canonical_ditfa_home
         .join("packages")
         .join(STANDALONE_PACKAGES_DIRNAME)
         .join(RELEASES_DIRNAME);
@@ -289,7 +289,7 @@ mod tests {
     use pretty_assertions::assert_eq;
     use std::fs;
 
-    const TEST_RESOURCE_NAME: &str = "codex-test-helper";
+    const TEST_RESOURCE_NAME: &str = "ditfa-test-helper";
 
     #[test]
     fn detects_standalone_install_from_release_layout() -> std::io::Result<()> {
@@ -299,7 +299,7 @@ mod tests {
             .join("packages/standalone/releases/1.2.3-x86_64-unknown-linux-musl");
         let resources_dir = release_dir.join(RESOURCES_DIRNAME);
         fs::create_dir_all(&resources_dir)?;
-        let exe_path = release_dir.join(if cfg!(windows) { "codex.exe" } else { "codex" });
+        let exe_path = release_dir.join(if cfg!(windows) { "ditfa.exe" } else { "ditfa" });
         fs::write(&exe_path, "")?;
         fs::write(resources_dir.join(default_rg_command()), "")?;
         fs::write(resources_dir.join(TEST_RESOURCE_NAME), "")?;
@@ -308,7 +308,7 @@ mod tests {
         let canonical_resources_dir =
             AbsolutePathBuf::from_absolute_path(resources_dir.canonicalize()?)?;
 
-        let context = InstallContext::from_exe_with_codex_home(
+        let context = InstallContext::from_exe_with_ditfa_home(
             /*is_macos*/ false,
             /*current_exe*/ Some(&exe_path),
             /*method_override*/ None,
@@ -339,10 +339,10 @@ mod tests {
             .path()
             .join("packages/standalone/releases/1.2.3-x86_64-unknown-linux-musl");
         fs::create_dir_all(&release_dir)?;
-        let exe_path = release_dir.join(if cfg!(windows) { "codex.exe" } else { "codex" });
+        let exe_path = release_dir.join(if cfg!(windows) { "ditfa.exe" } else { "ditfa" });
         fs::write(&exe_path, "")?;
 
-        let context = InstallContext::from_exe_with_codex_home(
+        let context = InstallContext::from_exe_with_ditfa_home(
             /*is_macos*/ false,
             /*current_exe*/ Some(&exe_path),
             /*method_override*/ None,
@@ -362,7 +362,7 @@ mod tests {
         fs::create_dir_all(&resources_dir)?;
         fs::create_dir_all(&path_dir)?;
         fs::write(package_dir.path().join(PACKAGE_METADATA_FILENAME), "{}")?;
-        let exe_path = bin_dir.join(if cfg!(windows) { "codex.exe" } else { "codex" });
+        let exe_path = bin_dir.join(if cfg!(windows) { "ditfa.exe" } else { "ditfa" });
         fs::write(&exe_path, "")?;
         fs::write(resources_dir.join(TEST_RESOURCE_NAME), "")?;
         fs::write(path_dir.join(default_rg_command()), "")?;
@@ -377,14 +377,14 @@ mod tests {
         let canonical_resources_dir =
             AbsolutePathBuf::from_absolute_path(resources_dir.canonicalize()?)?;
         let canonical_path_dir = AbsolutePathBuf::from_absolute_path(path_dir.canonicalize()?)?;
-        let package_layout = CodexPackageLayout {
+        let package_layout = DitfaPackageLayout {
             package_dir: canonical_package_dir,
             bin_dir: canonical_bin_dir,
             resources_dir: Some(canonical_resources_dir.clone()),
             path_dir: Some(canonical_path_dir.clone()),
         };
 
-        let context = InstallContext::from_exe_with_codex_home(
+        let context = InstallContext::from_exe_with_ditfa_home(
             /*is_macos*/ false,
             /*current_exe*/ Some(&exe_path),
             /*method_override*/ None,
@@ -436,7 +436,7 @@ mod tests {
         fs::create_dir_all(&resources_dir)?;
         fs::create_dir_all(&path_dir)?;
         fs::write(package_dir.join(PACKAGE_METADATA_FILENAME), "{}")?;
-        let exe_path = bin_dir.join(if cfg!(windows) { "codex.exe" } else { "codex" });
+        let exe_path = bin_dir.join(if cfg!(windows) { "ditfa.exe" } else { "ditfa" });
         fs::write(&exe_path, "")?;
         fs::write(resources_dir.join(TEST_RESOURCE_NAME), "")?;
         fs::write(path_dir.join(default_rg_command()), "")?;
@@ -447,7 +447,7 @@ mod tests {
             AbsolutePathBuf::from_absolute_path(resources_dir.canonicalize()?)?;
         let canonical_path_dir = AbsolutePathBuf::from_absolute_path(path_dir.canonicalize()?)?;
 
-        let context = InstallContext::from_exe_with_codex_home(
+        let context = InstallContext::from_exe_with_ditfa_home(
             /*is_macos*/ false,
             /*current_exe*/ Some(&exe_path),
             /*method_override*/ None,
@@ -461,7 +461,7 @@ mod tests {
                     resources_dir: Some(canonical_resources_dir.clone()),
                     platform: standalone_platform(),
                 },
-                package_layout: Some(CodexPackageLayout {
+                package_layout: Some(DitfaPackageLayout {
                     package_dir: canonical_package_dir,
                     bin_dir: canonical_bin_dir,
                     resources_dir: Some(canonical_resources_dir.clone()),
@@ -490,7 +490,7 @@ mod tests {
         fs::create_dir_all(&bin_dir)?;
         fs::create_dir_all(&path_dir)?;
         fs::write(package_dir.path().join(PACKAGE_METADATA_FILENAME), "{}")?;
-        let exe_path = bin_dir.join(if cfg!(windows) { "codex.exe" } else { "codex" });
+        let exe_path = bin_dir.join(if cfg!(windows) { "ditfa.exe" } else { "ditfa" });
         fs::write(&exe_path, "")?;
         fs::write(path_dir.join(default_rg_command()), "")?;
         let canonical_path_dir = AbsolutePathBuf::from_absolute_path(path_dir.canonicalize()?)?;
@@ -512,15 +512,15 @@ mod tests {
     }
 
     #[test]
-    fn standalone_package_rg_falls_back_when_codex_path_is_missing() -> std::io::Result<()> {
+    fn standalone_package_rg_falls_back_when_ditfa_path_is_missing() -> std::io::Result<()> {
         let package_dir = tempfile::tempdir()?;
         let bin_dir = package_dir.path().join(BIN_DIRNAME);
         fs::create_dir_all(&bin_dir)?;
         fs::write(package_dir.path().join(PACKAGE_METADATA_FILENAME), "{}")?;
-        let exe_path = bin_dir.join(if cfg!(windows) { "codex.exe" } else { "codex" });
+        let exe_path = bin_dir.join(if cfg!(windows) { "ditfa.exe" } else { "ditfa" });
         fs::write(&exe_path, "")?;
 
-        let context = InstallContext::from_exe_with_codex_home(
+        let context = InstallContext::from_exe_with_ditfa_home(
             /*is_macos*/ false,
             /*current_exe*/ Some(&exe_path),
             /*method_override*/ None,
@@ -540,10 +540,10 @@ mod tests {
         fs::create_dir_all(resources_dir.join(TEST_RESOURCE_NAME))?;
         fs::create_dir_all(path_dir.join(default_rg_command()))?;
         fs::write(package_dir.path().join(PACKAGE_METADATA_FILENAME), "{}")?;
-        let exe_path = bin_dir.join(if cfg!(windows) { "codex.exe" } else { "codex" });
+        let exe_path = bin_dir.join(if cfg!(windows) { "ditfa.exe" } else { "ditfa" });
         fs::write(&exe_path, "")?;
 
-        let context = InstallContext::from_exe_with_codex_home(
+        let context = InstallContext::from_exe_with_ditfa_home(
             /*is_macos*/ false,
             /*current_exe*/ Some(&exe_path),
             /*method_override*/ None,
@@ -558,7 +558,7 @@ mod tests {
     fn package_manager_method_overrides_take_precedence() {
         let pnpm_context = InstallContext::from_exe(
             /*is_macos*/ false,
-            /*current_exe*/ Some(Path::new("/tmp/codex")),
+            /*current_exe*/ Some(Path::new("/tmp/ditfa")),
             /*method_override*/ Some(InstallMethod::Pnpm),
         );
         assert_eq!(
@@ -571,7 +571,7 @@ mod tests {
 
         let npm_context = InstallContext::from_exe(
             /*is_macos*/ false,
-            /*current_exe*/ Some(Path::new("/tmp/codex")),
+            /*current_exe*/ Some(Path::new("/tmp/ditfa")),
             /*method_override*/ Some(InstallMethod::Npm),
         );
         assert_eq!(
@@ -584,7 +584,7 @@ mod tests {
 
         let bun_context = InstallContext::from_exe(
             /*is_macos*/ false,
-            /*current_exe*/ Some(Path::new("/tmp/codex")),
+            /*current_exe*/ Some(Path::new("/tmp/ditfa")),
             /*method_override*/ Some(InstallMethod::Bun),
         );
         assert_eq!(
@@ -598,9 +598,9 @@ mod tests {
 
     #[test]
     fn brew_is_detected_on_macos_prefixes() {
-        let context = InstallContext::from_exe_with_codex_home(
+        let context = InstallContext::from_exe_with_ditfa_home(
             /*is_macos*/ true,
-            /*current_exe*/ Some(Path::new("/opt/homebrew/bin/codex")),
+            /*current_exe*/ Some(Path::new("/opt/homebrew/bin/ditfa")),
             /*method_override*/ None,
             /*ditfa_home*/ None,
         );

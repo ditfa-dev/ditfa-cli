@@ -12,7 +12,7 @@ expression: "render_lines(&view, 112)"
   Event     PreToolUse                                                                                          
   Matcher   Bash                                                                                                
   Source    Plugin - superpowers@openai-curated                                                                 
-  Command   ${CODEX_PLUGIN_ROOT}/hooks/pre-tool-use-check.sh                                                    
+  Command   ${DITFA_PLUGIN_ROOT}/hooks/pre-tool-use-check.sh                                                    
   Timeout   30s                                                                                                 
   Trust     Trusted                                                                                             
                                                                                                                 

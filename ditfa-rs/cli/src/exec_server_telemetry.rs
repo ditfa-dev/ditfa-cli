@@ -5,7 +5,7 @@ use tracing_subscriber::prelude::*;
 
 const DEFAULT_ANALYTICS_ENABLED: bool = false;
 const DEFAULT_LOG_FILTER: &str = "error,opentelemetry_sdk=off,opentelemetry_otlp=off";
-const OTEL_SERVICE_NAME: &str = "codex-exec-server";
+const OTEL_SERVICE_NAME: &str = "ditfa-exec-server";
 
 pub(crate) fn init(
     config: Option<&ditfa_core::config::Config>,

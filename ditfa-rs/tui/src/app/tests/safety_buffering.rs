@@ -70,7 +70,7 @@ fn next_user_turn_event(
     app_event_rx: &mut tokio::sync::mpsc::UnboundedReceiver<AppEvent>,
 ) -> AppCommand {
     while let Ok(event) = app_event_rx.try_recv() {
-        if let AppEvent::CodexOp(turn @ AppCommand::UserTurn { .. }) = event {
+        if let AppEvent::DitfaOp(turn @ AppCommand::UserTurn { .. }) = event {
             return turn;
         }
     }

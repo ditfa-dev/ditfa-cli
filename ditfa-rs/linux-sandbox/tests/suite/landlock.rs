@@ -7,7 +7,7 @@ use ditfa_core::exec_env::create_env;
 use ditfa_core::sandboxing::SandboxPermissions;
 use ditfa_protocol::config_types::ShellEnvironmentPolicy;
 use ditfa_protocol::config_types::WindowsSandboxLevel;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::Result;
 use ditfa_protocol::error::SandboxErr;
 use ditfa_protocol::models::PermissionProfile;
@@ -48,7 +48,7 @@ fn create_env_from_core_vars() -> HashMap<String, String> {
 }
 
 fn ditfa_linux_sandbox_exe() -> PathBuf {
-    let sandbox_program = PathBuf::from(env!("CARGO_BIN_EXE_codex-linux-sandbox"));
+    let sandbox_program = PathBuf::from(env!("CARGO_BIN_EXE_ditfa-linux-sandbox"));
     match sandbox_program.canonicalize() {
         Ok(path) => path,
         Err(_) => sandbox_program,
@@ -218,12 +218,12 @@ async fn should_skip_bwrap_tests() -> bool {
     .await
     {
         Ok(output) => is_bwrap_unavailable_output(&output),
-        Err(CodexErr::Sandbox(SandboxErr::Denied { output, .. })) => {
+        Err(DitfaErr::Sandbox(SandboxErr::Denied { output, .. })) => {
             is_bwrap_unavailable_output(&output)
         }
         // Probe timeouts are not actionable for the bwrap-specific assertions below;
         // skip rather than fail the whole suite.
-        Err(CodexErr::Sandbox(SandboxErr::Timeout { .. })) => true,
+        Err(DitfaErr::Sandbox(SandboxErr::Timeout { .. })) => true,
         Err(err) => panic!("bwrap availability probe failed unexpectedly: {err:?}"),
     }
 }
@@ -237,7 +237,7 @@ fn expect_denied(
             assert_ne!(output.exit_code, 0, "{context}: expected nonzero exit code");
             output
         }
-        Err(CodexErr::Sandbox(SandboxErr::Denied { output, .. })) => *output,
+        Err(DitfaErr::Sandbox(SandboxErr::Denied { output, .. })) => *output,
         Err(err) => panic!("{context}: {err:?}"),
     }
 }
@@ -456,7 +456,7 @@ async fn assert_network_blocked(cmd: &[&str]) {
 
     let output = match result {
         Ok(output) => output,
-        Err(CodexErr::Sandbox(SandboxErr::Denied { output, .. })) => *output,
+        Err(DitfaErr::Sandbox(SandboxErr::Denied { output, .. })) => *output,
         _ => {
             panic!("expected sandbox denied error, got: {result:?}");
         }
@@ -501,7 +501,7 @@ async fn sandbox_blocks_nc() {
 }
 
 #[tokio::test]
-async fn sandbox_blocks_git_and_codex_writes_inside_writable_root() {
+async fn sandbox_blocks_git_and_ditfa_writes_inside_writable_root() {
     if should_skip_bwrap_tests().await {
         eprintln!("skipping bwrap test: bwrap sandbox prerequisites are unavailable");
         return;
@@ -509,12 +509,12 @@ async fn sandbox_blocks_git_and_codex_writes_inside_writable_root() {
 
     let tmpdir = tempfile::tempdir().expect("tempdir");
     let dot_git = tmpdir.path().join(".git");
-    let dot_codex = tmpdir.path().join(".ditfa");
+    let dot_ditfa = tmpdir.path().join(".ditfa");
     std::fs::create_dir_all(&dot_git).expect("create .git");
-    std::fs::create_dir_all(&dot_codex).expect("create .ditfa");
+    std::fs::create_dir_all(&dot_ditfa).expect("create .ditfa");
 
     let git_target = dot_git.join("config");
-    let ditfa_target = dot_codex.join("config.toml");
+    let ditfa_target = dot_ditfa.join("config.toml");
 
     let git_output = expect_denied(
         run_cmd_result_with_writable_roots(
@@ -552,7 +552,7 @@ async fn sandbox_blocks_git_and_codex_writes_inside_writable_root() {
 }
 
 #[tokio::test]
-async fn sandbox_blocks_codex_symlink_replacement_attack() {
+async fn sandbox_blocks_ditfa_symlink_replacement_attack() {
     if should_skip_bwrap_tests().await {
         eprintln!("skipping bwrap test: bwrap sandbox prerequisites are unavailable");
         return;
@@ -561,13 +561,13 @@ async fn sandbox_blocks_codex_symlink_replacement_attack() {
     use std::os::unix::fs::symlink;
 
     let tmpdir = tempfile::tempdir().expect("tempdir");
-    let decoy = tmpdir.path().join("decoy-codex");
+    let decoy = tmpdir.path().join("decoy-ditfa");
     std::fs::create_dir_all(&decoy).expect("create decoy dir");
 
-    let dot_codex = tmpdir.path().join(".ditfa");
-    symlink(&decoy, &dot_codex).expect("create .ditfa symlink");
+    let dot_ditfa = tmpdir.path().join(".ditfa");
+    symlink(&decoy, &dot_ditfa).expect("create .ditfa symlink");
 
-    let ditfa_target = dot_codex.join("config.toml");
+    let ditfa_target = dot_ditfa.join("config.toml");
 
     let ditfa_output = expect_denied(
         run_cmd_result_with_writable_roots(
@@ -588,7 +588,7 @@ async fn sandbox_blocks_codex_symlink_replacement_attack() {
 }
 
 #[tokio::test]
-async fn sandbox_reports_codex_symlink_build_failure_without_panicking() {
+async fn sandbox_reports_ditfa_symlink_build_failure_without_panicking() {
     if should_skip_bwrap_tests().await {
         eprintln!("skipping bwrap test: bwrap sandbox prerequisites are unavailable");
         return;
@@ -597,11 +597,11 @@ async fn sandbox_reports_codex_symlink_build_failure_without_panicking() {
     use std::os::unix::fs::symlink;
 
     let tmpdir = tempfile::tempdir().expect("tempdir");
-    let decoy = tmpdir.path().join("decoy-codex");
+    let decoy = tmpdir.path().join("decoy-ditfa");
     std::fs::create_dir_all(&decoy).expect("create decoy dir");
 
-    let dot_codex = tmpdir.path().join(".ditfa");
-    symlink(&decoy, &dot_codex).expect("create .ditfa symlink");
+    let dot_ditfa = tmpdir.path().join(".ditfa");
+    symlink(&decoy, &dot_ditfa).expect("create .ditfa symlink");
 
     let output = match run_cmd_result_with_writable_roots(
         &["bash", "-lc", "true"],
@@ -612,7 +612,7 @@ async fn sandbox_reports_codex_symlink_build_failure_without_panicking() {
     )
     .await
     {
-        Err(CodexErr::Sandbox(SandboxErr::Denied { output, .. })) => *output,
+        Err(DitfaErr::Sandbox(SandboxErr::Denied { output, .. })) => *output,
         result => panic!(".ditfa symlink build failure should deny: {result:?}"),
     };
 
@@ -680,7 +680,7 @@ async fn sandbox_keeps_parent_repo_discovery_while_blocking_child_metadata() {
         r#"set -e
 test "$(git rev-parse --show-toplevel)" = '{repo}'
 git status --short > status.before
-if grep -E '(^|[[:space:]])\.(git|codex|agents)(/|$)' status.before; then
+if grep -E '(^|[[:space:]])\.(git|ditfa|agents)(/|$)' status.before; then
   cat status.before
   exit 21
 fi
@@ -719,7 +719,7 @@ fi
     assert_ne!(git_init_output.exit_code, 0);
     assert!(!subdir.join(".git").exists());
 
-    let mkdir_codex_output = expect_denied(
+    let mkdir_ditfa_output = expect_denied(
         run_cmd_result_with_cwd_and_writable_roots(
             &["mkdir", ".ditfa"],
             &subdir,
@@ -731,7 +731,7 @@ fi
         .await,
         "child .ditfa directory creation should be denied",
     );
-    assert_ne!(mkdir_codex_output.exit_code, 0);
+    assert_ne!(mkdir_ditfa_output.exit_code, 0);
     assert!(!subdir.join(".ditfa").exists());
 
     let script = format!(

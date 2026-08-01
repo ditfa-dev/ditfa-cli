@@ -88,11 +88,11 @@ impl EnvironmentRegistryClient {
     /// Register the executor public key and obtain the rendezvous allocation.
     /// The returned registration ID is included in each stream's Noise prologue.
     #[tracing::instrument(
-        name = "codex.exec_server.remote.register",
+        name = "ditfa.exec_server.remote.register",
         skip_all,
         fields(
             otel.kind = "client",
-            otel.name = "codex.exec_server.remote.register",
+            otel.name = "ditfa.exec_server.remote.register",
             result = tracing::field::Empty,
         )
     )]
@@ -285,7 +285,7 @@ impl HarnessKeyValidator for RegistryHarnessKeyValidator {
     }
 }
 
-/// Noise connection configuration for a Codex harness.
+/// Noise connection configuration for a Ditfa harness.
 ///
 /// The provider holds the authenticated registry client so every reconnect
 /// receives fresh URL and harness-key authorization material.
@@ -444,7 +444,7 @@ impl RemoteEnvironmentConfig {
         Ok(Self {
             base_url,
             environment_id,
-            name: "codex-exec-server".to_string(),
+            name: "ditfa-exec-server".to_string(),
             auth_provider,
             telemetry: ExecServerTelemetry::default(),
         })
@@ -545,11 +545,11 @@ pub async fn run_remote_environment(
 }
 
 #[tracing::instrument(
-    name = "codex.exec_server.remote.rendezvous.connect",
+    name = "ditfa.exec_server.remote.rendezvous.connect",
     skip_all,
     fields(
         otel.kind = "client",
-        otel.name = "codex.exec_server.remote.rendezvous.connect",
+        otel.name = "ditfa.exec_server.remote.rendezvous.connect",
         result = tracing::field::Empty,
     )
 )]

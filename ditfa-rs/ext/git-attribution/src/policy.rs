@@ -68,7 +68,7 @@ pub(super) async fn resolve_attribution_policy(
                 continue;
             }
             let enabled = match auth {
-                Some(auth) if auth.uses_codex_backend() => {
+                Some(auth) if auth.uses_ditfa_backend() => {
                     let client =
                         BackendClient::from_auth(base_url, &auth, http_client_factory.clone());
                     let settings = client.get_user_settings().await;

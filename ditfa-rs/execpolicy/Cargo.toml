@@ -3,7 +3,7 @@ name = "ditfa-execpolicy"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Codex exec policy: prefix-based Starlark rules for command decisions."
+description = "Ditfa exec policy: prefix-based Starlark rules for command decisions."
 
 [lib]
 name = "ditfa_execpolicy"

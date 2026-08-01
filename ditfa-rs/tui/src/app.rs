@@ -91,7 +91,7 @@ use ditfa_app_server_client::TypedRequestError;
 use ditfa_app_server_protocol::AddCreditsNudgeCreditType;
 use ditfa_app_server_protocol::AskForApproval;
 use ditfa_app_server_protocol::ClientRequest;
-use ditfa_app_server_protocol::CodexErrorInfo as AppServerCodexErrorInfo;
+use ditfa_app_server_protocol::DitfaErrorInfo as AppServerDitfaErrorInfo;
 use ditfa_app_server_protocol::ConfigBatchWriteParams;
 use ditfa_app_server_protocol::ConfigReadResponse;
 use ditfa_app_server_protocol::ConfigValueWriteParams;
@@ -551,7 +551,7 @@ pub(crate) struct App {
     /// This is used after a confirmed thread rollback to ensure scrollback reflects the trimmed
     /// transcript cells.
     pub(crate) backtrack_render_pending: bool,
-    pub(crate) feedback: ditfa_feedback::CodexFeedback,
+    pub(crate) feedback: ditfa_feedback::DitfaFeedback,
     feedback_audience: FeedbackAudience,
     environment_manager: Arc<EnvironmentManager>,
     app_server_target: AppServerTarget,
@@ -617,7 +617,7 @@ fn active_turn_not_steerable_turn_error(error: &TypedRequestError) -> Option<App
     let turn_error: AppServerTurnError = serde_json::from_value(source.data.clone()?).ok()?;
     matches!(
         turn_error.ditfa_error_info,
-        Some(AppServerCodexErrorInfo::ActiveTurnNotSteerable { .. })
+        Some(AppServerDitfaErrorInfo::ActiveTurnNotSteerable { .. })
     )
     .then_some(turn_error)
 }
@@ -701,7 +701,7 @@ fn session_start_error(
 fn archived_session_guidance(err: &color_eyre::eyre::Report) -> Option<String> {
     let err = err.to_string();
     let message = &err[err.find("session ")?..];
-    if !message.contains(" is archived. Run `codex unarchive ") {
+    if !message.contains(" is archived. Run `ditfa unarchive ") {
         return None;
     }
     let message = message
@@ -744,7 +744,7 @@ impl App {
             initial_user_message,
             enhanced_keys_supported: self.enhanced_keys_supported,
             has_chatgpt_account: self.chat_widget.has_chatgpt_account(),
-            has_codex_backend_auth: self.chat_widget.has_codex_backend_auth(),
+            has_ditfa_backend_auth: self.chat_widget.has_ditfa_backend_auth(),
             model_catalog: self.model_catalog.clone(),
             feedback: self.feedback.clone(),
             is_first_run: false,
@@ -775,7 +775,7 @@ impl App {
         initial_prompt: Option<String>,
         initial_images: Vec<PathBuf>,
         session_selection: SessionSelection,
-        feedback: ditfa_feedback::CodexFeedback,
+        feedback: ditfa_feedback::DitfaFeedback,
         is_first_run: bool,
         should_prompt_windows_sandbox_nux_at_startup: bool,
         app_server_target: AppServerTarget,
@@ -845,7 +845,7 @@ impl App {
         let feedback_audience = bootstrap.feedback_audience;
         let auth_mode = bootstrap.auth_mode;
         let has_chatgpt_account = bootstrap.has_chatgpt_account;
-        let has_codex_backend_auth = matches!(auth_mode, Some(TelemetryAuthMode::Chatgpt));
+        let has_ditfa_backend_auth = matches!(auth_mode, Some(TelemetryAuthMode::Chatgpt));
         let requires_openai_auth = bootstrap.requires_openai_auth;
         let status_account_display = bootstrap.status_account_display.clone();
         let initial_plan_type = bootstrap.plan_type;
@@ -867,7 +867,7 @@ impl App {
             .as_ref()
             .is_some_and(|cmd| !cmd.is_empty())
         {
-            session_telemetry.counter("codex.status_line", /*inc*/ 1, &[]);
+            session_telemetry.counter("ditfa.status_line", /*inc*/ 1, &[]);
         }
 
         let status_line_invalid_items_warned = Arc::new(AtomicBool::new(false));
@@ -914,7 +914,7 @@ impl App {
                     ),
                     enhanced_keys_supported,
                     has_chatgpt_account,
-                    has_codex_backend_auth,
+                    has_ditfa_backend_auth,
                     model_catalog: model_catalog.clone(),
                     feedback: feedback.clone(),
                     is_first_run,
@@ -954,7 +954,7 @@ impl App {
                     ),
                     enhanced_keys_supported,
                     has_chatgpt_account,
-                    has_codex_backend_auth,
+                    has_ditfa_backend_auth,
                     model_catalog: model_catalog.clone(),
                     feedback: feedback.clone(),
                     is_first_run,
@@ -972,7 +972,7 @@ impl App {
             }
             SessionSelection::Fork(target_session) => {
                 session_telemetry.counter(
-                    "codex.thread.fork",
+                    "ditfa.thread.fork",
                     /*inc*/ 1,
                     &[("source", "cli_subcommand")],
                 );
@@ -993,7 +993,7 @@ impl App {
                     ),
                     enhanced_keys_supported,
                     has_chatgpt_account,
-                    has_codex_backend_auth,
+                    has_ditfa_backend_auth,
                     model_catalog: model_catalog.clone(),
                     feedback: feedback.clone(),
                     is_first_run,
@@ -1020,7 +1020,7 @@ impl App {
             color_eyre::eyre::eyre!(
                 "Invalid `tui.keymap` configuration: {err}\n\
 Fix the config and retry.\n\
-See the Codex keymap documentation for supported actions and examples."
+See the Ditfa keymap documentation for supported actions and examples."
             )
         })?;
         #[cfg(not(debug_assertions))]

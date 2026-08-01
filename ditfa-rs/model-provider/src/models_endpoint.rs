@@ -17,14 +17,14 @@ use ditfa_http_client::ClientRouteClass;
 use ditfa_http_client::HttpClientFactory;
 use ditfa_login::AuthEnvTelemetry;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::collect_auth_env_telemetry;
 use ditfa_login::default_client::create_client_for_route_async;
 use ditfa_model_provider_info::ModelProviderInfo;
 use ditfa_models_manager::manager::ModelsEndpointClient;
 use ditfa_models_manager::manager::ModelsEndpointFuture;
 use ditfa_otel::TelemetryAuthMode;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::Result as CoreResult;
 use ditfa_protocol::openai_models::ModelInfo;
 use ditfa_response_debug_context::extract_response_debug_context;
@@ -58,18 +58,18 @@ impl OpenAiModelsEndpoint {
         }
     }
 
-    async fn auth(&self) -> Option<CodexAuth> {
+    async fn auth(&self) -> Option<DitfaAuth> {
         match self.auth_manager.as_ref() {
             Some(auth_manager) => auth_manager.auth().await,
             None => None,
         }
     }
 
-    async fn uses_codex_backend(&self) -> bool {
+    async fn uses_ditfa_backend(&self) -> bool {
         self.auth()
             .await
             .as_ref()
-            .is_some_and(CodexAuth::uses_codex_backend)
+            .is_some_and(DitfaAuth::uses_ditfa_backend)
     }
 
     async fn list_models(
@@ -78,15 +78,15 @@ impl OpenAiModelsEndpoint {
         http_client_factory: HttpClientFactory,
     ) -> CoreResult<(Vec<ModelInfo>, Option<String>)> {
         let _timer =
-            ditfa_otel::start_global_timer("codex.remote_models.fetch_update.duration_ms", &[]);
+            ditfa_otel::start_global_timer("ditfa.remote_models.fetch_update.duration_ms", &[]);
         let auth = self.auth().await;
-        let auth_mode = auth.as_ref().map(CodexAuth::auth_mode);
+        let auth_mode = auth.as_ref().map(DitfaAuth::auth_mode);
         let api_provider = self.provider_info.to_api_provider(auth_mode)?;
         let api_auth = resolve_provider_auth(auth.as_ref(), &self.provider_info)?;
         let request_url =
             ModelsClient::<ReqwestTransport>::request_url(&api_provider, client_version);
         let auth_telemetry = auth_header_telemetry(api_auth.as_ref());
-        let agent_identity_telemetry = if let Some(CodexAuth::AgentIdentity(auth)) = auth.as_ref() {
+        let agent_identity_telemetry = if let Some(DitfaAuth::AgentIdentity(auth)) = auth.as_ref() {
             Some(agent_identity_telemetry(auth))
         } else {
             None
@@ -111,7 +111,7 @@ impl OpenAiModelsEndpoint {
                 .map_err(map_api_error)
         })
         .await
-        .map_err(|_| CodexErr::Timeout)?
+        .map_err(|_| DitfaErr::Timeout)?
     }
 
     fn auth_env(&self) -> AuthEnvTelemetry {
@@ -128,8 +128,8 @@ impl ModelsEndpointClient for OpenAiModelsEndpoint {
         self.provider_info.has_command_auth()
     }
 
-    fn uses_codex_backend(&self) -> ModelsEndpointFuture<'_, bool> {
-        Box::pin(OpenAiModelsEndpoint::uses_codex_backend(self))
+    fn uses_ditfa_backend(&self) -> ModelsEndpointFuture<'_, bool> {
+        Box::pin(OpenAiModelsEndpoint::uses_ditfa_backend(self))
     }
 
     fn list_models<'a>(
@@ -202,7 +202,7 @@ impl RequestTelemetry for ModelsRequestTelemetry {
         tracing::event!(
             target: "ditfa_otel.log_only",
             tracing::Level::INFO,
-            event.name = "codex.api_request",
+            event.name = "ditfa.api_request",
             duration_ms = %duration.as_millis(),
             http.response.status_code = status,
             success = success,
@@ -212,8 +212,8 @@ impl RequestTelemetry for ModelsRequestTelemetry {
             auth.header_attached = self.auth_header_attached,
             auth.header_name = self.auth_header_name,
             auth.env_openai_api_key_present = self.auth_env.openai_api_key_env_present,
-            auth.env_codex_api_key_present = self.auth_env.ditfa_api_key_env_present,
-            auth.env_codex_api_key_enabled = self.auth_env.ditfa_api_key_env_enabled,
+            auth.env_ditfa_api_key_present = self.auth_env.ditfa_api_key_env_present,
+            auth.env_ditfa_api_key_enabled = self.auth_env.ditfa_api_key_env_enabled,
             auth.env_provider_key_name = self.auth_env.provider_env_key_name.as_deref(),
             auth.env_provider_key_present = self.auth_env.provider_env_key_present,
             auth.env_refresh_token_url_override_present = self.auth_env.refresh_token_url_override_present,
@@ -228,7 +228,7 @@ impl RequestTelemetry for ModelsRequestTelemetry {
         tracing::event!(
             target: "ditfa_otel.trace_safe",
             tracing::Level::INFO,
-            event.name = "codex.api_request",
+            event.name = "ditfa.api_request",
             duration_ms = %duration.as_millis(),
             http.response.status_code = status,
             success = success,
@@ -238,8 +238,8 @@ impl RequestTelemetry for ModelsRequestTelemetry {
             auth.header_attached = self.auth_header_attached,
             auth.header_name = self.auth_header_name,
             auth.env_openai_api_key_present = self.auth_env.openai_api_key_env_present,
-            auth.env_codex_api_key_present = self.auth_env.ditfa_api_key_env_present,
-            auth.env_codex_api_key_enabled = self.auth_env.ditfa_api_key_env_enabled,
+            auth.env_ditfa_api_key_present = self.auth_env.ditfa_api_key_env_present,
+            auth.env_ditfa_api_key_enabled = self.auth_env.ditfa_api_key_env_enabled,
             auth.env_provider_key_name = self.auth_env.provider_env_key_name.as_deref(),
             auth.env_provider_key_present = self.auth_env.provider_env_key_present,
             auth.env_refresh_token_url_override_present = self.auth_env.refresh_token_url_override_present,

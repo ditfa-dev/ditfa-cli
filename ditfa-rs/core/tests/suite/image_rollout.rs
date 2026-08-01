@@ -19,10 +19,10 @@ use core_test_support::responses::start_mock_server;
 use core_test_support::responses::strip_metadata;
 use core_test_support::responses::strip_response_item_id;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use image::ImageBuffer;
 use image::Rgba;
@@ -93,13 +93,13 @@ async fn copy_paste_local_image_persists_rollout_request_shape() -> anyhow::Resu
 
     let server = start_mock_server().await;
 
-    let TestCodex {
-        codex,
+    let TestDitfa {
+        ditfa,
         cwd,
         session_configured,
         home: _home,
         ..
-    } = test_codex().build(&server).await?;
+    } = test_ditfa().build(&server).await?;
 
     let rel_path = "images/paste.png";
     let abs_path = cwd.path().join(rel_path);
@@ -116,7 +116,7 @@ async fn copy_paste_local_image_persists_rollout_request_shape() -> anyhow::Resu
     let (sandbox_policy, permission_profile) =
         turn_permission_fields(PermissionProfile::Disabled, cwd.path());
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![
                 UserInput::LocalImage {
@@ -149,11 +149,11 @@ async fn copy_paste_local_image_persists_rollout_request_shape() -> anyhow::Resu
         })
         .await?;
 
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
-    codex.submit(Op::Shutdown).await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::ShutdownComplete)).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    ditfa.submit(Op::Shutdown).await?;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::ShutdownComplete)).await;
 
-    let rollout_path = codex.rollout_path().expect("rollout path");
+    let rollout_path = ditfa.rollout_path().expect("rollout path");
     let rollout_text = read_rollout_text(&rollout_path).await?;
     let actual = find_user_message_with_image(&rollout_text)
         .expect("expected user message with input image in rollout");
@@ -194,13 +194,13 @@ async fn drag_drop_image_persists_rollout_request_shape() -> anyhow::Result<()> 
 
     let server = start_mock_server().await;
 
-    let TestCodex {
-        codex,
+    let TestDitfa {
+        ditfa,
         cwd,
         session_configured,
         home: _home,
         ..
-    } = test_codex().build(&server).await?;
+    } = test_ditfa().build(&server).await?;
 
     let image_url = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==".to_string();
 
@@ -215,7 +215,7 @@ async fn drag_drop_image_persists_rollout_request_shape() -> anyhow::Result<()> 
     let (sandbox_policy, permission_profile) =
         turn_permission_fields(PermissionProfile::Disabled, cwd.path());
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![
                 UserInput::Image {
@@ -248,11 +248,11 @@ async fn drag_drop_image_persists_rollout_request_shape() -> anyhow::Result<()> 
         })
         .await?;
 
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
-    codex.submit(Op::Shutdown).await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::ShutdownComplete)).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    ditfa.submit(Op::Shutdown).await?;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::ShutdownComplete)).await;
 
-    let rollout_path = codex.rollout_path().expect("rollout path");
+    let rollout_path = ditfa.rollout_path().expect("rollout path");
     let rollout_text = read_rollout_text(&rollout_path).await?;
     let actual = find_user_message_with_image(&rollout_text)
         .expect("expected user message with input image in rollout");

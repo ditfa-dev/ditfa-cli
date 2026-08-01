@@ -6,7 +6,7 @@ use super::app_server_control_socket_path;
 use super::start_control_socket_acceptor;
 use ditfa_app_server_protocol::JSONRPCMessage;
 use ditfa_app_server_protocol::JSONRPCNotification;
-use ditfa_core::config::find_codex_home;
+use ditfa_core::config::find_ditfa_home;
 use ditfa_uds::UnixStream;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
 use futures::SinkExt;
@@ -35,9 +35,9 @@ fn listen_unix_socket_parses_as_unix_socket_transport() {
 #[test]
 fn listen_unix_socket_accepts_absolute_custom_path() {
     assert_eq!(
-        AppServerTransport::from_listen_url("unix:///tmp/codex.sock"),
+        AppServerTransport::from_listen_url("unix:///tmp/ditfa.sock"),
         Ok(AppServerTransport::UnixSocket {
-            socket_path: absolute_path("/tmp/codex.sock")
+            socket_path: absolute_path("/tmp/ditfa.sock")
         })
     );
 }
@@ -45,9 +45,9 @@ fn listen_unix_socket_accepts_absolute_custom_path() {
 #[test]
 fn listen_unix_socket_accepts_relative_custom_path() {
     assert_eq!(
-        AppServerTransport::from_listen_url("unix://codex.sock"),
+        AppServerTransport::from_listen_url("unix://ditfa.sock"),
         Ok(AppServerTransport::UnixSocket {
-            socket_path: AbsolutePathBuf::relative_to_current_dir("codex.sock")
+            socket_path: AbsolutePathBuf::relative_to_current_dir("ditfa.sock")
                 .expect("relative path should resolve")
         })
     );
@@ -195,7 +195,7 @@ fn absolute_path(path: &str) -> AbsolutePathBuf {
 }
 
 fn default_control_socket_path() -> AbsolutePathBuf {
-    let ditfa_home = find_codex_home().expect("codex home");
+    let ditfa_home = find_ditfa_home().expect("ditfa home");
     app_server_control_socket_path(&ditfa_home).expect("default control socket path")
 }
 

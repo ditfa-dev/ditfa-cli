@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use ditfa_core::CodexThread;
+use ditfa_core::DitfaThread;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::protocol::FileChange;
 use ditfa_protocol::protocol::Op;
@@ -47,7 +47,7 @@ pub(crate) async fn handle_patch_approval_request(
     grant_root: Option<PathBuf>,
     changes: HashMap<PathBuf, FileChange>,
     outgoing: Arc<OutgoingMessageSender>,
-    codex: Arc<CodexThread>,
+    ditfa: Arc<DitfaThread>,
     request_id: RequestId,
     tool_call_id: String,
     event_id: String,
@@ -58,7 +58,7 @@ pub(crate) async fn handle_patch_approval_request(
     if let Some(r) = &reason {
         message_lines.push(r.clone());
     }
-    message_lines.push("Allow Codex to apply proposed code changes?".to_string());
+    message_lines.push("Allow Ditfa to apply proposed code changes?".to_string());
 
     let params = PatchApprovalElicitRequestParams {
         message: message_lines.join("\n"),
@@ -92,10 +92,10 @@ pub(crate) async fn handle_patch_approval_request(
 
     // Listen for the response on a separate task so we don't block the main agent loop.
     {
-        let codex = codex.clone();
+        let ditfa = ditfa.clone();
         let approval_id = approval_id.clone();
         tokio::spawn(async move {
-            on_patch_approval_response(approval_id, on_response, codex).await;
+            on_patch_approval_response(approval_id, on_response, ditfa).await;
         });
     }
 }
@@ -103,14 +103,14 @@ pub(crate) async fn handle_patch_approval_request(
 pub(crate) async fn on_patch_approval_response(
     approval_id: String,
     receiver: tokio::sync::oneshot::Receiver<serde_json::Value>,
-    codex: Arc<CodexThread>,
+    ditfa: Arc<DitfaThread>,
 ) {
     let response = receiver.await;
     let value = match response {
         Ok(value) => value,
         Err(err) => {
             error!("request failed: {err:?}");
-            if let Err(submit_err) = codex
+            if let Err(submit_err) = ditfa
                 .submit(Op::PatchApproval {
                     id: approval_id.clone(),
                     decision: ReviewDecision::denied("approval request failed"),
@@ -130,7 +130,7 @@ pub(crate) async fn on_patch_approval_response(
         }
     });
 
-    if let Err(err) = codex
+    if let Err(err) = ditfa
         .submit(Op::PatchApproval {
             id: approval_id,
             decision: response.decision,

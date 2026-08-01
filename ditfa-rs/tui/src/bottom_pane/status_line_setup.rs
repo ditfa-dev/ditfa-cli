@@ -110,7 +110,7 @@ pub(crate) enum StatusLineItem {
     WeeklyLimit,
 
     /// Ditfa application version.
-    CodexVersion,
+    DitfaVersion,
 
     /// Total context window size in tokens.
     ContextWindowSize,
@@ -175,7 +175,7 @@ impl StatusLineItem {
             StatusLineItem::WeeklyLimit => {
                 "Remaining usage on the secondary usage limit (omitted when unavailable)"
             }
-            StatusLineItem::CodexVersion => "Codex application version",
+            StatusLineItem::DitfaVersion => "Ditfa application version",
             StatusLineItem::ContextWindowSize => {
                 "Total context window size in tokens (omitted when unknown)"
             }
@@ -214,7 +214,7 @@ impl StatusLineItem {
             StatusLineItem::ContextUsed => StatusSurfacePreviewItem::ContextUsed,
             StatusLineItem::FiveHourLimit => StatusSurfacePreviewItem::FiveHourLimit,
             StatusLineItem::WeeklyLimit => StatusSurfacePreviewItem::WeeklyLimit,
-            StatusLineItem::CodexVersion => StatusSurfacePreviewItem::CodexVersion,
+            StatusLineItem::DitfaVersion => StatusSurfacePreviewItem::DitfaVersion,
             StatusLineItem::ContextWindowSize => StatusSurfacePreviewItem::ContextWindowSize,
             StatusLineItem::UsedTokens => StatusSurfacePreviewItem::UsedTokens,
             StatusLineItem::TotalInputTokens => StatusSurfacePreviewItem::TotalInputTokens,
@@ -651,7 +651,7 @@ mod tests {
                 ),
                 (
                     StatusLineItem::CurrentDir.preview_item(),
-                    "~/codex-rs".to_string(),
+                    "~/ditfa-rs".to_string(),
                 ),
                 (
                     StatusLineItem::GitBranch.preview_item(),

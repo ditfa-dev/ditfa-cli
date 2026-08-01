@@ -95,13 +95,13 @@ use telemetry::emit_mcp_call_metrics;
 use telemetry::mcp_call_metric_outcome;
 use telemetry::record_mcp_call_outcome_span_telemetry;
 
-const MCP_RESULT_TELEMETRY_META_KEY: &str = "codex/telemetry";
+const MCP_RESULT_TELEMETRY_META_KEY: &str = "ditfa/telemetry";
 const MCP_RESULT_TELEMETRY_SPAN_KEY: &str = "span";
 const MCP_RESULT_TELEMETRY_TARGET_ID_KEY: &str = "target_id";
 const MCP_RESULT_TELEMETRY_DID_TRIGGER_SERVER_USER_FLOW_KEY: &str = "did_trigger_server_user_flow";
-const MCP_RESULT_TELEMETRY_TARGET_ID_SPAN_ATTR: &str = "codex.mcp.target.id";
+const MCP_RESULT_TELEMETRY_TARGET_ID_SPAN_ATTR: &str = "ditfa.mcp.target.id";
 const MCP_RESULT_TELEMETRY_SERVER_USER_FLOW_SPAN_ATTR: &str =
-    "codex.mcp.server_user_flow.triggered";
+    "ditfa.mcp.server_user_flow.triggered";
 const MCP_RESULT_TELEMETRY_TARGET_ID_MAX_CHARS: usize = 256;
 const MCP_TOOL_CALL_EVENT_RESULT_MAX_BYTES: usize = DEFAULT_OUTPUT_BYTES_CAP;
 
@@ -464,7 +464,7 @@ async fn handle_approved_mcp_tool_call(
                 &turn_context.model_info.input_modalities,
                 Ok(result),
             )?;
-            Ok(maybe_request_codex_apps_auth_elicitation(
+            Ok(maybe_request_ditfa_apps_auth_elicitation(
                 sess,
                 turn_context,
                 prepared_call.config().approval_policy.value(),
@@ -506,7 +506,7 @@ async fn handle_approved_mcp_tool_call(
         truncate_mcp_tool_result_for_event(&result),
     )
     .await;
-    maybe_track_codex_app_used(sess, turn_context, &server, &metadata).await;
+    maybe_track_ditfa_app_used(sess, turn_context, &server, &metadata).await;
 
     let outcome = mcp_call_metric_outcome(&result);
     emit_mcp_call_metrics(
@@ -553,10 +553,10 @@ fn mcp_tool_call_span(
         turn.id = turn_context.sub_id.as_str(),
         server.address = Empty,
         server.port = Empty,
-        codex.mcp.target.id = Empty,
-        codex.mcp.server_user_flow.triggered = Empty,
+        ditfa.mcp.target.id = Empty,
+        ditfa.mcp.server_user_flow.triggered = Empty,
         error.type = Empty,
-        codex.mcp.error.code = Empty,
+        ditfa.mcp.error.code = Empty,
     );
     record_server_fields(&span, fields.server_origin);
     span
@@ -631,7 +631,7 @@ fn truncate_str_to_char_boundary(value: &str, max_chars: usize) -> &str {
     }
 }
 
-async fn maybe_request_codex_apps_auth_elicitation(
+async fn maybe_request_ditfa_apps_auth_elicitation(
     sess: &Arc<Session>,
     turn_context: &TurnContext,
     approval_policy: AskForApproval,
@@ -698,12 +698,12 @@ async fn maybe_request_codex_apps_auth_elicitation(
         return result;
     }
 
-    refresh_codex_apps_after_connector_auth(sess, turn_context).await;
+    refresh_ditfa_apps_after_connector_auth(sess, turn_context).await;
     auth_elicitation_completed_result(&plan.auth_failure, result.meta)
 }
 
-async fn refresh_codex_apps_after_connector_auth(sess: &Arc<Session>, turn_context: &TurnContext) {
-    let mcp_tools_result = sess.hard_refresh_latest_codex_apps_tools().await;
+async fn refresh_ditfa_apps_after_connector_auth(sess: &Arc<Session>, turn_context: &TurnContext) {
+    let mcp_tools_result = sess.hard_refresh_latest_ditfa_apps_tools().await;
 
     match mcp_tools_result {
         Ok(mcp_tools) => {
@@ -715,7 +715,7 @@ async fn refresh_codex_apps_after_connector_auth(sess: &Arc<Session>, turn_conte
             );
         }
         Err(err) => {
-            tracing::warn!("failed to refresh Codex Apps tools after connector auth: {err:#}");
+            tracing::warn!("failed to refresh Ditfa Apps tools after connector auth: {err:#}");
         }
     }
 }
@@ -966,7 +966,7 @@ async fn notify_mcp_tool_call_completed(
     sess.emit_turn_item_completed(turn_context, item).await;
 }
 
-async fn maybe_track_codex_app_used(
+async fn maybe_track_ditfa_app_used(
     sess: &Session,
     turn_context: &TurnContext,
     server: &str,
@@ -1242,7 +1242,7 @@ pub(crate) const MCP_TOOL_APPROVAL_ACCEPT_FOR_SESSION: &str = "Allow for this se
 // RequestUserInput compatibility path. That legacy MCP prompt has allow/cancel labels but no
 // real "Decline" answer, so this lets guardian denials round-trip distinctly from user cancel.
 // This is not a user-facing option.
-pub(crate) const MCP_TOOL_APPROVAL_DECLINE_SYNTHETIC: &str = "__codex_mcp_decline__";
+pub(crate) const MCP_TOOL_APPROVAL_DECLINE_SYNTHETIC: &str = "__ditfa_mcp_decline__";
 const MCP_TOOL_APPROVAL_ACCEPT_AND_REMEMBER: &str = "Allow and don't ask me again";
 const MCP_TOOL_APPROVAL_CANCEL: &str = "Cancel";
 
@@ -1980,7 +1980,7 @@ async fn maybe_persist_mcp_tool_approval(
             remember_mcp_tool_approval(sess, key).await;
             return;
         };
-        persist_codex_app_tool_approval(&turn_context.config, &connector_id, &tool_name).await
+        persist_ditfa_app_tool_approval(&turn_context.config, &connector_id, &tool_name).await
     } else {
         persist_non_app_mcp_tool_approval(sess, &turn_context.config, &key.server, &tool_name).await
     };
@@ -2000,7 +2000,7 @@ async fn maybe_persist_mcp_tool_approval(
     remember_mcp_tool_approval(sess, key).await;
 }
 
-async fn persist_codex_app_tool_approval(
+async fn persist_ditfa_app_tool_approval(
     config: &Config,
     connector_id: &str,
     tool_name: &str,

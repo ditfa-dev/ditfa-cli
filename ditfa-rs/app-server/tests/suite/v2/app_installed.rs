@@ -46,7 +46,7 @@ const DEFAULT_TIMEOUT: Duration = Duration::from_secs(60);
 #[tokio::test]
 async fn installed_apps_force_refresh_only_refreshes_tools_snapshot() -> Result<()> {
     let fixture = InstalledAppsFixture::start().await?;
-    let ditfa_home = configured_codex_home(fixture.base_url())?;
+    let ditfa_home = configured_ditfa_home(fixture.base_url())?;
     let mut app_server = start_app_server(ditfa_home.path()).await?;
 
     let initially_empty = send_installed_request(&mut app_server, /*force_refresh*/ false).await?;
@@ -102,7 +102,7 @@ async fn installed_apps_force_refresh_only_refreshes_tools_snapshot() -> Result<
 #[tokio::test]
 async fn installed_apps_workspace_policy_retains_identities_as_disabled() -> Result<()> {
     let fixture = InstalledAppsFixture::start().await?;
-    let ditfa_home = configured_codex_home(fixture.base_url())?;
+    let ditfa_home = configured_ditfa_home(fixture.base_url())?;
     let committed = {
         let mut app_server = start_app_server(ditfa_home.path()).await?;
         send_installed_request(&mut app_server, /*force_refresh*/ true).await?
@@ -135,7 +135,7 @@ async fn installed_apps_workspace_policy_failure_does_not_block_force_refresh() 
         .fail_workspace_settings
         .store(true, Ordering::SeqCst);
     fixture.set_tools(vec![connector_tool("alpha", "Alpha Tool Name")?]);
-    let ditfa_home = configured_codex_home(fixture.base_url())?;
+    let ditfa_home = configured_ditfa_home(fixture.base_url())?;
     let mut app_server = start_app_server(ditfa_home.path()).await?;
 
     let refreshed = send_installed_request(&mut app_server, /*force_refresh*/ true).await?;
@@ -158,7 +158,7 @@ async fn installed_apps_workspace_policy_failure_does_not_block_force_refresh() 
 #[tokio::test]
 async fn installed_apps_global_disable_retains_tool_derived_identities() -> Result<()> {
     let fixture = InstalledAppsFixture::start().await?;
-    let ditfa_home = configured_codex_home(fixture.base_url())?;
+    let ditfa_home = configured_ditfa_home(fixture.base_url())?;
     let committed = {
         let mut app_server = start_app_server(ditfa_home.path()).await?;
         send_installed_request(&mut app_server, /*force_refresh*/ true).await?
@@ -187,7 +187,7 @@ async fn installed_apps_global_disable_retains_tool_derived_identities() -> Resu
 #[tokio::test]
 async fn installed_apps_thread_id_uses_effective_thread_config() -> Result<()> {
     let fixture = InstalledAppsFixture::start().await?;
-    let ditfa_home = configured_codex_home(fixture.base_url())?;
+    let ditfa_home = configured_ditfa_home(fixture.base_url())?;
     let mut app_server = start_app_server(ditfa_home.path()).await?;
     let mut expected = send_installed_request(&mut app_server, /*force_refresh*/ true).await?;
 
@@ -226,7 +226,7 @@ async fn installed_apps_thread_id_uses_effective_thread_config() -> Result<()> {
 #[tokio::test]
 async fn installed_apps_failed_force_refresh_retains_previous_snapshot() -> Result<()> {
     let fixture = InstalledAppsFixture::start().await?;
-    let ditfa_home = configured_codex_home(fixture.base_url())?;
+    let ditfa_home = configured_ditfa_home(fixture.base_url())?;
     let mut app_server = start_app_server(ditfa_home.path()).await?;
 
     let committed = send_installed_request(&mut app_server, /*force_refresh*/ true).await?;
@@ -252,7 +252,7 @@ async fn installed_apps_failed_force_refresh_retains_previous_snapshot() -> Resu
 
 async fn start_app_server(ditfa_home: &Path) -> Result<TestAppServer> {
     TestAppServer::builder()
-        .with_codex_home(ditfa_home)
+        .with_ditfa_home(ditfa_home)
         .without_managed_config()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await
@@ -271,7 +271,7 @@ async fn send_installed_request(
     timeout(DEFAULT_TIMEOUT, app_server.read_response(request_id)).await?
 }
 
-fn configured_codex_home(base_url: &str) -> Result<TempDir> {
+fn configured_ditfa_home(base_url: &str) -> Result<TempDir> {
     let ditfa_home = TempDir::new()?;
     std::fs::write(
         ditfa_home.path().join("config.toml"),
@@ -367,7 +367,7 @@ impl InstalledAppsFixture {
             .as_mut()
             .expect("connector tool should have metadata")
             .0
-            .insert("_codex_apps".to_string(), json!({ "synthetic_link": true }));
+            .insert("_ditfa_apps".to_string(), json!({ "synthetic_link": true }));
         let state = Arc::new(InstalledAppsServerState {
             tools: Mutex::new(vec![
                 connector_tool("alpha", "Alpha Tool Name")?,

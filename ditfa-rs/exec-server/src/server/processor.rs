@@ -256,7 +256,7 @@ fn request_span(
 ) -> tracing::Span {
     let method = request.method.as_str();
     let span = tracing::info_span!(
-        "codex.exec_server.request",
+        "ditfa.exec_server.request",
         otel.kind = "server",
         otel.name = span_name,
         method,

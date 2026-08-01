@@ -17,7 +17,7 @@ use core_test_support::responses::ev_completed;
 use core_test_support::responses::ev_response_created;
 use core_test_support::responses::sse;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use wiremock::Mock;
 use wiremock::MockServer;
@@ -44,15 +44,15 @@ async fn fork_thread_twice_drops_to_first_message() {
         .mount(&server)
         .await;
 
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build(&server).await.expect("create conversation");
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
     let thread_manager = test.thread_manager.clone();
     let config_for_fork = test.config.clone();
 
     // Send three user messages; wait for three completed turns.
     for text in ["first", "second", "third"] {
-        codex
+        ditfa
             .submit(Op::UserInput {
                 items: vec![UserInput::Text {
                     text: text.to_string(),
@@ -65,11 +65,11 @@ async fn fork_thread_twice_drops_to_first_message() {
             })
             .await
             .unwrap();
-        let _ = wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+        let _ = wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
     }
 
     // Request history from the base conversation to obtain rollout path.
-    let base_path = codex.rollout_path().expect("rollout path");
+    let base_path = ditfa.rollout_path().expect("rollout path");
 
     // GetHistory flushes before returning the path; no wait needed.
 
@@ -183,12 +183,12 @@ async fn fork_thread_from_history_does_not_require_source_rollout_path() {
         .mount(&server)
         .await;
 
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build(&server).await.expect("create conversation");
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
     let thread_manager = test.thread_manager.clone();
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "fork me from stored history".to_string(),
@@ -201,9 +201,9 @@ async fn fork_thread_from_history_does_not_require_source_rollout_path() {
         })
         .await
         .unwrap();
-    let _ = wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    let _ = wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
-    let source_path = codex.rollout_path().expect("source rollout path");
+    let source_path = ditfa.rollout_path().expect("source rollout path");
     let source_items = read_rollout_items(&source_path);
     let NewThread {
         thread: forked_thread,

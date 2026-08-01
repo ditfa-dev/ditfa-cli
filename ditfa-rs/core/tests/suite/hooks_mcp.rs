@@ -21,7 +21,7 @@ use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
 use core_test_support::stdio_server_bin;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_mcp_server;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
@@ -271,7 +271,7 @@ async fn pre_tool_use_blocks_mcp_tool_before_execution(
 
     let block_reason = "blocked mcp pre hook";
     let rmcp_test_server_bin = stdio_server_bin()?;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_pre_build_hook(move |home| {
             write_pre_tool_use_hook(home, block_reason)
                 .expect("failed to write MCP pre tool use hook fixture");
@@ -360,7 +360,7 @@ async fn pre_tool_use_rewrites_mcp_tool_before_execution() -> Result<()> {
     .await;
 
     let rmcp_test_server_bin = stdio_server_bin()?;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_pre_build_hook(move |home| {
             write_updating_pre_tool_use_hook(home, rewritten_message)
                 .expect("failed to write MCP updating pre tool use hook fixture");
@@ -457,7 +457,7 @@ async fn post_tool_use_records_mcp_tool_payload_and_context(
 
     let post_context = "Remember the MCP post-tool note.";
     let rmcp_test_server_bin = stdio_server_bin()?;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_pre_build_hook(move |home| {
             write_post_tool_use_hook(home, post_context)
                 .expect("failed to write MCP post tool use hook fixture");

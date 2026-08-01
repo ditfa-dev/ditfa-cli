@@ -22,9 +22,9 @@ use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
 use core_test_support::submit_thread_settings;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_event_match;
 use core_test_support::wait_for_event_with_timeout;
@@ -49,10 +49,10 @@ async fn user_shell_cmd_ls_and_cat_in_temp_dir() {
     // Pin cwd to the temp dir so ls/cat operate there.
     let server = start_mock_server().await;
     let cwd_path = cwd.path().to_path_buf();
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.cwd = cwd_path.abs();
     });
-    let codex = builder
+    let ditfa = builder
         .build(&server)
         .await
         .expect("create new conversation")
@@ -60,11 +60,11 @@ async fn user_shell_cmd_ls_and_cat_in_temp_dir() {
 
     // 1) shell command should list the file
     let list_cmd = "ls".to_string();
-    codex
+    ditfa
         .submit(Op::RunUserShellCommand { command: list_cmd })
         .await
         .unwrap();
-    let msg = wait_for_event(&codex, |ev| matches!(ev, EventMsg::ExecCommandEnd(_))).await;
+    let msg = wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::ExecCommandEnd(_))).await;
     let EventMsg::ExecCommandEnd(ExecCommandEndEvent {
         stdout, exit_code, ..
     }) = msg
@@ -79,11 +79,11 @@ async fn user_shell_cmd_ls_and_cat_in_temp_dir() {
 
     // 2) shell command should print the file contents verbatim
     let cat_cmd = format!("cat {file_name}");
-    codex
+    ditfa
         .submit(Op::RunUserShellCommand { command: cat_cmd })
         .await
         .unwrap();
-    let msg = wait_for_event(&codex, |ev| matches!(ev, EventMsg::ExecCommandEnd(_))).await;
+    let msg = wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::ExecCommandEnd(_))).await;
     let EventMsg::ExecCommandEnd(ExecCommandEndEvent {
         mut stdout,
         exit_code,
@@ -103,7 +103,7 @@ async fn user_shell_cmd_ls_and_cat_in_temp_dir() {
 #[tokio::test]
 async fn user_shell_command_without_local_environment_emits_error() -> anyhow::Result<()> {
     let server = start_mock_server().await;
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build(&server).await?;
     submit_thread_settings(
         &test.ditfa,
@@ -138,33 +138,33 @@ async fn user_shell_command_without_local_environment_emits_error() -> anyhow::R
 async fn user_shell_cmd_can_be_interrupted() {
     // Set up isolated config and conversation.
     let server = start_mock_server().await;
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let fixture = builder
         .build(&server)
         .await
         .expect("create new conversation");
-    let codex = &fixture.ditfa;
+    let ditfa = &fixture.ditfa;
 
     // Start a long-running command and then interrupt it.
     let sleep_cmd = "sleep 5".to_string();
-    codex
+    ditfa
         .submit(Op::RunUserShellCommand { command: sleep_cmd })
         .await
         .unwrap();
 
     // Wait until it has started (ExecCommandBegin), then interrupt.
-    let _begin = wait_for_event_match(codex, |ev| match ev {
+    let _begin = wait_for_event_match(ditfa, |ev| match ev {
         EventMsg::ExecCommandBegin(event) if event.source == ExecCommandSource::UserShell => {
             Some(event.clone())
         }
         _ => None,
     })
     .await;
-    codex.submit(Op::Interrupt).await.unwrap();
+    ditfa.submit(Op::Interrupt).await.unwrap();
 
     // Expect a TurnAborted(Interrupted) notification.
     let msg = wait_for_event_with_timeout(
-        codex,
+        ditfa,
         |ev| matches!(ev, EventMsg::TurnAborted(_)),
         Duration::from_secs(60),
     )
@@ -178,7 +178,7 @@ async fn user_shell_cmd_can_be_interrupted() {
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn user_shell_command_does_not_replace_active_turn() -> anyhow::Result<()> {
     let server = start_mock_server().await;
-    let mut builder = test_codex().with_model("gpt-5.4");
+    let mut builder = test_ditfa().with_model("gpt-5.4");
     let fixture = builder.build(&server).await?;
 
     let call_id = "active-turn-shell-call";
@@ -301,7 +301,7 @@ async fn user_shell_command_does_not_replace_active_turn() -> anyhow::Result<()>
 async fn user_shell_command_history_is_persisted_and_shared_with_model() -> anyhow::Result<()> {
     let server = responses::start_mock_server().await;
     // Disable it to ease command matching.
-    let mut builder = core_test_support::test_codex::test_codex().with_config(move |config| {
+    let mut builder = core_test_support::test_ditfa::test_ditfa().with_config(move |config| {
         config
             .features
             .disable(Feature::ShellSnapshot)
@@ -383,7 +383,7 @@ async fn user_shell_command_history_is_persisted_and_shared_with_model() -> anyh
 #[tokio::test]
 async fn user_shell_command_does_not_set_network_sandbox_env_var() -> anyhow::Result<()> {
     let server = responses::start_mock_server().await;
-    let mut builder = core_test_support::test_codex::test_codex().with_config(|config| {
+    let mut builder = core_test_support::test_ditfa::test_ditfa().with_config(|config| {
         let file_system_sandbox_policy = config.permissions.file_system_sandbox_policy();
         config
             .permissions
@@ -429,7 +429,7 @@ async fn user_shell_command_does_not_set_network_sandbox_env_var() -> anyhow::Re
 #[cfg(not(target_os = "windows"))] // TODO: unignore on windows
 async fn user_shell_command_output_is_truncated_in_history() -> anyhow::Result<()> {
     let server = responses::start_mock_server().await;
-    let builder = core_test_support::test_codex::test_codex();
+    let builder = core_test_support::test_ditfa::test_ditfa();
     let test = builder
         .with_config(|config| {
             config.tool_output_token_limit = Some(100);
@@ -495,7 +495,7 @@ async fn user_shell_command_is_truncated_only_once() -> anyhow::Result<()> {
 
     let server = start_mock_server().await;
 
-    let mut builder = test_codex().with_model("gpt-5.4").with_config(|config| {
+    let mut builder = test_ditfa().with_model("gpt-5.4").with_config(|config| {
         config.tool_output_token_limit = Some(100);
     });
     let fixture = builder.build(&server).await?;

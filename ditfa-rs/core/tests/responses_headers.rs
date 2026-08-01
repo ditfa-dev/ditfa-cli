@@ -4,7 +4,7 @@ use std::sync::Arc;
 use ditfa_core::ModelClient;
 use ditfa_core::Prompt;
 use ditfa_core::ResponseEvent;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::auth::AgentIdentityAuthPolicy;
 use ditfa_model_provider_info::ModelProviderInfo;
 use ditfa_model_provider_info::WireApi;
@@ -16,11 +16,11 @@ use ditfa_protocol::models::ContentItem;
 use ditfa_protocol::models::ResponseItem;
 use ditfa_protocol::protocol::SessionSource;
 use ditfa_protocol::protocol::SubAgentSource;
-use core_test_support::TestCodexResponsesRequestKind;
+use core_test_support::TestDitfaResponsesRequestKind;
 use core_test_support::load_default_config_for_test;
 use core_test_support::responses;
 use core_test_support::responses_metadata as test_responses_metadata;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use futures::StreamExt;
 use pretty_assertions::assert_eq;
 use tempfile::TempDir;
@@ -39,7 +39,7 @@ fn test_turn_responses_metadata(
     _client: &ModelClient,
     thread_id: ThreadId,
     session_source: &SessionSource,
-) -> ditfa_core::CodexResponsesMetadata {
+) -> ditfa_core::DitfaResponsesMetadata {
     let thread_id = thread_id.to_string();
     test_responses_metadata(
         TEST_INSTALLATION_ID,
@@ -49,7 +49,7 @@ fn test_turn_responses_metadata(
         format!("{thread_id}:0"),
         session_source,
         /*parent_thread_id*/ None,
-        TestCodexResponsesRequestKind::Turn,
+        TestDitfaResponsesRequestKind::Turn,
     )
 }
 
@@ -177,16 +177,16 @@ async fn responses_stream_includes_subagent_header_on_review() {
         request.header("x-codex-window-id").as_deref(),
         Some(expected_window_id.as_str())
     );
-    assert_eq!(request.header("x-codex-parent-thread-id"), None);
+    assert_eq!(request.header("x-ditfa-parent-thread-id"), None);
     assert_eq!(
-        request.body_json()["client_metadata"]["x-codex-installation-id"].as_str(),
+        request.body_json()["client_metadata"]["x-ditfa-installation-id"].as_str(),
         Some(TEST_INSTALLATION_ID)
     );
     assert_eq!(
         request.body_json()["client_metadata"]["x-codex-window-id"].as_str(),
         Some(expected_window_id.as_str())
     );
-    assert_eq!(request.header("x-codex-sandbox"), None);
+    assert_eq!(request.header("x-ditfa-sandbox"), None);
 }
 
 #[tokio::test]
@@ -357,7 +357,7 @@ async fn responses_respects_model_info_overrides_from_config() {
 
     let thread_id = ThreadId::new();
     let auth_mode =
-        ditfa_core::test_support::auth_manager_from_auth(CodexAuth::from_api_key("Test API Key"))
+        ditfa_core::test_support::auth_manager_from_auth(DitfaAuth::from_api_key("Test API Key"))
             .auth_mode()
             .map(TelemetryAuthMode::from);
     let session_source =
@@ -456,7 +456,7 @@ async fn responses_stream_includes_turn_metadata_header_for_git_workspace_e2e() 
         responses::ev_completed("resp-1"),
     ]);
 
-    let test = test_codex().build(&server).await.expect("build test codex");
+    let test = test_ditfa().build(&server).await.expect("build test ditfa");
     let cwd = test.cwd_path();
 
     let first_request = responses::mount_sse_once(&server, response_body.clone()).await;

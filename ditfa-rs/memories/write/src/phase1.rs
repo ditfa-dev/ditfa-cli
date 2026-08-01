@@ -9,7 +9,7 @@ use ditfa_config::types::MemoriesConfig;
 use ditfa_core::Prompt;
 use ditfa_core::RolloutRecorder;
 use ditfa_core::config::Config;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::models::BaseInstructions;
 use ditfa_protocol::models::ContentItem;
 use ditfa_protocol::models::ResponseItem;
@@ -420,7 +420,7 @@ mod job {
             })
             .collect::<Vec<_>>();
         let serialized = serde_json::to_string(&filtered).map_err(|err| {
-            CodexErr::InvalidRequest(format!("failed to serialize rollout memory: {err}"))
+            DitfaErr::InvalidRequest(format!("failed to serialize rollout memory: {err}"))
         })?;
         Ok(redact_secrets(serialized))
     }

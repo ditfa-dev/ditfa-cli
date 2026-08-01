@@ -16,13 +16,13 @@ use ditfa_protocol::permissions::NetworkSandboxPolicy;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
 
 use crate::common::exec_server::ExecServerHarness;
-use crate::common::exec_server::TestCodexHelperPaths;
+use crate::common::exec_server::TestDitfaHelperPaths;
 use crate::common::exec_server::exec_server;
-use crate::common::exec_server::test_codex_helper_paths;
+use crate::common::exec_server::test_ditfa_helper_paths;
 
 pub(crate) struct FileSystemContext {
     pub(crate) file_system: Arc<dyn ExecutorFileSystem>,
-    _helper_paths: Option<TestCodexHelperPaths>,
+    _helper_paths: Option<TestDitfaHelperPaths>,
     _server: Option<ExecServerHarness>,
 }
 
@@ -46,7 +46,7 @@ pub(crate) async fn create_file_system_context(
 ) -> Result<FileSystemContext> {
     match implementation {
         FileSystemImplementation::Local => {
-            let helper_paths = test_codex_helper_paths()?;
+            let helper_paths = test_ditfa_helper_paths()?;
             let runtime_paths = ExecServerRuntimePaths::new(
                 helper_paths.ditfa_exe.clone(),
                 helper_paths.ditfa_linux_sandbox_exe.clone(),

@@ -622,7 +622,7 @@ async fn executor_bundle_parser_matches_the_existing_environment_loader() {
 async fn executor_bundle_preserves_parent_namespace_and_manifest_precedence() {
     let plugin = tempdir().expect("tempdir");
     for (relative_path, name) in [
-        (".ditfa-plugin/plugin.json", "codex-name"),
+        (".ditfa-plugin/plugin.json", "ditfa-name"),
         (".claude-plugin/plugin.json", "claude-name"),
         (".cursor-plugin/plugin.json", "cursor-name"),
     ] {
@@ -679,5 +679,5 @@ async fn executor_bundle_preserves_parent_namespace_and_manifest_precedence() {
             .collect::<Vec<_>>(),
         existing.skills
     );
-    assert_eq!(bundled.skills[0].metadata.name, "codex-name:search");
+    assert_eq!(bundled.skills[0].metadata.name, "ditfa-name:search");
 }

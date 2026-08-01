@@ -45,7 +45,7 @@ use crate::managed_install::ExecutableIdentity;
 #[cfg(unix)]
 use crate::managed_install::executable_identity;
 #[cfg(unix)]
-use crate::managed_install::resolved_managed_codex_bin;
+use crate::managed_install::resolved_managed_ditfa_bin;
 
 #[cfg(unix)]
 const INITIAL_UPDATE_DELAY: Duration = Duration::from_secs(5 * 60);
@@ -107,8 +107,8 @@ async fn update_once(
     install_latest_standalone(http).await?;
 
     let daemon = Daemon::from_environment()?;
-    let managed_codex_bin = resolved_managed_codex_bin(&daemon.managed_codex_bin).await?;
-    let managed_identity = executable_identity(&managed_codex_bin).await?;
+    let managed_ditfa_bin = resolved_managed_ditfa_bin(&daemon.managed_ditfa_bin).await?;
+    let managed_identity = executable_identity(&managed_ditfa_bin).await?;
     let (restart_mode, updater_refresh_mode) =
         update_modes_for_identities(running_updater_identity, &managed_identity);
 
@@ -117,7 +117,7 @@ async fn update_once(
             return Ok(UpdateLoopControl::Stop);
         }
         match daemon
-            .try_restart_if_running(restart_mode, updater_refresh_mode, &managed_codex_bin)
+            .try_restart_if_running(restart_mode, updater_refresh_mode, &managed_ditfa_bin)
             .await?
         {
             RestartIfRunningOutcome::Busy => {
@@ -153,14 +153,14 @@ fn update_modes_for_identities(
 }
 
 #[cfg(unix)]
-pub(crate) fn reexec_managed_updater(managed_codex_bin: &std::path::Path) -> Result<()> {
-    let err = StdCommand::new(managed_codex_bin)
+pub(crate) fn reexec_managed_updater(managed_ditfa_bin: &std::path::Path) -> Result<()> {
+    let err = StdCommand::new(managed_ditfa_bin)
         .args(["app-server", "daemon", "pid-update-loop"])
         .exec();
     Err(err).with_context(|| {
         format!(
-            "failed to replace updater with managed Codex binary {}",
-            managed_codex_bin.display()
+            "failed to replace updater with managed Ditfa binary {}",
+            managed_ditfa_bin.display()
         )
     })
 }
@@ -175,25 +175,25 @@ async fn install_latest_standalone(http: &RouteAwareClientPool) -> Result<()> {
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .spawn()
-        .context("failed to invoke standalone Codex updater")?;
+        .context("failed to invoke standalone Ditfa updater")?;
     let mut stdin = child
         .stdin
         .take()
-        .context("standalone Codex updater stdin was unavailable")?;
+        .context("standalone Ditfa updater stdin was unavailable")?;
     stdin
         .write_all(&script)
         .await
-        .context("failed to pass standalone Codex updater to shell")?;
+        .context("failed to pass standalone Ditfa updater to shell")?;
     drop(stdin);
     let status = child
         .wait()
         .await
-        .context("failed to wait for standalone Codex updater")?;
+        .context("failed to wait for standalone Ditfa updater")?;
 
     if status.success() {
         Ok(())
     } else {
-        anyhow::bail!("standalone Codex updater exited with status {status}")
+        anyhow::bail!("standalone Ditfa updater exited with status {status}")
     }
 }
 
@@ -202,7 +202,7 @@ async fn fetch_installer_script(http: &impl InstallerHttp) -> Result<Vec<u8>> {
     match http.get(INSTALL_URL).await? {
         InstallerResponse::Success(body) => Ok(body),
         InstallerResponse::Unsuccessful { status } => {
-            anyhow::bail!("standalone Codex updater request failed with status {status}")
+            anyhow::bail!("standalone Ditfa updater request failed with status {status}")
         }
     }
 }
@@ -232,7 +232,7 @@ impl InstallerHttp for RouteAwareClientPool {
         let response = RouteAwareClientPool::get(self, url)
             .send()
             .await
-            .context("failed to fetch standalone Codex updater")?;
+            .context("failed to fetch standalone Ditfa updater")?;
         if !response.status().is_success() {
             return Ok(InstallerResponse::Unsuccessful {
                 status: response.status().as_u16(),
@@ -241,7 +241,7 @@ impl InstallerHttp for RouteAwareClientPool {
         let body = response
             .bytes()
             .await
-            .context("failed to read standalone Codex updater")?
+            .context("failed to read standalone Ditfa updater")?
             .to_vec();
         Ok(InstallerResponse::Success(body))
     }

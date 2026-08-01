@@ -26,9 +26,9 @@ export type {
 export { Thread } from "./thread";
 export type { RunResult, RunStreamedResult, Input, UserInput } from "./thread";
 
-export { Codex } from "./codex";
+export { Ditfa } from "./ditfa";
 
-export type { CodexOptions } from "./codexOptions";
+export type { DitfaOptions } from "./ditfaOptions";
 
 export type {
   ThreadOptions,

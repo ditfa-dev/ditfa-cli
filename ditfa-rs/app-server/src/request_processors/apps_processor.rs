@@ -58,9 +58,9 @@ impl AppsRequestProcessor {
         let auth = self.auth_manager.auth().await;
         if !config
             .features
-            .apps_enabled_for_auth(auth.as_ref().is_some_and(CodexAuth::uses_codex_backend))
+            .apps_enabled_for_auth(auth.as_ref().is_some_and(DitfaAuth::uses_ditfa_backend))
             || !self
-                .workspace_codex_plugins_enabled(&config, auth.as_ref())
+                .workspace_ditfa_plugins_enabled(&config, auth.as_ref())
                 .await
         {
             return Ok(Some(
@@ -147,7 +147,7 @@ impl AppsRequestProcessor {
         let auth = self.auth_manager.auth().await;
         if !config
             .features
-            .apps_enabled_for_auth(auth.as_ref().is_some_and(CodexAuth::uses_codex_backend))
+            .apps_enabled_for_auth(auth.as_ref().is_some_and(DitfaAuth::uses_ditfa_backend))
         {
             let response = AppsListResponse {
                 data: Vec::new(),
@@ -158,7 +158,7 @@ impl AppsRequestProcessor {
         }
 
         if !self
-            .workspace_codex_plugins_enabled(&config, auth.as_ref())
+            .workspace_ditfa_plugins_enabled(&config, auth.as_ref())
             .await
         {
             let response = AppsListResponse {
@@ -246,7 +246,7 @@ impl AppsRequestProcessor {
             )
             .await
             {
-                warn!("failed to refresh app list after codex-apps readiness retry: {err:?}");
+                warn!("failed to refresh app list after ditfa-apps readiness retry: {err:?}");
             }
         }
     }
@@ -416,7 +416,7 @@ impl AppsRequestProcessor {
     async fn load_thread(
         &self,
         thread_id: &str,
-    ) -> Result<(ThreadId, Arc<CodexThread>), JSONRPCErrorError> {
+    ) -> Result<(ThreadId, Arc<DitfaThread>), JSONRPCErrorError> {
         let thread_id = ThreadId::from_string(thread_id)
             .map_err(|err| invalid_request(format!("invalid thread id: {err}")))?;
 
@@ -439,10 +439,10 @@ impl AppsRequestProcessor {
             .map_err(|err| internal_error(format!("failed to reload config: {err}")))
     }
 
-    async fn workspace_codex_plugins_enabled(
+    async fn workspace_ditfa_plugins_enabled(
         &self,
         config: &Config,
-        auth: Option<&CodexAuth>,
+        auth: Option<&DitfaAuth>,
     ) -> bool {
         match workspace_settings::ditfa_plugins_enabled_for_workspace(
             config,
@@ -454,7 +454,7 @@ impl AppsRequestProcessor {
             Ok(enabled) => enabled,
             Err(err) => {
                 warn!(
-                    "failed to fetch workspace Codex plugins setting; allowing Codex plugins: {err:#}"
+                    "failed to fetch workspace Ditfa plugins setting; allowing Ditfa plugins: {err:#}"
                 );
                 true
             }
@@ -465,7 +465,7 @@ impl AppsRequestProcessor {
 const APP_LIST_LOAD_TIMEOUT: Duration = Duration::from_secs(90);
 // `app/list` is the legacy request-path baseline for the `app/installed` endpoint;
 // `path=legacy` keeps it separate from the new snapshot-backed implementation in dashboards.
-const APPS_INSTALLED_DURATION_METRIC: &str = "codex.apps.installed.duration_ms";
+const APPS_INSTALLED_DURATION_METRIC: &str = "ditfa.apps.installed.duration_ms";
 
 fn record_legacy_apps_installed_duration(started_at: Instant, reload: bool) {
     let reload = if reload { "true" } else { "false" };

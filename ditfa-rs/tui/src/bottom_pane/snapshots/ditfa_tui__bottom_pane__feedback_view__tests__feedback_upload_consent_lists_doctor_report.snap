@@ -6,9 +6,9 @@ expression: rendered
 Upload logs?
 
 The following files will be sent:
-  • codex-logs.log
-  • codex-doctor-report.json
-  • codex-apps-tools-cache.json (if available)
-  • codex-app-directory-cache.json (if available)
+  • ditfa-logs.log
+  • ditfa-doctor-report.json
+  • ditfa-apps-tools-cache.json (if available)
+  • ditfa-app-directory-cache.json (if available)
   • rollout.jsonl
   • auto-review-rollout.jsonl

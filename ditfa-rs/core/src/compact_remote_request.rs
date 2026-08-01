@@ -5,12 +5,12 @@ use super::trim_function_call_history_to_fit_context_window;
 use crate::Prompt;
 use crate::client::CompactConversationRequestSettings;
 use crate::compact::CompactionAnalyticsDetails;
-use crate::responses_metadata::CodexResponsesRequestKind;
+use crate::responses_metadata::DitfaResponsesRequestKind;
 use crate::responses_metadata::CompactionTurnMetadata;
 use crate::session::session::Session;
 use crate::session::step_context::StepContext;
 use ditfa_protocol::auth::AuthMode;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::models::ResponseItem;
 use ditfa_rollout_trace::CompactionTraceContext;
 use tracing::info;
@@ -27,7 +27,7 @@ pub(super) async fn run_remote_compact_attempt(
     compaction_trace: &CompactionTraceContext,
     compaction_metadata: CompactionTurnMetadata,
     analytics_details: &mut CompactionAnalyticsDetails,
-) -> CodexResult<RemoteCompactAttempt> {
+) -> DitfaResult<RemoteCompactAttempt> {
     let turn_context = &step_context.turn;
     let mut history = sess.clone_history().await;
     let base_instructions = sess.get_base_instructions().await;
@@ -72,7 +72,7 @@ pub(super) async fn run_remote_compact_attempt(
     let responses_metadata = turn_context.turn_metadata_state.to_responses_metadata(
         sess.installation_id.clone(),
         window_id,
-        CodexResponsesRequestKind::Compaction(compaction_metadata),
+        DitfaResponsesRequestKind::Compaction(compaction_metadata),
     );
     let new_history = sess
         .services

@@ -16,7 +16,7 @@ use super::catalog_from_outcome;
 async fn host_catalog_entries_carry_their_prompt_scope() -> Result<(), Box<dyn std::error::Error>> {
     let unique = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
     let root = std::env::temp_dir().join(format!(
-        "codex-skills-extension-host-provider-{}-{unique}",
+        "ditfa-skills-extension-host-provider-{}-{unique}",
         std::process::id()
     ));
     let skill_path = root.join("demo").join("SKILL.md");

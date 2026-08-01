@@ -51,7 +51,7 @@ async fn turn_steer_requires_active_turn() -> Result<()> {
     mount_analytics_capture(&server, &ditfa_home).await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .without_managed_config()
         .build_initialized()
         .await?;
@@ -140,7 +140,7 @@ async fn turn_steer_rejects_oversized_text_input() -> Result<()> {
     mount_analytics_capture(&server, &ditfa_home).await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .without_managed_config()
         .build_initialized()
         .await?;
@@ -254,7 +254,7 @@ async fn turn_steer_returns_active_turn_id() -> Result<()> {
     mount_analytics_capture(&server, &ditfa_home).await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .without_managed_config()
         .build_initialized()
         .await?;
@@ -388,7 +388,7 @@ async fn turn_steer_rejects_context_only_input_without_merging_context() -> Resu
     mount_analytics_capture(&server, &ditfa_home).await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .without_managed_config()
         .build_initialized()
         .await?;

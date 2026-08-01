@@ -7,7 +7,7 @@ use ditfa_config::types::ToolSuggestDiscoverable;
 use ditfa_config::types::ToolSuggestDiscoverableType;
 use ditfa_core::config::Config;
 use ditfa_features::Feature;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_models_manager::bundled_models_response;
 use ditfa_protocol::approvals::ElicitationAction;
 use ditfa_protocol::approvals::ElicitationRequest;
@@ -31,9 +31,9 @@ use core_test_support::responses::mount_sse_sequence;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_event_match;
 use serde_json::Value;
@@ -57,7 +57,7 @@ const DISCOVERABLE_GMAIL_ID: &str = "connector_68df038e0ba48191908c8434991bbac2"
 const REMOTE_CALENDAR_PLUGIN_CONFIG_ID: &str = "calendar@openai-curated-remote";
 const REMOTE_CALENDAR_PLUGIN_ID: &str = "plugin_calendar";
 const CALENDAR_CONNECTOR_ID: &str = "calendar";
-const CALENDAR_NAMESPACE: &str = "mcp__codex_apps__calendar";
+const CALENDAR_NAMESPACE: &str = "mcp__ditfa_apps__calendar";
 const CALENDAR_CREATE_EVENT_TOOL: &str = "_create_event";
 
 fn tool_names(body: &Value) -> Vec<String> {
@@ -135,9 +135,9 @@ fn assert_legacy_tools(body: &Value) {
 async fn build_test(
     server: &wiremock::MockServer,
     apps_server: &AppsTestServer,
-) -> Result<TestCodex> {
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+) -> Result<TestDitfa> {
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config({
             let apps_base_url = apps_server.chatgpt_base_url.clone();
             move |config| {
@@ -151,7 +151,7 @@ async fn build_test(
     builder.build(server).await
 }
 
-async fn start_install_turn(test: &TestCodex, prompt: &str) -> Result<ElicitationRequestEvent> {
+async fn start_install_turn(test: &TestDitfa, prompt: &str) -> Result<ElicitationRequestEvent> {
     let (sandbox_policy, permission_profile) =
         turn_permission_fields(PermissionProfile::Disabled, test.config.cwd.as_path());
     test.ditfa
@@ -188,7 +188,7 @@ async fn start_install_turn(test: &TestCodex, prompt: &str) -> Result<Elicitatio
 }
 
 async fn resolve_install_elicitation(
-    test: &TestCodex,
+    test: &TestDitfa,
     elicitation: ElicitationRequestEvent,
     decision: ElicitationAction,
 ) -> Result<()> {
@@ -490,7 +490,7 @@ async fn run_remote_plugin_install_metadata_case() -> Result<()> {
         let requests = server.received_requests().await.unwrap_or_default();
         if let Some(event) = requests
             .into_iter()
-            .filter(|request| request.url.path() == "/codex/analytics-events/events")
+            .filter(|request| request.url.path() == "/ditfa/analytics-events/events")
             .find_map(|request| {
                 let payload: Value = serde_json::from_slice(&request.body).ok()?;
                 payload["events"].as_array().and_then(|events| {
@@ -674,8 +674,8 @@ async fn endpoint_mode_with_no_eligible_candidates_exposes_no_suggestion_tools()
         ]),
     )
     .await;
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config({
             let apps_base_url = apps_server.chatgpt_base_url.clone();
             move |config| {

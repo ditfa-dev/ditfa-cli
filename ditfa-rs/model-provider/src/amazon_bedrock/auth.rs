@@ -11,7 +11,7 @@ use ditfa_http_client::RequestBody;
 use ditfa_http_client::RequestCompression;
 use ditfa_login::auth::BedrockApiKeyAuth;
 use ditfa_model_provider_info::ModelProviderAwsAuthInfo;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::Result;
 use http::HeaderMap;
 
@@ -49,7 +49,7 @@ pub(super) async fn resolve_auth_method(
     let config = aws_auth_config(aws);
     let context = AwsAuthContext::load(config)
         .await
-        .map_err(aws_auth_error_to_codex_error)?;
+        .map_err(aws_auth_error_to_ditfa_error)?;
     Ok(BedrockAuthMethod::AwsSdkAuth { context })
 }
 
@@ -88,7 +88,7 @@ pub(super) fn bearer_token_region(
         .or_else(|| non_empty_env_var_from(AWS_REGION_ENV_VAR, env_var))
         .or_else(|| non_empty_env_var_from(AWS_DEFAULT_REGION_ENV_VAR, env_var))
         .ok_or_else(|| {
-            CodexErr::Fatal(
+            DitfaErr::Fatal(
                 "Amazon Bedrock bearer token auth requires \
 `model_providers.amazon-bedrock.aws.region`, `AWS_REGION`, or `AWS_DEFAULT_REGION`"
                     .to_string(),
@@ -96,8 +96,8 @@ pub(super) fn bearer_token_region(
         })
 }
 
-fn aws_auth_error_to_codex_error(error: AwsAuthError) -> CodexErr {
-    CodexErr::Fatal(format!("failed to resolve Amazon Bedrock auth: {error}"))
+fn aws_auth_error_to_ditfa_error(error: AwsAuthError) -> DitfaErr {
+    DitfaErr::Fatal(format!("failed to resolve Amazon Bedrock auth: {error}"))
 }
 
 fn aws_auth_error_to_auth_error(error: AwsAuthError) -> AuthError {

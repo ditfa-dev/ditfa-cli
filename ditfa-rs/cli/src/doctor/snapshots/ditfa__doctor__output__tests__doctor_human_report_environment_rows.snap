@@ -2,11 +2,11 @@
 source: cli/src/doctor/output.rs
 expression: "render_human_report(&sample_report(), detailed_no_color_unicode_options())"
 ---
-Codex Doctor v0.0.0
+Ditfa Doctor v0.0.0
 
 Notes
    ⚠ terminal     narrow terminal
-   ✗ auth         token expired - Run `codex login`.
+   ✗ auth         token expired - Run `ditfa login`.
 ─────────────────────────────────────────────────────────────
 
 Environment
@@ -28,14 +28,14 @@ Environment
       version                  git version 2.54.0
       repo detected            true
   ⚠ terminal     narrow terminal
-  ✓ title        default · project codex
+  ✓ title        default · project ditfa
       title source             default
       title items              activity, project-name
-      project value            codex
+      project value            ditfa
   ✓ state        state paths inspectable
 
 Configuration
-  ✗ auth         token expired — Run `codex login`.
+  ✗ auth         token expired — Run `ditfa login`.
       OPENAI_API_KEY           present
 
 Updates

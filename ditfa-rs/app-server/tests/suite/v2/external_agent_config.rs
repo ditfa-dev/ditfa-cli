@@ -80,7 +80,7 @@ async fn external_agent_config_detect_accepts_migration_source_and_defaults_unkn
     std::fs::write(source_home.join("CLAUDE.md"), "project instructions")?;
     let home_dir = ditfa_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("HOME", Some(home_dir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -133,7 +133,7 @@ async fn external_agent_config_migration_source_drives_detect_and_import() -> Re
     std::fs::write(source_home.join("sandbox.json"), r#"{"type":"read_only"}"#)?;
     let home_dir = ditfa_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("HOME", Some(home_dir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -193,7 +193,7 @@ async fn external_agent_config_import_source_remains_attribution_only() -> Resul
     std::fs::write(source_home.join("CLAUDE.md"), "Claude guidance")?;
     let home_dir = ditfa_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("HOME", Some(home_dir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -236,7 +236,7 @@ async fn external_agent_config_import_source_remains_attribution_only() -> Resul
     assert_eq!(completed.item_type_results[0].failures, Vec::new());
     assert_eq!(
         std::fs::read_to_string(ditfa_home.path().join("AGENTS.md"))?,
-        "Codex guidance"
+        "Ditfa guidance"
     );
 
     Ok(())
@@ -346,7 +346,7 @@ source = {:?}
 
     let home_dir = ditfa_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("HOME", Some(home_dir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -494,7 +494,7 @@ async fn external_agent_config_import_sends_completion_notification_for_sync_onl
     let home_dir = ditfa_home.path().display().to_string();
     let sqlite_home_dir = sqlite_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("HOME", Some(home_dir.as_str())),
@@ -600,7 +600,7 @@ async fn external_agent_memory_import_requires_feature_config() -> Result<()> {
     std::fs::write(&source_file, "project A memory")?;
     let home_dir = ditfa_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("HOME", Some(home_dir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -658,7 +658,7 @@ async fn external_agent_config_detects_non_memory_items_when_config_reload_fails
     std::fs::write(source_home.join("CLAUDE.md"), "project instructions")?;
     let home_dir = ditfa_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("HOME", Some(home_dir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -718,7 +718,7 @@ async fn external_agent_config_detects_and_imports_project_memory_files() -> Res
     )?;
     let home_dir = ditfa_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("HOME", Some(home_dir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -959,7 +959,7 @@ async fn external_agent_config_import_reports_failed_sync_import_in_completion()
     let analytics_capture_file = ditfa_home.path().join("analytics-events.jsonl");
     let analytics_capture_file = analytics_capture_file.display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("HOME", Some(home_dir.as_str())),
@@ -1101,7 +1101,7 @@ async fn external_agent_config_import_completed_tracks_analytics_event() -> Resu
     let project_root = ditfa_home.path().join("repo");
     let home_dir = ditfa_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("HOME", Some(home_dir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -1256,7 +1256,7 @@ async fn external_agent_config_import_reinstalls_plugins_from_known_marketplaces
 
     let home_dir = ditfa_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("HOME", Some(home_dir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -1401,7 +1401,7 @@ async fn external_agent_config_import_sends_completion_notification_after_pendin
 
     let home_dir = ditfa_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("HOME", Some(home_dir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -1497,7 +1497,7 @@ async fn external_agent_config_import_creates_session_rollouts() -> Result<()> {
 
     let home_dir = ditfa_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("HOME", Some(home_dir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -1731,7 +1731,7 @@ required = true
 
     let home_dir = ditfa_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("HOME", Some(home_dir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -1813,7 +1813,7 @@ async fn external_agent_config_import_accepts_detected_session_payload_after_res
 
     let home_dir = ditfa_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("HOME", Some(home_dir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -1896,7 +1896,7 @@ async fn external_agent_config_import_skips_already_imported_session_versions() 
 
     let home_dir = ditfa_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("HOME", Some(home_dir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -1977,7 +1977,7 @@ async fn external_agent_config_import_returns_before_background_session_import_f
 
     let home_dir = ditfa_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("HOME", Some(home_dir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -2137,7 +2137,7 @@ async fn external_agent_config_import_compacts_huge_session_before_first_follow_
 
     let home_dir = ditfa_home.path().display().to_string();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("HOME", Some(home_dir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)

@@ -3363,7 +3363,7 @@ mod tests {
             thread_name: Some(String::from("My session")),
             created_at: None,
             updated_at: None,
-            cwd: Some(PathBuf::from("/tmp/codex-session-picker")),
+            cwd: Some(PathBuf::from("/tmp/ditfa-session-picker")),
             git_branch: Some(String::from("fcoury/session-picker")),
         };
 
@@ -3423,8 +3423,8 @@ mod tests {
             thread_name: Some(String::from("feat(tui): add raw scrollback mode")),
             created_at: parse_timestamp_str("2026-05-02T14:31:08Z"),
             updated_at: parse_timestamp_str("2026-05-02T14:48:19Z"),
-            cwd: Some(PathBuf::from("/Users/felipe.coury/code/codex")),
-            git_branch: Some(String::from("codex/raw-scrollback-mode")),
+            cwd: Some(PathBuf::from("/Users/felipe.coury/code/ditfa")),
+            git_branch: Some(String::from("ditfa/raw-scrollback-mode")),
         };
 
         let rendered = render_expanded_session_details(&row, &state, /*width*/ 120)
@@ -3441,7 +3441,7 @@ mod tests {
         assert!(rendered.contains("Created:    17 minutes ago · 2026-05-02 14:31:08"));
         assert!(rendered.contains("Updated:    now · 2026-05-02 14:48:19"));
         assert!(rendered.contains(&format!("Directory:  {expected_directory}")));
-        assert!(rendered.contains("Branch:      codex/raw-scrollback-mode"));
+        assert!(rendered.contains("Branch:      ditfa/raw-scrollback-mode"));
         assert!(rendered.contains("Conversation:"));
     }
 
@@ -3452,7 +3452,7 @@ mod tests {
             "5h ago",
             "3h ago",
             Some("main"),
-            Some("tmp/codex"),
+            Some("tmp/ditfa"),
             /*show_cwd*/ true,
             /*width*/ 80,
         );
@@ -3461,7 +3461,7 @@ mod tests {
             "5h ago",
             "3h ago",
             Some("main"),
-            Some("tmp/codex"),
+            Some("tmp/ditfa"),
             /*show_cwd*/ true,
             /*width*/ 80,
         );
@@ -3472,8 +3472,8 @@ mod tests {
         assert!(created[0].to_string().starts_with("  5h ago"));
         assert!(!updated[0].to_string().contains("created 5h ago"));
         assert!(!created[0].to_string().contains("updated 3h ago"));
-        assert_metadata_order(&updated[0], "⌁ tmp/codex", " main");
-        assert_metadata_order(&created[0], "⌁ tmp/codex", " main");
+        assert_metadata_order(&updated[0], "⌁ tmp/ditfa", " main");
+        assert_metadata_order(&created[0], "⌁ tmp/ditfa", " main");
     }
 
     #[test]
@@ -3483,16 +3483,16 @@ mod tests {
             "5h ago",
             "3h ago",
             /*branch*/ None,
-            Some("/tmp/codex"),
+            Some("/tmp/ditfa"),
             /*show_cwd*/ true,
             /*width*/ 80,
         );
 
         assert_eq!(footer.len(), 1);
         let rendered = footer[0].to_string();
-        assert!(rendered.contains("⌁ /tmp/codex"));
+        assert!(rendered.contains("⌁ /tmp/ditfa"));
         assert!(rendered.contains(" no branch"));
-        assert_metadata_order(&footer[0], "⌁ /tmp/codex", " no branch");
+        assert_metadata_order(&footer[0], "⌁ /tmp/ditfa", " no branch");
     }
 
     #[test]
@@ -3503,7 +3503,7 @@ mod tests {
             "5h ago",
             "4h ago",
             Some(branch),
-            Some("~/code/codex.etraut-animations-false-improvements/codex-rs"),
+            Some("~/code/ditfa.etraut-animations-false-improvements/ditfa-rs"),
             /*show_cwd*/ true,
             /*width*/ 140,
         );
@@ -3514,7 +3514,7 @@ mod tests {
 
     #[test]
     fn footer_cwd_truncates_to_responsive_column() {
-        let cwd = "~/code/codex.owner-extremely-long-worktree-name-that-needs-truncating/codex-rs";
+        let cwd = "~/code/ditfa.owner-extremely-long-worktree-name-that-needs-truncating/ditfa-rs";
         let branch = "owner/branch";
         let footer = render_footer_lines(
             ThreadSortKey::UpdatedAt,
@@ -3529,7 +3529,7 @@ mod tests {
         assert_eq!(footer.len(), 1);
         let footer = footer[0].to_string();
         assert!(!footer.contains(cwd));
-        assert!(footer.contains("⌁ ~/code/codex."));
+        assert!(footer.contains("⌁ ~/code/ditfa."));
         assert!(footer.contains("..."));
         assert!(footer.contains(" owner/branch"));
     }
@@ -3541,7 +3541,7 @@ mod tests {
             "5h ago",
             "4h ago",
             Some("owner/branch"),
-            Some("~/code/codex.owner-worktree/codex-rs"),
+            Some("~/code/ditfa.owner-worktree/ditfa-rs"),
             /*show_cwd*/ false,
             /*width*/ 80,
         );
@@ -4485,8 +4485,8 @@ session_picker_view = "dense"
     #[tokio::test]
     async fn ctrl_o_keeps_toggled_density_when_persistence_fails() {
         let tmp = tempdir().expect("tmpdir");
-        let ditfa_home_file = tmp.path().join("codex-home-file");
-        std::fs::write(&ditfa_home_file, "not a directory").expect("write codex home file");
+        let ditfa_home_file = tmp.path().join("ditfa-home-file");
+        std::fs::write(&ditfa_home_file, "not a directory").expect("write ditfa home file");
         let loader = page_only_loader(|_| {});
         let mut state = PickerState::new(
             FrameRequester::test_dummy(),
@@ -4705,7 +4705,7 @@ session_picker_view = "dense"
             created_at: parse_timestamp_str("2026-04-28T16:30:00Z"),
             updated_at: parse_timestamp_str("2026-04-28T17:45:00Z"),
             cwd: Some(PathBuf::from(
-                "/Users/felipe.coury/code/codex.fcoury-session-picker/codex-rs",
+                "/Users/felipe.coury/code/ditfa.fcoury-session-picker/ditfa-rs",
             )),
             git_branch: Some(String::from("fcoury/session-picker")),
         }
@@ -4756,7 +4756,7 @@ session_picker_view = "dense"
             render_dense_row_snapshot(
                 /*show_all*/ false,
                 Some(PathBuf::from(
-                    "/Users/felipe.coury/code/codex.fcoury-session-picker/codex-rs"
+                    "/Users/felipe.coury/code/ditfa.fcoury-session-picker/ditfa-rs"
                 )),
                 /*width*/ 100,
             )
@@ -4915,7 +4915,7 @@ session_picker_view = "dense"
             ProviderFilter::MatchDefault(String::from("openai")),
             /*show_all*/ false,
             Some(PathBuf::from(
-                "/Users/felipe.coury/code/codex.fcoury-session-picker/codex-rs",
+                "/Users/felipe.coury/code/ditfa.fcoury-session-picker/ditfa-rs",
             )),
             SessionPickerAction::Resume,
         );
@@ -4958,7 +4958,7 @@ session_picker_view = "dense"
             thread_name: None,
             created_at: parse_timestamp_str("2026-04-28T16:30:00Z"),
             updated_at: parse_timestamp_str("2026-04-28T17:45:00Z"),
-            cwd: Some(PathBuf::from("/tmp/codex")),
+            cwd: Some(PathBuf::from("/tmp/ditfa")),
             git_branch: Some(String::from("fcoury/session-picker")),
         };
         let mut state = PickerState::new(
@@ -5027,7 +5027,7 @@ session_picker_view = "dense"
             thread_name: None,
             created_at: parse_timestamp_str("2026-04-28T16:30:00Z"),
             updated_at: parse_timestamp_str("2026-04-28T17:45:00Z"),
-            cwd: Some(PathBuf::from("/tmp/codex")),
+            cwd: Some(PathBuf::from("/tmp/ditfa")),
             git_branch: Some(String::from("fcoury/session-picker")),
         };
         let mut state = PickerState::new(

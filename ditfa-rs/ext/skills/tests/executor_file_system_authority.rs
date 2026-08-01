@@ -192,7 +192,7 @@ impl ExecutorFileSystem for SyntheticFileSystem {
 #[tokio::test]
 async fn skill_loading_and_reads_use_the_supplied_executor_file_system() {
     let test_root =
-        std::env::temp_dir().join(format!("codex-executor-skill-fs-{}", std::process::id()));
+        std::env::temp_dir().join(format!("ditfa-executor-skill-fs-{}", std::process::id()));
     let alias_root = AbsolutePathBuf::from_absolute_path_checked(test_root.join("alias"))
         .expect("absolute path");
     let canonical_root = AbsolutePathBuf::from_absolute_path_checked(test_root.join("canonical"))
@@ -358,7 +358,7 @@ async fn high_level_discovery_reuses_materialized_skill_contents_for_reads() {
 fn create_local_skill_root(label: &str) -> io::Result<std::path::PathBuf> {
     let id = NEXT_TEST_ROOT_ID.fetch_add(1, Ordering::Relaxed);
     let test_root = std::env::temp_dir().join(format!(
-        "codex-executor-skill-{label}-{}-{id}",
+        "ditfa-executor-skill-{label}-{}-{id}",
         std::process::id()
     ));
     let skill_dir = test_root.join("skill");

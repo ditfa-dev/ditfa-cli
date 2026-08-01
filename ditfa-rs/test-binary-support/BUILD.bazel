@@ -1,7 +1,7 @@
-load("//:defs.bzl", "codex_rust_crate")
+load("//:defs.bzl", "ditfa_rust_crate")
 
-codex_rust_crate(
+ditfa_rust_crate(
     name = "test-binary-support",
-    crate_name = "codex_test_binary_support",
+    crate_name = "ditfa_test_binary_support",
     crate_srcs = ["lib.rs"],
 )

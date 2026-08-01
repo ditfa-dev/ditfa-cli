@@ -3,7 +3,7 @@ use predicates::prelude::*;
 #[test]
 fn missing_session_fails_before_delete_confirmation() -> anyhow::Result<()> {
     let ditfa_home = tempfile::tempdir()?;
-    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("codex")?);
+    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa")?);
     cmd.env("DITFA_HOME", ditfa_home.path())
         .args(["delete", "123e4567-e89b-12d3-a456-426614174000"]);
 

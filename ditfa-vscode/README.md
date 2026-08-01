@@ -26,13 +26,13 @@ The extension drives the `ditfa` binary; it does not bundle a model runtime.
 Install the CLI one of these ways:
 
 ```bash
-npm install -g @ditfa/cli
+npm install -g ditfa
 ```
 
 or build it from this repository:
 
 ```bash
-cargo build --release --manifest-path ditfa-rs/Cargo.toml
+cargo build --release --manifest-path ditfa-rs/Cargo.toml --bin ditfa
 ```
 
 The extension finds the binary in this order:

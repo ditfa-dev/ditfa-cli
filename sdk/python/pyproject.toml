@@ -3,26 +3,26 @@ requires = ["uv_build>=0.11.19,<0.12"]
 build-backend = "uv_build"
 
 [project]
-name = "openai-codex"
+name = "ditfa"
 version = "0.0.0-dev"
-description = "Python SDK for Codex"
+description = "Python SDK for Ditfa"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
 authors = [{ name = "OpenAI" }]
-keywords = ["codex", "sdk", "llm", "ai", "agents"]
+keywords = ["ditfa", "sdk", "llm", "ai", "agents"]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dependencies = ["pydantic>=2.12", "openai-codex-cli-bin==0.144.4"]
+dependencies = ["pydantic>=2.12", "openai-ditfa-cli-bin==0.144.4"]
 
 [project.urls]
-Homepage = "https://github.com/openai/codex"
-Repository = "https://github.com/openai/codex"
-Issues = "https://github.com/openai/codex/issues"
-Documentation = "https://github.com/openai/codex/tree/main/sdk/python/docs"
+Homepage = "https://github.com/Teamtem-dev/ditfa-code"
+Repository = "https://github.com/Teamtem-dev/ditfa-code"
+Issues = "https://github.com/Teamtem-dev/ditfa-code/issues"
+Documentation = "https://github.com/Teamtem-dev/ditfa-code/tree/main/sdk/python/docs"
 
 [dependency-groups]
 format = ["ruff>=0.15.8"]
@@ -46,7 +46,7 @@ required-version = ">=0.15.8"
 line-length = 100
 extend-exclude = [
   "notebooks/**",
-  "src/openai_codex/generated/**",
+  "src/ditfa/generated/**",
 ]
 
 [tool.ruff.lint]
@@ -65,10 +65,10 @@ combine-as-imports = true
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { openai-codex-cli-bin = "2026-07-15T01:00:00Z" }
+exclude-newer-package = { openai-ditfa-cli-bin = "2026-07-15T01:00:00Z" }
 index-strategy = "first-index"
 
 [tool.uv.pip]
 exclude-newer = "7 days"
-exclude-newer-package = { openai-codex-cli-bin = "2026-07-15T01:00:00Z" }
+exclude-newer-package = { openai-ditfa-cli-bin = "2026-07-15T01:00:00Z" }
 index-strategy = "first-index"

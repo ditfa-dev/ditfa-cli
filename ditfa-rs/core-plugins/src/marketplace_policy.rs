@@ -489,7 +489,7 @@ fn managed_local_marketplace_name(ditfa_home: &Path, root: &Path) -> Option<&'st
     }
 
     let runtime_root = dirs::cache_dir()?
-        .join("codex-runtimes/codex-primary-runtime/plugins")
+        .join("ditfa-runtimes/ditfa-primary-runtime/plugins")
         .join(OPENAI_PRIMARY_RUNTIME_MARKETPLACE_NAME);
     paths_match_after_normalization(root, &runtime_root)
         .then_some(OPENAI_PRIMARY_RUNTIME_MARKETPLACE_NAME)

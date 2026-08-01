@@ -9,7 +9,7 @@ use ditfa_extension_api::ExtensionRegistryBuilder;
 use ditfa_extension_api::McpServerContribution;
 use ditfa_extension_api::McpServerContributionContext;
 use ditfa_extension_api::McpServerContributor;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_mcp::DITFA_APPS_MCP_SERVER_NAME;
 use pretty_assertions::assert_eq;
 
@@ -27,7 +27,7 @@ async fn contributes_hosted_plugin_runtime_without_an_executor() -> TestResult {
         ])
         .build()
         .await?;
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let manager = installed_manager(&config);
 
     let servers = manager.effective_servers(&config, Some(&auth)).await;
@@ -59,7 +59,7 @@ async fn runtime_overlay_preserves_disabled_server() -> TestResult {
         ])
         .build()
         .await?;
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let manager = installed_manager(&config);
 
     let servers = manager.effective_servers(&config, Some(&auth)).await;
@@ -86,7 +86,7 @@ async fn default_fallback_overwrites_reserved_config_without_an_extension() -> T
         ])
         .build()
         .await?;
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let manager = McpManager::new(Arc::new(PluginsManager::new(
         config.ditfa_home.to_path_buf(),
     )));
@@ -113,14 +113,14 @@ async fn later_extension_can_remove_same_name_registration() -> TestResult {
         .cli_overrides(vec![("features.apps".to_string(), true.into())])
         .build()
         .await?;
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let mut builder = ExtensionRegistryBuilder::new();
     ditfa_mcp_extension::install(&mut builder);
-    builder.mcp_server_contributor(Arc::new(RemoveCodexApps));
+    builder.mcp_server_contributor(Arc::new(RemoveDitfaApps));
     let manager = McpManager::new_with_extensions(
         Arc::new(PluginsManager::new(config.ditfa_home.to_path_buf())),
         Arc::new(builder.build()),
-        ditfa_core::CodexAppsToolsCache::default(),
+        ditfa_core::DitfaAppsToolsCache::default(),
     );
 
     let servers = manager.effective_servers(&config, Some(&auth)).await;
@@ -138,7 +138,7 @@ async fn hosted_apps_mcp_requires_chatgpt_auth() -> TestResult {
         .cli_overrides(vec![("features.apps".to_string(), true.into())])
         .build()
         .await?;
-    let auth = CodexAuth::from_api_key("test");
+    let auth = DitfaAuth::from_api_key("test");
     let manager = installed_manager(&config);
 
     let servers = manager.effective_servers(&config, Some(&auth)).await;
@@ -181,15 +181,15 @@ fn installed_manager(config: &Config) -> McpManager {
     McpManager::new_with_extensions(
         Arc::new(PluginsManager::new(config.ditfa_home.to_path_buf())),
         Arc::new(builder.build()),
-        ditfa_core::CodexAppsToolsCache::default(),
+        ditfa_core::DitfaAppsToolsCache::default(),
     )
 }
 
-struct RemoveCodexApps;
+struct RemoveDitfaApps;
 
-impl McpServerContributor<Config> for RemoveCodexApps {
+impl McpServerContributor<Config> for RemoveDitfaApps {
     fn id(&self) -> &'static str {
-        "remove_codex_apps"
+        "remove_ditfa_apps"
     }
 
     fn contribute<'a>(

@@ -32,7 +32,7 @@ async fn thread_status_changed_emits_runtime_updates() -> Result<()> {
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .with_env_overrides(&[("RUST_LOG", Some("info"))])
         .build_initialized()
         .await?;
@@ -136,7 +136,7 @@ async fn thread_status_changed_can_be_opted_out() -> Result<()> {
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build()
         .await?;
     let message = timeout(
@@ -144,7 +144,7 @@ async fn thread_status_changed_can_be_opted_out() -> Result<()> {
         mcp.initialize_with_capabilities(
             ClientInfo {
                 name: "ditfa_vscode".to_string(),
-                title: Some("Codex VS Code Extension".to_string()),
+                title: Some("Ditfa VS Code Extension".to_string()),
                 version: "0.1.0".to_string(),
             },
             Some(InitializeCapabilities {

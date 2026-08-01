@@ -21,7 +21,7 @@ use core_test_support::responses::ev_function_call;
 use core_test_support::responses::ev_response_created;
 use core_test_support::responses::start_websocket_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
@@ -105,7 +105,7 @@ async fn startup_prewarm_skips_git_enrichment_and_user_turn_observes_fresh_state
     ]])
     .await;
     let cwd = repo.path().to_path_buf();
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.cwd = cwd.abs();
     });
     let test = builder.build_with_websocket_server(&server).await?;
@@ -162,7 +162,7 @@ async fn guardian_prewarm_and_review_skip_redundant_git_enrichment() -> Result<(
     ])
     .await;
     let cwd = repo.path().to_path_buf();
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.cwd = cwd.abs();
         config.permissions.approval_policy = Constrained::allow_any(AskForApproval::OnRequest);
         config.approvals_reviewer = ApprovalsReviewer::AutoReview;
@@ -242,7 +242,7 @@ async fn ephemeral_system_thread_prewarm_skips_and_turn_observes_fresh_state() -
     ])
     .await;
     let cwd = repo.path().to_path_buf();
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model("test-gpt-5.1-codex")
         .with_config(move |config| {
             config.cwd = cwd.abs();
@@ -365,7 +365,7 @@ async fn concurrent_turns_keep_distinct_worktree_and_repository_metadata() -> Re
     .await;
 
     let repo_cwd = repo.path().to_path_buf();
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.cwd = repo_cwd.abs();
     });
     let test = builder.build_with_websocket_server(&server).await?;

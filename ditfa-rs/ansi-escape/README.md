@@ -1,4 +1,4 @@
-# oai-codex-ansi-escape
+# oai-ditfa-ansi-escape
 
 Small helper functions that wrap functionality from
 <https://crates.io/crates/ansi-to-tui>:

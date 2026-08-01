@@ -13,7 +13,7 @@ use crate::thread_status::ThreadWatchActiveGuard;
 use crate::thread_status::ThreadWatchManager;
 use ditfa_app_server_protocol::AccountRateLimitsUpdatedNotification;
 use ditfa_app_server_protocol::AdditionalPermissionProfile as V2AdditionalPermissionProfile;
-use ditfa_app_server_protocol::CodexErrorInfo as V2CodexErrorInfo;
+use ditfa_app_server_protocol::DitfaErrorInfo as V2DitfaErrorInfo;
 use ditfa_app_server_protocol::CommandAction as V2ParsedCommand;
 use ditfa_app_server_protocol::CommandExecutionApprovalDecision;
 use ditfa_app_server_protocol::CommandExecutionRequestApprovalParams;
@@ -86,14 +86,14 @@ use ditfa_app_server_protocol::WarningNotification;
 use ditfa_app_server_protocol::build_item_from_guardian_event;
 use ditfa_app_server_protocol::guardian_auto_approval_review_notification;
 use ditfa_app_server_protocol::item_event_to_server_notification;
-use ditfa_core::CodexThread;
+use ditfa_core::DitfaThread;
 use ditfa_core::ThreadManager;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::items::CollabAgentTool as CoreCollabAgentTool;
 use ditfa_protocol::items::TurnItem as CoreTurnItem;
 use ditfa_protocol::models::AdditionalPermissionProfile as CoreAdditionalPermissionProfile;
 use ditfa_protocol::plan_tool::UpdatePlanArgs;
-use ditfa_protocol::protocol::CodexErrorInfo as CoreCodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo as CoreDitfaErrorInfo;
 use ditfa_protocol::protocol::Event;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::ExecApprovalRequestEvent;
@@ -138,7 +138,7 @@ struct CommandExecutionCompletionItem {
 pub(crate) async fn apply_bespoke_event_handling(
     event: Event,
     conversation_id: ThreadId,
-    conversation: Arc<CodexThread>,
+    conversation: Arc<DitfaThread>,
     thread_manager: Arc<ThreadManager>,
     outgoing: ThreadScopedOutgoingMessageSender,
     thread_state: Arc<tokio::sync::Mutex<ThreadState>>,
@@ -911,7 +911,7 @@ pub(crate) async fn apply_bespoke_event_handling(
             // Don't send a notification for this error.
             if matches!(
                 ditfa_error_info,
-                Some(CoreCodexErrorInfo::ThreadRollbackFailed)
+                Some(CoreDitfaErrorInfo::ThreadRollbackFailed)
             ) {
                 return handle_thread_rollback_failed(
                     conversation_id,
@@ -928,7 +928,7 @@ pub(crate) async fn apply_bespoke_event_handling(
 
             let turn_error = TurnError {
                 message: ev.message,
-                ditfa_error_info: ev.ditfa_error_info.map(V2CodexErrorInfo::from),
+                ditfa_error_info: ev.ditfa_error_info.map(V2DitfaErrorInfo::from),
                 additional_details: None,
             };
             handle_error_notification(
@@ -945,7 +945,7 @@ pub(crate) async fn apply_bespoke_event_handling(
             // but we notify the client.
             let turn_error = TurnError {
                 message: ev.message,
-                ditfa_error_info: ev.ditfa_error_info.map(V2CodexErrorInfo::from),
+                ditfa_error_info: ev.ditfa_error_info.map(V2DitfaErrorInfo::from),
                 additional_details: ev.additional_details,
             };
             outgoing
@@ -1610,7 +1610,7 @@ async fn on_request_user_input_response(
     event_turn_id: String,
     pending_request_id: RequestId,
     receiver: oneshot::Receiver<ClientRequestResult>,
-    conversation: Arc<CodexThread>,
+    conversation: Arc<DitfaThread>,
     thread_state: Arc<Mutex<ThreadState>>,
     user_input_guard: ThreadWatchActiveGuard,
 ) {
@@ -1692,7 +1692,7 @@ async fn on_mcp_server_elicitation_response(
     request_id: ditfa_protocol::mcp::RequestId,
     pending_request_id: RequestId,
     receiver: oneshot::Receiver<ClientRequestResult>,
-    conversation: Arc<CodexThread>,
+    conversation: Arc<DitfaThread>,
     thread_state: Arc<Mutex<ThreadState>>,
     permission_guard: ThreadWatchActiveGuard,
 ) {
@@ -1756,7 +1756,7 @@ fn mcp_server_elicitation_response_from_client_result(
 
 async fn on_request_permissions_response(
     pending_response: PendingRequestPermissionsResponse,
-    conversation: Arc<CodexThread>,
+    conversation: Arc<DitfaThread>,
     thread_state: Arc<Mutex<ThreadState>>,
 ) {
     let PendingRequestPermissionsResponse {
@@ -1903,7 +1903,7 @@ async fn on_file_change_request_approval_response(
     item_id: String,
     pending_request_id: RequestId,
     receiver: oneshot::Receiver<ClientRequestResult>,
-    codex: Arc<CodexThread>,
+    ditfa: Arc<DitfaThread>,
     thread_state: Arc<Mutex<ThreadState>>,
     permission_guard: ThreadWatchActiveGuard,
 ) {
@@ -1929,7 +1929,7 @@ async fn on_file_change_request_approval_response(
         }
     };
 
-    if let Err(err) = codex
+    if let Err(err) = ditfa
         .submit(Op::PatchApproval {
             id: item_id,
             decision,
@@ -1949,7 +1949,7 @@ async fn on_command_execution_request_approval_response(
     completion_item: Option<CommandExecutionCompletionItem>,
     pending_request_id: RequestId,
     receiver: oneshot::Receiver<ClientRequestResult>,
-    conversation: Arc<CodexThread>,
+    conversation: Arc<DitfaThread>,
     outgoing: ThreadScopedOutgoingMessageSender,
     thread_state: Arc<Mutex<ThreadState>>,
     permission_guard: ThreadWatchActiveGuard,
@@ -2095,7 +2095,7 @@ mod tests {
     use ditfa_app_server_protocol::JSONRPCErrorError;
     use ditfa_app_server_protocol::ServerRequest;
     use ditfa_app_server_protocol::TurnPlanStepStatus;
-    use ditfa_login::CodexAuth;
+    use ditfa_login::DitfaAuth;
     use ditfa_protocol::AgentPath;
     use ditfa_protocol::items::AgentMessageContent as CoreAgentMessageContent;
     use ditfa_protocol::items::AgentMessageItem as CoreAgentMessageItem;
@@ -2325,7 +2325,7 @@ mod tests {
 
     struct GuardianAssessmentTestContext {
         conversation_id: ThreadId,
-        conversation: Arc<CodexThread>,
+        conversation: Arc<DitfaThread>,
         thread_manager: Arc<ThreadManager>,
         outgoing: ThreadScopedOutgoingMessageSender,
         thread_state: Arc<Mutex<ThreadState>>,
@@ -2654,7 +2654,7 @@ mod tests {
         let config = load_default_config_for_test(&ditfa_home).await;
         let thread_manager = Arc::new(
             ditfa_core::test_support::thread_manager_with_models_provider_and_home(
-                CodexAuth::create_dummy_chatgpt_auth_for_testing(),
+                DitfaAuth::create_dummy_chatgpt_auth_for_testing(),
                 config.model_provider.clone(),
                 config.ditfa_home.to_path_buf(),
                 Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -3209,7 +3209,7 @@ mod tests {
             conversation_id,
             TurnError {
                 message: "boom".to_string(),
-                ditfa_error_info: Some(V2CodexErrorInfo::InternalServerError),
+                ditfa_error_info: Some(V2DitfaErrorInfo::InternalServerError),
                 additional_details: None,
             },
             &thread_state,
@@ -3221,7 +3221,7 @@ mod tests {
             turn_summary.last_error,
             Some(TurnError {
                 message: "boom".to_string(),
-                ditfa_error_info: Some(V2CodexErrorInfo::InternalServerError),
+                ditfa_error_info: Some(V2DitfaErrorInfo::InternalServerError),
                 additional_details: None,
             })
         );
@@ -3234,7 +3234,7 @@ mod tests {
         let config = load_default_config_for_test(&ditfa_home).await;
         let thread_manager = Arc::new(
             ditfa_core::test_support::thread_manager_with_models_provider_and_home(
-                CodexAuth::create_dummy_chatgpt_auth_for_testing(),
+                DitfaAuth::create_dummy_chatgpt_auth_for_testing(),
                 config.model_provider.clone(),
                 config.ditfa_home.to_path_buf(),
                 Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -3324,7 +3324,7 @@ mod tests {
         let config = load_default_config_for_test(&ditfa_home).await;
         let thread_manager = Arc::new(
             ditfa_core::test_support::thread_manager_with_models_provider_and_home(
-                CodexAuth::create_dummy_chatgpt_auth_for_testing(),
+                DitfaAuth::create_dummy_chatgpt_auth_for_testing(),
                 config.model_provider.clone(),
                 config.ditfa_home.to_path_buf(),
                 Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -3416,7 +3416,7 @@ mod tests {
         let config = load_default_config_for_test(&ditfa_home).await;
         let thread_manager = Arc::new(
             ditfa_core::test_support::thread_manager_with_models_provider_and_home(
-                CodexAuth::create_dummy_chatgpt_auth_for_testing(),
+                DitfaAuth::create_dummy_chatgpt_auth_for_testing(),
                 config.model_provider.clone(),
                 config.ditfa_home.to_path_buf(),
                 Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -3654,7 +3654,7 @@ mod tests {
             conversation_id,
             TurnError {
                 message: "bad".to_string(),
-                ditfa_error_info: Some(V2CodexErrorInfo::Other),
+                ditfa_error_info: Some(V2DitfaErrorInfo::Other),
                 additional_details: None,
             },
             &thread_state,
@@ -3689,7 +3689,7 @@ mod tests {
                     n.turn.error,
                     Some(TurnError {
                         message: "bad".to_string(),
-                        ditfa_error_info: Some(V2CodexErrorInfo::Other),
+                        ditfa_error_info: Some(V2DitfaErrorInfo::Other),
                         additional_details: None,
                     })
                 );
@@ -3785,7 +3785,7 @@ mod tests {
             model_context_window: Some(4096),
         };
         let rate_limits = RateLimitSnapshot {
-            limit_id: Some("codex".to_string()),
+            limit_id: Some("ditfa".to_string()),
             limit_name: None,
             primary: Some(RateLimitWindow {
                 used_percent: 42.5,
@@ -3832,7 +3832,7 @@ mod tests {
         let second = recv_broadcast_notification(&mut rx).await?;
         match second {
             ServerNotification::AccountRateLimitsUpdated(payload) => {
-                assert_eq!(payload.rate_limits.limit_id.as_deref(), Some("codex"));
+                assert_eq!(payload.rate_limits.limit_id.as_deref(), Some("ditfa"));
                 assert_eq!(payload.rate_limits.limit_name, None);
                 assert!(payload.rate_limits.primary.is_some());
                 assert!(payload.rate_limits.credits.is_some());
@@ -3899,7 +3899,7 @@ mod tests {
             conversation_a,
             TurnError {
                 message: "a1".to_string(),
-                ditfa_error_info: Some(V2CodexErrorInfo::BadRequest),
+                ditfa_error_info: Some(V2DitfaErrorInfo::BadRequest),
                 additional_details: None,
             },
             &thread_state,
@@ -3956,7 +3956,7 @@ mod tests {
                     n.turn.error,
                     Some(TurnError {
                         message: "a1".to_string(),
-                        ditfa_error_info: Some(V2CodexErrorInfo::BadRequest),
+                        ditfa_error_info: Some(V2DitfaErrorInfo::BadRequest),
                         additional_details: None,
                     })
                 );

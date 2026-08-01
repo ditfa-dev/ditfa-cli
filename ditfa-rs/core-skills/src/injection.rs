@@ -139,7 +139,7 @@ fn emit_skill_injected_metric(
     let skill_name_tag = sanitize_metric_tag_value(skill.name.as_str());
 
     otel.counter(
-        "codex.skill.injected",
+        "ditfa.skill.injected",
         /*inc*/ 1,
         &[("status", status), ("skill", skill_name_tag.as_str())],
     );

@@ -8,7 +8,7 @@ use ditfa_extension_api::ExtensionRegistry;
 use ditfa_extension_api::ExtensionRegistryBuilder;
 use ditfa_features::Feature;
 use ditfa_image_generation_extension::install as install_image_generation_extension;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_protocol::config_types::ApprovalsReviewer;
 use ditfa_protocol::config_types::WebSearchMode;
 use ditfa_protocol::models::FileSystemPermissions;
@@ -30,9 +30,9 @@ use ditfa_utils_absolute_path::AbsolutePathBuf;
 use core_test_support::responses;
 use core_test_support::skip_if_no_network;
 use core_test_support::skip_if_sandbox;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use serde_json::json;
@@ -50,7 +50,7 @@ const TINY_PNG_BASE64: &str = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAD
 const TINY_PNG_DATA_URL: &str = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==";
 
 fn image_generation_extensions(
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     resolve_save_root: impl Fn(&Config) -> Option<AbsolutePathBuf> + Send + Sync + 'static,
 ) -> Arc<ExtensionRegistry<Config>> {
     let auth_manager = ditfa_core::test_support::auth_manager_from_auth(auth.clone());
@@ -64,9 +64,9 @@ async fn extension_tool_receives_turn_environment_sandbox() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let extensions = image_generation_extensions(&auth, |config| Some(config.ditfa_home.clone()));
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_auth(auth)
         .with_extensions(extensions)
         .with_model_info_override("gpt-5.4", |model_info| {
@@ -159,7 +159,7 @@ async fn extension_tool_uses_granted_turn_permissions_without_local_persistence(
         .mount(&server)
         .await;
 
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let extensions = image_generation_extensions(&auth, |_config| None);
     let base_permission_profile = PermissionProfile::workspace_write_with(
         &[],
@@ -168,7 +168,7 @@ async fn extension_tool_uses_granted_turn_permissions_without_local_persistence(
         /*exclude_slash_tmp*/ true,
     );
     let permission_profile_for_config = base_permission_profile.clone();
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_auth(auth)
         .with_extensions(extensions)
         .with_model_info_override("gpt-5.4", |model_info| {

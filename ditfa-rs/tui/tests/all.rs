@@ -5,6 +5,6 @@
 mod test_backend;
 
 #[allow(unused_imports)]
-use ditfa_cli as _; // Keep dev-dep for cargo-shear; tests spawn the codex binary.
+use ditfa_cli as _; // Keep dev-dep for cargo-shear; tests spawn the ditfa binary.
 
 mod suite;

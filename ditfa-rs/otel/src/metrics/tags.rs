@@ -13,16 +13,16 @@ pub const SESSION_SOURCE_TAG: &str = "session_source";
 const OTHER_ORIGINATOR_TAG_VALUE: &str = "other";
 const KNOWN_ORIGINATOR_TAG_VALUES: &[&str] = &[
     "ditfa_desktop",
-    "codex-app-server",
+    "ditfa-app-server",
     "ditfa_mcp_server",
     "ditfa_cli_rs",
-    "codex-tui",
+    "ditfa-tui",
     "ditfa_vscode",
     "none",
     "ditfa_exec",
-    "codex-cli",
+    "ditfa-cli",
     "ditfa_sdk_ts",
-    "codex-app-server-sdk",
+    "ditfa-app-server-sdk",
 ];
 
 /// Return a known low-cardinality originator tag value, or `other`.

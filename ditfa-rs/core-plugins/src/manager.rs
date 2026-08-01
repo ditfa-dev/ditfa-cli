@@ -4,7 +4,7 @@ use crate::app_mcp_routing::apply_app_mcp_routing_policy;
 use crate::installed_marketplaces::installed_marketplace_roots_from_layer_stack;
 use crate::is_openai_curated_marketplace_name;
 use crate::loader::PluginHookLoadOutcome;
-use crate::loader::configured_curated_plugin_ids_from_codex_home;
+use crate::loader::configured_curated_plugin_ids_from_ditfa_home;
 use crate::loader::curated_plugin_cache_version;
 use crate::loader::load_plugin_apps_from_manifest;
 use crate::loader::load_plugin_hooks;
@@ -73,7 +73,7 @@ use ditfa_core_skills::loader::MAX_CONCURRENT_ROOT_SCANS;
 use ditfa_hooks::plugin_hook_declarations;
 use ditfa_http_client::HttpClientFactory;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_model_provider::AMAZON_BEDROCK_PROVIDER_ID;
 use ditfa_plugin::AppConnectorId;
 use ditfa_plugin::PluginCapabilitySummary;
@@ -164,7 +164,7 @@ pub struct EffectivePluginsChange {
 pub struct RecommendedPluginCandidatesInput<'a> {
     pub plugins_config: &'a PluginsConfigInput,
     pub loaded_plugins: &'a PluginLoadOutcome,
-    pub auth: Option<&'a CodexAuth>,
+    pub auth: Option<&'a DitfaAuth>,
     pub disabled_tools: &'a [ToolSuggestDisabledTool],
     pub app_server_client_name: Option<&'a str>,
 }
@@ -191,7 +191,7 @@ struct CachedFeaturedPluginIds {
 
 struct RemoteInstalledPluginsCacheRefreshRequest {
     service_config: RemotePluginServiceConfig,
-    auth: Option<CodexAuth>,
+    auth: Option<DitfaAuth>,
     notify: RemoteInstalledPluginsCacheRefreshNotify,
     // App-server attaches side effects such as skills metadata invalidation and MCP refreshes when
     // remote installed state changes.
@@ -216,7 +216,7 @@ struct RemoteInstalledPluginsCacheRefreshState {
 
 struct RemoteCatalogCacheRefreshRequest {
     service_config: RemotePluginServiceConfig,
-    auth: Option<CodexAuth>,
+    auth: Option<DitfaAuth>,
     scopes: BTreeSet<RemotePluginScope>,
     mode: RemoteCatalogCacheRefreshMode,
 }
@@ -224,12 +224,12 @@ struct RemoteCatalogCacheRefreshRequest {
 impl RemoteCatalogCacheRefreshRequest {
     fn has_same_cache_identity(&self, other: &Self) -> bool {
         self.service_config == other.service_config
-            && self.auth.as_ref().and_then(CodexAuth::get_account_id)
-                == other.auth.as_ref().and_then(CodexAuth::get_account_id)
-            && self.auth.as_ref().and_then(CodexAuth::get_chatgpt_user_id)
-                == other.auth.as_ref().and_then(CodexAuth::get_chatgpt_user_id)
-            && self.auth.as_ref().map(CodexAuth::is_workspace_account)
-                == other.auth.as_ref().map(CodexAuth::is_workspace_account)
+            && self.auth.as_ref().and_then(DitfaAuth::get_account_id)
+                == other.auth.as_ref().and_then(DitfaAuth::get_account_id)
+            && self.auth.as_ref().and_then(DitfaAuth::get_chatgpt_user_id)
+                == other.auth.as_ref().and_then(DitfaAuth::get_chatgpt_user_id)
+            && self.auth.as_ref().map(DitfaAuth::is_workspace_account)
+                == other.auth.as_ref().map(DitfaAuth::is_workspace_account)
     }
 }
 
@@ -296,13 +296,13 @@ fn remote_plugin_service_config(config: &PluginsConfigInput) -> RemotePluginServ
 
 fn featured_plugin_ids_cache_key(
     config: &PluginsConfigInput,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
 ) -> FeaturedPluginIdsCacheKey {
     FeaturedPluginIdsCacheKey {
         chatgpt_base_url: config.chatgpt_base_url.clone(),
-        account_id: auth.and_then(CodexAuth::get_account_id),
-        chatgpt_user_id: auth.and_then(CodexAuth::get_chatgpt_user_id),
-        is_workspace_account: auth.is_some_and(CodexAuth::is_workspace_account),
+        account_id: auth.and_then(DitfaAuth::get_account_id),
+        chatgpt_user_id: auth.and_then(DitfaAuth::get_chatgpt_user_id),
+        is_workspace_account: auth.is_some_and(DitfaAuth::is_workspace_account),
     }
 }
 
@@ -482,7 +482,7 @@ impl PluginLoadCacheKey {
 
 impl PluginsManager {
     pub fn new(ditfa_home: PathBuf) -> Self {
-        Self::new_with_options(ditfa_home, Some(Product::Codex), /*auth_mode*/ None)
+        Self::new_with_options(ditfa_home, Some(Product::Ditfa), /*auth_mode*/ None)
     }
 
     pub fn new_with_options(
@@ -555,7 +555,7 @@ impl PluginsManager {
     }
 
     fn remote_global_catalog_active(&self, config: &PluginsConfigInput) -> bool {
-        config.remote_plugin_enabled && self.auth_mode().is_some_and(AuthMode::uses_codex_backend)
+        config.remote_plugin_enabled && self.auth_mode().is_some_and(AuthMode::uses_ditfa_backend)
     }
 
     pub fn set_analytics_events_client(&self, analytics_events_client: AnalyticsEventsClient) {
@@ -929,12 +929,12 @@ impl PluginsManager {
     pub fn cached_global_remote_discoverable_plugins_for_config(
         &self,
         config: &PluginsConfigInput,
-        auth: Option<&CodexAuth>,
+        auth: Option<&DitfaAuth>,
     ) -> Vec<crate::remote::RemoteDiscoverablePlugin> {
         if !config.plugins_enabled || !config.remote_plugin_enabled {
             return Vec::new();
         }
-        let Some(auth) = auth.filter(|auth| auth.uses_codex_backend()) else {
+        let Some(auth) = auth.filter(|auth| auth.uses_ditfa_backend()) else {
             return Vec::new();
         };
         let Some(account_id) = auth.get_account_id() else {
@@ -954,7 +954,7 @@ impl PluginsManager {
     pub async fn build_and_cache_remote_installed_plugin_marketplaces(
         &self,
         config: &PluginsConfigInput,
-        auth: Option<&CodexAuth>,
+        auth: Option<&DitfaAuth>,
         visible_marketplaces: &[&str],
         on_effective_plugins_changed: Option<EffectivePluginsChangedCallback>,
     ) -> Result<Vec<crate::remote::RemoteMarketplace>, RemotePluginCatalogError> {
@@ -1005,7 +1005,7 @@ impl PluginsManager {
     pub fn maybe_start_remote_plugin_caches_refresh(
         self: &Arc<Self>,
         config: &PluginsConfigInput,
-        auth: Option<CodexAuth>,
+        auth: Option<DitfaAuth>,
         on_effective_plugins_changed: Option<EffectivePluginsChangedCallback>,
     ) {
         self.maybe_start_remote_installed_plugins_cache_refresh_with_notify(
@@ -1028,7 +1028,7 @@ impl PluginsManager {
     pub fn maybe_start_remote_installed_plugins_cache_refresh_after_mutation(
         self: &Arc<Self>,
         config: &PluginsConfigInput,
-        auth: Option<CodexAuth>,
+        auth: Option<DitfaAuth>,
         on_effective_plugins_changed: Option<EffectivePluginsChangedCallback>,
     ) {
         self.maybe_start_remote_installed_plugins_cache_refresh_with_notify(
@@ -1043,7 +1043,7 @@ impl PluginsManager {
     fn maybe_start_remote_installed_plugins_cache_refresh_with_notify(
         self: &Arc<Self>,
         config: &PluginsConfigInput,
-        auth: Option<CodexAuth>,
+        auth: Option<DitfaAuth>,
         notify: RemoteInstalledPluginsCacheRefreshNotify,
         on_effective_plugins_changed: Option<EffectivePluginsChangedCallback>,
         change: EffectivePluginsChange,
@@ -1066,7 +1066,7 @@ impl PluginsManager {
     pub fn maybe_start_remote_installed_plugin_bundle_sync(
         self: &Arc<Self>,
         config: &PluginsConfigInput,
-        auth: Option<CodexAuth>,
+        auth: Option<DitfaAuth>,
         on_effective_plugins_changed: Option<EffectivePluginsChangedCallback>,
     ) {
         if !config.plugins_enabled {
@@ -1100,7 +1100,7 @@ impl PluginsManager {
     fn maybe_start_remote_catalog_cache_refresh(
         self: &Arc<Self>,
         config: &PluginsConfigInput,
-        auth: Option<CodexAuth>,
+        auth: Option<DitfaAuth>,
         scopes: BTreeSet<RemotePluginScope>,
         mode: RemoteCatalogCacheRefreshMode,
     ) {
@@ -1119,7 +1119,7 @@ impl PluginsManager {
     pub fn maybe_start_plugin_list_background_tasks_for_config(
         self: &Arc<Self>,
         config: &PluginsConfigInput,
-        auth: Option<CodexAuth>,
+        auth: Option<DitfaAuth>,
         roots: &[AbsolutePathBuf],
         options: PluginListBackgroundTaskOptions,
         on_effective_plugins_changed: Option<EffectivePluginsChangedCallback>,
@@ -1194,7 +1194,7 @@ impl PluginsManager {
     pub async fn featured_plugin_ids_for_config(
         &self,
         config: &PluginsConfigInput,
-        auth: Option<&CodexAuth>,
+        auth: Option<&DitfaAuth>,
     ) -> Result<Vec<String>, RemotePluginFetchError> {
         if !config.plugins_enabled {
             return Ok(Vec::new());
@@ -1225,11 +1225,11 @@ impl PluginsManager {
     pub async fn recommended_plugins_mode_for_config(
         &self,
         config: &PluginsConfigInput,
-        auth: Option<&CodexAuth>,
+        auth: Option<&DitfaAuth>,
     ) -> RecommendedPluginsMode {
         if !config.plugins_enabled
             || !config.remote_plugin_enabled
-            || !auth.is_some_and(CodexAuth::uses_codex_backend)
+            || !auth.is_some_and(DitfaAuth::uses_ditfa_backend)
         {
             return RecommendedPluginsMode::Legacy;
         }
@@ -1430,7 +1430,7 @@ impl PluginsManager {
     pub async fn install_plugin_with_remote_sync(
         &self,
         config: &PluginsConfigInput,
-        auth: Option<&CodexAuth>,
+        auth: Option<&DitfaAuth>,
         request: PluginInstallRequest,
     ) -> Result<PluginInstallOutcome, PluginInstallError> {
         let resolved = self.resolve_installable_plugin(&config.config_layer_stack, &request)?;
@@ -1612,7 +1612,7 @@ impl PluginsManager {
     pub async fn uninstall_plugin_with_remote_sync(
         &self,
         config: &PluginsConfigInput,
-        auth: Option<&CodexAuth>,
+        auth: Option<&DitfaAuth>,
         plugin_id: String,
     ) -> Result<(), PluginUninstallError> {
         // TODO: Remove this legacy remote-sync path once remote plugins have
@@ -2040,7 +2040,7 @@ impl PluginsManager {
     ) {
         if config.plugins_enabled {
             let use_remote_global_catalog =
-                config.remote_plugin_enabled && auth_manager.current_auth_uses_codex_backend();
+                config.remote_plugin_enabled && auth_manager.current_auth_uses_ditfa_backend();
             if !use_remote_global_catalog {
                 self.start_curated_repo_sync(config.http_client_factory.clone());
             }
@@ -2519,7 +2519,7 @@ impl PluginsManager {
                 match sync_openai_plugins_repo(ditfa_home.as_path(), http_client_factory) {
                     Ok(curated_plugin_version) => {
                         let configured_curated_plugin_ids =
-                            configured_curated_plugin_ids_from_codex_home(ditfa_home.as_path());
+                            configured_curated_plugin_ids_from_ditfa_home(ditfa_home.as_path());
                         match refresh_curated_plugin_cache(
                             ditfa_home.as_path(),
                             &curated_plugin_version,

@@ -36,7 +36,7 @@ async fn environment_add_applies_connect_timeout() -> Result<()> {
     });
     let ditfa_home = TempDir::new()?;
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -74,7 +74,7 @@ async fn selected_environment_emits_connection_lifecycle_notifications() -> Resu
         "[features]\ndeferred_executor = true\n",
     )?;
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;

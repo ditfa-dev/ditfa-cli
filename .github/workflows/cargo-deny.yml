@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./codex-rs
+        working-directory: ./ditfa-rs
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -25,7 +25,7 @@ jobs:
         uses: EmbarkStudios/cargo-deny-action@82eb9f621fbc699dd0918f3ea06864c14cc84246 # v2
         with:
           rust-version: 1.95.0
-          manifest-path: ./codex-rs/Cargo.toml
+          manifest-path: ./ditfa-rs/Cargo.toml
 
       - name: Check for a clean worktree
         if: always() && !cancelled()

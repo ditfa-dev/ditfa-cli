@@ -9,19 +9,19 @@ use ditfa_utils_absolute_path::AbsolutePathBuf;
 const DEFAULT_AGENTS_MD_FILENAME: &str = "AGENTS.md";
 const LOCAL_AGENTS_MD_FILENAME: &str = "AGENTS.override.md";
 
-/// Loads user instructions from a Codex home directory.
+/// Loads user instructions from a Ditfa home directory.
 #[derive(Clone, Debug)]
-pub struct CodexHomeUserInstructionsProvider {
+pub struct DitfaHomeUserInstructionsProvider {
     ditfa_home: AbsolutePathBuf,
 }
 
-impl CodexHomeUserInstructionsProvider {
-    /// Creates a provider rooted at the supplied absolute Codex home directory.
+impl DitfaHomeUserInstructionsProvider {
+    /// Creates a provider rooted at the supplied absolute Ditfa home directory.
     pub fn new(ditfa_home: AbsolutePathBuf) -> Self {
         Self { ditfa_home }
     }
 
-    async fn load_from_codex_home(&self) -> LoadedUserInstructions {
+    async fn load_from_ditfa_home(&self) -> LoadedUserInstructions {
         let mut warnings = Vec::new();
         for candidate in [LOCAL_AGENTS_MD_FILENAME, DEFAULT_AGENTS_MD_FILENAME] {
             let path = self.ditfa_home.join(candidate);
@@ -67,9 +67,9 @@ impl CodexHomeUserInstructionsProvider {
     }
 }
 
-impl UserInstructionsProvider for CodexHomeUserInstructionsProvider {
+impl UserInstructionsProvider for DitfaHomeUserInstructionsProvider {
     fn load_user_instructions(&self) -> LoadUserInstructionsFuture<'_> {
-        Box::pin(self.load_from_codex_home())
+        Box::pin(self.load_from_ditfa_home())
     }
 }
 

@@ -14,7 +14,7 @@ use tempfile::tempdir;
 use wiremock::MockServer;
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-#[ignore = "requires tmux and a locally built codex binary; run with --ignored for manual resize smoke"]
+#[ignore = "requires tmux and a locally built ditfa binary; run with --ignored for manual resize smoke"]
 async fn tmux_split_preserves_fresh_session_composer_row_after_resize_reflow() -> Result<()> {
     if cfg!(windows) {
         return Ok(());
@@ -26,7 +26,7 @@ async fn tmux_split_preserves_fresh_session_composer_row_after_resize_reflow() -
     }
 
     let repo_root = ditfa_utils_cargo_bin::repo_root()?;
-    let codex = ditfa_binary(&repo_root)?;
+    let ditfa = ditfa_binary(&repo_root)?;
     let ditfa_home = tempdir()?;
     let server = MockServer::start().await;
     let _response_mock = responses::mount_sse_once(&server, resize_reflow_sse()).await;
@@ -34,7 +34,7 @@ async fn tmux_split_preserves_fresh_session_composer_row_after_resize_reflow() -
     write_config(ditfa_home.path(), &repo_root)?;
     write_auth(ditfa_home.path())?;
 
-    let session_name = format!("codex-resize-reflow-smoke-{}", std::process::id());
+    let session_name = format!("ditfa-resize-reflow-smoke-{}", std::process::id());
     let _session = TmuxSession {
         name: session_name.clone(),
     };
@@ -57,7 +57,7 @@ async fn tmux_split_preserves_fresh_session_composer_row_after_resize_reflow() -
             .arg("env")
             .arg(format!("DITFA_HOME={}", ditfa_home.path().display()))
             .arg("OPENAI_API_KEY=dummy")
-            .arg(codex)
+            .arg(ditfa)
             .arg("-c")
             .arg("analytics.enabled=false")
             .arg("-c")
@@ -164,7 +164,7 @@ async fn tmux_split_preserves_fresh_session_composer_row_after_resize_reflow() -
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-#[ignore = "requires tmux and a locally built codex binary; run with --ignored for manual resize smoke"]
+#[ignore = "requires tmux and a locally built ditfa binary; run with --ignored for manual resize smoke"]
 async fn tmux_repeated_resizes_do_not_push_composer_down() -> Result<()> {
     if cfg!(windows) {
         return Ok(());
@@ -181,7 +181,7 @@ async fn tmux_repeated_resizes_do_not_push_composer_down() -> Result<()> {
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-#[ignore = "requires tmux and a locally built codex binary; run with --ignored for manual resize smoke"]
+#[ignore = "requires tmux and a locally built ditfa binary; run with --ignored for manual resize smoke"]
 async fn tmux_width_resize_restore_keeps_visible_content_anchored() -> Result<()> {
     if cfg!(windows) {
         return Ok(());
@@ -193,7 +193,7 @@ async fn tmux_width_resize_restore_keeps_visible_content_anchored() -> Result<()
     }
 
     let repo_root = ditfa_utils_cargo_bin::repo_root()?;
-    let codex = ditfa_binary(&repo_root)?;
+    let ditfa = ditfa_binary(&repo_root)?;
     let ditfa_home = tempdir()?;
     let server = MockServer::start().await;
     let _response_mock = responses::mount_sse_once(&server, resize_reflow_sse()).await;
@@ -201,7 +201,7 @@ async fn tmux_width_resize_restore_keeps_visible_content_anchored() -> Result<()
     write_config(ditfa_home.path(), &repo_root)?;
     write_auth(ditfa_home.path())?;
 
-    let session_name = format!("codex-resize-width-{}", std::process::id());
+    let session_name = format!("ditfa-resize-width-{}", std::process::id());
     let _session = TmuxSession {
         name: session_name.clone(),
     };
@@ -224,7 +224,7 @@ async fn tmux_width_resize_restore_keeps_visible_content_anchored() -> Result<()
             .arg("env")
             .arg(format!("DITFA_HOME={}", ditfa_home.path().display()))
             .arg("OPENAI_API_KEY=dummy")
-            .arg(codex)
+            .arg(ditfa)
             .arg("-c")
             .arg("analytics.enabled=false")
             .arg("-c")
@@ -313,7 +313,7 @@ async fn tmux_width_resize_restore_keeps_visible_content_anchored() -> Result<()
 
 async fn run_repeated_resize_smoke() -> Result<()> {
     let repo_root = ditfa_utils_cargo_bin::repo_root()?;
-    let codex = ditfa_binary(&repo_root)?;
+    let ditfa = ditfa_binary(&repo_root)?;
     let ditfa_home = tempdir()?;
     let server = MockServer::start().await;
     let _response_mock = responses::mount_sse_once(&server, resize_reflow_sse()).await;
@@ -321,7 +321,7 @@ async fn run_repeated_resize_smoke() -> Result<()> {
     write_config(ditfa_home.path(), &repo_root)?;
     write_auth(ditfa_home.path())?;
 
-    let session_name = format!("codex-resize-repeat-{}", std::process::id());
+    let session_name = format!("ditfa-resize-repeat-{}", std::process::id());
     let _session = TmuxSession {
         name: session_name.clone(),
     };
@@ -344,7 +344,7 @@ async fn run_repeated_resize_smoke() -> Result<()> {
             .arg("env")
             .arg(format!("DITFA_HOME={}", ditfa_home.path().display()))
             .arg("OPENAI_API_KEY=dummy")
-            .arg(codex)
+            .arg(ditfa)
             .arg("-c")
             .arg("analytics.enabled=false")
             .arg("-c")
@@ -449,14 +449,14 @@ impl Drop for TmuxSession {
 }
 
 fn ditfa_binary(repo_root: &Path) -> Result<PathBuf> {
-    if let Ok(path) = ditfa_utils_cargo_bin::cargo_bin("codex") {
+    if let Ok(path) = ditfa_utils_cargo_bin::cargo_bin("ditfa") {
         return Ok(path);
     }
 
-    let fallback = repo_root.join("codex-rs/target/debug/codex");
+    let fallback = repo_root.join("ditfa-rs/target/debug/ditfa");
     anyhow::ensure!(
         fallback.is_file(),
-        "codex binary is unavailable; run `cargo build -p codex-cli` first"
+        "ditfa binary is unavailable; run `cargo build -p ditfa-cli` first"
     );
     Ok(fallback)
 }

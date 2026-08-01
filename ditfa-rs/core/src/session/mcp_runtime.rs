@@ -141,7 +141,7 @@ impl Session {
             local_stdio_fallback_cwd,
         );
         let ditfa_apps_auth_manager =
-            ditfa_mcp::host_owned_codex_apps_enabled(&mcp_config, auth.as_ref())
+            ditfa_mcp::host_owned_ditfa_apps_enabled(&mcp_config, auth.as_ref())
                 .then(|| Arc::clone(&self.services.auth_manager));
 
         McpRuntimeInput {

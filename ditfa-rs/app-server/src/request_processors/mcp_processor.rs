@@ -97,7 +97,7 @@ impl McpRequestProcessor {
     async fn load_thread(
         &self,
         thread_id: &str,
-    ) -> Result<(ThreadId, Arc<CodexThread>), JSONRPCErrorError> {
+    ) -> Result<(ThreadId, Arc<DitfaThread>), JSONRPCErrorError> {
         let thread_id = ThreadId::from_string(thread_id)
             .map_err(|err| invalid_request(format!("invalid thread id: {err}")))?;
 
@@ -281,7 +281,7 @@ impl McpRequestProcessor {
         request_id: ConnectionRequestId,
         params: ListMcpServerStatusParams,
         mcp_config: ditfa_mcp::McpConfig,
-        auth: Option<CodexAuth>,
+        auth: Option<DitfaAuth>,
         runtime_context: McpRuntimeContext,
         mcp_manager: Arc<McpManager>,
     ) {
@@ -301,7 +301,7 @@ impl McpRequestProcessor {
         request_id: String,
         params: ListMcpServerStatusParams,
         mcp_config: ditfa_mcp::McpConfig,
-        auth: Option<CodexAuth>,
+        auth: Option<DitfaAuth>,
         runtime_context: McpRuntimeContext,
         mcp_manager: Arc<McpManager>,
     ) -> Result<ListMcpServerStatusResponse, JSONRPCErrorError> {

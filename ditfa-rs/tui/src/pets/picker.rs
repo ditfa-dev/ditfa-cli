@@ -39,7 +39,7 @@ struct PetPickerEntry {
 /// Build the selection popup parameters for `/pets`.
 ///
 /// The picker preselects `DEFAULT_PET_ID` when no pet is configured so the UI
-/// has a sensible starting point without implying that Codex is already the
+/// has a sensible starting point without implying that Ditfa is already the
 /// active ambient pet. Callers should treat the returned actions as the only
 /// supported mutation path; bypassing them would skip preview-loading and
 /// selection-specific event wiring.
@@ -174,7 +174,7 @@ fn custom_pet_entries(ditfa_home: &Path) -> Vec<PetPickerEntry> {
             }
             let selector = custom_pet_selector(id);
             let Ok(pet) =
-                Pet::load_with_codex_home(&selector, /*ditfa_home*/ Some(ditfa_home))
+                Pet::load_with_ditfa_home(&selector, /*ditfa_home*/ Some(ditfa_home))
             else {
                 continue;
             };
@@ -253,7 +253,7 @@ mod tests {
                 "Disable terminal pets",
                 "BSOD",
                 "Chefito",
-                "Codex",
+                "Ditfa",
                 "Dewey",
                 "Fireball",
                 "Null Signal",
@@ -270,7 +270,7 @@ mod tests {
     }
 
     #[test]
-    fn picker_preselects_codex_without_marking_it_current_when_no_pet_is_configured() {
+    fn picker_preselects_ditfa_without_marking_it_current_when_no_pet_is_configured() {
         let ditfa_home = tempfile::tempdir().unwrap();
         let params = build_pet_picker_params(
             /*current_pet*/ None,
@@ -279,7 +279,7 @@ mod tests {
         );
 
         assert_eq!(params.initial_selected_idx, Some(2));
-        assert_eq!(params.items[2].name, "Codex");
+        assert_eq!(params.items[2].name, "Ditfa");
         assert!(!params.items[2].is_current);
     }
 

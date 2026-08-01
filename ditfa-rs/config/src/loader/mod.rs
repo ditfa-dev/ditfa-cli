@@ -52,7 +52,7 @@ use std::path::PathBuf;
 use toml::Value as TomlValue;
 
 #[cfg(unix)]
-const SYSTEM_CONFIG_TOML_FILE_UNIX: &str = "/etc/codex/config.toml";
+const SYSTEM_CONFIG_TOML_FILE_UNIX: &str = "/etc/ditfa/config.toml";
 
 #[cfg(windows)]
 const DEFAULT_PROGRAM_DATA_DIR_WINDOWS: &str = r"C:\ProgramData";
@@ -84,8 +84,8 @@ async fn first_layer_config_error_from_entries(layers: &[ConfigLayerEntry]) -> O
 /// composed with config-style TOML merging plus field-specific handling for
 /// hooks, rules, deny-read permissions, and remote sandbox config:
 ///
-/// - system    `/etc/codex/requirements.toml` (Unix) or
-///   `%ProgramData%\OpenAI\Codex\requirements.toml` (Windows)
+/// - system    `/etc/ditfa/requirements.toml` (Unix) or
+///   `%ProgramData%\OpenAI\Ditfa\requirements.toml` (Windows)
 /// - cloud:    enterprise-managed cloud config bundle requirements
 /// - legacy:   managed_config.toml reinterpreted as requirements.toml
 /// - admin:    managed preferences (*)
@@ -96,8 +96,8 @@ async fn first_layer_config_error_from_entries(layers: &[ConfigLayerEntry]) -> O
 /// Configuration is built up from multiple layers in the following order:
 ///
 /// - admin:    managed preferences (*)
-/// - system    `/etc/codex/config.toml` (Unix) or
-///   `%ProgramData%\OpenAI\Codex\config.toml` (Windows)
+/// - system    `/etc/ditfa/config.toml` (Unix) or
+///   `%ProgramData%\OpenAI\Ditfa\config.toml` (Windows)
 /// - cloud     enterprise-managed cloud config bundle fragments
 /// - user      `${DITFA_HOME}/config.toml`
 /// - profile   `${DITFA_HOME}/<name>.config.toml`, when selected
@@ -632,7 +632,7 @@ pub async fn load_requirements_toml(
 
 #[cfg(unix)]
 fn system_requirements_toml_file() -> io::Result<AbsolutePathBuf> {
-    AbsolutePathBuf::from_absolute_path(Path::new("/etc/codex/requirements.toml"))
+    AbsolutePathBuf::from_absolute_path(Path::new("/etc/ditfa/requirements.toml"))
 }
 
 #[cfg(windows)]
@@ -669,7 +669,7 @@ fn system_config_toml_file_with_overrides(
 }
 
 #[cfg(windows)]
-fn windows_codex_system_dir() -> PathBuf {
+fn windows_ditfa_system_dir() -> PathBuf {
     let program_data = windows_program_data_dir_from_known_folder().unwrap_or_else(|err| {
         tracing::warn!(
             error = %err,
@@ -677,18 +677,18 @@ fn windows_codex_system_dir() -> PathBuf {
         );
         PathBuf::from(DEFAULT_PROGRAM_DATA_DIR_WINDOWS)
     });
-    program_data.join("OpenAI").join("Codex")
+    program_data.join("OpenAI").join("Ditfa")
 }
 
 #[cfg(windows)]
 fn windows_system_requirements_toml_file() -> io::Result<AbsolutePathBuf> {
-    let requirements_toml_file = windows_codex_system_dir().join("requirements.toml");
+    let requirements_toml_file = windows_ditfa_system_dir().join("requirements.toml");
     AbsolutePathBuf::try_from(requirements_toml_file)
 }
 
 #[cfg(windows)]
 fn windows_system_config_toml_file() -> io::Result<AbsolutePathBuf> {
-    let config_toml_file = windows_codex_system_dir().join("config.toml");
+    let config_toml_file = windows_ditfa_system_dir().join("config.toml");
     AbsolutePathBuf::try_from(config_toml_file)
 }
 
@@ -936,13 +936,13 @@ impl ProjectTrustContext {
 }
 
 fn project_layer_entry(
-    dot_codex_folder: &AbsolutePathBuf,
+    dot_ditfa_folder: &AbsolutePathBuf,
     config: TomlValue,
     disabled_reason: Option<String>,
     hooks_config_folder_override: Option<AbsolutePathBuf>,
 ) -> ConfigLayerEntry {
     let source = ConfigLayerSource::Project {
-        dot_codex_folder: dot_codex_folder.clone(),
+        dot_ditfa_folder: dot_ditfa_folder.clone(),
     };
 
     let entry = if let Some(reason) = disabled_reason {
@@ -974,10 +974,10 @@ fn sanitize_project_config(config: &mut TomlValue) -> Vec<String> {
 }
 
 fn project_ignored_config_keys_warning(
-    dot_codex_folder: &AbsolutePathBuf,
+    dot_ditfa_folder: &AbsolutePathBuf,
     ignored_keys: &[String],
 ) -> String {
-    let config_path = dot_codex_folder.join(CONFIG_TOML_FILE);
+    let config_path = dot_ditfa_folder.join(CONFIG_TOML_FILE);
     let ignored_keys = ignored_keys.join(", ");
     format!(
         concat!(
@@ -1240,10 +1240,10 @@ async fn load_project_layers(
     let mut layers = Vec::new();
     let mut startup_warnings = Vec::new();
     for dir in dirs {
-        let dot_codex_abs = dir.join(".ditfa");
-        let dot_codex_uri = PathUri::from_abs_path(&dot_codex_abs);
+        let dot_ditfa_abs = dir.join(".ditfa");
+        let dot_ditfa_uri = PathUri::from_abs_path(&dot_ditfa_abs);
         if !fs
-            .get_metadata(&dot_codex_uri, /*sandbox*/ None)
+            .get_metadata(&dot_ditfa_uri, /*sandbox*/ None)
             .await
             .map(|metadata| metadata.is_directory)
             .unwrap_or(false)
@@ -1254,12 +1254,12 @@ async fn load_project_layers(
         let decision = trust_context.decision_for_dir(&dir);
         let disabled_reason = trust_context.disabled_reason_for_decision(&decision);
         let hooks_config_folder_override = trust_context.root_checkout_hooks_folder_for_dir(&dir);
-        let dot_codex_normalized =
-            normalize_path(dot_codex_abs.as_path()).unwrap_or_else(|_| dot_codex_abs.to_path_buf());
-        if dot_codex_abs == ditfa_home_abs || dot_codex_normalized == ditfa_home_normalized {
+        let dot_ditfa_normalized =
+            normalize_path(dot_ditfa_abs.as_path()).unwrap_or_else(|_| dot_ditfa_abs.to_path_buf());
+        if dot_ditfa_abs == ditfa_home_abs || dot_ditfa_normalized == ditfa_home_normalized {
             continue;
         }
-        let config_file = dot_codex_abs.join(CONFIG_TOML_FILE);
+        let config_file = dot_ditfa_abs.join(CONFIG_TOML_FILE);
         let config_file_uri = PathUri::from_abs_path(&config_file);
         match fs.read_file_text(&config_file_uri, /*sandbox*/ None).await {
             Ok(contents) => {
@@ -1276,7 +1276,7 @@ async fn load_project_layers(
                             ));
                         }
                         layers.push(project_layer_entry(
-                            &dot_codex_abs,
+                            &dot_ditfa_abs,
                             TomlValue::Table(toml::map::Map::new()),
                             disabled_reason.clone(),
                             hooks_config_folder_override.clone(),
@@ -1290,12 +1290,12 @@ async fn load_project_layers(
                         config_file.as_path(),
                         &contents,
                         &config,
-                        dot_codex_abs.as_path(),
+                        dot_ditfa_abs.as_path(),
                     )?;
                 }
                 let ignored_project_config_keys = sanitize_project_config(&mut config);
                 let config =
-                    resolve_relative_paths_in_config_toml(config, dot_codex_abs.as_path())?;
+                    resolve_relative_paths_in_config_toml(config, dot_ditfa_abs.as_path())?;
                 let config = merge_root_checkout_project_hooks(
                     fs,
                     config,
@@ -1305,12 +1305,12 @@ async fn load_project_layers(
                 .await?;
                 if disabled_reason.is_none() && !ignored_project_config_keys.is_empty() {
                     startup_warnings.push(project_ignored_config_keys_warning(
-                        &dot_codex_abs,
+                        &dot_ditfa_abs,
                         &ignored_project_config_keys,
                     ));
                 }
                 let entry = project_layer_entry(
-                    &dot_codex_abs,
+                    &dot_ditfa_abs,
                     config,
                     disabled_reason.clone(),
                     hooks_config_folder_override.clone(),
@@ -1330,7 +1330,7 @@ async fn load_project_layers(
                     )
                     .await?;
                     layers.push(project_layer_entry(
-                        &dot_codex_abs,
+                        &dot_ditfa_abs,
                         config,
                         disabled_reason,
                         hooks_config_folder_override,
@@ -1411,7 +1411,7 @@ async fn merge_root_checkout_project_hooks(
     Ok(config)
 }
 /// The legacy mechanism for specifying admin-enforced configuration is to read
-/// from a file like `/etc/codex/managed_config.toml` that has the same
+/// from a file like `/etc/ditfa/managed_config.toml` that has the same
 /// structure as `config.toml` where fields like `approval_policy` can specify
 /// exactly one value rather than a list of allowed values.
 ///
@@ -1537,7 +1537,7 @@ foo = "xyzzy"
         let expected = windows_program_data_dir_from_known_folder()
             .unwrap_or_else(|_| PathBuf::from(DEFAULT_PROGRAM_DATA_DIR_WINDOWS))
             .join("OpenAI")
-            .join("Codex")
+            .join("Ditfa")
             .join("requirements.toml");
         assert_eq!(
             windows_system_requirements_toml_file()
@@ -1549,7 +1549,7 @@ foo = "xyzzy"
             windows_system_requirements_toml_file()
                 .expect("requirements.toml path")
                 .as_path()
-                .ends_with(Path::new("OpenAI").join("Codex").join("requirements.toml"))
+                .ends_with(Path::new("OpenAI").join("Ditfa").join("requirements.toml"))
         );
     }
 
@@ -1559,7 +1559,7 @@ foo = "xyzzy"
         let expected = windows_program_data_dir_from_known_folder()
             .unwrap_or_else(|_| PathBuf::from(DEFAULT_PROGRAM_DATA_DIR_WINDOWS))
             .join("OpenAI")
-            .join("Codex")
+            .join("Ditfa")
             .join("config.toml");
         assert_eq!(
             windows_system_config_toml_file()
@@ -1571,7 +1571,7 @@ foo = "xyzzy"
             windows_system_config_toml_file()
                 .expect("config.toml path")
                 .as_path()
-                .ends_with(Path::new("OpenAI").join("Codex").join("config.toml"))
+                .ends_with(Path::new("OpenAI").join("Ditfa").join("config.toml"))
         );
     }
 }

@@ -1,4 +1,4 @@
-//! Shared implementation for `codex archive`, `codex delete`, and `codex unarchive`.
+//! Shared implementation for `ditfa archive`, `ditfa delete`, and `ditfa unarchive`.
 //!
 //! The CLI commands are thin app-server clients: resolve a user-provided UUID or exact session
 //! name, then call the corresponding app-server RPC.
@@ -28,7 +28,7 @@ use ditfa_exec_server::EnvironmentManager;
 use ditfa_exec_server::ExecServerRuntimePaths;
 use ditfa_protocol::ThreadId;
 use ditfa_utils_cli::CliConfigOverrides;
-use ditfa_utils_home_dir::find_codex_home;
+use ditfa_utils_home_dir::find_ditfa_home;
 use ditfa_utils_oss::get_default_model_for_oss_provider;
 use color_eyre::eyre::Result;
 use color_eyre::eyre::WrapErr;
@@ -258,7 +258,7 @@ async fn start_app_server_for_archive_command(
     let cli_kv_overrides = overrides_cli
         .parse_overrides()
         .map_err(|err| eyre!("failed to parse -c overrides: {err}"))?;
-    let ditfa_home = find_codex_home().wrap_err("failed to find Codex home")?;
+    let ditfa_home = find_ditfa_home().wrap_err("failed to find Ditfa home")?;
 
     let mut launch_loader_overrides = loader_overrides.clone();
     if let Some(profile_v2) = cli.config_profile_v2.as_ref() {
@@ -342,7 +342,7 @@ async fn start_app_server_for_archive_command(
     )?;
     let cloud_config_bundle = cloud_config_bundle_loader_for_storage(
         ditfa_home.to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         config_toml.cli_auth_credentials_store.unwrap_or_default(),
         resolve_bootstrap_auth_keyring_backend_kind(&bootstrap_config)?,
         chatgpt_base_url,
@@ -396,7 +396,7 @@ async fn start_app_server_for_archive_command(
         loader_overrides,
         strict_config,
         cloud_config_bundle,
-        ditfa_feedback::CodexFeedback::new(),
+        ditfa_feedback::DitfaFeedback::new(),
         /*log_db*/ None,
         state_db,
         environment_manager,

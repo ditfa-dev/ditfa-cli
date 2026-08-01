@@ -1,4 +1,4 @@
-//! Internal `codex.exe --run-as-windows-sandbox` wrapper.
+//! Internal `ditfa.exe --run-as-windows-sandbox` wrapper.
 //!
 //! This gives direct-spawn callers an argv-shaped Windows sandbox launcher,
 //! analogous to the macOS seatbelt and Linux sandbox wrapper paths. The wrapper
@@ -20,7 +20,7 @@ use ditfa_utils_absolute_path::AbsolutePathBuf;
 pub const DITFA_WINDOWS_SANDBOX_ARG1: &str = "--run-as-windows-sandbox";
 
 const COMMAND_CWD_FLAG: &str = "--command-cwd";
-const DITFA_HOME_FLAG: &str = "--codex-home";
+const DITFA_HOME_FLAG: &str = "--ditfa-home";
 const DENY_READ_PATHS_JSON_FLAG: &str = "--deny-read-paths-json";
 const DENY_WRITE_PATHS_JSON_FLAG: &str = "--deny-write-paths-json";
 const ENV_JSON_FLAG: &str = "--env-json";

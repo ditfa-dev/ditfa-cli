@@ -2,15 +2,15 @@ use std::io::ErrorKind;
 use std::path::Path;
 
 use crate::rollout::SESSIONS_SUBDIR;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_thread_store::ThreadStoreError;
 
-pub(crate) fn map_session_init_error(err: &anyhow::Error, ditfa_home: &Path) -> CodexErr {
+pub(crate) fn map_session_init_error(err: &anyhow::Error, ditfa_home: &Path) -> DitfaErr {
     if let Some(ThreadStoreError::Unsupported { operation }) = err
         .chain()
         .find_map(|cause| cause.downcast_ref::<ThreadStoreError>())
     {
-        return CodexErr::UnsupportedOperation(format!("{operation} is not supported yet"));
+        return DitfaErr::UnsupportedOperation(format!("{operation} is not supported yet"));
     }
 
     if let Some(mapped) = err
@@ -21,23 +21,23 @@ pub(crate) fn map_session_init_error(err: &anyhow::Error, ditfa_home: &Path) -> 
         return mapped;
     }
 
-    CodexErr::Fatal(format!("Failed to initialize session: {err:#}"))
+    DitfaErr::Fatal(format!("Failed to initialize session: {err:#}"))
 }
 
-fn map_rollout_io_error(io_err: &std::io::Error, ditfa_home: &Path) -> Option<CodexErr> {
+fn map_rollout_io_error(io_err: &std::io::Error, ditfa_home: &Path) -> Option<DitfaErr> {
     let sessions_dir = ditfa_home.join(SESSIONS_SUBDIR);
     let hint = match io_err.kind() {
         ErrorKind::PermissionDenied => format!(
-            "Codex cannot access session files at {} (permission denied). If sessions were created using sudo, fix ownership: sudo chown -R $(whoami) {}",
+            "Ditfa cannot access session files at {} (permission denied). If sessions were created using sudo, fix ownership: sudo chown -R $(whoami) {}",
             sessions_dir.display(),
             ditfa_home.display()
         ),
         ErrorKind::NotFound => format!(
-            "Session storage missing at {}. Create the directory or choose a different Codex home.",
+            "Session storage missing at {}. Create the directory or choose a different Ditfa home.",
             sessions_dir.display()
         ),
         ErrorKind::AlreadyExists => format!(
-            "Session storage path {} is blocked by an existing file. Remove or rename it so Codex can create sessions.",
+            "Session storage path {} is blocked by an existing file. Remove or rename it so Ditfa can create sessions.",
             sessions_dir.display()
         ),
         ErrorKind::InvalidData | ErrorKind::InvalidInput => format!(
@@ -45,13 +45,13 @@ fn map_rollout_io_error(io_err: &std::io::Error, ditfa_home: &Path) -> Option<Co
             sessions_dir.display()
         ),
         ErrorKind::IsADirectory | ErrorKind::NotADirectory => format!(
-            "Session storage path {} has an unexpected type. Ensure it is a directory Codex can use for session files.",
+            "Session storage path {} has an unexpected type. Ensure it is a directory Ditfa can use for session files.",
             sessions_dir.display()
         ),
         _ => return None,
     };
 
-    Some(CodexErr::Fatal(format!(
+    Some(DitfaErr::Fatal(format!(
         "{hint} (underlying error: {io_err})"
     )))
 }

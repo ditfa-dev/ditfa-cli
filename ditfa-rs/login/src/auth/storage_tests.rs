@@ -320,7 +320,7 @@ fn seed_secrets_backend_and_fallback_auth_file_for_delete(
         ditfa_home.to_path_buf(),
         SecretsBackendKind::Local,
         Arc::new(mock_keyring.clone()),
-        LocalSecretsNamespace::CodexAuth,
+        LocalSecretsNamespace::DitfaAuth,
     );
     manager.set(
         &SecretScope::Global,
@@ -341,7 +341,7 @@ fn seed_secrets_backend_with_auth(
         ditfa_home.to_path_buf(),
         SecretsBackendKind::Local,
         Arc::new(mock_keyring.clone()),
-        LocalSecretsNamespace::CodexAuth,
+        LocalSecretsNamespace::DitfaAuth,
     );
     manager.set(
         &SecretScope::Global,
@@ -360,7 +360,7 @@ fn assert_keyring_saved_auth_and_removed_fallback(
         ditfa_home.to_path_buf(),
         SecretsBackendKind::Local,
         Arc::new(mock_keyring.clone()),
-        LocalSecretsNamespace::CodexAuth,
+        LocalSecretsNamespace::DitfaAuth,
     );
     let saved_value = manager
         .get(&SecretScope::Global, &DITFA_AUTH_SECRET_NAME)?

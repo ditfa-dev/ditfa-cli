@@ -17,10 +17,10 @@ pub use runtime::SandboxState;
 pub use tool_catalog_cache::McpToolCatalogCache;
 pub use tools::ToolInfo;
 
-/// Backward-compatible name for the shared Codex Apps tools runtime.
-pub type CodexAppsToolsCache = ditfa_connectors::ConnectorRuntimeManager<ToolInfo>;
-/// Backward-compatible name for the Codex Apps runtime context key.
-pub type CodexAppsToolsCacheKey = ditfa_connectors::ConnectorRuntimeContextKey;
+/// Backward-compatible name for the shared Ditfa Apps tools runtime.
+pub type DitfaAppsToolsCache = ditfa_connectors::ConnectorRuntimeManager<ToolInfo>;
+/// Backward-compatible name for the Ditfa Apps runtime context key.
+pub type DitfaAppsToolsCacheKey = ditfa_connectors::ConnectorRuntimeContextKey;
 
 pub use catalog::McpCatalogBuilder;
 pub use catalog::McpPluginAttribution;
@@ -36,22 +36,22 @@ pub use mcp::McpConfig;
 pub use mcp::ToolPluginProvenance;
 pub use server::EffectiveMcpServer;
 
-pub use auth_elicitation::CodexAppsAuthElicitation;
-pub use auth_elicitation::CodexAppsAuthElicitationPlan;
-pub use auth_elicitation::CodexAppsConnectorAuthFailure;
+pub use auth_elicitation::DitfaAppsAuthElicitation;
+pub use auth_elicitation::DitfaAppsAuthElicitationPlan;
+pub use auth_elicitation::DitfaAppsConnectorAuthFailure;
 pub use auth_elicitation::MCP_TOOL_DITFA_APPS_META_KEY;
 pub use auth_elicitation::auth_elicitation_completed_result;
 pub use auth_elicitation::auth_elicitation_id;
 pub use auth_elicitation::build_auth_elicitation;
 pub use auth_elicitation::build_auth_elicitation_plan;
 pub use auth_elicitation::connector_auth_failure_from_tool_result;
-/// Backward-compatible name for the Codex Apps runtime context key builder.
+/// Backward-compatible name for the Ditfa Apps runtime context key builder.
 pub use ditfa_connectors::connector_runtime_context_key as ditfa_apps_tools_cache_key;
 pub use mcp::ditfa_apps_mcp_server_config;
 pub use mcp::configured_mcp_servers;
 pub use mcp::effective_mcp_servers;
 pub use mcp::effective_mcp_servers_from_configured;
-pub use mcp::host_owned_codex_apps_enabled;
+pub use mcp::host_owned_ditfa_apps_enabled;
 pub use mcp::hosted_plugin_runtime_mcp_server_config;
 pub use mcp::tool_plugin_provenance;
 pub use plugin_config::PluginMcpConfigParseOutcome;

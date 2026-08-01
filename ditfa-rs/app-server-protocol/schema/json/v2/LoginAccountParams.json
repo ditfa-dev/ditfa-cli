@@ -3,7 +3,7 @@
   "definitions": {
     "LoginAppBrand": {
       "enum": [
-        "codex",
+        "ditfa",
         "chatgpt"
       ],
       "type": "string"
@@ -43,7 +43,7 @@
           ],
           "default": null
         },
-        "codexStreamlinedLogin": {
+        "ditfaStreamlinedLogin": {
           "type": "boolean"
         },
         "type": {
@@ -80,7 +80,7 @@
       "type": "object"
     },
     {
-      "description": "[UNSTABLE] FOR OPENAI INTERNAL USE ONLY - DO NOT USE. The access token must contain the same scopes that Codex-managed ChatGPT auth tokens have.",
+      "description": "[UNSTABLE] FOR OPENAI INTERNAL USE ONLY - DO NOT USE. The access token must contain the same scopes that Ditfa-managed ChatGPT auth tokens have.",
       "properties": {
         "accessToken": {
           "description": "Access token (JWT) supplied by the client. This token is used for backend API requests and email extraction.",
@@ -91,7 +91,7 @@
           "type": "string"
         },
         "chatgptPlanType": {
-          "description": "Optional plan type supplied by the client.\n\nWhen `null`, Codex attempts to derive the plan type from access-token claims. If unavailable, the plan defaults to `unknown`.",
+          "description": "Optional plan type supplied by the client.\n\nWhen `null`, Ditfa attempts to derive the plan type from access-token claims. If unavailable, the plan defaults to `unknown`.",
           "type": [
             "string",
             "null"

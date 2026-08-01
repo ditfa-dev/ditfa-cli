@@ -47,7 +47,7 @@ const ALIASES: &[Alias] = &[
     },
     Alias {
         legacy_key: "ditfa_hooks",
-        feature: Feature::CodexHooks,
+        feature: Feature::DitfaHooks,
     },
 ];
 

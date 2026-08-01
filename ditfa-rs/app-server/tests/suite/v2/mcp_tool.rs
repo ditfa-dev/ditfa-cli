@@ -91,7 +91,7 @@ async fn mcp_server_tool_call_returns_tool_result() -> Result<()> {
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let ThreadStartResponse { thread, .. } = mcp
@@ -149,7 +149,7 @@ async fn mcp_server_tool_call_returns_tool_result() -> Result<()> {
 async fn mcp_server_tool_call_returns_error_for_unknown_thread() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -186,7 +186,7 @@ async fn mcp_server_tool_call_round_trips_elicitation() -> Result<()> {
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let ThreadStartResponse { thread, .. } = mcp
@@ -276,7 +276,7 @@ async fn mcp_server_elicitation_survives_environment_runtime_refresh() -> Result
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         // This test adds and refreshes an explicitly selected runtime environment.
         .without_auto_env()
         .build_initialized()
@@ -393,7 +393,7 @@ async fn mcp_server_tool_call_forwards_url_elicitation() -> Result<()> {
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let ThreadStartResponse { thread, .. } = mcp
@@ -494,7 +494,7 @@ async fn mcp_tool_call_completion_notification_contains_truncated_large_result()
     .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let ThreadStartResponse { thread, .. } = mcp

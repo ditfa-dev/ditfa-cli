@@ -34,7 +34,7 @@ impl LocalWebsocketExecServer {
         #[cfg(target_os = "linux")]
         command.env(
             DITFA_LINUX_SANDBOX_EXE_ENV_VAR,
-            core_test_support::find_codex_linux_sandbox_exe()
+            core_test_support::find_ditfa_linux_sandbox_exe()
                 .context("should find binary for delayed exec-server Linux sandbox helper")?,
         );
         command.kill_on_drop(true);

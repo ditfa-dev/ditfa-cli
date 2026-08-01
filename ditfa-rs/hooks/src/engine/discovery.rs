@@ -372,9 +372,9 @@ fn config_toml_source_path(layer: &ConfigLayerEntry) -> AbsolutePathBuf {
         ConfigLayerSource::System { file }
         | ConfigLayerSource::User { file, .. }
         | ConfigLayerSource::LegacyManagedConfigTomlFromFile { file } => file.clone(),
-        ConfigLayerSource::Project { dot_codex_folder } => layer
+        ConfigLayerSource::Project { dot_ditfa_folder } => layer
             .hooks_config_folder()
-            .unwrap_or_else(|| dot_codex_folder.clone())
+            .unwrap_or_else(|| dot_ditfa_folder.clone())
             .join(CONFIG_TOML_FILE),
         ConfigLayerSource::Mdm { domain, key } => {
             synthetic_layer_path(&format!("<mdm:{domain}:{key}>/{CONFIG_TOML_FILE}"))
@@ -787,7 +787,7 @@ mod tests {
         let source = RequirementSource::Composite {
             sources: vec![
                 RequirementSource::SystemRequirementsToml {
-                    file: test_path_buf("/etc/codex/requirements.toml").abs(),
+                    file: test_path_buf("/etc/ditfa/requirements.toml").abs(),
                 },
                 RequirementSource::EnterpriseManaged {
                     id: "layer-1".to_string(),
@@ -1296,7 +1296,7 @@ mod tests {
     #[test]
     fn hook_metadata_for_config_layer_source_discards_source_details() {
         let config_file = test_path_buf("/tmp/.ditfa/config.toml").abs();
-        let dot_codex_folder = test_path_buf("/tmp/worktree/.ditfa").abs();
+        let dot_ditfa_folder = test_path_buf("/tmp/worktree/.ditfa").abs();
 
         assert_eq!(
             super::hook_metadata_for_config_layer_source(&ConfigLayerSource::System {
@@ -1313,7 +1313,7 @@ mod tests {
         );
         assert_eq!(
             super::hook_metadata_for_config_layer_source(&ConfigLayerSource::Project {
-                dot_codex_folder
+                dot_ditfa_folder
             }),
             (HookSource::Project, false),
         );

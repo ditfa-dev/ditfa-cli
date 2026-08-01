@@ -199,7 +199,7 @@ async fn hosted_login_redirects_to_configured_open_app_url() -> Result<()> {
         forced_chatgpt_workspace_id: None,
         ditfa_streamlined_login: false,
         login_success_page: LoginSuccessPage::Hosted {
-            url: Url::parse("http://localhost:3000/codex/open-app?source=old")?,
+            url: Url::parse("http://localhost:3000/ditfa/open-app?source=old")?,
             app_brand: LoginSuccessPageBrand::Chatgpt,
         },
         auth_keyring_backend_kind: AuthKeyringBackendKind::Direct,
@@ -219,7 +219,7 @@ async fn hosted_login_redirects_to_configured_open_app_url() -> Result<()> {
     assert_eq!(response.status(), 302);
     assert_eq!(
         response.headers()["location"].to_str()?,
-        "http://localhost:3000/codex/open-app?source=login&app_brand=chatgpt"
+        "http://localhost:3000/ditfa/open-app?source=login&app_brand=chatgpt"
     );
     tokio::time::timeout(Duration::from_secs(1), server.block_until_done()).await??;
 
@@ -227,7 +227,7 @@ async fn hosted_login_redirects_to_configured_open_app_url() -> Result<()> {
 }
 
 #[tokio::test]
-async fn creates_missing_codex_home_dir() -> Result<()> {
+async fn creates_missing_ditfa_home_dir() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let (issuer_addr, _issuer_handle) = start_mock_issuer(WORKSPACE_ID_ALLOWED);
@@ -409,14 +409,14 @@ async fn oauth_access_denied_missing_entitlement_blocks_login_with_clear_error()
 
     let client = HttpClientBuilder::new().build_direct()?;
     let url = format!(
-        "http://127.0.0.1:{login_port}/auth/callback?state={state}&error=access_denied&error_description=missing_codex_entitlement"
+        "http://127.0.0.1:{login_port}/auth/callback?state={state}&error=access_denied&error_description=missing_ditfa_entitlement"
     );
     let resp = client.get(&url).send().await?;
     assert!(resp.status().is_success());
     let body = resp.text().await?;
     assert!(
         body.contains("You do not have access to Ditfa"),
-        "error body should clearly explain the Codex access denial"
+        "error body should clearly explain the Ditfa access denial"
     );
     assert!(
         body.contains("Contact your workspace administrator"),
@@ -427,7 +427,7 @@ async fn oauth_access_denied_missing_entitlement_blocks_login_with_clear_error()
         "error body should still include the oauth error code"
     );
     assert!(
-        !body.contains("missing_codex_entitlement"),
+        !body.contains("missing_ditfa_entitlement"),
         "known entitlement errors should be mapped to user-facing copy"
     );
 
@@ -560,7 +560,7 @@ async fn falls_back_to_registered_fallback_port_when_default_port_is_in_use() ->
         let server = default_port_server.clone();
         thread::spawn(move || {
             while let Ok(req) = server.recv() {
-                let _ = req.respond(tiny_http::Response::from_string("not codex"));
+                let _ = req.respond(tiny_http::Response::from_string("not ditfa"));
             }
         })
     };
@@ -609,10 +609,10 @@ async fn cancels_previous_login_server_when_port_is_in_use() -> Result<()> {
     let issuer = format!("http://{}:{}", issuer_addr.ip(), issuer_addr.port());
 
     let first_tmp = tempdir()?;
-    let first_codex_home = first_tmp.path().to_path_buf();
+    let first_ditfa_home = first_tmp.path().to_path_buf();
 
     let first_opts = ServerOptions {
-        ditfa_home: first_codex_home,
+        ditfa_home: first_ditfa_home,
         cli_auth_credentials_store_mode: AuthCredentialsStoreMode::File,
         auth_route_config: ditfa_login::test_support::transport_default_auth_route_config(),
         client_id: ditfa_login::CLIENT_ID.to_string(),
@@ -633,10 +633,10 @@ async fn cancels_previous_login_server_when_port_is_in_use() -> Result<()> {
     tokio::time::sleep(Duration::from_millis(100)).await;
 
     let second_tmp = tempdir()?;
-    let second_codex_home = second_tmp.path().to_path_buf();
+    let second_ditfa_home = second_tmp.path().to_path_buf();
 
     let second_opts = ServerOptions {
-        ditfa_home: second_codex_home,
+        ditfa_home: second_ditfa_home,
         cli_auth_credentials_store_mode: AuthCredentialsStoreMode::File,
         auth_route_config: ditfa_login::test_support::transport_default_auth_route_config(),
         client_id: ditfa_login::CLIENT_ID.to_string(),

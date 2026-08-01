@@ -2,9 +2,9 @@ use std::time::Instant;
 
 use crate::facts::AcceptedLineFingerprint;
 use crate::facts::AppInvocation;
-use crate::facts::CodexCompactionEvent;
-use crate::facts::CodexErrKind;
-use crate::facts::CodexGoalEvent;
+use crate::facts::DitfaCompactionEvent;
+use crate::facts::DitfaErrKind;
+use crate::facts::DitfaGoalEvent;
 use crate::facts::CompactionImplementation;
 use crate::facts::CompactionPhase;
 use crate::facts::CompactionReason;
@@ -24,7 +24,7 @@ use crate::facts::TurnSteerRejectionReason;
 use crate::facts::TurnSteerResult;
 use crate::facts::TurnSubmissionType;
 use crate::now_unix_millis;
-use ditfa_app_server_protocol::CodexErrorInfo;
+use ditfa_app_server_protocol::DitfaErrorInfo;
 use ditfa_app_server_protocol::CommandExecutionSource;
 use ditfa_login::default_client::originator;
 use ditfa_plugin::PluginId;
@@ -63,32 +63,32 @@ pub(crate) enum TrackEventRequest {
     SkillInvocation(SkillInvocationEventRequest),
     ThreadInitialized(ThreadInitializedEvent),
     GuardianReview(Box<GuardianReviewEventRequest>),
-    AppMentioned(CodexAppMentionedEventRequest),
-    AppUsed(CodexAppUsedEventRequest),
-    HookRun(CodexHookRunEventRequest),
-    Compaction(Box<CodexCompactionEventRequest>),
-    Goal(Box<CodexGoalEventRequest>),
-    TurnEvent(Box<CodexTurnEventRequest>),
-    TurnSteer(CodexTurnSteerEventRequest),
-    CommandExecution(CodexCommandExecutionEventRequest),
-    FileChange(CodexFileChangeEventRequest),
-    McpToolCall(CodexMcpToolCallEventRequest),
-    DynamicToolCall(CodexDynamicToolCallEventRequest),
-    CollabAgentToolCall(CodexCollabAgentToolCallEventRequest),
-    WebSearch(CodexWebSearchEventRequest),
-    ImageGeneration(CodexImageGenerationEventRequest),
-    AcceptedLineFingerprints(Box<CodexAcceptedLineFingerprintsEventRequest>),
+    AppMentioned(DitfaAppMentionedEventRequest),
+    AppUsed(DitfaAppUsedEventRequest),
+    HookRun(DitfaHookRunEventRequest),
+    Compaction(Box<DitfaCompactionEventRequest>),
+    Goal(Box<DitfaGoalEventRequest>),
+    TurnEvent(Box<DitfaTurnEventRequest>),
+    TurnSteer(DitfaTurnSteerEventRequest),
+    CommandExecution(DitfaCommandExecutionEventRequest),
+    FileChange(DitfaFileChangeEventRequest),
+    McpToolCall(DitfaMcpToolCallEventRequest),
+    DynamicToolCall(DitfaDynamicToolCallEventRequest),
+    CollabAgentToolCall(DitfaCollabAgentToolCallEventRequest),
+    WebSearch(DitfaWebSearchEventRequest),
+    ImageGeneration(DitfaImageGenerationEventRequest),
+    AcceptedLineFingerprints(Box<DitfaAcceptedLineFingerprintsEventRequest>),
     #[allow(dead_code)]
-    ReviewEvent(CodexReviewEventRequest),
-    PluginUsed(CodexPluginUsedEventRequest),
-    PluginInstallRequested(CodexPluginInstallRequestedEventRequest),
-    PluginInstalled(CodexPluginEventRequest),
-    PluginUninstalled(CodexPluginEventRequest),
-    PluginEnabled(CodexPluginEventRequest),
-    PluginDisabled(CodexPluginEventRequest),
-    PluginInstallFailed(CodexPluginInstallFailedEventRequest),
-    ExternalAgentConfigImportCompleted(CodexOnboardingExternalAgentImportCompleteEventRequest),
-    ExternalAgentConfigImportFailure(CodexOnboardingExternalAgentImportFailureEventRequest),
+    ReviewEvent(DitfaReviewEventRequest),
+    PluginUsed(DitfaPluginUsedEventRequest),
+    PluginInstallRequested(DitfaPluginInstallRequestedEventRequest),
+    PluginInstalled(DitfaPluginEventRequest),
+    PluginUninstalled(DitfaPluginEventRequest),
+    PluginEnabled(DitfaPluginEventRequest),
+    PluginDisabled(DitfaPluginEventRequest),
+    PluginInstallFailed(DitfaPluginInstallFailedEventRequest),
+    ExternalAgentConfigImportCompleted(DitfaOnboardingExternalAgentImportCompleteEventRequest),
+    ExternalAgentConfigImportFailure(DitfaOnboardingExternalAgentImportFailureEventRequest),
 }
 
 impl TrackEventRequest {
@@ -107,7 +107,7 @@ impl TrackEventRequest {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexAcceptedLineFingerprintsEventParams {
+pub(crate) struct DitfaAcceptedLineFingerprintsEventParams {
     pub(crate) event_type: &'static str,
     pub(crate) turn_id: String,
     pub(crate) thread_id: String,
@@ -121,9 +121,9 @@ pub(crate) struct CodexAcceptedLineFingerprintsEventParams {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexAcceptedLineFingerprintsEventRequest {
+pub(crate) struct DitfaAcceptedLineFingerprintsEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexAcceptedLineFingerprintsEventParams,
+    pub(crate) event_params: DitfaAcceptedLineFingerprintsEventParams,
 }
 
 #[derive(Serialize)]
@@ -147,7 +147,7 @@ pub(crate) struct SkillInvocationEventParams {
 }
 
 #[derive(Clone, Serialize)]
-pub(crate) struct CodexAppServerClientMetadata {
+pub(crate) struct DitfaAppServerClientMetadata {
     pub(crate) product_client_id: String,
     pub(crate) client_name: Option<String>,
     pub(crate) client_version: Option<String>,
@@ -156,7 +156,7 @@ pub(crate) struct CodexAppServerClientMetadata {
 }
 
 #[derive(Clone, Serialize)]
-pub(crate) struct CodexRuntimeMetadata {
+pub(crate) struct DitfaRuntimeMetadata {
     pub(crate) ditfa_rs_version: String,
     pub(crate) runtime_os: String,
     pub(crate) runtime_os_version: String,
@@ -167,8 +167,8 @@ pub(crate) struct CodexRuntimeMetadata {
 pub(crate) struct ThreadInitializedEventParams {
     pub(crate) thread_id: String,
     pub(crate) session_id: String,
-    pub(crate) app_server_client: CodexAppServerClientMetadata,
-    pub(crate) runtime: CodexRuntimeMetadata,
+    pub(crate) app_server_client: DitfaAppServerClientMetadata,
+    pub(crate) runtime: DitfaRuntimeMetadata,
     pub(crate) model: String,
     pub(crate) ephemeral: bool,
     pub(crate) thread_source: Option<ThreadSource>,
@@ -485,8 +485,8 @@ pub struct GuardianReviewSessionAnalyticsParams {
 #[derive(Serialize)]
 pub(crate) struct GuardianReviewEventPayload {
     pub(crate) session_id: String,
-    pub(crate) app_server_client: CodexAppServerClientMetadata,
-    pub(crate) runtime: CodexRuntimeMetadata,
+    pub(crate) app_server_client: DitfaAppServerClientMetadata,
+    pub(crate) runtime: DitfaRuntimeMetadata,
     #[serde(flatten)]
     pub(crate) guardian_review: GuardianReviewEventParams,
 }
@@ -530,15 +530,15 @@ pub(crate) enum ToolItemFailureKind {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexToolItemEventBase {
+pub(crate) struct DitfaToolItemEventBase {
     pub(crate) thread_id: String,
     pub(crate) session_id: String,
     pub(crate) turn_id: String,
     /// App-server ThreadItem.id. For tool-originated items this generally
     /// corresponds to the originating core call_id.
     pub(crate) item_id: String,
-    pub(crate) app_server_client: CodexAppServerClientMetadata,
-    pub(crate) runtime: CodexRuntimeMetadata,
+    pub(crate) app_server_client: DitfaAppServerClientMetadata,
+    pub(crate) runtime: DitfaRuntimeMetadata,
     pub(crate) thread_source: Option<ThreadSource>,
     pub(crate) subagent_source: Option<String>,
     pub(crate) parent_thread_id: Option<String>,
@@ -609,13 +609,13 @@ pub(crate) enum ReviewResolution {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexReviewEventParams {
+pub(crate) struct DitfaReviewEventParams {
     pub(crate) thread_id: String,
     pub(crate) turn_id: String,
     pub(crate) item_id: Option<String>,
     pub(crate) review_id: String,
-    pub(crate) app_server_client: CodexAppServerClientMetadata,
-    pub(crate) runtime: CodexRuntimeMetadata,
+    pub(crate) app_server_client: DitfaAppServerClientMetadata,
+    pub(crate) runtime: DitfaRuntimeMetadata,
     pub(crate) thread_source: Option<ThreadSource>,
     pub(crate) subagent_source: Option<String>,
     pub(crate) parent_thread_id: Option<String>,
@@ -631,9 +631,9 @@ pub(crate) struct CodexReviewEventParams {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexReviewEventRequest {
+pub(crate) struct DitfaReviewEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexReviewEventParams,
+    pub(crate) event_params: DitfaReviewEventParams,
 }
 #[allow(dead_code)]
 #[derive(Clone, Copy, Debug, Serialize)]
@@ -646,9 +646,9 @@ pub(crate) enum WebSearchActionKind {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexCommandExecutionEventParams {
+pub(crate) struct DitfaCommandExecutionEventParams {
     #[serde(flatten)]
-    pub(crate) base: CodexToolItemEventBase,
+    pub(crate) base: DitfaToolItemEventBase,
     pub(crate) command_execution_source: CommandExecutionSource,
     pub(crate) exit_code: Option<i32>,
     pub(crate) command_total_action_count: u64,
@@ -659,15 +659,15 @@ pub(crate) struct CodexCommandExecutionEventParams {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexCommandExecutionEventRequest {
+pub(crate) struct DitfaCommandExecutionEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexCommandExecutionEventParams,
+    pub(crate) event_params: DitfaCommandExecutionEventParams,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexFileChangeEventParams {
+pub(crate) struct DitfaFileChangeEventParams {
     #[serde(flatten)]
-    pub(crate) base: CodexToolItemEventBase,
+    pub(crate) base: DitfaToolItemEventBase,
     pub(crate) file_change_count: u64,
     pub(crate) file_add_count: u64,
     pub(crate) file_update_count: u64,
@@ -676,15 +676,15 @@ pub(crate) struct CodexFileChangeEventParams {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexFileChangeEventRequest {
+pub(crate) struct DitfaFileChangeEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexFileChangeEventParams,
+    pub(crate) event_params: DitfaFileChangeEventParams,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexMcpToolCallEventParams {
+pub(crate) struct DitfaMcpToolCallEventParams {
     #[serde(flatten)]
-    pub(crate) base: CodexToolItemEventBase,
+    pub(crate) base: DitfaToolItemEventBase,
     pub(crate) mcp_server_name: String,
     pub(crate) mcp_tool_name: String,
     pub(crate) mcp_error_present: bool,
@@ -693,15 +693,15 @@ pub(crate) struct CodexMcpToolCallEventParams {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexMcpToolCallEventRequest {
+pub(crate) struct DitfaMcpToolCallEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexMcpToolCallEventParams,
+    pub(crate) event_params: DitfaMcpToolCallEventParams,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexDynamicToolCallEventParams {
+pub(crate) struct DitfaDynamicToolCallEventParams {
     #[serde(flatten)]
-    pub(crate) base: CodexToolItemEventBase,
+    pub(crate) base: DitfaToolItemEventBase,
     pub(crate) dynamic_tool_name: String,
     pub(crate) success: Option<bool>,
     pub(crate) output_content_item_count: Option<u64>,
@@ -711,15 +711,15 @@ pub(crate) struct CodexDynamicToolCallEventParams {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexDynamicToolCallEventRequest {
+pub(crate) struct DitfaDynamicToolCallEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexDynamicToolCallEventParams,
+    pub(crate) event_params: DitfaDynamicToolCallEventParams,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexCollabAgentToolCallEventParams {
+pub(crate) struct DitfaCollabAgentToolCallEventParams {
     #[serde(flatten)]
-    pub(crate) base: CodexToolItemEventBase,
+    pub(crate) base: DitfaToolItemEventBase,
     pub(crate) sender_thread_id: String,
     pub(crate) receiver_thread_count: u64,
     pub(crate) receiver_thread_ids: Option<Vec<String>>,
@@ -731,42 +731,42 @@ pub(crate) struct CodexCollabAgentToolCallEventParams {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexCollabAgentToolCallEventRequest {
+pub(crate) struct DitfaCollabAgentToolCallEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexCollabAgentToolCallEventParams,
+    pub(crate) event_params: DitfaCollabAgentToolCallEventParams,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexWebSearchEventParams {
+pub(crate) struct DitfaWebSearchEventParams {
     #[serde(flatten)]
-    pub(crate) base: CodexToolItemEventBase,
+    pub(crate) base: DitfaToolItemEventBase,
     pub(crate) web_search_action: Option<WebSearchActionKind>,
     pub(crate) query_present: bool,
     pub(crate) query_count: Option<u64>,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexWebSearchEventRequest {
+pub(crate) struct DitfaWebSearchEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexWebSearchEventParams,
+    pub(crate) event_params: DitfaWebSearchEventParams,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexImageGenerationEventParams {
+pub(crate) struct DitfaImageGenerationEventParams {
     #[serde(flatten)]
-    pub(crate) base: CodexToolItemEventBase,
+    pub(crate) base: DitfaToolItemEventBase,
     pub(crate) revised_prompt_present: bool,
     pub(crate) saved_path_present: bool,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexImageGenerationEventRequest {
+pub(crate) struct DitfaImageGenerationEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexImageGenerationEventParams,
+    pub(crate) event_params: DitfaImageGenerationEventParams,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexAppMetadata {
+pub(crate) struct DitfaAppMetadata {
     pub(crate) connector_id: Option<String>,
     pub(crate) thread_id: Option<String>,
     pub(crate) turn_id: Option<String>,
@@ -777,19 +777,19 @@ pub(crate) struct CodexAppMetadata {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexAppMentionedEventRequest {
+pub(crate) struct DitfaAppMentionedEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexAppMetadata,
+    pub(crate) event_params: DitfaAppMetadata,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexAppUsedEventRequest {
+pub(crate) struct DitfaAppUsedEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexAppMetadata,
+    pub(crate) event_params: DitfaAppMetadata,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexHookRunMetadata {
+pub(crate) struct DitfaHookRunMetadata {
     pub(crate) thread_id: Option<String>,
     pub(crate) turn_id: Option<String>,
     pub(crate) product_client_id: Option<String>,
@@ -800,18 +800,18 @@ pub(crate) struct CodexHookRunMetadata {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexHookRunEventRequest {
+pub(crate) struct DitfaHookRunEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexHookRunMetadata,
+    pub(crate) event_params: DitfaHookRunMetadata,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexCompactionEventParams {
+pub(crate) struct DitfaCompactionEventParams {
     pub(crate) thread_id: String,
     pub(crate) session_id: String,
     pub(crate) turn_id: String,
-    pub(crate) app_server_client: CodexAppServerClientMetadata,
-    pub(crate) runtime: CodexRuntimeMetadata,
+    pub(crate) app_server_client: DitfaAppServerClientMetadata,
+    pub(crate) runtime: DitfaRuntimeMetadata,
     pub(crate) thread_source: Option<ThreadSource>,
     pub(crate) subagent_source: Option<String>,
     pub(crate) parent_thread_id: Option<String>,
@@ -821,7 +821,7 @@ pub(crate) struct CodexCompactionEventParams {
     pub(crate) phase: CompactionPhase,
     pub(crate) strategy: CompactionStrategy,
     pub(crate) status: CompactionStatus,
-    pub(crate) ditfa_error_kind: Option<CodexErrKind>,
+    pub(crate) ditfa_error_kind: Option<DitfaErrKind>,
     pub(crate) ditfa_error_http_status_code: Option<u16>,
     pub(crate) active_context_tokens_before: i64,
     pub(crate) active_context_tokens_after: i64,
@@ -835,18 +835,18 @@ pub(crate) struct CodexCompactionEventParams {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexCompactionEventRequest {
+pub(crate) struct DitfaCompactionEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexCompactionEventParams,
+    pub(crate) event_params: DitfaCompactionEventParams,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexGoalEventParams {
+pub(crate) struct DitfaGoalEventParams {
     pub(crate) thread_id: String,
     pub(crate) session_id: String,
     pub(crate) turn_id: Option<String>,
-    pub(crate) app_server_client: CodexAppServerClientMetadata,
-    pub(crate) runtime: CodexRuntimeMetadata,
+    pub(crate) app_server_client: DitfaAppServerClientMetadata,
+    pub(crate) runtime: DitfaRuntimeMetadata,
     pub(crate) thread_source: Option<ThreadSource>,
     pub(crate) subagent_source: Option<String>,
     pub(crate) parent_thread_id: Option<String>,
@@ -859,21 +859,21 @@ pub(crate) struct CodexGoalEventParams {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexGoalEventRequest {
+pub(crate) struct DitfaGoalEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexGoalEventParams,
+    pub(crate) event_params: DitfaGoalEventParams,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexTurnEventParams {
+pub(crate) struct DitfaTurnEventParams {
     pub(crate) thread_id: String,
     pub(crate) session_id: String,
     pub(crate) turn_id: String,
     // TODO(rhan-oai): Populate once queued/default submission type is plumbed from
     // the turn/start callsites instead of always being reported as None.
     pub(crate) submission_type: Option<TurnSubmissionType>,
-    pub(crate) app_server_client: CodexAppServerClientMetadata,
-    pub(crate) runtime: CodexRuntimeMetadata,
+    pub(crate) app_server_client: DitfaAppServerClientMetadata,
+    pub(crate) runtime: DitfaRuntimeMetadata,
     pub(crate) ephemeral: bool,
     pub(crate) thread_source: Option<ThreadSource>,
     pub(crate) initialization_mode: ThreadInitializationMode,
@@ -894,8 +894,8 @@ pub(crate) struct CodexTurnEventParams {
     pub(crate) num_input_images: usize,
     pub(crate) is_first_turn: bool,
     pub(crate) status: Option<TurnStatus>,
-    pub(crate) turn_error: Option<CodexErrorInfo>,
-    pub(crate) ditfa_error_kind: Option<CodexErrKind>,
+    pub(crate) turn_error: Option<DitfaErrorInfo>,
+    pub(crate) ditfa_error_kind: Option<DitfaErrKind>,
     pub(crate) ditfa_error_http_status_code: Option<u16>,
     pub(crate) steer_count: Option<usize>,
     pub(crate) total_tool_call_count: Option<usize>,
@@ -926,19 +926,19 @@ pub(crate) struct CodexTurnEventParams {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexTurnEventRequest {
+pub(crate) struct DitfaTurnEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexTurnEventParams,
+    pub(crate) event_params: DitfaTurnEventParams,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexTurnSteerEventParams {
+pub(crate) struct DitfaTurnSteerEventParams {
     pub(crate) thread_id: String,
     pub(crate) session_id: String,
     pub(crate) expected_turn_id: Option<String>,
     pub(crate) accepted_turn_id: Option<String>,
-    pub(crate) app_server_client: CodexAppServerClientMetadata,
-    pub(crate) runtime: CodexRuntimeMetadata,
+    pub(crate) app_server_client: DitfaAppServerClientMetadata,
+    pub(crate) runtime: DitfaRuntimeMetadata,
     pub(crate) thread_source: Option<ThreadSource>,
     pub(crate) subagent_source: Option<String>,
     pub(crate) parent_thread_id: Option<String>,
@@ -949,13 +949,13 @@ pub(crate) struct CodexTurnSteerEventParams {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexTurnSteerEventRequest {
+pub(crate) struct DitfaTurnSteerEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexTurnSteerEventParams,
+    pub(crate) event_params: DitfaTurnSteerEventParams,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexPluginMetadata {
+pub(crate) struct DitfaPluginMetadata {
     pub(crate) plugin_id: Option<String>,
     pub(crate) remote_plugin_id: Option<String>,
     pub(crate) plugin_name: Option<String>,
@@ -967,9 +967,9 @@ pub(crate) struct CodexPluginMetadata {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexPluginUsedMetadata {
+pub(crate) struct DitfaPluginUsedMetadata {
     #[serde(flatten)]
-    pub(crate) plugin: CodexPluginMetadata,
+    pub(crate) plugin: DitfaPluginMetadata,
     pub(crate) mcp_server_names: Option<Vec<String>>,
     pub(crate) thread_id: Option<String>,
     pub(crate) turn_id: Option<String>,
@@ -977,7 +977,7 @@ pub(crate) struct CodexPluginUsedMetadata {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexPluginInstallRequestedPluginMetadata {
+pub(crate) struct DitfaPluginInstallRequestedPluginMetadata {
     pub(crate) plugin_id: String,
     pub(crate) remote_plugin_id: Option<String>,
     pub(crate) plugin_name: String,
@@ -985,9 +985,9 @@ pub(crate) struct CodexPluginInstallRequestedPluginMetadata {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexPluginInstallRequestedMetadata {
+pub(crate) struct DitfaPluginInstallRequestedMetadata {
     pub(crate) suggestion_id: String,
-    pub(crate) plugins: Vec<CodexPluginInstallRequestedPluginMetadata>,
+    pub(crate) plugins: Vec<DitfaPluginInstallRequestedPluginMetadata>,
     pub(crate) source: crate::facts::PluginInstallRequestSource,
     pub(crate) thread_id: String,
     pub(crate) turn_id: String,
@@ -996,34 +996,34 @@ pub(crate) struct CodexPluginInstallRequestedMetadata {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexPluginInstallRequestedEventRequest {
+pub(crate) struct DitfaPluginInstallRequestedEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexPluginInstallRequestedMetadata,
+    pub(crate) event_params: DitfaPluginInstallRequestedMetadata,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexPluginEventRequest {
+pub(crate) struct DitfaPluginEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexPluginMetadata,
+    pub(crate) event_params: DitfaPluginMetadata,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexPluginInstallFailedMetadata {
+pub(crate) struct DitfaPluginInstallFailedMetadata {
     #[serde(flatten)]
-    pub(crate) plugin: CodexPluginMetadata,
+    pub(crate) plugin: DitfaPluginMetadata,
     pub(crate) source: crate::facts::PluginInstallSource,
     pub(crate) error_type: String,
     pub(crate) sub_error_type: Option<String>,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexPluginInstallFailedEventRequest {
+pub(crate) struct DitfaPluginInstallFailedEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexPluginInstallFailedMetadata,
+    pub(crate) event_params: DitfaPluginInstallFailedMetadata,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexOnboardingExternalAgentImportCompleteMetadata {
+pub(crate) struct DitfaOnboardingExternalAgentImportCompleteMetadata {
     pub(crate) import_id: String,
     pub(crate) source: String,
     pub(crate) provider_id: String,
@@ -1035,13 +1035,13 @@ pub(crate) struct CodexOnboardingExternalAgentImportCompleteMetadata {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexOnboardingExternalAgentImportCompleteEventRequest {
+pub(crate) struct DitfaOnboardingExternalAgentImportCompleteEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexOnboardingExternalAgentImportCompleteMetadata,
+    pub(crate) event_params: DitfaOnboardingExternalAgentImportCompleteMetadata,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexOnboardingExternalAgentImportFailureMetadata {
+pub(crate) struct DitfaOnboardingExternalAgentImportFailureMetadata {
     pub(crate) import_id: String,
     pub(crate) source: String,
     pub(crate) provider_id: String,
@@ -1054,15 +1054,15 @@ pub(crate) struct CodexOnboardingExternalAgentImportFailureMetadata {
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexOnboardingExternalAgentImportFailureEventRequest {
+pub(crate) struct DitfaOnboardingExternalAgentImportFailureEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexOnboardingExternalAgentImportFailureMetadata,
+    pub(crate) event_params: DitfaOnboardingExternalAgentImportFailureMetadata,
 }
 
 #[derive(Serialize)]
-pub(crate) struct CodexPluginUsedEventRequest {
+pub(crate) struct DitfaPluginUsedEventRequest {
     pub(crate) event_type: &'static str,
-    pub(crate) event_params: CodexPluginUsedMetadata,
+    pub(crate) event_params: DitfaPluginUsedMetadata,
 }
 
 pub(crate) fn plugin_state_event_type(state: PluginState) -> &'static str {
@@ -1077,8 +1077,8 @@ pub(crate) fn plugin_state_event_type(state: PluginState) -> &'static str {
 pub(crate) fn ditfa_app_metadata(
     tracking: &TrackEventsContext,
     app: AppInvocation,
-) -> CodexAppMetadata {
-    CodexAppMetadata {
+) -> DitfaAppMetadata {
+    DitfaAppMetadata {
         connector_id: app.connector_id,
         thread_id: Some(tracking.thread_id.clone()),
         turn_id: Some(tracking.turn_id.clone()),
@@ -1089,20 +1089,20 @@ pub(crate) fn ditfa_app_metadata(
     }
 }
 
-pub(crate) fn ditfa_plugin_metadata(plugin: PluginTelemetryMetadata) -> CodexPluginMetadata {
+pub(crate) fn ditfa_plugin_metadata(plugin: PluginTelemetryMetadata) -> DitfaPluginMetadata {
     ditfa_plugin_metadata_with_product_client_id(plugin, originator().value)
 }
 
 fn ditfa_plugin_metadata_with_product_client_id(
     plugin: PluginTelemetryMetadata,
     product_client_id: String,
-) -> CodexPluginMetadata {
+) -> DitfaPluginMetadata {
     let PluginTelemetryMetadata {
         plugin_id,
         remote_plugin_id,
         capability_summary,
     } = plugin;
-    CodexPluginMetadata {
+    DitfaPluginMetadata {
         plugin_id: plugin_id.as_ref().map(PluginId::as_key),
         remote_plugin_id,
         plugin_name: plugin_id
@@ -1129,13 +1129,13 @@ fn ditfa_plugin_metadata_with_product_client_id(
 pub(crate) fn ditfa_plugin_install_requested_metadata(
     tracking: &TrackEventsContext,
     request: PluginInstallRequested,
-) -> CodexPluginInstallRequestedMetadata {
-    CodexPluginInstallRequestedMetadata {
+) -> DitfaPluginInstallRequestedMetadata {
+    DitfaPluginInstallRequestedMetadata {
         suggestion_id: request.suggestion_id,
         plugins: request
             .plugins
             .into_iter()
-            .map(|plugin| CodexPluginInstallRequestedPluginMetadata {
+            .map(|plugin| DitfaPluginInstallRequestedPluginMetadata {
                 plugin_id: plugin.plugin_id,
                 remote_plugin_id: plugin.remote_plugin_id,
                 plugin_name: plugin.plugin_name,
@@ -1151,15 +1151,15 @@ pub(crate) fn ditfa_plugin_install_requested_metadata(
 }
 
 pub(crate) fn ditfa_compaction_event_params(
-    input: CodexCompactionEvent,
+    input: DitfaCompactionEvent,
     session_id: String,
-    app_server_client: CodexAppServerClientMetadata,
-    runtime: CodexRuntimeMetadata,
+    app_server_client: DitfaAppServerClientMetadata,
+    runtime: DitfaRuntimeMetadata,
     thread_source: Option<ThreadSource>,
     subagent_source: Option<String>,
     parent_thread_id: Option<String>,
-) -> CodexCompactionEventParams {
-    CodexCompactionEventParams {
+) -> DitfaCompactionEventParams {
+    DitfaCompactionEventParams {
         thread_id: input.thread_id,
         session_id,
         turn_id: input.turn_id,
@@ -1189,15 +1189,15 @@ pub(crate) fn ditfa_compaction_event_params(
 }
 
 pub(crate) fn ditfa_goal_event_params(
-    input: CodexGoalEvent,
+    input: DitfaGoalEvent,
     session_id: String,
-    app_server_client: CodexAppServerClientMetadata,
-    runtime: CodexRuntimeMetadata,
+    app_server_client: DitfaAppServerClientMetadata,
+    runtime: DitfaRuntimeMetadata,
     thread_source: Option<ThreadSource>,
     subagent_source: Option<String>,
     parent_thread_id: Option<String>,
-) -> CodexGoalEventParams {
-    CodexGoalEventParams {
+) -> DitfaGoalEventParams {
+    DitfaGoalEventParams {
         thread_id: input.thread_id,
         session_id,
         turn_id: input.turn_id,
@@ -1218,12 +1218,12 @@ pub(crate) fn ditfa_goal_event_params(
 pub(crate) fn ditfa_plugin_used_metadata(
     tracking: &TrackEventsContext,
     plugin: PluginTelemetryMetadata,
-) -> CodexPluginUsedMetadata {
+) -> DitfaPluginUsedMetadata {
     let mcp_server_names = plugin
         .capability_summary
         .as_ref()
         .map(|summary| summary.mcp_server_names.clone());
-    CodexPluginUsedMetadata {
+    DitfaPluginUsedMetadata {
         plugin: ditfa_plugin_metadata_with_product_client_id(
             plugin,
             tracking.product_client_id.clone(),
@@ -1238,8 +1238,8 @@ pub(crate) fn ditfa_plugin_used_metadata(
 pub(crate) fn ditfa_hook_run_metadata(
     tracking: &TrackEventsContext,
     hook: HookRunFact,
-) -> CodexHookRunMetadata {
-    CodexHookRunMetadata {
+) -> DitfaHookRunMetadata {
+    DitfaHookRunMetadata {
         thread_id: Some(tracking.thread_id.clone()),
         turn_id: Some(tracking.turn_id.clone()),
         product_client_id: Some(tracking.product_client_id.clone()),
@@ -1282,9 +1282,9 @@ fn analytics_hook_source(source: HookSource) -> &'static str {
     }
 }
 
-pub(crate) fn current_runtime_metadata() -> CodexRuntimeMetadata {
+pub(crate) fn current_runtime_metadata() -> DitfaRuntimeMetadata {
     let os_info = os_info::get();
-    CodexRuntimeMetadata {
+    DitfaRuntimeMetadata {
         ditfa_rs_version: env!("CARGO_PKG_VERSION").to_string(),
         runtime_os: std::env::consts::OS.to_string(),
         runtime_os_version: os_info.version().to_string(),
@@ -1298,7 +1298,7 @@ pub(crate) fn subagent_thread_started_event_request(
     let event_params = ThreadInitializedEventParams {
         thread_id: input.thread_id,
         session_id: input.session_id,
-        app_server_client: CodexAppServerClientMetadata {
+        app_server_client: DitfaAppServerClientMetadata {
             product_client_id: input.product_client_id,
             client_name: Some(input.client_name),
             client_version: Some(input.client_version),

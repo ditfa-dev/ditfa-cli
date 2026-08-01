@@ -9,7 +9,7 @@ pub(crate) static GOALS_MIGRATOR: Migrator = sqlx::migrate!("./goals_migrations"
 pub(crate) static MEMORIES_MIGRATOR: Migrator = sqlx::migrate!("./memory_migrations");
 pub(crate) static THREAD_HISTORY_MIGRATOR: Migrator = sqlx::migrate!("./thread_history_migrations");
 
-/// Allow an older Codex binary to open a database that has already been
+/// Allow an older Ditfa binary to open a database that has already been
 /// migrated by a newer binary running in parallel.
 ///
 /// We intentionally ignore applied migration versions that are newer than the

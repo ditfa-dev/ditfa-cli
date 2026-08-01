@@ -10,12 +10,12 @@ use tempfile::tempdir;
 ///
 /// Keep OAuth tests on this one guard instead of defining per-module helpers; otherwise
 /// concurrently running test modules can point File/Secrets storage at different homes.
-pub(super) struct TempCodexHome {
+pub(super) struct TempDitfaHome {
     _guard: MutexGuard<'static, ()>,
     _dir: tempfile::TempDir,
 }
 
-impl TempCodexHome {
+impl TempDitfaHome {
     pub(super) fn new() -> Self {
         static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
         let guard = LOCK
@@ -37,7 +37,7 @@ impl TempCodexHome {
     }
 }
 
-impl Drop for TempCodexHome {
+impl Drop for TempDitfaHome {
     fn drop(&mut self) {
         unsafe {
             std::env::remove_var("DITFA_HOME");

@@ -1,14 +1,14 @@
 # Ditfa MCP Server Interface [experimental]
 
-This document describes Codex's experimental MCP server interface: a JSON-RPC API that runs over the Model Context Protocol (MCP) transport to control a local Codex engine.
+This document describes Ditfa's experimental MCP server interface: a JSON-RPC API that runs over the Model Context Protocol (MCP) transport to control a local Ditfa engine.
 
 - Status: experimental and subject to change without notice
-- Server binary: `codex mcp-server` (or `codex-mcp-server`)
+- Server binary: `ditfa mcp-server` (or `ditfa-mcp-server`)
 - Transport: standard MCP over stdio (JSON-RPC 2.0, line-delimited)
 
 ## Overview
 
-Codex exposes MCP-compatible methods to manage threads, turns, accounts, config, and approvals. The types live in `app-server-protocol/src/protocol/{common,v1,v2}.rs` and are consumed by the app server implementation in `app-server/`.
+Ditfa exposes MCP-compatible methods to manage threads, turns, accounts, config, and approvals. The types live in `app-server-protocol/src/protocol/{common,v1,v2}.rs` and are consumed by the app server implementation in `app-server/`.
 
 At a glance:
 
@@ -25,7 +25,7 @@ At a glance:
   - `fuzzyFileSearch`, `fuzzyFileSearch/sessionStart`, `fuzzyFileSearch/sessionUpdate`, `fuzzyFileSearch/sessionStop`
 - Notifications
   - v2 typed notifications such as `thread/started`, `turn/completed`, `account/login/completed`
-  - `codex/event/*` stream notifications for live agent events
+  - `ditfa/event/*` stream notifications for live agent events
   - `fuzzyFileSearch/sessionUpdated`, `fuzzyFileSearch/sessionCompleted`
 - Approvals (server -> client requests)
   - `applyPatchApproval`, `execCommandApproval`
@@ -37,16 +37,16 @@ See code for full type definitions and exact shapes: `app-server-protocol/src/pr
 Run Ditfa as an MCP server and connect an MCP client:
 
 ```bash
-codex mcp-server | your_mcp_client
+ditfa mcp-server | your_mcp_client
 ```
 
 For a simple inspection UI, you can also try:
 
 ```bash
-npx @modelcontextprotocol/inspector codex mcp-server
+npx @modelcontextprotocol/inspector ditfa mcp-server
 ```
 
-Use the separate `codex mcp` subcommand to manage configured MCP server launchers in `config.toml`.
+Use the separate `ditfa mcp` subcommand to manage configured MCP server launchers in `config.toml`.
 
 ## Threads and turns
 
@@ -58,7 +58,7 @@ For complete request and response shapes, see the app-server README and the prot
 
 ## Models
 
-Fetch the catalog of models available in the current Codex build with `model/list`. The request accepts optional pagination inputs:
+Fetch the catalog of models available in the current Ditfa build with `model/list`. The request accepts optional pagination inputs:
 
 - `limit` - number of models to return (defaults to a server-selected value)
 - `cursor` - opaque string from the previous response's `nextCursor`
@@ -96,14 +96,14 @@ When sending `turn/start` with `collaborationMode`, `settings.developer_instruct
 
 While a conversation runs, the server sends notifications:
 
-- `codex/event` with the serialized Codex event payload. The shape matches `core/src/protocol.rs`'s `Event` and `EventMsg` types. Some notifications include a `_meta.requestId` to correlate with the originating request.
+- `ditfa/event` with the serialized Ditfa event payload. The shape matches `core/src/protocol.rs`'s `Event` and `EventMsg` types. Some notifications include a `_meta.requestId` to correlate with the originating request.
 - `fuzzyFileSearch/sessionUpdated` and `fuzzyFileSearch/sessionCompleted` for the legacy fuzzy search flow.
 
 Clients should render events and, when present, surface approval requests (see next section).
 
 ## Tool responses
 
-The `codex` and `codex-reply` tools return standard MCP `CallToolResult` payloads. For compatibility with MCP clients that prefer `structuredContent`, Codex mirrors the content blocks inside `structuredContent` alongside the `threadId`.
+The `ditfa` and `ditfa-reply` tools return standard MCP `CallToolResult` payloads. For compatibility with MCP clients that prefer `structuredContent`, Ditfa mirrors the content blocks inside `structuredContent` alongside the `threadId`.
 
 Example:
 
@@ -119,7 +119,7 @@ Example:
 
 ## Approvals (server -> client)
 
-When Codex needs approval to apply changes or run commands, the server issues JSON-RPC requests to the client:
+When Ditfa needs approval to apply changes or run commands, the server issues JSON-RPC requests to the client:
 
 - `applyPatchApproval { conversationId, callId, fileChanges, reason?, grantRoot? }`
 - `execCommandApproval { conversationId, callId, approvalId?, command, cwd, reason? }`

@@ -41,7 +41,7 @@ async fn environment_info_returns_remote_environment_info() -> Result<()> {
 
     let ditfa_home = TempDir::new()?;
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -93,7 +93,7 @@ async fn environment_info_accepts_missing_cwd() -> Result<()> {
 
     let ditfa_home = TempDir::new()?;
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -134,7 +134,7 @@ async fn environment_info_accepts_missing_cwd() -> Result<()> {
 async fn environment_info_rejects_unknown_environment() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -171,7 +171,7 @@ async fn environment_info_reports_connection_failure() -> Result<()> {
     let exec_server_url = format!("ws://{}", listener.local_addr()?);
     let ditfa_home = TempDir::new()?;
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;

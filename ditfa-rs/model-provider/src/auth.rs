@@ -9,12 +9,12 @@ use ditfa_api::AuthProvider;
 use ditfa_api::SharedAuthProvider;
 use ditfa_login::AuthHeaders;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::auth::AgentIdentityAuth;
 use ditfa_login::auth::AgentIdentityAuthError;
 use ditfa_login::auth::AgentIdentityAuthPolicy;
 use ditfa_model_provider_info::ModelProviderInfo;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::protocol::SessionSource;
 use http::HeaderMap;
 use http::HeaderValue;
@@ -125,7 +125,7 @@ struct AuthManagerAuthProvider {
     auth_manager: Arc<AuthManager>,
     // Startup auth is only the account-scoped identity anchor. Request
     // headers always come from the current AuthManager snapshot below.
-    expected_auth: CodexAuth,
+    expected_auth: DitfaAuth,
 }
 
 impl AuthProvider for AuthManagerAuthProvider {
@@ -133,7 +133,7 @@ impl AuthProvider for AuthManagerAuthProvider {
         let Some(auth) = self
             .auth_manager
             .auth_cached()
-            .filter(CodexAuth::uses_codex_backend)
+            .filter(DitfaAuth::uses_ditfa_backend)
         else {
             return;
         };
@@ -177,11 +177,11 @@ pub(crate) fn auth_manager_for_provider(
 }
 
 pub(crate) fn resolve_provider_auth(
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     provider: &ModelProviderInfo,
 ) -> ditfa_protocol::error::Result<SharedAuthProvider> {
-    if matches!(auth, Some(CodexAuth::BedrockApiKey(_))) {
-        return Err(CodexErr::UnsupportedOperation(
+    if matches!(auth, Some(DitfaAuth::BedrockApiKey(_))) {
+        return Err(DitfaErr::UnsupportedOperation(
             BEDROCK_API_KEY_UNSUPPORTED_MESSAGE.to_string(),
         ));
     }
@@ -198,7 +198,7 @@ pub(crate) fn resolve_provider_auth(
 
 pub(crate) async fn resolve_provider_auth_for_scope(
     auth_manager: Option<Arc<AuthManager>>,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     provider: &ModelProviderInfo,
     scope: ProviderAuthScope,
 ) -> ditfa_protocol::error::Result<ResolvedProviderAuth> {
@@ -207,7 +207,7 @@ pub(crate) async fn resolve_provider_auth_for_scope(
         session_source,
         agent_identity_session_fallback,
     } = scope;
-    if let Some(CodexAuth::AgentIdentity(agent_identity_auth)) = auth {
+    if let Some(DitfaAuth::AgentIdentity(agent_identity_auth)) = auth {
         return Ok(ResolvedProviderAuth::for_agent_identity(
             agent_identity_auth.clone(),
         ));
@@ -258,10 +258,10 @@ pub(crate) async fn resolve_provider_auth_for_scope(
 
 fn should_bootstrap_chatgpt_agent_identity(
     agent_identity_policy: AgentIdentityAuthPolicy,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
 ) -> bool {
     agent_identity_policy == AgentIdentityAuthPolicy::ChatGptAuth
-        && matches!(auth, Some(CodexAuth::Chatgpt(_)))
+        && matches!(auth, Some(DitfaAuth::Chatgpt(_)))
 }
 
 fn bearer_auth_for_provider(
@@ -278,18 +278,18 @@ fn bearer_auth_for_provider(
     Ok(None)
 }
 
-/// Builds request-header auth for a first-party Codex auth snapshot.
-pub fn auth_provider_from_auth(auth: &CodexAuth) -> SharedAuthProvider {
+/// Builds request-header auth for a first-party Ditfa auth snapshot.
+pub fn auth_provider_from_auth(auth: &DitfaAuth) -> SharedAuthProvider {
     match auth {
-        CodexAuth::AgentIdentity(auth) => {
+        DitfaAuth::AgentIdentity(auth) => {
             Arc::new(AgentIdentityAuthProvider { auth: auth.clone() })
         }
-        CodexAuth::Headers(auth) => Arc::new(HeaderAuthProvider { auth: auth.clone() }),
-        CodexAuth::BedrockApiKey(_) => unreachable!("{BEDROCK_API_KEY_UNSUPPORTED_MESSAGE}"),
-        CodexAuth::ApiKey(_)
-        | CodexAuth::Chatgpt(_)
-        | CodexAuth::ChatgptAuthTokens(_)
-        | CodexAuth::PersonalAccessToken(_) => Arc::new(BearerAuthProvider {
+        DitfaAuth::Headers(auth) => Arc::new(HeaderAuthProvider { auth: auth.clone() }),
+        DitfaAuth::BedrockApiKey(_) => unreachable!("{BEDROCK_API_KEY_UNSUPPORTED_MESSAGE}"),
+        DitfaAuth::ApiKey(_)
+        | DitfaAuth::Chatgpt(_)
+        | DitfaAuth::ChatgptAuthTokens(_)
+        | DitfaAuth::PersonalAccessToken(_) => Arc::new(BearerAuthProvider {
             token: auth.get_token().ok(),
             account_id: auth.get_account_id(),
             is_fedramp_account: auth.is_fedramp_account(),
@@ -304,7 +304,7 @@ pub fn auth_provider_from_auth(auth: &CodexAuth) -> SharedAuthProvider {
 /// that state so a later account switch cannot reuse it.
 pub fn auth_provider_from_auth_manager(
     auth_manager: Arc<AuthManager>,
-    expected_auth: &CodexAuth,
+    expected_auth: &DitfaAuth,
 ) -> SharedAuthProvider {
     Arc::new(AuthManagerAuthProvider {
         auth_manager,
@@ -372,14 +372,14 @@ mod tests {
         }
     }
 
-    fn test_codex_home() -> PathBuf {
+    fn test_ditfa_home() -> PathBuf {
         let id = NEXT_DITFA_HOME_ID.fetch_add(1, Ordering::Relaxed);
         let path = std::env::temp_dir().join(format!(
-            "codex-model-provider-agent-identity-{pid}-{id}",
+            "ditfa-model-provider-agent-identity-{pid}-{id}",
             pid = std::process::id()
         ));
         let _ = std::fs::remove_dir_all(&path);
-        std::fs::create_dir_all(&path).expect("create temp codex home");
+        std::fs::create_dir_all(&path).expect("create temp ditfa home");
         path
     }
 
@@ -402,12 +402,12 @@ mod tests {
 
     async fn chatgpt_auth_manager(
         agent_identity_authapi_base_url: String,
-    ) -> (PathBuf, Arc<AuthManager>, CodexAuth) {
-        let ditfa_home = test_codex_home();
+    ) -> (PathBuf, Arc<AuthManager>, DitfaAuth) {
+        let ditfa_home = test_ditfa_home();
         write_chatgpt_auth_json(&ditfa_home);
         let auth_manager = AuthManager::shared(
             ditfa_home.clone(),
-            /*enable_codex_api_key_env*/ false,
+            /*enable_ditfa_api_key_env*/ false,
             AuthCredentialsStoreMode::File,
             /*forced_chatgpt_workspace_id*/ None,
             /*chatgpt_base_url*/ None,
@@ -455,7 +455,7 @@ mod tests {
             HeaderValue::from_static("Bearer external"),
         );
         expected.insert("x-external-auth", HeaderValue::from_static("enabled"));
-        let auth = CodexAuth::Headers(AuthHeaders::new(expected.clone()));
+        let auth = DitfaAuth::Headers(AuthHeaders::new(expected.clone()));
 
         let actual = auth_provider_from_auth(&auth).to_auth_headers();
 
@@ -465,13 +465,13 @@ mod tests {
     #[test]
     fn openai_provider_rejects_bedrock_api_key_auth() {
         let provider = ModelProviderInfo::create_openai_provider(/*base_url*/ None);
-        let auth = CodexAuth::BedrockApiKey(BedrockApiKeyAuth {
+        let auth = DitfaAuth::BedrockApiKey(BedrockApiKeyAuth {
             api_key: "bedrock-api-key-test".to_string(),
             region: "us-east-1".to_string(),
         });
 
         match resolve_provider_auth(Some(&auth), &provider) {
-            Err(CodexErr::UnsupportedOperation(message)) => {
+            Err(DitfaErr::UnsupportedOperation(message)) => {
                 assert_eq!(message, BEDROCK_API_KEY_UNSUPPORTED_MESSAGE);
             }
             Err(err) => panic!("unexpected auth error: {err:?}"),
@@ -481,7 +481,7 @@ mod tests {
 
     #[tokio::test]
     async fn auth_manager_provider_follows_refreshes_but_not_account_switches() {
-        let ditfa_home = test_codex_home();
+        let ditfa_home = test_ditfa_home();
         login_with_chatgpt_auth_tokens(
             &ditfa_home,
             "header.e30.first",
@@ -492,7 +492,7 @@ mod tests {
         let auth_manager = Arc::new(
             AuthManager::new(
                 ditfa_home.clone(),
-                /*enable_codex_api_key_env*/ false,
+                /*enable_ditfa_api_key_env*/ false,
                 AuthCredentialsStoreMode::Ephemeral,
                 /*forced_chatgpt_workspace_id*/ None,
                 /*chatgpt_base_url*/ None,
@@ -539,7 +539,7 @@ mod tests {
 
     #[tokio::test]
     async fn first_party_run_scope_uses_agent_assertion_and_exposes_telemetry() {
-        let auth = CodexAuth::AgentIdentity(
+        let auth = DitfaAuth::AgentIdentity(
             agent_identity_auth(/*chatgpt_account_is_fedramp*/ false).await,
         );
         let provider = ModelProviderInfo::create_openai_provider(/*base_url*/ None);
@@ -575,7 +575,7 @@ mod tests {
     #[tokio::test]
     async fn agent_identity_auth_provider_preserves_account_routing_headers() {
         let auth = agent_identity_auth(/*chatgpt_account_is_fedramp*/ true).await;
-        let provider = auth_provider_from_auth(&CodexAuth::AgentIdentity(auth));
+        let provider = auth_provider_from_auth(&DitfaAuth::AgentIdentity(auth));
 
         let headers = provider.to_auth_headers();
 
@@ -609,7 +609,7 @@ mod tests {
             Arc::clone(&registration_count),
         )
         .await;
-        let (_codex_home, auth_manager, auth) = chatgpt_auth_manager(server.uri()).await;
+        let (_ditfa_home, auth_manager, auth) = chatgpt_auth_manager(server.uri()).await;
         let provider = ModelProviderInfo::create_openai_provider(/*base_url*/ None);
         let fallback = AgentIdentitySessionFallback::default();
 
@@ -649,7 +649,7 @@ mod tests {
             Arc::clone(&registration_count),
         )
         .await;
-        let (_codex_home, auth_manager, auth) = chatgpt_auth_manager(server.uri()).await;
+        let (_ditfa_home, auth_manager, auth) = chatgpt_auth_manager(server.uri()).await;
         let provider = ModelProviderInfo::create_openai_provider(/*base_url*/ None);
         let fallback = AgentIdentitySessionFallback::default();
 
@@ -683,7 +683,7 @@ mod tests {
             Arc::clone(&registration_count),
         )
         .await;
-        let (_codex_home, auth_manager, auth) = chatgpt_auth_manager(server.uri()).await;
+        let (_ditfa_home, auth_manager, auth) = chatgpt_auth_manager(server.uri()).await;
         let provider = ModelProviderInfo::create_openai_provider(/*base_url*/ None);
         let first_fallback = AgentIdentitySessionFallback::default();
         let second_fallback = AgentIdentitySessionFallback::default();

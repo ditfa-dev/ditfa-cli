@@ -1,4 +1,4 @@
-//! Implements the `codex doctor` diagnostic report.
+//! Implements the `ditfa doctor` diagnostic report.
 //!
 //! Doctor is intentionally read-mostly: checks inspect the current installation,
 //! configuration, authentication, terminal, state paths, and bounded reachability
@@ -37,9 +37,9 @@ use ditfa_config::types::McpServerTransportConfig;
 use ditfa_core::config::Config;
 use ditfa_core::config::ConfigBuilder;
 use ditfa_core::config::ConfigOverrides;
-use ditfa_core::config::find_codex_home;
+use ditfa_core::config::find_ditfa_home;
 use ditfa_features::FEATURES;
-use ditfa_install_context::CodexPackageLayout;
+use ditfa_install_context::DitfaPackageLayout;
 use ditfa_install_context::InstallContext;
 use ditfa_install_context::InstallMethod;
 use ditfa_install_context::StandalonePlatform;
@@ -47,7 +47,7 @@ use ditfa_login::AuthDotJson;
 use ditfa_login::AuthManager;
 use ditfa_login::DITFA_ACCESS_TOKEN_ENV_VAR;
 use ditfa_login::DITFA_API_KEY_ENV_VAR;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::OPENAI_API_KEY_ENV_VAR;
 use ditfa_login::default_client::create_client_without_request_logging;
 use ditfa_login::default_client::default_headers;
@@ -143,7 +143,7 @@ const TMUX_OPTION_NAMES: &[&str] = &[
 const NARROW_TERMINAL_COLUMNS: u16 = 80;
 const NARROW_TERMINAL_ROWS: u16 = 24;
 
-/// Options for building a local Codex diagnostic report.
+/// Options for building a local Ditfa diagnostic report.
 ///
 /// The command always runs the full bounded diagnostic set. Human output includes
 /// detailed diagnostics by default; --summary keeps the terminal output compact.
@@ -301,7 +301,7 @@ impl DoctorCheck {
 
 /// Builds, renders, and exits according to the current doctor report.
 ///
-/// This is the CLI entry point for codex doctor. It does not repair issues;
+/// This is the CLI entry point for ditfa doctor. It does not repair issues;
 /// failures are represented in the report and cause a non-zero process exit so
 /// scripts can distinguish a clean environment from one that needs attention.
 pub async fn run_doctor(
@@ -351,7 +351,7 @@ async fn build_report(
     match &config_result {
         Ok(config) => {
             let auth_manager =
-                AuthManager::shared_from_config(config, /*enable_codex_api_key_env*/ true).await;
+                AuthManager::shared_from_config(config, /*enable_ditfa_api_key_env*/ true).await;
             let reachability_plan = provider_reachability_plan(config);
             let (
                 config_check,
@@ -452,7 +452,7 @@ async fn build_report(
                             "config could not be loaded",
                         )
                         .detail(err.to_string())
-                        .remediation("Fix the reported config error, then rerun codex doctor.")
+                        .remediation("Fix the reported config error, then rerun ditfa doctor.")
                     })
                 },
                 async { run_sync_check("network", progress.clone(), network_check) },
@@ -517,7 +517,7 @@ async fn load_config(
         .harness_overrides(overrides)
         .build()
         .await
-        .context("failed to load Codex config")
+        .context("failed to load Ditfa config")
 }
 
 fn config_overrides_from_interactive(
@@ -552,7 +552,7 @@ fn config_overrides_from_interactive(
     }
 }
 
-/// JSON support report emitted by `codex doctor --json`.
+/// JSON support report emitted by `ditfa doctor --json`.
 ///
 /// The report is keyed by check id so support tooling can fetch paths like
 /// `checks["terminal.metadata"]` without scanning arrays. Human rendering can
@@ -813,14 +813,14 @@ fn installation_check(show_details: bool) -> DoctorCheck {
     let mut remediation = None;
 
     if path_entries.len() > 1 {
-        details.push(format!("PATH codex entries: {}", path_entries.len()));
+        details.push(format!("PATH ditfa entries: {}", path_entries.len()));
     }
     if show_details || path_entries.len() > 1 {
         details.extend(
             path_entries
                 .iter()
                 .enumerate()
-                .map(|(index, path)| format!("PATH codex #{}: {path}", index + 1)),
+                .map(|(index, path)| format!("PATH ditfa #{}: {path}", index + 1)),
         );
     }
 
@@ -835,7 +835,7 @@ fn installation_check(show_details: bool) -> DoctorCheck {
             } => {
                 status = CheckStatus::Fail;
                 summary =
-                    "npm install -g @openai/codex would update a different install".to_string();
+                    "npm install -g @openai/ditfa would update a different install".to_string();
                 remediation = Some(format!(
                     "Fix PATH or npm prefix so the running package root ({}) matches the npm global package root ({}).",
                     running_package_root.display(),
@@ -851,7 +851,7 @@ fn installation_check(show_details: bool) -> DoctorCheck {
                 status = status.max(CheckStatus::Warning);
                 summary = "npm-managed launch is missing package-root provenance".to_string();
                 remediation = Some(
-                    "Reinstall or update Codex so the JS shim provides DITFA_MANAGED_PACKAGE_ROOT."
+                    "Reinstall or update Ditfa so the JS shim provides DITFA_MANAGED_PACKAGE_ROOT."
                         .to_string(),
                 );
             }
@@ -956,7 +956,7 @@ fn describe_install_context(context: &InstallContext) -> String {
 
 fn describe_method_with_package_layout(
     method: &str,
-    package_layout: Option<&CodexPackageLayout>,
+    package_layout: Option<&DitfaPackageLayout>,
 ) -> String {
     match package_layout {
         Some(package_layout) => {
@@ -1008,7 +1008,7 @@ fn npm_global_root_check() -> NpmRootCheck {
 }
 
 fn compare_npm_package_roots(running_package_root: &Path, npm_root: &Path) -> NpmRootCheck {
-    let npm_package_root = npm_root.join("@openai").join("codex");
+    let npm_package_root = npm_root.join("@openai").join("ditfa");
     let running = normalize_path_for_compare(running_package_root);
     let target = normalize_path_for_compare(&npm_package_root);
     if running == target {
@@ -1047,9 +1047,9 @@ fn display_list<T: AsRef<str>>(items: &[T]) -> String {
 
 fn ditfa_path_entries() -> Vec<String> {
     #[cfg(windows)]
-    let result = run_command("where", ["codex"]);
+    let result = run_command("where", ["ditfa"]);
     #[cfg(not(windows))]
-    let result = run_command("which", ["-a", "codex"]);
+    let result = run_command("which", ["-a", "ditfa"]);
 
     result
         .unwrap_or_default()
@@ -1245,7 +1245,7 @@ fn auth_check(config: &Config) -> DoctorCheck {
                 DoctorCheck::new("auth.credentials", "auth", status, summary).details(details);
             if status == CheckStatus::Fail {
                 check =
-                    check.remediation("Run codex login again or provide a supported auth env var.");
+                    check.remediation("Run ditfa login again or provide a supported auth env var.");
             }
             check
         }
@@ -1260,10 +1260,10 @@ fn auth_check(config: &Config) -> DoctorCheck {
             "auth.credentials",
             "auth",
             CheckStatus::Fail,
-            "no Codex credentials were found",
+            "no Ditfa credentials were found",
         )
         .details(details)
-        .remediation("Run codex login or provide an API key through a supported auth env var."),
+        .remediation("Run ditfa login or provide an API key through a supported auth env var."),
         Err(err) => DoctorCheck::new(
             "auth.credentials",
             "auth",
@@ -1271,7 +1271,7 @@ fn auth_check(config: &Config) -> DoctorCheck {
             "stored credentials could not be read",
         )
         .detail(err.to_string())
-        .remediation("Fix auth storage access or run codex login again."),
+        .remediation("Fix auth storage access or run ditfa login again."),
     }
 }
 
@@ -1673,7 +1673,7 @@ fn sandbox_check(config: &Config, arg0_paths: &Arg0DispatchPaths) -> DoctorCheck
     ));
     push_path_detail(
         &mut details,
-        "codex-linux-sandbox helper",
+        "ditfa-linux-sandbox helper",
         arg0_paths.ditfa_linux_sandbox_exe.as_deref(),
     );
     push_path_detail(
@@ -2481,7 +2481,7 @@ fn websocket_error_detail(err: &ApiError) -> String {
     }
 }
 
-fn auth_mode_name(auth: &CodexAuth) -> &'static str {
+fn auth_mode_name(auth: &DitfaAuth) -> &'static str {
     match auth.auth_mode() {
         AuthMode::ApiKey => "api_key",
         AuthMode::Chatgpt => "chatgpt",
@@ -2521,7 +2521,7 @@ async fn dns_address_family_details(host: &str, port: u16) -> Vec<String> {
 }
 
 fn fallback_state_check() -> DoctorCheck {
-    let ditfa_home = find_codex_home();
+    let ditfa_home = find_ditfa_home();
     match ditfa_home {
         Ok(path) => DoctorCheck::new(
             "state.paths",
@@ -3196,25 +3196,25 @@ mod tests {
 
     #[test]
     fn compare_npm_package_roots_detects_match() {
-        let running = PathBuf::from("/prefix/lib/node_modules/@openai/codex");
+        let running = PathBuf::from("/prefix/lib/node_modules/@openai/ditfa");
         let npm_root = PathBuf::from("/prefix/lib/node_modules");
         assert_eq!(
             compare_npm_package_roots(&running, &npm_root),
             NpmRootCheck::Match {
-                package_root: npm_root.join("@openai").join("codex")
+                package_root: npm_root.join("@openai").join("ditfa")
             }
         );
     }
 
     #[test]
     fn compare_npm_package_roots_detects_mismatch() {
-        let running = PathBuf::from("/old/lib/node_modules/@openai/codex");
+        let running = PathBuf::from("/old/lib/node_modules/@openai/ditfa");
         let npm_root = PathBuf::from("/new/lib/node_modules");
         assert_eq!(
             compare_npm_package_roots(&running, &npm_root),
             NpmRootCheck::Mismatch {
                 running_package_root: running,
-                npm_package_root: npm_root.join("@openai").join("codex"),
+                npm_package_root: npm_root.join("@openai").join("ditfa"),
             }
         );
     }
@@ -3247,7 +3247,7 @@ mod tests {
     #[test]
     fn config_overrides_from_interactive_preserves_global_options() {
         let interactive = TuiCli::parse_from([
-            "codex",
+            "ditfa",
             "--oss",
             "--local-provider",
             "ollama",
@@ -3263,9 +3263,9 @@ mod tests {
             "/var/tmp",
         ]);
         let arg0_paths = Arg0DispatchPaths {
-            ditfa_self_exe: Some(PathBuf::from("/bin/codex")),
-            ditfa_linux_sandbox_exe: Some(PathBuf::from("/bin/codex-linux-sandbox")),
-            main_execve_wrapper_exe: Some(PathBuf::from("/bin/codex-execve-wrapper")),
+            ditfa_self_exe: Some(PathBuf::from("/bin/ditfa")),
+            ditfa_linux_sandbox_exe: Some(PathBuf::from("/bin/ditfa-linux-sandbox")),
+            main_execve_wrapper_exe: Some(PathBuf::from("/bin/ditfa-execve-wrapper")),
         };
 
         let overrides = config_overrides_from_interactive(&interactive, &arg0_paths);
@@ -3522,7 +3522,7 @@ mod tests {
         let check = provider_specific_auth_check(
             /*requires_openai_auth*/ false,
             Some("PROVIDER_API_KEY"),
-            Some("Set PROVIDER_API_KEY before running Codex."),
+            Some("Set PROVIDER_API_KEY before running Ditfa."),
             Vec::new(),
             |_| false,
         )
@@ -3535,7 +3535,7 @@ mod tests {
         );
         assert_eq!(
             check.remediation,
-            Some("Set PROVIDER_API_KEY before running Codex.".to_string())
+            Some("Set PROVIDER_API_KEY before running Ditfa.".to_string())
         );
     }
 
@@ -3900,7 +3900,7 @@ mod tests {
     async fn mcp_check_fails_required_missing_stdio_command() {
         let required_server: McpServerConfig = toml::from_str(
             r#"
-                command = "definitely-missing-codex-doctor-mcp"
+                command = "definitely-missing-ditfa-doctor-mcp"
                 required = true
             "#,
         )
@@ -3916,7 +3916,7 @@ mod tests {
         );
         assert!(check.details.iter().any(|detail| {
             detail.contains(
-                "required: stdio command \"definitely-missing-codex-doctor-mcp\" is not resolvable",
+                "required: stdio command \"definitely-missing-ditfa-doctor-mcp\" is not resolvable",
             )
         }));
     }
@@ -3930,7 +3930,7 @@ mod tests {
         let cwd = toml::Value::String(cwd.to_string());
         let remote_server: McpServerConfig = toml::from_str(&format!(
             r#"
-                command = "definitely-missing-codex-doctor-mcp"
+                command = "definitely-missing-ditfa-doctor-mcp"
                 environment_id = "remote"
                 cwd = {cwd}
                 required = true

@@ -45,7 +45,7 @@ macro_rules! frames_for {
 }
 
 pub(crate) const FRAMES_DEFAULT: [&str; 36] = frames_for!("default");
-pub(crate) const FRAMES_CODEX: [&str; 36] = frames_for!("ditfa");
+pub(crate) const FRAMES_DITFA: [&str; 36] = frames_for!("ditfa");
 pub(crate) const FRAMES_OPENAI: [&str; 36] = frames_for!("openai");
 pub(crate) const FRAMES_BLOCKS: [&str; 36] = frames_for!("blocks");
 pub(crate) const FRAMES_DOTS: [&str; 36] = frames_for!("dots");
@@ -57,7 +57,7 @@ pub(crate) const FRAMES_SLUG: [&str; 36] = frames_for!("slug");
 
 pub(crate) const ALL_VARIANTS: &[&[&str]] = &[
     &FRAMES_DEFAULT,
-    &FRAMES_CODEX,
+    &FRAMES_DITFA,
     &FRAMES_OPENAI,
     &FRAMES_BLOCKS,
     &FRAMES_DOTS,

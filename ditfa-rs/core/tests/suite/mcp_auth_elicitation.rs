@@ -53,7 +53,7 @@ impl Respond for AuthFailureResponder {
                 }],
                 "isError": true,
                 "_meta": {
-                    "_codex_apps": {
+                    "_ditfa_apps": {
                         "connector_auth_failure": {
                             "is_auth_failure": true,
                             "auth_reason": "reauthentication_required",
@@ -167,7 +167,7 @@ default_tools_approval_mode = "auto"
         request.request,
         ElicitationRequest::Url {
             meta: Some(json!({
-                "_codex_apps": {
+                "_ditfa_apps": {
                     "connector_auth_failure": {
                         "is_auth_failure": true,
                         "connector_id": "calendar",

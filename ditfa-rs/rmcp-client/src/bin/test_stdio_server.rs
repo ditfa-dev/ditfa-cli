@@ -47,9 +47,9 @@ struct TestToolServer {
     supports_openai_form_elicitation: Arc<AtomicBool>,
 }
 
-const MEMO_URI: &str = "memo://codex/example-note";
+const MEMO_URI: &str = "memo://ditfa/example-note";
 const MEMO_CONTENT: &str = "This is a sample MCP resource served by the rmcp test server.";
-const SANDBOX_STATE_META_CAPABILITY: &str = "codex/sandbox-state-meta";
+const SANDBOX_STATE_META_CAPABILITY: &str = "ditfa/sandbox-state-meta";
 const SMALL_PNG_BASE64: &str = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==";
 const APP_ONLY_CWD_MARKER_FILE_ENV: &str = "MCP_TEST_APP_ONLY_CWD_MARKER_FILE";
 const DYNAMIC_SERVER_METADATA_ENV: &str = "MCP_TEST_DYNAMIC_SERVER_METADATA";
@@ -308,15 +308,15 @@ impl TestToolServer {
         tool
     }
 
-    /// Tool intended for manual testing of Codex TUI rendering for MCP image tool results.
+    /// Tool intended for manual testing of Ditfa TUI rendering for MCP image tool results.
     ///
     /// This exists to exercise edge cases where a `CallToolResult.content` includes image blocks
     /// that aren't the first item (or includes invalid image blocks before a valid image).
     ///
-    /// Manual testing approach (Codex TUI):
-    /// - Build this binary: `cargo build -p codex-rmcp-client --bin test_stdio_server`
+    /// Manual testing approach (Ditfa TUI):
+    /// - Build this binary: `cargo build -p ditfa-rmcp-client --bin test_stdio_server`
     /// - Register it:
-    ///   - `codex mcp add mcpimg -- /abs/path/to/test_stdio_server`
+    ///   - `ditfa mcp add mcpimg -- /abs/path/to/test_stdio_server`
     /// - Then in Ditfa TUI, ask it to call:
     ///   - `mcpimg.image_scenario({"scenario":"image_only"})`
     ///   - `mcpimg.image_scenario({"scenario":"image_only_original_detail"})`
@@ -383,11 +383,11 @@ impl TestToolServer {
 
     fn memo_template() -> ResourceTemplate {
         let raw = RawResourceTemplate {
-            uri_template: "memo://codex/{slug}".to_string(),
-            name: "codex-memo".to_string(),
-            title: Some("Codex Memo".to_string()),
+            uri_template: "memo://ditfa/{slug}".to_string(),
+            name: "ditfa-memo".to_string(),
+            title: Some("Ditfa Memo".to_string()),
             description: Some(
-                "Template for memo://codex/{slug} resources used in tests.".to_string(),
+                "Template for memo://ditfa/{slug} resources used in tests.".to_string(),
             ),
             mime_type: Some("text/plain".to_string()),
             icons: None,
@@ -444,7 +444,7 @@ fn sync_barrier_map() -> &'static tokio::sync::Mutex<HashMap<String, SyncBarrier
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "snake_case")]
-/// Scenarios for `image_scenario`, intended to exercise Codex TUI handling of MCP image outputs.
+/// Scenarios for `image_scenario`, intended to exercise Ditfa TUI handling of MCP image outputs.
 ///
 /// The key behavior under test is that the TUI should render an image output cell if *any*
 /// decodable image block exists in the tool result content, even if the first block is text or an
@@ -507,7 +507,7 @@ impl ServerHandler for TestToolServer {
         match dynamic_server_process_label() {
             Some(process_label) => server_info
                 .with_server_info(
-                    Implementation::new("codex-rmcp-test-server", env!("CARGO_PKG_VERSION"))
+                    Implementation::new("ditfa-rmcp-test-server", env!("CARGO_PKG_VERSION"))
                         .with_title(process_label.clone()),
                 )
                 .with_instructions(format!("Use the tools from {process_label}.")),
@@ -653,7 +653,7 @@ impl ServerHandler for TestToolServer {
             }
             "encrypted_output" => {
                 let mut meta = Meta::new();
-                meta.insert("codex/encryptedContent".to_string(), json!(true));
+                meta.insert("ditfa/encryptedContent".to_string(), json!(true));
                 let mut result = CallToolResult::success(vec![
                     rmcp::model::Content::text("Lookup completed"),
                     rmcp::model::Annotated::new(
@@ -749,7 +749,7 @@ impl TestToolServer {
             ImageScenario::ImageOnlyOriginalDetail => {
                 let mut meta = rmcp::model::Meta::new();
                 meta.insert(
-                    "codex/imageDetail".to_string(),
+                    "ditfa/imageDetail".to_string(),
                     serde_json::json!("original"),
                 );
                 content.push(rmcp::model::Annotated::new(

@@ -1,5 +1,5 @@
-use crate::events::CodexAcceptedLineFingerprintsEventParams;
-use crate::events::CodexAcceptedLineFingerprintsEventRequest;
+use crate::events::DitfaAcceptedLineFingerprintsEventParams;
+use crate::events::DitfaAcceptedLineFingerprintsEventRequest;
 use crate::events::TrackEventRequest;
 use crate::facts::AcceptedLineFingerprint;
 use ditfa_git_utils::canonicalize_git_remote_url;
@@ -108,9 +108,9 @@ pub(crate) fn accepted_line_fingerprint_event_requests(
     } = input;
 
     vec![TrackEventRequest::AcceptedLineFingerprints(Box::new(
-        CodexAcceptedLineFingerprintsEventRequest {
+        DitfaAcceptedLineFingerprintsEventRequest {
             event_type: "ditfa_accepted_line_fingerprints",
-            event_params: CodexAcceptedLineFingerprintsEventParams {
+            event_params: DitfaAcceptedLineFingerprintsEventParams {
                 event_type,
                 turn_id,
                 thread_id,

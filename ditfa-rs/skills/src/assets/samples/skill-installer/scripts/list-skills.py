@@ -28,15 +28,15 @@ class Args(argparse.Namespace):
 
 
 def _request(url: str) -> bytes:
-    return github_request(url, "codex-skill-list")
+    return github_request(url, "ditfa-skill-list")
 
 
-def _codex_home() -> str:
-    return os.environ.get("CODEX_HOME", os.path.expanduser("~/.codex"))
+def _ditfa_home() -> str:
+    return os.environ.get("DITFA_HOME", os.path.expanduser("~/.ditfa"))
 
 
 def _installed_skills() -> set[str]:
-    root = os.path.join(_codex_home(), "skills")
+    root = os.path.join(_ditfa_home(), "skills")
     if not os.path.isdir(root):
         return set()
     entries = set()

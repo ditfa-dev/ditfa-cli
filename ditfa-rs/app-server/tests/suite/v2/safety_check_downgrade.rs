@@ -2,7 +2,7 @@ use anyhow::Result;
 use app_test_support::MockResponsesConfig;
 use app_test_support::TestAppServer;
 use ditfa_app_server_protocol::ClientRequest;
-use ditfa_app_server_protocol::CodexErrorInfo;
+use ditfa_app_server_protocol::DitfaErrorInfo;
 use ditfa_app_server_protocol::ErrorNotification;
 use ditfa_app_server_protocol::ItemCompletedNotification;
 use ditfa_app_server_protocol::ItemStartedNotification;
@@ -50,7 +50,7 @@ async fn openai_model_header_mismatch_emits_model_rerouted_notification_v2() -> 
     create_config_toml(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let ThreadStartResponse { thread, .. } = mcp
@@ -108,7 +108,7 @@ async fn cyber_policy_response_emits_typed_error_notification_v2() -> Result<()>
     create_config_toml(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let ThreadStartResponse { thread, .. } = mcp
@@ -138,7 +138,7 @@ async fn cyber_policy_response_emits_typed_error_notification_v2() -> Result<()>
         ErrorNotification {
             error: ditfa_app_server_protocol::TurnError {
                 message: CYBER_POLICY_MESSAGE.to_string(),
-                ditfa_error_info: Some(CodexErrorInfo::CyberPolicy),
+                ditfa_error_info: Some(DitfaErrorInfo::CyberPolicy),
                 additional_details: None,
             },
             will_retry: false,
@@ -176,7 +176,7 @@ async fn response_model_field_mismatch_emits_model_rerouted_notification_v2_when
     create_config_toml(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let ThreadStartResponse { thread, .. } = mcp
@@ -236,7 +236,7 @@ async fn model_verification_emits_typed_notification_and_warning_v2() -> Result<
     create_config_toml(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let ThreadStartResponse { thread, .. } = mcp
@@ -301,7 +301,7 @@ async fn turn_moderation_metadata_emits_typed_notification_v2() -> Result<()> {
     create_config_toml(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let ThreadStartResponse { thread, .. } = mcp
@@ -450,7 +450,7 @@ async fn collect_cyber_policy_error_and_validate_no_reroute(
                     .params
                     .ok_or_else(|| anyhow::anyhow!("error notifications must include params"))?;
                 let payload: ErrorNotification = serde_json::from_value(params)?;
-                if payload.error.ditfa_error_info == Some(CodexErrorInfo::CyberPolicy) {
+                if payload.error.ditfa_error_info == Some(DitfaErrorInfo::CyberPolicy) {
                     error = Some(payload);
                 }
             }

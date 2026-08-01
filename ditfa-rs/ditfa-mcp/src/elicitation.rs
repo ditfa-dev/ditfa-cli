@@ -1,8 +1,8 @@
 //! MCP elicitation request tracking and policy handling.
 //!
-//! RMCP clients call into this module when a server asks Codex to elicit data
+//! RMCP clients call into this module when a server asks Ditfa to elicit data
 //! from the user. It decides whether the request can be automatically accepted,
-//! must be declined by policy, or should be surfaced as a Codex protocol event
+//! must be declined by policy, or should be surfaced as a Ditfa protocol event
 //! and later resolved through the stored responder.
 
 use std::collections::HashMap;
@@ -243,7 +243,7 @@ impl ElicitationRequestManager {
                 };
 
                 let public_request_id = format!(
-                    "codex-mcp-elicitation-{}",
+                    "ditfa-mcp-elicitation-{}",
                     NEXT_ELICITATION_REQUEST_ID.fetch_add(1, Ordering::Relaxed)
                 );
                 let routed_request_id = RequestId::String(public_request_id.clone().into());

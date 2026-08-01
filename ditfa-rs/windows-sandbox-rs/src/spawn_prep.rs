@@ -19,7 +19,7 @@ use crate::identity::require_logon_sandbox_creds;
 use crate::logging::log_start;
 use crate::path_normalization::canonicalize_path;
 use crate::resolved_permissions::ResolvedWindowsSandboxPermissions;
-use crate::sandbox_utils::ensure_codex_home_exists;
+use crate::sandbox_utils::ensure_ditfa_home_exists;
 use crate::sandbox_utils::inject_git_safe_directory;
 use crate::setup::effective_write_roots_for_permissions;
 use crate::token::LocalSid;
@@ -29,7 +29,7 @@ use crate::token::get_current_token_for_restriction;
 use crate::token::get_logon_sid_bytes;
 use crate::workspace_acl::is_command_cwd_root;
 use crate::workspace_acl::protect_workspace_agents_dir;
-use crate::workspace_acl::protect_workspace_codex_dir;
+use crate::workspace_acl::protect_workspace_ditfa_dir;
 use anyhow::Context;
 use anyhow::Result;
 use ditfa_protocol::models::PermissionProfile;
@@ -104,7 +104,7 @@ fn prepare_spawn_context_common(
         inject_git_safe_directory(env_map, cwd);
     }
 
-    ensure_codex_home_exists(ditfa_home)?;
+    ensure_ditfa_home_exists(ditfa_home)?;
     let sandbox_base = ditfa_home.join(".sandbox");
     std::fs::create_dir_all(&sandbox_base)?;
     let logs_base_dir = Some(sandbox_base);
@@ -337,7 +337,7 @@ pub(crate) fn apply_legacy_session_acl_rules(
         {
             let canonical_cwd = canonicalize_path(current_dir);
             if is_command_cwd_root(&workspace_sid.root, &canonical_cwd) {
-                let _ = protect_workspace_codex_dir(current_dir, workspace_sid.sid.as_ptr());
+                let _ = protect_workspace_ditfa_dir(current_dir, workspace_sid.sid.as_ptr());
                 let _ = protect_workspace_agents_dir(current_dir, workspace_sid.sid.as_ptr());
             }
         }
@@ -367,7 +367,7 @@ pub(crate) fn prepare_elevated_spawn_context_for_permissions(
 
     // Use a temp-based log dir that the sandbox user can write.
     let sandbox_base = ditfa_home.join(".sandbox");
-    ensure_codex_home_exists(&sandbox_base)?;
+    ensure_ditfa_home_exists(&sandbox_base)?;
     let logs_base_dir = Some(sandbox_base.clone());
     log_start(command, logs_base_dir.as_deref());
 
@@ -571,10 +571,10 @@ mod tests {
     #[test]
     fn legacy_session_capability_roots_use_runtime_workspace_roots_for_workspace_root() {
         let tmp = TempDir::new().expect("tempdir");
-        let ditfa_home = tmp.path().join("codex-home");
+        let ditfa_home = tmp.path().join("ditfa-home");
         let workspace_root = tmp.path().join("workspace");
         let command_cwd = workspace_root.join("subdir");
-        std::fs::create_dir_all(&ditfa_home).expect("create codex home");
+        std::fs::create_dir_all(&ditfa_home).expect("create ditfa home");
         std::fs::create_dir_all(&command_cwd).expect("create command cwd");
 
         let permission_profile = workspace_profile(
@@ -607,11 +607,11 @@ mod tests {
     #[test]
     fn root_capability_sids_only_include_active_roots() {
         let temp = TempDir::new().expect("tempdir");
-        let ditfa_home = temp.path().join("codex-home");
+        let ditfa_home = temp.path().join("ditfa-home");
         let workspace = temp.path().join("workspace");
         let active_root = temp.path().join("active-root");
         let stale_root = temp.path().join("stale-root");
-        std::fs::create_dir_all(&ditfa_home).expect("create codex home");
+        std::fs::create_dir_all(&ditfa_home).expect("create ditfa home");
         std::fs::create_dir_all(&workspace).expect("create workspace");
         std::fs::create_dir_all(&active_root).expect("create active root");
         std::fs::create_dir_all(&stale_root).expect("create stale root");
@@ -644,12 +644,12 @@ mod tests {
     #[test]
     fn legacy_deny_path_includes_nested_active_root_sid() {
         let temp = TempDir::new().expect("tempdir");
-        let ditfa_home = temp.path().join("codex-home");
+        let ditfa_home = temp.path().join("ditfa-home");
         let workspace = temp.path().join("workspace");
         let protected_dir = workspace.join(".ditfa");
         let nested_root = protected_dir.join("nested-root");
         let unrelated_root = temp.path().join("unrelated-root");
-        std::fs::create_dir_all(&ditfa_home).expect("create codex home");
+        std::fs::create_dir_all(&ditfa_home).expect("create ditfa home");
         std::fs::create_dir_all(&workspace).expect("create workspace");
         std::fs::create_dir_all(&nested_root).expect("create nested root");
         std::fs::create_dir_all(&unrelated_root).expect("create unrelated root");
@@ -680,18 +680,18 @@ mod tests {
     #[test]
     fn legacy_capability_roots_use_effective_write_roots() {
         let temp = TempDir::new().expect("tempdir");
-        let ditfa_home = temp.path().join("codex-home");
+        let ditfa_home = temp.path().join("ditfa-home");
         let workspace = temp.path().join("workspace");
         let active_root = temp.path().join("active-root");
         let sandbox_root = ditfa_home.join(".sandbox");
-        std::fs::create_dir_all(&ditfa_home).expect("create codex home");
+        std::fs::create_dir_all(&ditfa_home).expect("create ditfa home");
         std::fs::create_dir_all(&workspace).expect("create workspace");
         std::fs::create_dir_all(&active_root).expect("create active root");
         std::fs::create_dir_all(&sandbox_root).expect("create sandbox root");
 
         let writable_roots = vec![
             AbsolutePathBuf::try_from(active_root.as_path()).expect("active root"),
-            AbsolutePathBuf::try_from(ditfa_home.as_path()).expect("codex home"),
+            AbsolutePathBuf::try_from(ditfa_home.as_path()).expect("ditfa home"),
             AbsolutePathBuf::try_from(sandbox_root.as_path()).expect("sandbox root"),
         ];
         let permission_profile = workspace_profile(
@@ -713,7 +713,7 @@ mod tests {
 
         assert!(roots.contains(&dunce::canonicalize(&workspace).expect("workspace")));
         assert!(roots.contains(&dunce::canonicalize(&active_root).expect("active root")));
-        assert!(!roots.contains(&dunce::canonicalize(&ditfa_home).expect("codex home")));
+        assert!(!roots.contains(&dunce::canonicalize(&ditfa_home).expect("ditfa home")));
         assert!(!roots.contains(&dunce::canonicalize(&sandbox_root).expect("sandbox root")));
     }
 }

@@ -33,14 +33,14 @@
           "type": "string"
         },
         {
-          "description": "Programmatic Codex auth backed by a registered Agent Identity.",
+          "description": "Programmatic Ditfa auth backed by a registered Agent Identity.",
           "enum": [
             "agentIdentity"
           ],
           "type": "string"
         },
         {
-          "description": "Programmatic Codex auth backed by a personal access token.",
+          "description": "Programmatic Ditfa auth backed by a personal access token.",
           "enum": [
             "personalAccessToken"
           ],

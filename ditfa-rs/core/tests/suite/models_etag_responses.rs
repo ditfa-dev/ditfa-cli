@@ -1,12 +1,12 @@
 #![cfg(not(target_os = "windows"))]
 
-use core_test_support::test_codex::local_selections;
+use core_test_support::test_ditfa::local_selections;
 use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Result;
 use ditfa_features::Feature;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_protocol::models::PermissionProfile;
 use ditfa_protocol::openai_models::ModelsResponse;
 use ditfa_protocol::protocol::AskForApproval;
@@ -22,8 +22,8 @@ use core_test_support::responses::ev_shell_command_call;
 use core_test_support::responses::sse;
 use core_test_support::responses::sse_response;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event_with_timeout;
 use pretty_assertions::assert_eq;
 use wiremock::MockServer;
@@ -38,7 +38,7 @@ async fn refresh_models_on_models_etag_mismatch_and_avoid_duplicate_models_fetch
 
     let server = MockServer::start().await;
 
-    // 1) On spawn, Codex fetches /models and stores the ETag.
+    // 1) On spawn, Ditfa fetches /models and stores the ETag.
     let spawn_models_mock = responses::mount_models_once_with_etag(
         &server,
         ModelsResponse { models: Vec::new() },
@@ -46,8 +46,8 @@ async fn refresh_models_on_models_etag_mismatch_and_avoid_duplicate_models_fetch
     )
     .await;
 
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
-    let mut builder = test_codex()
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
+    let mut builder = test_ditfa()
         .with_auth(auth)
         .with_model("gpt-5.2")
         .with_config(|config| {
@@ -61,7 +61,7 @@ async fn refresh_models_on_models_etag_mismatch_and_avoid_duplicate_models_fetch
         });
 
     let test = builder.build(&server).await?;
-    let codex = Arc::clone(&test.ditfa);
+    let ditfa = Arc::clone(&test.ditfa);
     let cwd = Arc::clone(&test.cwd);
     let session_model = test.session_configured.model.clone();
     let cwd_path = cwd.abs();
@@ -71,7 +71,7 @@ async fn refresh_models_on_models_etag_mismatch_and_avoid_duplicate_models_fetch
     assert_eq!(spawn_models_mock.requests().len(), 1);
     assert_eq!(spawn_models_mock.single_request_path(), "/v1/models");
 
-    // 2) If the server sends a different X-Models-Etag on /responses, Codex refreshes /models.
+    // 2) If the server sends a different X-Models-Etag on /responses, Ditfa refreshes /models.
     let refresh_models_mock = responses::mount_models_once_with_etag(
         &server,
         ModelsResponse { models: Vec::new() },
@@ -92,7 +92,7 @@ async fn refresh_models_on_models_etag_mismatch_and_avoid_duplicate_models_fetch
     )
     .await;
 
-    // Second /responses request (tool output) includes the same X-Models-Etag; Codex should not
+    // Second /responses request (tool output) includes the same X-Models-Etag; Ditfa should not
     // refetch /models again after it has already refreshed the catalog.
     let completion_response_body = sse(vec![
         ev_response_created("resp-2"),
@@ -105,7 +105,7 @@ async fn refresh_models_on_models_etag_mismatch_and_avoid_duplicate_models_fetch
     )
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "please run a tool".into(),
@@ -133,7 +133,7 @@ async fn refresh_models_on_models_etag_mismatch_and_avoid_duplicate_models_fetch
         .await?;
 
     let _ = wait_for_event_with_timeout(
-        &codex,
+        &ditfa,
         |ev| matches!(ev, EventMsg::TurnComplete(_)),
         Duration::from_secs(30),
     )
@@ -147,7 +147,7 @@ async fn refresh_models_on_models_etag_mismatch_and_avoid_duplicate_models_fetch
         .into_iter()
         .next()
         .expect("one request");
-    // Ensure Codex includes client_version on refresh. (This is a stable signal that we're using the /models client.)
+    // Ensure Ditfa includes client_version on refresh. (This is a stable signal that we're using the /models client.)
     assert!(
         refresh_req
             .url

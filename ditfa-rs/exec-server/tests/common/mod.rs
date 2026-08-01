@@ -18,14 +18,14 @@ use ctor::ctor;
 pub(crate) mod exec_server;
 
 pub(crate) const DELAYED_OUTPUT_AFTER_EXIT_PARENT_ARG: &str =
-    "--codex-test-delayed-output-after-exit-parent";
+    "--ditfa-test-delayed-output-after-exit-parent";
 
 const DITFA_WINDOWS_SANDBOX_ARG1: &str = "--run-as-windows-sandbox";
-const DELAYED_OUTPUT_AFTER_EXIT_CHILD_ARG: &str = "--codex-test-delayed-output-after-exit-child";
+const DELAYED_OUTPUT_AFTER_EXIT_CHILD_ARG: &str = "--ditfa-test-delayed-output-after-exit-child";
 
 #[ctor]
 pub static TEST_BINARY_DISPATCH_GUARD: Option<TestBinaryDispatchGuard> = {
-    let guard = configure_test_binary_dispatch("codex-exec-server-tests", |exe_name, argv1| {
+    let guard = configure_test_binary_dispatch("ditfa-exec-server-tests", |exe_name, argv1| {
         if argv1 == Some(DITFA_ARG0_EXEC_HELPER_ARG1) {
             return TestBinaryDispatchMode::DispatchArg0Only;
         }

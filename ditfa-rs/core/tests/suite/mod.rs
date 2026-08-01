@@ -10,12 +10,12 @@ use ditfa_test_binary_support::configure_test_binary_dispatch;
 use ctor::ctor;
 
 // This code runs before any other tests are run.
-// It allows the test binary to behave like codex and dispatch to apply_patch and codex-linux-sandbox
+// It allows the test binary to behave like ditfa and dispatch to apply_patch and ditfa-linux-sandbox
 // based on the arg0.
 // NOTE: this doesn't work on ARM
 #[ctor]
 pub static DITFA_ALIASES_TEMP_DIR: Option<TestBinaryDispatchGuard> = {
-    configure_test_binary_dispatch("codex-core-tests", |exe_name, argv1| {
+    configure_test_binary_dispatch("ditfa-core-tests", |exe_name, argv1| {
         if argv1 == Some(DITFA_CORE_APPLY_PATCH_ARG1) {
             return TestBinaryDispatchMode::DispatchArg0Only;
         }

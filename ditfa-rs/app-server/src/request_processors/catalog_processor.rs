@@ -228,10 +228,10 @@ impl CatalogRequestProcessor {
             .map_err(|err| internal_error(format!("failed to reload config: {err}")))
     }
 
-    async fn workspace_codex_plugins_enabled(
+    async fn workspace_ditfa_plugins_enabled(
         &self,
         config: &Config,
-        auth: Option<&CodexAuth>,
+        auth: Option<&DitfaAuth>,
     ) -> bool {
         match workspace_settings::ditfa_plugins_enabled_for_workspace(
             config,
@@ -243,7 +243,7 @@ impl CatalogRequestProcessor {
             Ok(enabled) => enabled,
             Err(err) => {
                 warn!(
-                    "failed to fetch workspace Codex plugins setting; allowing Codex plugins: {err:#}"
+                    "failed to fetch workspace Ditfa plugins setting; allowing Ditfa plugins: {err:#}"
                 );
                 true
             }
@@ -344,8 +344,8 @@ impl CatalogRequestProcessor {
             None => self.load_latest_config(/*fallback_cwd*/ None).await?,
         };
         let auth = self.auth_manager.auth().await;
-        let workspace_codex_plugins_enabled = self
-            .workspace_codex_plugins_enabled(&config, auth.as_ref())
+        let workspace_ditfa_plugins_enabled = self
+            .workspace_ditfa_plugins_enabled(&config, auth.as_ref())
             .await;
 
         let data = FEATURES
@@ -382,7 +382,7 @@ impl CatalogRequestProcessor {
                     description,
                     announcement,
                     enabled: config.features.enabled(spec.id)
-                        && (workspace_codex_plugins_enabled
+                        && (workspace_ditfa_plugins_enabled
                             || !matches!(spec.id, Feature::Apps | Feature::Plugins)),
                     default_enabled: spec.default_enabled,
                 }
@@ -499,8 +499,8 @@ impl CatalogRequestProcessor {
 
         let config = self.load_latest_config(/*fallback_cwd*/ None).await?;
         let auth = self.auth_manager.auth().await;
-        let workspace_codex_plugins_enabled = self
-            .workspace_codex_plugins_enabled(&config, auth.as_ref())
+        let workspace_ditfa_plugins_enabled = self
+            .workspace_ditfa_plugins_enabled(&config, auth.as_ref())
             .await;
         let skills_service = self.thread_manager.skills_service();
         let plugins_manager = self.thread_manager.plugins_manager();
@@ -533,7 +533,7 @@ impl CatalogRequestProcessor {
                             );
                         }
                     };
-                    let effective_skill_roots = if workspace_codex_plugins_enabled {
+                    let effective_skill_roots = if workspace_ditfa_plugins_enabled {
                         let plugins_input = config.plugins_config_input();
                         plugins_manager
                             .effective_skill_roots_for_layer_stack(
@@ -632,11 +632,11 @@ impl CatalogRequestProcessor {
                     continue;
                 }
             };
-            let workspace_codex_plugins_enabled = self
-                .workspace_codex_plugins_enabled(&config, auth.as_ref())
+            let workspace_ditfa_plugins_enabled = self
+                .workspace_ditfa_plugins_enabled(&config, auth.as_ref())
                 .await;
             let plugins_enabled =
-                config.features.enabled(Feature::Plugins) && workspace_codex_plugins_enabled;
+                config.features.enabled(Feature::Plugins) && workspace_ditfa_plugins_enabled;
             let plugin_hooks = if plugins_enabled {
                 let plugins_input = config.plugins_config_input();
                 let plugin_outcome = plugins_manager.plugins_for_config(&plugins_input).await;
@@ -648,7 +648,7 @@ impl CatalogRequestProcessor {
                 ditfa_core_plugins::PluginHookLoadOutcome::default()
             };
             let hooks = ditfa_hooks::list_hooks(ditfa_hooks::HooksConfig {
-                feature_enabled: config.features.enabled(Feature::CodexHooks),
+                feature_enabled: config.features.enabled(Feature::DitfaHooks),
                 bypass_hook_trust: config.bypass_hook_trust,
                 config_layer_stack: Some(config.config_layer_stack),
                 plugin_hook_sources: plugin_hooks.hook_sources,

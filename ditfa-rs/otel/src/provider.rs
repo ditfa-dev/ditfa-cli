@@ -528,7 +528,7 @@ mod tests {
     fn test_otel_settings() -> OtelSettings {
         OtelSettings {
             environment: "test".to_string(),
-            service_name: "codex-test".to_string(),
+            service_name: "ditfa-test".to_string(),
             service_version: "0.0.0".to_string(),
             ditfa_home: PathBuf::from("."),
             exporter: OtelExporter::None,

@@ -22,7 +22,7 @@ async fn turn_start_failure_is_shown_without_exiting() -> Result<()> {
     }
 
     let control = app
-        .handle_event(&mut tui, &mut app_server, AppEvent::CodexOp(op))
+        .handle_event(&mut tui, &mut app_server, AppEvent::DitfaOp(op))
         .await?;
 
     assert!(matches!(control, AppRunControl::Continue));

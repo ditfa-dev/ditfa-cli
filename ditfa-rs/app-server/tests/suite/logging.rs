@@ -25,7 +25,7 @@ const READ_TIMEOUT: Duration = Duration::from_secs(10);
 #[test]
 fn standalone_app_server_emits_json_info_events() -> Result<()> {
     let ditfa_home = TempDir::new()?;
-    let event = app_server_json_shutdown_event("codex-app-server", &[], ditfa_home.path())?;
+    let event = app_server_json_shutdown_event("ditfa-app-server", &[], ditfa_home.path())?;
 
     assert_eq!(
         event,
@@ -61,7 +61,7 @@ async fn app_server_emits_structured_tool_call_timing_event() -> Result<()> {
         .write(ditfa_home.path())?;
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .with_json_logging("warn,ditfa_core::tools::parallel=info")
         .build_initialized()
         .await?;
@@ -95,7 +95,7 @@ async fn app_server_emits_structured_tool_call_timing_event() -> Result<()> {
     .await??;
 
     let mut tool_call = app_server
-        .wait_for_json_log_event("codex.tool_call")
+        .wait_for_json_log_event("ditfa.tool_call")
         .await?;
     let tool_call_object = tool_call
         .as_object_mut()
@@ -139,7 +139,7 @@ async fn app_server_emits_structured_tool_call_timing_event() -> Result<()> {
             "level": "INFO",
             "fields": {
                 "message": "tool call completed",
-                "event.name": "codex.tool_call",
+                "event.name": "ditfa.tool_call",
                 "conversation.id": thread.id,
                 "turn_id": turn.id,
                 "tool_name": "exec_command",

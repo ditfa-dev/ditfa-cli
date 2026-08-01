@@ -14,14 +14,14 @@ use dirs::home_dir;
 use owo_colors::OwoColorize;
 
 #[derive(Debug, Parser)]
-#[command(name = "codex-state-logs")]
-#[command(about = "Tail Codex logs from the dedicated logs SQLite DB with simple filters")]
+#[command(name = "ditfa-state-logs")]
+#[command(about = "Tail Ditfa logs from the dedicated logs SQLite DB with simple filters")]
 struct Args {
     /// Path to DITFA_HOME. Defaults to $DITFA_HOME or ~/.ditfa.
     #[arg(long, env = "DITFA_HOME")]
     ditfa_home: Option<PathBuf>,
 
-    /// Direct path to the logs SQLite database. Overrides --codex-home.
+    /// Direct path to the logs SQLite database. Overrides --ditfa-home.
     #[arg(long)]
     db: Option<PathBuf>,
 
@@ -137,12 +137,12 @@ fn resolve_db_path(args: &Args) -> anyhow::Result<PathBuf> {
         return Ok(db.clone());
     }
 
-    let ditfa_home = args.ditfa_home.clone().unwrap_or_else(default_codex_home);
+    let ditfa_home = args.ditfa_home.clone().unwrap_or_else(default_ditfa_home);
     let sqlite_home = AbsolutePathBuf::relative_to_current_dir(ditfa_home)?;
     Ok(SqliteConfig::from_sqlite_home(sqlite_home).logs_db_path())
 }
 
-fn default_codex_home() -> PathBuf {
+fn default_ditfa_home() -> PathBuf {
     if let Some(home) = home_dir() {
         return home.join(".ditfa");
     }
@@ -404,14 +404,14 @@ mod tests {
 
     #[test]
     fn log_level_rejects_aliases_and_unknown_values() {
-        assert!(Args::try_parse_from(["codex-state-logs", "--level", "warning"]).is_err());
-        assert!(Args::try_parse_from(["codex-state-logs", "--level", "err"]).is_err());
-        assert!(Args::try_parse_from(["codex-state-logs", "--level", "warn,error"]).is_err());
+        assert!(Args::try_parse_from(["ditfa-state-logs", "--level", "warning"]).is_err());
+        assert!(Args::try_parse_from(["ditfa-state-logs", "--level", "err"]).is_err());
+        assert!(Args::try_parse_from(["ditfa-state-logs", "--level", "warn,error"]).is_err());
     }
 
     #[test]
     fn log_level_accepts_canonical_values_case_insensitively() {
-        let args = Args::try_parse_from(["codex-state-logs", "--level", "WARN"])
+        let args = Args::try_parse_from(["ditfa-state-logs", "--level", "WARN"])
             .expect("parse uppercase log level");
 
         assert_eq!(args.level, Some(LogLevelThreshold::Warn));

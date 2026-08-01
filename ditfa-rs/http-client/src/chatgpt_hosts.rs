@@ -1,4 +1,4 @@
-/// Returns whether `host` is one of the ChatGPT hosts Codex is allowed to treat
+/// Returns whether `host` is one of the ChatGPT hosts Ditfa is allowed to treat
 /// as first-party ChatGPT HTTP traffic.
 pub fn is_allowed_chatgpt_host(host: &str) -> bool {
     const EXACT_HOSTS: &[&str] = &["localhost", "chat.openai.com", "localhost:3000"];

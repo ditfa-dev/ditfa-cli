@@ -6,7 +6,7 @@ use crate::payload::RawPayloadId;
 use super::AgentPath;
 use super::AgentThreadId;
 use super::CodeCellId;
-use super::CodexTurnId;
+use super::DitfaTurnId;
 use super::CompactionId;
 use super::ConversationItemId;
 use super::EdgeId;
@@ -27,7 +27,7 @@ pub struct ConversationItem {
     pub item_id: ConversationItemId,
     pub thread_id: AgentThreadId,
     /// Runtime activation that first introduced this item locally, when known.
-    pub ditfa_turn_id: Option<CodexTurnId>,
+    pub ditfa_turn_id: Option<DitfaTurnId>,
     pub first_seen_at_unix_ms: i64,
     pub role: ConversationRole,
     /// Ditfa channel for assistant/tool content, when the item is channel-specific.
@@ -161,7 +161,7 @@ pub enum ProducerRef {
 pub struct InferenceCall {
     pub inference_call_id: InferenceCallId,
     pub thread_id: AgentThreadId,
-    pub ditfa_turn_id: CodexTurnId,
+    pub ditfa_turn_id: DitfaTurnId,
     pub execution: ExecutionWindow,
     pub model: String,
     pub provider_name: String,

@@ -759,9 +759,9 @@ interrupt_message = false
     #[test]
     fn debug_config_output_lists_all_layers_including_disabled() {
         let system_file = if cfg!(windows) {
-            absolute_path("C:\\etc\\codex\\config.toml")
+            absolute_path("C:\\etc\\ditfa\\config.toml")
         } else {
-            absolute_path("/etc/codex/config.toml")
+            absolute_path("/etc/ditfa/config.toml")
         };
         let project_folder = if cfg!(windows) {
             absolute_path("C:\\repo\\.ditfa")
@@ -776,7 +776,7 @@ interrupt_message = false
             ),
             ConfigLayerEntry::new_disabled(
                 ConfigLayerSource::Project {
-                    dot_codex_folder: project_folder,
+                    dot_ditfa_folder: project_folder,
                 },
                 empty_toml_table(),
                 "project is untrusted",
@@ -800,9 +800,9 @@ interrupt_message = false
     #[test]
     fn debug_config_output_lists_requirement_sources() {
         let requirements_file = if cfg!(windows) {
-            absolute_path("C:\\ProgramData\\OpenAI\\Codex\\requirements.toml")
+            absolute_path("C:\\ProgramData\\OpenAI\\Ditfa\\requirements.toml")
         } else {
-            absolute_path("/etc/codex/requirements.toml")
+            absolute_path("/etc/ditfa/requirements.toml")
         };
         let denied_path = if cfg!(windows) {
             absolute_path("C:\\Users\\alice\\.gitconfig")
@@ -875,7 +875,7 @@ interrupt_message = false
                     "docs".to_string(),
                     McpServerRequirement::Identity {
                         identity: McpServerIdentity::Command {
-                            command: "codex-mcp".to_string(),
+                            command: "ditfa-mcp".to_string(),
                         },
                     },
                 )]),
@@ -965,7 +965,7 @@ interrupt_message = false
                 "docs".to_string(),
                 McpServerRequirement::Identity {
                     identity: McpServerIdentity::Command {
-                        command: "codex-mcp".to_string(),
+                        command: "ditfa-mcp".to_string(),
                     },
                 },
             )])),
@@ -1057,9 +1057,9 @@ interrupt_message = false
     #[test]
     fn debug_config_output_filters_sandbox_modes_blocked_by_deny_read_requirements() {
         let requirements_file = if cfg!(windows) {
-            absolute_path("C:\\ProgramData\\OpenAI\\Codex\\requirements.toml")
+            absolute_path("C:\\ProgramData\\OpenAI\\Ditfa\\requirements.toml")
         } else {
-            absolute_path("/etc/codex/requirements.toml")
+            absolute_path("/etc/ditfa/requirements.toml")
         };
         let denied_path = if cfg!(windows) {
             absolute_path("C:\\Users\\alice\\.gitconfig")
@@ -1172,7 +1172,7 @@ interrupt_message = false
                     unix_sockets: Some(NetworkUnixSocketPermissionsToml {
                         entries: BTreeMap::from([
                             (
-                                "/tmp/codex.sock".to_string(),
+                                "/tmp/ditfa.sock".to_string(),
                                 NetworkUnixSocketPermissionToml::Allow,
                             ),
                             (
@@ -1195,7 +1195,7 @@ interrupt_message = false
         let rendered = render_stack_to_text(&stack);
         let requirements_source = (RequirementSource::LegacyManagedConfigTomlFromMdm).to_string();
         assert!(rendered.contains(&format!(
-            "experimental_network: unix_sockets={{/tmp/blocked.sock=deny, /tmp/codex.sock=allow}} (source: {requirements_source})"
+            "experimental_network: unix_sockets={{/tmp/blocked.sock=deny, /tmp/ditfa.sock=allow}} (source: {requirements_source})"
         )));
     }
 
@@ -1238,9 +1238,9 @@ approval_policy = "never"
 "#;
         let mdm_value = toml::from_str::<TomlValue>(raw_mdm_toml).expect("MDM value");
         let mdm_base_dir = if cfg!(windows) {
-            absolute_path("C:\\codex")
+            absolute_path("C:\\ditfa")
         } else {
-            absolute_path("/var/lib/codex")
+            absolute_path("/var/lib/ditfa")
         };
 
         let stack = ConfigLayerStack::new(
@@ -1272,9 +1272,9 @@ approval_policy = "never"
 "#;
         let cloud_value = toml::from_str::<TomlValue>(raw_cloud_toml).expect("cloud value");
         let cloud_base_dir = if cfg!(windows) {
-            absolute_path("C:\\codex")
+            absolute_path("C:\\ditfa")
         } else {
-            absolute_path("/var/lib/codex")
+            absolute_path("/var/lib/ditfa")
         };
 
         let stack = ConfigLayerStack::new(

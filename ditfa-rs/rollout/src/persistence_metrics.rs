@@ -12,10 +12,10 @@ use ditfa_protocol::protocol::ThreadHistoryMode;
 
 use crate::policy::is_persisted_rollout_item;
 
-const ITEM_BYTES_METRIC: &str = "codex.rollout.persistence.item_bytes";
-const APPEND_METRIC: &str = "codex.rollout.persistence.append";
-const TURN_BYTES_METRIC: &str = "codex.rollout.persistence.turn_bytes";
-const MEASUREMENT_ERROR_METRIC: &str = "codex.rollout.persistence.measurement_error";
+const ITEM_BYTES_METRIC: &str = "ditfa.rollout.persistence.item_bytes";
+const APPEND_METRIC: &str = "ditfa.rollout.persistence.append";
+const TURN_BYTES_METRIC: &str = "ditfa.rollout.persistence.turn_bytes";
+const MEASUREMENT_ERROR_METRIC: &str = "ditfa.rollout.persistence.measurement_error";
 const SAMPLE_DENOMINATOR: u64 = 100;
 const SAMPLE_RATE_LABEL: &str = "0.01";
 

@@ -19,7 +19,7 @@ use super::*;
 
 const BASE_URL: &str = "http://localhost:3000/api";
 const BY_REPO_URL: &str =
-    "http://localhost:3000/api/wham/environments/by-repo/github/openai/codex";
+    "http://localhost:3000/api/wham/environments/by-repo/github/openai/ditfa";
 const GLOBAL_URL: &str = "http://localhost:3000/api/wham/environments";
 
 #[tokio::test]
@@ -130,7 +130,7 @@ async fn autodetect_requests_exact_repository_endpoint_and_decodes_selection() {
         BASE_URL,
         &headers,
         Some("Repository".to_string()),
-        &["git@github.com:openai/codex.git".to_string()],
+        &["git@github.com:openai/ditfa.git".to_string()],
     )
     .await
     .expect("repository environment should be selected");
@@ -166,7 +166,7 @@ async fn autodetect_falls_back_to_exact_global_endpoint_and_decodes_selection() 
         BASE_URL,
         &HeaderMap::new(),
         /*desired_label*/ None,
-        &["git@github.com:openai/codex.git".to_string()],
+        &["git@github.com:openai/ditfa.git".to_string()],
     )
     .await
     .expect("global environment should be selected");
@@ -217,7 +217,7 @@ async fn list_requests_exact_repository_and_global_endpoints_and_merges_results(
                 "env-repo".to_string(),
                 Some("Repository".to_string()),
                 true,
-                Some("openai/codex".to_string()),
+                Some("openai/ditfa".to_string()),
             ),
             (
                 "env-global".to_string(),

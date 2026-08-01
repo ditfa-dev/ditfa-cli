@@ -24,7 +24,7 @@ prefix_rule(
 "#,
     )?;
 
-    let output = Command::new(ditfa_utils_cargo_bin::cargo_bin("codex")?)
+    let output = Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa")?)
         .env("DITFA_HOME", ditfa_home.path())
         .args([
             "execpolicy",
@@ -81,7 +81,7 @@ prefix_rule(
 "#,
     )?;
 
-    let output = Command::new(ditfa_utils_cargo_bin::cargo_bin("codex")?)
+    let output = Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa")?)
         .env("DITFA_HOME", ditfa_home.path())
         .args([
             "execpolicy",

@@ -48,7 +48,7 @@ async fn app_server_cyber_policy_error_renders_dedicated_notice() {
     handle_error(
         &mut chat,
         "server fallback message",
-        Some(CodexErrorInfo::CyberPolicy),
+        Some(DitfaErrorInfo::CyberPolicy),
     );
 
     let cells = drain_insert_history(&mut rx);
@@ -375,14 +375,14 @@ async fn completed_plan_table_tail_skips_provisional_history_insert() {
     );
     controller.push("| Step | Owner |\n");
     controller.push("| --- | --- |\n");
-    controller.push("| Verify | Codex |\n");
+    controller.push("| Verify | Ditfa |\n");
     assert!(
         controller.has_live_tail(),
         "expected plan table holdback to leave a live tail",
     );
     chat.plan_stream_controller = Some(controller);
     chat.transcript.plan_delta_buffer =
-        "| Step | Owner |\n| --- | --- |\n| Verify | Codex |\n".to_string();
+        "| Step | Owner |\n| --- | --- |\n| Verify | Ditfa |\n".to_string();
 
     while rx.try_recv().is_ok() {}
 
@@ -430,9 +430,9 @@ async fn configured_pet_load_is_deferred_until_after_construction() {
         initial_user_message: None,
         enhanced_keys_supported: false,
         has_chatgpt_account: false,
-        has_codex_backend_auth: false,
+        has_ditfa_backend_auth: false,
         model_catalog: test_model_catalog(&cfg),
-        feedback: ditfa_feedback::CodexFeedback::new(),
+        feedback: ditfa_feedback::DitfaFeedback::new(),
         is_first_run: true,
         status_account_display: None,
         runtime_model_provider_base_url: None,
@@ -782,7 +782,7 @@ async fn rate_limit_snapshot_keeps_prior_credits_when_missing_from_headers() {
     }));
     let initial_balance = chat
         .rate_limit_snapshots_by_limit_id
-        .get("codex")
+        .get("ditfa")
         .and_then(|snapshot| snapshot.credits.as_ref())
         .and_then(|credits| credits.balance.as_deref());
     assert_eq!(initial_balance, Some("17.5"));
@@ -805,7 +805,7 @@ async fn rate_limit_snapshot_keeps_prior_credits_when_missing_from_headers() {
 
     let display = chat
         .rate_limit_snapshots_by_limit_id
-        .get("codex")
+        .get("ditfa")
         .expect("rate limits should be cached");
     let credits = display
         .credits
@@ -836,7 +836,7 @@ async fn rolling_rate_limit_snapshot_preserves_prior_individual_limit() {
 
     let display = chat
         .rate_limit_snapshots_by_limit_id
-        .get("codex")
+        .get("ditfa")
         .expect("rate limits should be cached");
     let individual_limit = display
         .individual_limit
@@ -849,7 +849,7 @@ async fn rolling_rate_limit_snapshot_preserves_prior_individual_limit() {
     chat.on_rate_limit_snapshot(Some(snapshot(/*percent*/ 30.0)));
     let display = chat
         .rate_limit_snapshots_by_limit_id
-        .get("codex")
+        .get("ditfa")
         .expect("rate limits should be cached");
     assert!(display.individual_limit.is_none());
 }
@@ -927,8 +927,8 @@ async fn rate_limit_snapshots_keep_separate_entries_per_limit_id() {
     let (mut chat, _rx, _op_rx) = make_chatwidget_manual(/*model_override*/ None).await;
 
     chat.on_rate_limit_snapshot(Some(RateLimitSnapshot {
-        limit_id: Some("codex".to_string()),
-        limit_name: Some("codex".to_string()),
+        limit_id: Some("ditfa".to_string()),
+        limit_name: Some("ditfa".to_string()),
         primary: Some(RateLimitWindow {
             used_percent: 20,
             window_duration_mins: Some(300),
@@ -962,18 +962,18 @@ async fn rate_limit_snapshots_keep_separate_entries_per_limit_id() {
         rate_limit_reached_type: None,
     }));
 
-    let codex = chat
+    let ditfa = chat
         .rate_limit_snapshots_by_limit_id
-        .get("codex")
-        .expect("codex snapshot should exist");
+        .get("ditfa")
+        .expect("ditfa snapshot should exist");
     let other = chat
         .rate_limit_snapshots_by_limit_id
         .get("ditfa_other")
         .expect("ditfa_other snapshot should exist");
 
-    assert_eq!(codex.primary.as_ref().map(|w| w.used_percent), Some(20.0));
+    assert_eq!(ditfa.primary.as_ref().map(|w| w.used_percent), Some(20.0));
     assert_eq!(
-        codex
+        ditfa
             .credits
             .as_ref()
             .and_then(|credits| credits.balance.as_deref()),
@@ -997,7 +997,7 @@ async fn rate_limit_switch_prompt_skips_when_on_lower_cost_model() {
 }
 
 #[tokio::test]
-async fn rate_limit_switch_prompt_skips_non_codex_limit() {
+async fn rate_limit_switch_prompt_skips_non_ditfa_limit() {
     let (mut chat, _, _) = make_chatwidget_manual(Some("gpt-5")).await;
     chat.has_chatgpt_account = true;
 
@@ -1335,7 +1335,7 @@ async fn rate_limit_usage_warnings_keep_explicit_rolling_workspace_limit() {
 
 #[tokio::test]
 async fn rate_limit_usage_warnings_keep_newly_reached_workspace_limit() {
-    for (limit_id, should_warn) in [("codex", true), ("ditfa_other", false)] {
+    for (limit_id, should_warn) in [("ditfa", true), ("ditfa_other", false)] {
         let (mut chat, mut rx, _) = make_chatwidget_manual(Some("gpt-5")).await;
         chat.has_chatgpt_account = true;
 
@@ -1564,7 +1564,7 @@ async fn account_update_clears_derived_usage_limit_state_and_prompt() {
 
     chat.update_account_state(
         /*status_account_display*/ None, /*plan_type*/ None,
-        /*has_chatgpt_account*/ true, /*has_codex_backend_auth*/ true,
+        /*has_chatgpt_account*/ true, /*has_ditfa_backend_auth*/ true,
     );
 
     assert_eq!(chat.rate_limit_warnings.primary_index, 0);
@@ -1751,7 +1751,7 @@ async fn workspace_owner_limit_states_render_state_specific_messages() {
         (
             RateLimitReachedType::WorkspaceOwnerUsageLimitReached,
             RateLimitErrorKind::UsageLimit,
-            "Usage limit reached. You've reached your usage limit. Increase your limits to continue using codex.",
+            "Usage limit reached. You've reached your usage limit. Increase your limits to continue using ditfa.",
         ),
     ];
 
@@ -2019,7 +2019,7 @@ async fn esc_interrupt_pauses_active_goal_turn() {
 
     chat.handle_key_event(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE));
 
-    assert_matches!(rx.try_recv(), Ok(AppEvent::CodexOp(Op::Interrupt)));
+    assert_matches!(rx.try_recv(), Ok(AppEvent::DitfaOp(Op::Interrupt)));
     assert_goal_paused_event(&mut rx, thread_id);
 
     update_thread_goal(&mut chat, thread_id, AppThreadGoalStatus::Paused);
@@ -2056,7 +2056,7 @@ async fn request_user_input_interrupt_pauses_active_goal_turn() {
 
         chat.handle_key_event(key_event);
 
-        assert_matches!(rx.try_recv(), Ok(AppEvent::CodexOp(Op::Interrupt)));
+        assert_matches!(rx.try_recv(), Ok(AppEvent::DitfaOp(Op::Interrupt)));
         assert_goal_paused_event(&mut rx, thread_id);
     }
 }
@@ -2298,7 +2298,7 @@ async fn ambient_pet_stays_hidden_until_a_pet_is_selected() {
     assert!(chat.ambient_pet.is_none());
 
     crate::pets::write_test_pack(&chat.config.ditfa_home);
-    chat.set_tui_pet(Some("codex".to_string()));
+    chat.set_tui_pet(Some("ditfa".to_string()));
 
     let area = Rect::new(
         /*x*/ 0, /*y*/ 0, /*width*/ 60, /*height*/ 20,
@@ -2838,7 +2838,7 @@ async fn account_update_clears_workspace_headline_state() {
 
     chat.update_account_state(
         /*status_account_display*/ None, /*plan_type*/ None,
-        /*has_chatgpt_account*/ false, /*has_codex_backend_auth*/ false,
+        /*has_chatgpt_account*/ false, /*has_ditfa_backend_auth*/ false,
     );
 
     assert_eq!(
@@ -2859,7 +2859,7 @@ async fn workspace_headline_fetch_allows_backend_auth_without_chatgpt_account() 
 
     chat.update_account_state(
         /*status_account_display*/ None, /*plan_type*/ None,
-        /*has_chatgpt_account*/ false, /*has_codex_backend_auth*/ true,
+        /*has_chatgpt_account*/ false, /*has_ditfa_backend_auth*/ true,
     );
 
     let request_id = take_workspace_headline_request_id(&mut rx);
@@ -2881,7 +2881,7 @@ async fn account_update_discards_stale_workspace_headline_results() {
         }),
         /*plan_type*/ None,
         /*has_chatgpt_account*/ true,
-        /*has_codex_backend_auth*/ true,
+        /*has_ditfa_backend_auth*/ true,
     );
     let stale_request_id = take_workspace_headline_request_id(&mut rx);
 
@@ -2892,7 +2892,7 @@ async fn account_update_discards_stale_workspace_headline_results() {
         }),
         /*plan_type*/ None,
         /*has_chatgpt_account*/ true,
-        /*has_codex_backend_auth*/ true,
+        /*has_ditfa_backend_auth*/ true,
     );
     let current_request_id = take_workspace_headline_request_id(&mut rx);
 
@@ -3791,7 +3791,7 @@ async fn newline_agent_delta_redraws_stream_tail_after_noop_catch_up() {
     let (mut chat, _rx, _op_rx) = make_chatwidget_manual_with_auth(
         /*model_override*/ None,
         /*has_chatgpt_account*/ false,
-        /*has_codex_backend_auth*/ false,
+        /*has_ditfa_backend_auth*/ false,
         frame_requester,
     )
     .await;
@@ -3816,7 +3816,7 @@ async fn newline_plan_delta_redraws_stream_tail_after_noop_catch_up() {
     let (mut chat, _rx, _op_rx) = make_chatwidget_manual_with_auth(
         /*model_override*/ Some("gpt-5"),
         /*has_chatgpt_account*/ false,
-        /*has_codex_backend_auth*/ false,
+        /*has_ditfa_backend_auth*/ false,
         frame_requester,
     )
     .await;
@@ -3893,7 +3893,7 @@ async fn reasoning_delta_does_not_double_schedule_visible_status_redraw() {
     let (mut chat, _rx, _op_rx) = make_chatwidget_manual_with_auth(
         /*model_override*/ None,
         /*has_chatgpt_account*/ false,
-        /*has_codex_backend_auth*/ false,
+        /*has_ditfa_backend_auth*/ false,
         frame_requester,
     )
     .await;

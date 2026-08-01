@@ -1,8 +1,8 @@
 use super::persistence::DITFA_APPS_TOOLS_CACHE_MAX_BYTES;
 use super::persistence::DITFA_APPS_TOOLS_CACHE_SCHEMA_VERSION;
-use super::persistence::read_cached_codex_apps_tools;
-use super::persistence::write_cached_codex_apps_tools;
-use super::persistence::write_cached_codex_apps_tools_for_test;
+use super::persistence::read_cached_ditfa_apps_tools;
+use super::persistence::write_cached_ditfa_apps_tools;
+use super::persistence::write_cached_ditfa_apps_tools_for_test;
 use super::*;
 use ditfa_protocol::mcp::McpServerInfo;
 use pretty_assertions::assert_eq;
@@ -45,7 +45,7 @@ fn create_test_tool_with_connector(
     tool
 }
 
-fn create_codex_apps_tools_cache_context(
+fn create_ditfa_apps_tools_cache_context(
     ditfa_home: PathBuf,
     account_id: Option<&str>,
     chatgpt_user_id: Option<&str>,
@@ -62,7 +62,7 @@ fn create_codex_apps_tools_cache_context(
 
 fn create_test_server_info(title: &str) -> McpServerInfo {
     McpServerInfo {
-        name: "codex-apps".to_string(),
+        name: "ditfa-apps".to_string(),
         title: Some(title.to_string()),
         version: "1.0.0".to_string(),
         description: None,
@@ -74,7 +74,7 @@ fn create_test_server_info(title: &str) -> McpServerInfo {
 #[test]
 fn ditfa_apps_tools_cache_is_overwritten_by_last_write() {
     let ditfa_home = tempdir().expect("tempdir");
-    let cache_context = create_codex_apps_tools_cache_context(
+    let cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -82,26 +82,26 @@ fn ditfa_apps_tools_cache_is_overwritten_by_last_write() {
     let tools_gateway_1 = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "one")];
     let tools_gateway_2 = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "two")];
 
-    write_cached_codex_apps_tools(&cache_context, &tools_gateway_1).expect("write first cache");
+    write_cached_ditfa_apps_tools(&cache_context, &tools_gateway_1).expect("write first cache");
     let cached_gateway_1 =
-        read_cached_codex_apps_tools(&cache_context).expect("cache entry exists for first write");
+        read_cached_ditfa_apps_tools(&cache_context).expect("cache entry exists for first write");
     assert_eq!(cached_gateway_1[0].callable_name, "one");
 
-    write_cached_codex_apps_tools(&cache_context, &tools_gateway_2).expect("write second cache");
+    write_cached_ditfa_apps_tools(&cache_context, &tools_gateway_2).expect("write second cache");
     let cached_gateway_2 =
-        read_cached_codex_apps_tools(&cache_context).expect("cache entry exists for second write");
+        read_cached_ditfa_apps_tools(&cache_context).expect("cache entry exists for second write");
     assert_eq!(cached_gateway_2[0].callable_name, "two");
 }
 
 #[test]
 fn ditfa_apps_tools_cache_is_scoped_per_user() {
     let ditfa_home = tempdir().expect("tempdir");
-    let cache_context_user_1 = create_codex_apps_tools_cache_context(
+    let cache_context_user_1 = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
     );
-    let cache_context_user_2 = create_codex_apps_tools_cache_context(
+    let cache_context_user_2 = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-two"),
         Some("user-two"),
@@ -109,15 +109,15 @@ fn ditfa_apps_tools_cache_is_scoped_per_user() {
     let tools_user_1 = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "one")];
     let tools_user_2 = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "two")];
 
-    write_cached_codex_apps_tools(&cache_context_user_1, &tools_user_1)
+    write_cached_ditfa_apps_tools(&cache_context_user_1, &tools_user_1)
         .expect("write user one cache");
-    write_cached_codex_apps_tools(&cache_context_user_2, &tools_user_2)
+    write_cached_ditfa_apps_tools(&cache_context_user_2, &tools_user_2)
         .expect("write user two cache");
 
     let read_user_1 =
-        read_cached_codex_apps_tools(&cache_context_user_1).expect("cache entry for user one");
+        read_cached_ditfa_apps_tools(&cache_context_user_1).expect("cache entry for user one");
     let read_user_2 =
-        read_cached_codex_apps_tools(&cache_context_user_2).expect("cache entry for user two");
+        read_cached_ditfa_apps_tools(&cache_context_user_2).expect("cache entry for user two");
 
     assert_eq!(read_user_1[0].callable_name, "one");
     assert_eq!(read_user_2[0].callable_name, "two");
@@ -131,7 +131,7 @@ fn ditfa_apps_tools_cache_is_scoped_per_user() {
 #[test]
 fn ditfa_apps_tools_cache_preserves_formerly_disallowed_connectors() {
     let ditfa_home = tempdir().expect("tempdir");
-    let cache_context = create_codex_apps_tools_cache_context(
+    let cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -151,8 +151,8 @@ fn ditfa_apps_tools_cache_preserves_formerly_disallowed_connectors() {
         ),
     ];
 
-    write_cached_codex_apps_tools(&cache_context, &tools).expect("write cache");
-    let cached = read_cached_codex_apps_tools(&cache_context).expect("cache entry exists for user");
+    write_cached_ditfa_apps_tools(&cache_context, &tools).expect("write cache");
+    let cached = read_cached_ditfa_apps_tools(&cache_context).expect("cache entry exists for user");
 
     assert_eq!(
         cached
@@ -172,7 +172,7 @@ fn ditfa_apps_tools_cache_preserves_formerly_disallowed_connectors() {
 #[test]
 fn ditfa_apps_tools_cache_is_ignored_when_schema_version_mismatches() {
     let ditfa_home = tempdir().expect("tempdir");
-    let cache_context = create_codex_apps_tools_cache_context(
+    let cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -188,13 +188,13 @@ fn ditfa_apps_tools_cache_is_ignored_when_schema_version_mismatches() {
     .expect("serialize");
     std::fs::write(cache_path, bytes).expect("write");
 
-    assert!(read_cached_codex_apps_tools(&cache_context).is_none());
+    assert!(read_cached_ditfa_apps_tools(&cache_context).is_none());
 }
 
 #[test]
 fn ditfa_apps_tools_cache_is_ignored_when_json_is_invalid() {
     let ditfa_home = tempdir().expect("tempdir");
-    let cache_context = create_codex_apps_tools_cache_context(
+    let cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -205,13 +205,13 @@ fn ditfa_apps_tools_cache_is_ignored_when_json_is_invalid() {
     }
     std::fs::write(cache_path, b"{not json").expect("write");
 
-    assert!(read_cached_codex_apps_tools(&cache_context).is_none());
+    assert!(read_cached_ditfa_apps_tools(&cache_context).is_none());
 }
 
 #[test]
-fn startup_cached_codex_apps_tools_loads_from_disk_cache() {
+fn startup_cached_ditfa_apps_tools_loads_from_disk_cache() {
     let ditfa_home = tempdir().expect("tempdir");
-    let writer_cache_context = create_codex_apps_tools_cache_context(
+    let writer_cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -220,9 +220,9 @@ fn startup_cached_codex_apps_tools_loads_from_disk_cache() {
         DITFA_APPS_MCP_SERVER_NAME,
         "calendar_search",
     )];
-    let server_info = create_test_server_info("Codex Apps");
-    write_cached_codex_apps_tools_for_test(&writer_cache_context, &server_info, &cached_tools);
-    let cache_context = create_codex_apps_tools_cache_context(
+    let server_info = create_test_server_info("Ditfa Apps");
+    write_cached_ditfa_apps_tools_for_test(&writer_cache_context, &server_info, &cached_tools);
+    let cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -240,9 +240,9 @@ fn startup_cached_codex_apps_tools_loads_from_disk_cache() {
 }
 
 #[test]
-fn startup_cached_codex_apps_tools_loads_without_server_info_cache() {
+fn startup_cached_ditfa_apps_tools_loads_without_server_info_cache() {
     let ditfa_home = tempdir().expect("tempdir");
-    let writer_cache_context = create_codex_apps_tools_cache_context(
+    let writer_cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -257,7 +257,7 @@ fn startup_cached_codex_apps_tools_loads_without_server_info_cache() {
     }))
     .expect("serialize");
     std::fs::write(cache_path, bytes).expect("write");
-    let cache_context = create_codex_apps_tools_cache_context(
+    let cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -276,13 +276,13 @@ fn startup_cached_codex_apps_tools_loads_without_server_info_cache() {
 #[test]
 fn ditfa_apps_server_info_cache_survives_legacy_tools_cache_write() {
     let ditfa_home = tempdir().expect("tempdir");
-    let cache_context = create_codex_apps_tools_cache_context(
+    let cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
     );
-    let server_info = create_test_server_info("Codex Apps");
-    write_cached_codex_apps_tools_for_test(
+    let server_info = create_test_server_info("Ditfa Apps");
+    write_cached_ditfa_apps_tools_for_test(
         &cache_context,
         &server_info,
         &[create_test_tool(
@@ -301,7 +301,7 @@ fn ditfa_apps_server_info_cache_survives_legacy_tools_cache_write() {
     }))
     .expect("serialize");
     std::fs::write(cache_path, bytes).expect("write legacy tools cache");
-    let startup_cache_context = create_codex_apps_tools_cache_context(
+    let startup_cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -317,20 +317,20 @@ fn ditfa_apps_server_info_cache_survives_legacy_tools_cache_write() {
 #[test]
 fn ditfa_apps_tools_cache_context_does_not_reread_disk_after_creation() {
     let ditfa_home = tempdir().expect("tempdir");
-    let writer_cache_context = create_codex_apps_tools_cache_context(
+    let writer_cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
     );
     let cached_tools = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "cached")];
-    write_cached_codex_apps_tools(&writer_cache_context, &cached_tools).expect("write cache");
-    let reader_cache_context = create_codex_apps_tools_cache_context(
+    write_cached_ditfa_apps_tools(&writer_cache_context, &cached_tools).expect("write cache");
+    let reader_cache_context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
     );
     let updated_tools = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "updated")];
-    write_cached_codex_apps_tools(&writer_cache_context, &updated_tools).expect("rewrite cache");
+    write_cached_ditfa_apps_tools(&writer_cache_context, &updated_tools).expect("rewrite cache");
 
     assert_eq!(
         reader_cache_context
@@ -340,7 +340,7 @@ fn ditfa_apps_tools_cache_context_does_not_reread_disk_after_creation() {
         "cached"
     );
     assert_eq!(
-        read_cached_codex_apps_tools(&writer_cache_context).expect("disk tools")[0].callable_name,
+        read_cached_ditfa_apps_tools(&writer_cache_context).expect("disk tools")[0].callable_name,
         "updated"
     );
 }
@@ -367,7 +367,7 @@ fn ditfa_apps_tools_cache_publishes_newest_shared_snapshot() {
     );
     let older_ticket = cache_context_1.begin_fetch(ConnectorRuntimeFetchSource::Startup);
     let newer_ticket = cache_context_2.begin_fetch(ConnectorRuntimeFetchSource::HardRefresh);
-    let server_info = create_test_server_info("Codex Apps");
+    let server_info = create_test_server_info("Ditfa Apps");
     let newer_tools = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "newer")];
     let older_tools = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "older")];
 
@@ -383,7 +383,7 @@ fn ditfa_apps_tools_cache_publishes_newest_shared_snapshot() {
         "newer"
     );
     assert_eq!(
-        read_cached_codex_apps_tools(&cache_context_1).expect("persisted snapshot")[0]
+        read_cached_ditfa_apps_tools(&cache_context_1).expect("persisted snapshot")[0]
             .callable_name,
         "newer"
     );
@@ -393,7 +393,7 @@ fn ditfa_apps_tools_cache_publishes_newest_shared_snapshot() {
 fn ditfa_apps_tools_cache_keeps_live_publish_when_disk_persistence_fails() {
     let ditfa_home = tempdir().expect("tempdir");
     let ditfa_home_file = ditfa_home.path().join("not-a-directory");
-    std::fs::write(&ditfa_home_file, b"occupied").expect("create codex home file");
+    std::fs::write(&ditfa_home_file, b"occupied").expect("create ditfa home file");
     let cache_context = ConnectorRuntimeManager::<TestTool>::default().context(
         ditfa_home_file,
         ConnectorRuntimeContextKey {
@@ -405,7 +405,7 @@ fn ditfa_apps_tools_cache_keeps_live_publish_when_disk_persistence_fails() {
     let tools = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "live")];
     let published_tools = cache_context.publish_if_newest_accepted(
         cache_context.begin_fetch(ConnectorRuntimeFetchSource::HardRefresh),
-        &create_test_server_info("Codex Apps"),
+        &create_test_server_info("Ditfa Apps"),
         tools.clone(),
     );
 
@@ -416,14 +416,14 @@ fn ditfa_apps_tools_cache_keeps_live_publish_when_disk_persistence_fails() {
 #[test]
 fn connector_runtime_without_cache_ignores_disk_state() {
     let ditfa_home = tempdir().expect("tempdir");
-    let writer = create_codex_apps_tools_cache_context(
+    let writer = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
     );
     let tools = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "cached")];
-    let server_info = create_test_server_info("Codex Apps");
-    write_cached_codex_apps_tools_for_test(&writer, &server_info, &tools);
+    let server_info = create_test_server_info("Ditfa Apps");
+    write_cached_ditfa_apps_tools_for_test(&writer, &server_info, &tools);
     let context = ConnectorRuntimeManager::<TestTool>::new_without_cache().context(
         ditfa_home.path().to_path_buf(),
         ConnectorRuntimeContextKey {
@@ -440,7 +440,7 @@ fn connector_runtime_without_cache_ignores_disk_state() {
 #[test]
 fn connector_runtime_without_cache_publishes_without_writing() {
     let temp_dir = tempdir().expect("tempdir");
-    let ditfa_home = temp_dir.path().join("codex-home");
+    let ditfa_home = temp_dir.path().join("ditfa-home");
     let context = ConnectorRuntimeManager::<TestTool>::new_without_cache().context(
         ditfa_home.clone(),
         ConnectorRuntimeContextKey {
@@ -452,7 +452,7 @@ fn connector_runtime_without_cache_publishes_without_writing() {
     let tools = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "live")];
     let published_tools = context.publish_if_newest_accepted(
         context.begin_fetch(ConnectorRuntimeFetchSource::HardRefresh),
-        &create_test_server_info("Codex Apps"),
+        &create_test_server_info("Ditfa Apps"),
         tools.clone(),
     );
 
@@ -465,7 +465,7 @@ fn connector_runtime_without_cache_publishes_without_writing() {
 #[test]
 fn ditfa_apps_tools_cache_scopes_non_utf8_home_disk_paths() {
     let ditfa_home = PathBuf::from(std::ffi::OsString::from_vec(
-        b"/tmp/codex-home-\xff".to_vec(),
+        b"/tmp/ditfa-home-\xff".to_vec(),
     ));
     let cache = ConnectorRuntimeManager::<TestTool>::default();
     let user_one_context = cache.context(
@@ -507,7 +507,7 @@ fn contexts_for_different_identities_keep_isolated_snapshots() {
     let tools_a = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "tool-a")];
     let snapshot_a = context_a.publish_runtime_if_newest_accepted(
         context_a.begin_fetch(ConnectorRuntimeFetchSource::HardRefresh),
-        &create_test_server_info("Codex Apps"),
+        &create_test_server_info("Ditfa Apps"),
         tools_a.clone(),
     );
     let older_ticket_a = context_a.begin_fetch(ConnectorRuntimeFetchSource::Startup);
@@ -539,18 +539,18 @@ fn contexts_for_different_identities_keep_isolated_snapshots() {
     let tools_b = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "tool-b")];
     let snapshot_b = context_b.publish_runtime_if_newest_accepted(
         context_b.begin_fetch(ConnectorRuntimeFetchSource::HardRefresh),
-        &create_test_server_info("Codex Apps"),
+        &create_test_server_info("Ditfa Apps"),
         tools_b.clone(),
     );
     let newer_tools_a = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "newer-a")];
     let newer_snapshot_a = same_context_a.publish_runtime_if_newest_accepted(
         same_context_a.begin_fetch(ConnectorRuntimeFetchSource::HardRefresh),
-        &create_test_server_info("Codex Apps"),
+        &create_test_server_info("Ditfa Apps"),
         newer_tools_a.clone(),
     );
     let stale_snapshot_a = context_a.publish_runtime_if_newest_accepted(
         older_ticket_a,
-        &create_test_server_info("Codex Apps"),
+        &create_test_server_info("Ditfa Apps"),
         vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "stale-a")],
     );
 
@@ -571,7 +571,7 @@ fn contexts_for_different_identities_keep_isolated_snapshots() {
 #[test]
 fn oversized_tools_cache_is_ignored_during_initial_load() {
     let ditfa_home = tempdir().expect("tempdir");
-    let context = create_codex_apps_tools_cache_context(
+    let context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -583,7 +583,7 @@ fn oversized_tools_cache_is_ignored_during_initial_load() {
     file.set_len(DITFA_APPS_TOOLS_CACHE_MAX_BYTES + 1)
         .expect("size oversized cache");
 
-    let reloaded = create_codex_apps_tools_cache_context(
+    let reloaded = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -595,18 +595,18 @@ fn oversized_tools_cache_is_ignored_during_initial_load() {
 #[test]
 fn cold_loaded_snapshot_uses_cache_modification_time() {
     let ditfa_home = tempdir().expect("tempdir");
-    let writer = create_codex_apps_tools_cache_context(
+    let writer = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
     );
     let tools = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "cached")];
-    write_cached_codex_apps_tools(&writer, &tools).expect("write tools cache");
+    write_cached_ditfa_apps_tools(&writer, &tools).expect("write tools cache");
     let modified_at = std::fs::metadata(writer.tools_cache_path())
         .and_then(|metadata| metadata.modified())
         .expect("cache modification time");
 
-    let reloaded = create_codex_apps_tools_cache_context(
+    let reloaded = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -619,7 +619,7 @@ fn cold_loaded_snapshot_uses_cache_modification_time() {
 #[test]
 fn accepted_generations_finish_persistence_in_order() {
     let ditfa_home = tempdir().expect("tempdir");
-    let context = create_codex_apps_tools_cache_context(
+    let context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -632,7 +632,7 @@ fn accepted_generations_finish_persistence_in_order() {
     let older_publish = std::thread::spawn(move || {
         older_context.publish_runtime_if_newest_accepted_with(
             older_ticket,
-            &create_test_server_info("Codex Apps"),
+            &create_test_server_info("Ditfa Apps"),
             vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "older")],
             move |_, _, _| {
                 older_persisting_tx
@@ -651,7 +651,7 @@ fn accepted_generations_finish_persistence_in_order() {
     let newer_publish = std::thread::spawn(move || {
         newer_context.publish_runtime_if_newest_accepted_with(
             newer_ticket,
-            &create_test_server_info("Codex Apps"),
+            &create_test_server_info("Ditfa Apps"),
             vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "newer")],
             move |_, _, _| {
                 newer_persisting_tx
@@ -693,7 +693,7 @@ fn personal_and_workspace_contexts_are_distinct_even_with_matching_ids() {
     let personal_tools = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "personal")];
     let _ = personal_context.publish_runtime_if_newest_accepted(
         personal_context.begin_fetch(ConnectorRuntimeFetchSource::Startup),
-        &create_test_server_info("Codex Apps"),
+        &create_test_server_info("Ditfa Apps"),
         personal_tools.clone(),
     );
 
@@ -709,7 +709,7 @@ fn personal_and_workspace_contexts_are_distinct_even_with_matching_ids() {
     let workspace_tools = vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "workspace")];
     let _ = workspace_context.publish_runtime_if_newest_accepted(
         workspace_context.begin_fetch(ConnectorRuntimeFetchSource::Startup),
-        &create_test_server_info("Codex Apps"),
+        &create_test_server_info("Ditfa Apps"),
         workspace_tools.clone(),
     );
 
@@ -724,7 +724,7 @@ fn personal_and_workspace_contexts_are_distinct_even_with_matching_ids() {
 #[test]
 fn live_publish_sets_timestamp_and_stale_publish_preserves_it() {
     let ditfa_home = tempdir().expect("tempdir");
-    let context = create_codex_apps_tools_cache_context(
+    let context = create_ditfa_apps_tools_cache_context(
         ditfa_home.path().to_path_buf(),
         Some("account-one"),
         Some("user-one"),
@@ -734,7 +734,7 @@ fn live_publish_sets_timestamp_and_stale_publish_preserves_it() {
     let before = SystemTime::now();
     let current = context.publish_runtime_if_newest_accepted(
         current_ticket,
-        &create_test_server_info("Codex Apps"),
+        &create_test_server_info("Ditfa Apps"),
         vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "current")],
     );
     let after = SystemTime::now();
@@ -744,7 +744,7 @@ fn live_publish_sets_timestamp_and_stale_publish_preserves_it() {
 
     let stale = context.publish_runtime_if_newest_accepted(
         stale_ticket,
-        &create_test_server_info("Codex Apps"),
+        &create_test_server_info("Ditfa Apps"),
         vec![create_test_tool(DITFA_APPS_MCP_SERVER_NAME, "stale")],
     );
     assert!(Arc::ptr_eq(&current, &stale));

@@ -34,7 +34,7 @@ pub(super) use ditfa_app_server_protocol::AdditionalNetworkPermissions as AppSer
 pub(super) use ditfa_app_server_protocol::AdditionalPermissionProfile as AppServerAdditionalPermissionProfile;
 pub(super) use ditfa_app_server_protocol::AppSummary;
 pub(super) use ditfa_app_server_protocol::AutoReviewDecisionSource as AppServerGuardianApprovalReviewDecisionSource;
-pub(super) use ditfa_app_server_protocol::CodexErrorInfo;
+pub(super) use ditfa_app_server_protocol::DitfaErrorInfo;
 pub(super) use ditfa_app_server_protocol::CollabAgentState as AppServerCollabAgentState;
 pub(super) use ditfa_app_server_protocol::CollabAgentStatus as AppServerCollabAgentStatus;
 pub(super) use ditfa_app_server_protocol::CollabAgentTool as AppServerCollabAgentTool;

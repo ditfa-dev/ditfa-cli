@@ -1,8 +1,8 @@
 use ditfa_app_server_protocol::AuthMode as ApiAuthMode;
 use ditfa_protocol::auth::AuthMode;
 
-/// Converts the domain auth mode owned by `codex-protocol` into the app-server wire type owned by
-/// `codex-app-server-protocol`.
+/// Converts the domain auth mode owned by `ditfa-protocol` into the app-server wire type owned by
+/// `ditfa-app-server-protocol`.
 ///
 /// The types stay separate so app-server protocol ownership does not leak into domain crates.
 /// Because this crate owns neither type, Rust's orphan rules require an explicit conversion

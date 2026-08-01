@@ -22,7 +22,7 @@ fn marketplace_list_row(marketplace_name: &str, root: &Path) -> String {
 }
 
 fn ditfa_command(ditfa_home: &Path) -> Result<assert_cmd::Command> {
-    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("codex")?);
+    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa")?);
     cmd.env("DITFA_HOME", ditfa_home);
     cmd.env("HOME", ditfa_home);
     Ok(cmd)
@@ -206,8 +206,8 @@ fn setup_local_marketplace_with_implicit_system_roots() -> Result<(TempDir, Temp
     let runtime_root = cache_home
         .path()
         .join(".cache")
-        .join("codex-runtimes")
-        .join("codex-primary-runtime")
+        .join("ditfa-runtimes")
+        .join("ditfa-primary-runtime")
         .join("plugins")
         .join("openai-primary-runtime");
     std::fs::create_dir_all(&runtime_root)?;

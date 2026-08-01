@@ -316,7 +316,7 @@ fn cancelled_turn_terminates_unfinished_code_cell() -> anyhow::Result<()> {
     )?;
     let turn_end = writer.append_with_context(
         trace_context("turn-1"),
-        RawTraceEventPayload::CodexTurnEnded {
+        RawTraceEventPayload::DitfaTurnEnded {
             ditfa_turn_id: "turn-1".to_string(),
             status: ExecutionStatus::Cancelled,
         },

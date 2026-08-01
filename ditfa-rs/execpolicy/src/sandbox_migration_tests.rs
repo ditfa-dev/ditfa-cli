@@ -10,7 +10,7 @@ async fn removes_banned_allow_rules_once() {
         &["pwsh", "-ec"],
         &["pwsh", "-f"],
     ];
-    let ditfa_home = tempdir().expect("create codex home");
+    let ditfa_home = tempdir().expect("create ditfa home");
     let policy_path = ditfa_home.path().join("rules/default.rules");
     std::fs::create_dir_all(policy_path.parent().expect("rules directory"))
         .expect("create rules directory");

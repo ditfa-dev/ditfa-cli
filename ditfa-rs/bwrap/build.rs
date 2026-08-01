@@ -80,7 +80,7 @@ fn try_build_bwrap() -> Result<(), String> {
 ///
 /// Priority:
 /// 1. `DITFA_BWRAP_SOURCE_DIR` points at an existing bubblewrap checkout.
-/// 2. The vendored bubblewrap tree under `codex-rs/vendor/bubblewrap`.
+/// 2. The vendored bubblewrap tree under `ditfa-rs/vendor/bubblewrap`.
 fn resolve_bwrap_source_dir(manifest_dir: &Path) -> Result<PathBuf, String> {
     if let Ok(path) = env::var("DITFA_BWRAP_SOURCE_DIR") {
         let src_dir = PathBuf::from(path);
@@ -100,7 +100,7 @@ fn resolve_bwrap_source_dir(manifest_dir: &Path) -> Result<PathBuf, String> {
 
     Err(format!(
         "expected vendored bubblewrap at {}, but it was not found.\n\
-Set DITFA_BWRAP_SOURCE_DIR to an existing checkout or vendor bubblewrap under codex-rs/vendor.",
+Set DITFA_BWRAP_SOURCE_DIR to an existing checkout or vendor bubblewrap under ditfa-rs/vendor.",
         vendor_dir.display()
     ))
 }

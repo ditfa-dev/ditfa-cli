@@ -11,7 +11,7 @@ use ditfa_core::config::CurrentTimeReminderConfig;
 use ditfa_extension_api::ExtensionRegistryBuilder;
 use ditfa_features::CurrentTimeSource;
 use ditfa_features::Feature;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_models_manager::bundled_models_response;
 use ditfa_protocol::config_types::WebSearchMode;
 use ditfa_protocol::dynamic_tools::DynamicToolCallOutputContentItem;
@@ -43,10 +43,10 @@ use core_test_support::responses::sse;
 use core_test_support::skip_if_no_network;
 use core_test_support::skip_if_wine_exec;
 use core_test_support::stdio_server_bin;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::TestCodexBuilder;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::TestDitfaBuilder;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_event_match;
 use core_test_support::wait_for_mcp_server;
@@ -171,7 +171,7 @@ async fn run_code_mode_turn(
     server: &MockServer,
     prompt: &str,
     code: &str,
-) -> Result<(TestCodex, ResponseMock)> {
+) -> Result<(TestDitfa, ResponseMock)> {
     run_code_mode_turn_with_config(server, prompt, code, |_| {}).await
 }
 
@@ -180,7 +180,7 @@ async fn run_code_mode_turn_with_config(
     prompt: &str,
     code: &str,
     configure: impl FnOnce(&mut Config) + Send + 'static,
-) -> Result<(TestCodex, ResponseMock)> {
+) -> Result<(TestDitfa, ResponseMock)> {
     run_code_mode_turn_with_model_and_config(server, prompt, code, "test-gpt-5.1-codex", configure)
         .await
 }
@@ -191,8 +191,8 @@ async fn run_code_mode_turn_with_model_and_config(
     code: &str,
     model: &'static str,
     configure: impl FnOnce(&mut Config) + Send + 'static,
-) -> Result<(TestCodex, ResponseMock)> {
-    let builder = test_codex().with_model(model).with_config(move |config| {
+) -> Result<(TestDitfa, ResponseMock)> {
+    let builder = test_ditfa().with_model(model).with_config(move |config| {
         let _ = config.features.enable(Feature::CodeMode);
         configure(config);
     });
@@ -203,8 +203,8 @@ async fn run_code_mode_turn_with_builder(
     server: &MockServer,
     prompt: &str,
     code: &str,
-    mut builder: TestCodexBuilder,
-) -> Result<(TestCodex, ResponseMock)> {
+    mut builder: TestDitfaBuilder,
+) -> Result<(TestDitfa, ResponseMock)> {
     let test = builder.build(server).await?;
 
     responses::mount_sse_once(
@@ -235,9 +235,9 @@ async fn missing_process_host_falls_back_to_in_process_code_mode() -> Result<()>
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let builder = test_codex()
+    let builder = test_ditfa()
         .with_model("test-gpt-5.1-codex")
-        .with_code_mode_host_program("codex-code-mode-host-does-not-exist".into())
+        .with_code_mode_host_program("ditfa-code-mode-host-does-not-exist".into())
         .with_config(|config| {
             config
                 .features
@@ -313,11 +313,11 @@ text(result);
     )
     .await;
 
-    let auth = CodexAuth::from_api_key("dummy");
+    let auth = DitfaAuth::from_api_key("dummy");
     let auth_manager = ditfa_core::test_support::auth_manager_from_auth(auth.clone());
     let mut extension_builder = ExtensionRegistryBuilder::<Config>::new();
     install_web_search_extension(&mut extension_builder, auth_manager);
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_auth(auth)
         .with_extensions(Arc::new(extension_builder.build()))
         .with_model("test-gpt-5.1-codex")
@@ -378,7 +378,7 @@ async fn run_code_mode_turn_with_rmcp(
     server: &MockServer,
     prompt: &str,
     code: &str,
-) -> Result<(TestCodex, ResponseMock)> {
+) -> Result<(TestDitfa, ResponseMock)> {
     run_code_mode_turn_with_rmcp_model(server, prompt, code, "test-gpt-5.1-codex").await
 }
 
@@ -387,7 +387,7 @@ async fn run_code_mode_turn_with_rmcp_model(
     prompt: &str,
     code: &str,
     model: &'static str,
-) -> Result<(TestCodex, ResponseMock)> {
+) -> Result<(TestDitfa, ResponseMock)> {
     run_code_mode_turn_with_rmcp_config(
         server, prompt, code, model, /*code_mode_only*/ false,
         /*non_prefixed_mcp_tool_names*/ false,
@@ -400,7 +400,7 @@ async fn run_code_mode_turn_with_rmcp_mode(
     prompt: &str,
     code: &str,
     code_mode_only: bool,
-) -> Result<(TestCodex, ResponseMock)> {
+) -> Result<(TestDitfa, ResponseMock)> {
     run_code_mode_turn_with_rmcp_config(
         server,
         prompt,
@@ -419,9 +419,9 @@ async fn run_code_mode_turn_with_rmcp_config(
     model: &'static str,
     code_mode_only: bool,
     non_prefixed_mcp_tool_names: bool,
-) -> Result<(TestCodex, ResponseMock)> {
+) -> Result<(TestDitfa, ResponseMock)> {
     let rmcp_test_server_bin = stdio_server_bin()?;
-    let mut builder = test_codex().with_model(model).with_config(move |config| {
+    let mut builder = test_ditfa().with_model(model).with_config(move |config| {
         let _ = if code_mode_only {
             config.features.enable(Feature::CodeModeOnly)
         } else {
@@ -538,7 +538,7 @@ text(JSON.stringify(await tools.exec_command({ cmd: "printf code_mode_exec_marke
 #[tokio::test]
 async fn code_mode_exec_holds_captured_result_during_elicitation() -> Result<()> {
     let server = responses::start_mock_server().await;
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model("test-gpt-5.1-codex")
         .with_config(|config| {
             let _ = config.features.enable(Feature::CodeMode);
@@ -620,7 +620,7 @@ async fn code_mode_only_restricts_prompt_tools() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         let _ = config.features.enable(Feature::CodeModeOnly);
     });
     let test = builder.build(&server).await?;
@@ -655,7 +655,7 @@ async fn code_mode_only_guides_all_tools_search_and_calls_deferred_app_tools() -
                 "exec",
                 r#"
 const tool = ALL_TOOLS.find(
-  ({ name }) => name === "mcp__codex_apps__calendar_timezone_option_99"
+  ({ name }) => name === "mcp__ditfa_apps__calendar_timezone_option_99"
 );
 if (!tool) {
   text(JSON.stringify({ found: false }));
@@ -683,8 +683,8 @@ if (!tool) {
     .await;
 
     let apps_base_url = apps_server.chatgpt_base_url.clone();
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(move |config| {
             config
                 .features
@@ -790,7 +790,7 @@ text(JSON.stringify({{
   error,
 }}));
 "#,
-        visible_tool_name = "mcp__codex_apps__calendar_timezone_option_99",
+        visible_tool_name = "mcp__ditfa_apps__calendar_timezone_option_99",
         tool_name = DIRECT_CALENDAR_APP_ONLY_TOOL,
     );
 
@@ -883,7 +883,7 @@ text(output.output);
     )
     .await;
 
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         let _ = config.features.enable(Feature::CodeModeOnly);
     });
     let test = builder.build(&server).await?;
@@ -1024,7 +1024,7 @@ async fn code_mode_nested_tool_calls_can_run_in_parallel() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model("test-gpt-5.1-codex")
         .with_config(move |config| {
             let _ = config.features.enable(Feature::CodeMode);
@@ -1518,7 +1518,7 @@ async fn code_mode_can_yield_and_resume_with_wait() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         let _ = config.features.enable(Feature::CodeMode);
     });
     let test = builder.build(&server).await?;
@@ -1664,7 +1664,7 @@ async fn code_mode_yield_and_termination_are_not_starved_by_runtime_output() -> 
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         let _ = config.features.enable(Feature::CodeMode);
     });
     let test = builder.build(&server).await?;
@@ -1761,7 +1761,7 @@ async fn code_mode_can_run_multiple_yielded_sessions() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         let _ = config.features.enable(Feature::CodeMode);
     });
     let test = builder.build(&server).await?;
@@ -1929,7 +1929,7 @@ async fn code_mode_concurrent_cells_merge_only_the_stored_values_they_write() ->
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         let _ = config.features.enable(Feature::CodeMode);
     });
     let test = builder.build(&server).await?;
@@ -2082,7 +2082,7 @@ async fn code_mode_wait_can_terminate_and_continue() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         let _ = config.features.enable(Feature::CodeMode);
     });
     let test = builder.build(&server).await?;
@@ -2208,7 +2208,7 @@ async fn code_mode_wait_returns_error_for_unknown_session() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         let _ = config.features.enable(Feature::CodeMode);
     });
     let test = builder.build(&server).await?;
@@ -2270,7 +2270,7 @@ async fn code_mode_wait_terminate_returns_completed_session_if_it_finished_after
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         let _ = config.features.enable(Feature::CodeMode);
     });
     let test = builder.build(&server).await?;
@@ -2465,7 +2465,7 @@ async fn code_mode_background_keeps_running_on_later_turn_without_wait() -> Resu
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         let _ = config.features.enable(Feature::CodeMode);
     });
     let test = builder.build(&server).await?;
@@ -2558,7 +2558,7 @@ async fn code_mode_wait_uses_its_own_max_tokens_budget() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         let _ = config.features.enable(Feature::CodeMode);
     });
     let test = builder.build(&server).await?;
@@ -3032,7 +3032,7 @@ async fn code_mode_can_use_view_image_result_with_image_helper() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model("gpt-5.4")
         .with_config(move |config| {
             let _ = config.features.enable(Feature::CodeMode);
@@ -3499,7 +3499,7 @@ text(JSON.stringify(Object.getOwnPropertyNames(globalThis).sort()));
         "WeakMap",
         "WeakRef",
         "WeakSet",
-        "__codexContentItems",
+        "__ditfaContentItems",
         "add_content",
         "audio",
         "decodeURI",
@@ -3623,7 +3623,7 @@ async fn code_mode_can_call_hidden_dynamic_tools() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         let _ = config.features.enable(Feature::CodeMode);
     });
     let base_test = builder.build(&server).await?;
@@ -3632,7 +3632,7 @@ async fn code_mode_can_call_hidden_dynamic_tools() -> Result<()> {
         .start_thread(StartThreadOptions {
             dynamic_tools: vec![DynamicToolSpec::Namespace(DynamicToolNamespaceSpec {
                 name: "ditfa_app".to_string(),
-                description: "Codex app tools.".to_string(),
+                description: "Ditfa app tools.".to_string(),
                 tools: vec![DynamicToolNamespaceTool::Function(
                     DynamicToolFunctionSpec {
                         name: "hidden_dynamic_tool".to_string(),
@@ -3776,7 +3776,7 @@ text(
             .get("description")
             .and_then(Value::as_str)
             .is_some_and(|description| {
-                description.contains("Codex app tools.")
+                description.contains("Ditfa app tools.")
                     && description.contains("A hidden dynamic tool.")
                     && description.contains("declare const tools:")
                     && description.contains("ditfa_app__hidden_dynamic_tool(args:")
@@ -3791,7 +3791,7 @@ async fn code_mode_excludes_configured_nested_tool_namespaces() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         let _ = config.features.enable(Feature::CodeMode);
         config.code_mode.excluded_tool_namespaces = vec!["excluded".to_string()];
     });
@@ -3965,7 +3965,7 @@ async fn code_mode_can_store_and_load_values_across_turns() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = responses::start_mock_server().await;
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         let _ = config.features.enable(Feature::CodeMode);
     });
     let test = builder.build(&server).await?;

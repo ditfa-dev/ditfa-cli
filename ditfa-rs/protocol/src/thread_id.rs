@@ -10,7 +10,7 @@ use uuid::Uuid;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, TS, Hash)]
 #[ts(type = "string")]
-/// Identifier for a Codex thread.
+/// Identifier for a Ditfa thread.
 ///
 /// Ditfa-generated thread IDs are UUIDv7, and some use cases rely on that.
 pub struct ThreadId {

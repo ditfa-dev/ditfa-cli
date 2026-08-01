@@ -3,11 +3,11 @@ name: rust-release-zsh
 on:
   push:
     tags:
-      - "codex-zsh-v*.*.*"
+      - "ditfa-zsh-v*.*.*"
 
 env:
   ZSH_COMMIT: 77045ef899e53b9598bebc5a41db93a548a40ca6
-  ZSH_PATCH: codex-rs/shell-escalation/patches/zsh-exec-wrapper.patch
+  ZSH_PATCH: ditfa-rs/shell-escalation/patches/zsh-exec-wrapper.patch
 
 concurrency:
   group: ${{ github.workflow }}::${{ github.ref_name }}
@@ -28,8 +28,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [[ ! "${RELEASE_TAG}" =~ ^codex-zsh-v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Tag ${RELEASE_TAG} does not match codex-zsh-vX.Y.Z." >&2
+          if [[ ! "${RELEASE_TAG}" =~ ^ditfa-zsh-v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag ${RELEASE_TAG} does not match ditfa-zsh-vX.Y.Z." >&2
             exit 1
           fi
 
@@ -64,12 +64,12 @@ jobs:
             target: x86_64-unknown-linux-musl
             variant: ubuntu-24.04
             image: ubuntu:24.04
-            archive_name: codex-zsh-x86_64-unknown-linux-musl.tar.gz
+            archive_name: ditfa-zsh-x86_64-unknown-linux-musl.tar.gz
           - runner: ubuntu-24.04-arm
             target: aarch64-unknown-linux-musl
             variant: ubuntu-24.04
             image: arm64v8/ubuntu:24.04
-            archive_name: codex-zsh-aarch64-unknown-linux-musl.tar.gz
+            archive_name: ditfa-zsh-aarch64-unknown-linux-musl.tar.gz
 
     steps:
       - name: Install build prerequisites
@@ -98,7 +98,7 @@ jobs:
 
       - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: codex-zsh-${{ matrix.target }}
+          name: ditfa-zsh-${{ matrix.target }}
           path: dist/zsh/${{ matrix.target }}/*
 
   darwin:
@@ -114,11 +114,11 @@ jobs:
           - runner: macos-15-large
             target: x86_64-apple-darwin
             variant: macos-15
-            archive_name: codex-zsh-x86_64-apple-darwin.tar.gz
+            archive_name: ditfa-zsh-x86_64-apple-darwin.tar.gz
           - runner: macos-15-xlarge
             target: aarch64-apple-darwin
             variant: macos-15
-            archive_name: codex-zsh-aarch64-apple-darwin.tar.gz
+            archive_name: ditfa-zsh-aarch64-apple-darwin.tar.gz
 
     steps:
       - name: Install build prerequisites
@@ -141,7 +141,7 @@ jobs:
 
       - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: codex-zsh-${{ matrix.target }}
+          name: ditfa-zsh-${{ matrix.target }}
           path: dist/zsh/${{ matrix.target }}/*
 
   publish-release:
@@ -170,7 +170,7 @@ jobs:
           tag_name: ${{ needs.metadata.outputs.release_tag }}
           name: ${{ needs.metadata.outputs.release_tag }}
           files: dist/**
-          # Keep zsh artifact releases out of Codex's normal "latest release" channel.
+          # Keep zsh artifact releases out of Ditfa Code's normal "latest release" channel.
           prerelease: true
 
       - name: Publish DotSlash manifest

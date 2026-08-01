@@ -40,8 +40,8 @@ use crate::outgoing_message::OutgoingJsonRpcMessage;
 use crate::outgoing_message::OutgoingMessage;
 use crate::outgoing_message::OutgoingMessageSender;
 
-pub use crate::ditfa_tool_config::CodexToolCallParam;
-pub use crate::ditfa_tool_config::CodexToolCallReplyParam;
+pub use crate::ditfa_tool_config::DitfaToolCallParam;
+pub use crate::ditfa_tool_config::DitfaToolCallReplyParam;
 pub use crate::exec_approval::ExecApprovalElicitRequestParams;
 pub use crate::exec_approval::ExecApprovalResponse;
 pub use crate::patch_approval::PatchApprovalElicitRequestParams;
@@ -94,7 +94,7 @@ pub async fn run_main(
     ditfa_core::otel_init::install_sqlite_telemetry(otel.as_ref(), OTEL_SERVICE_NAME);
     let state_db = ditfa_core::init_state_db(&config).await;
     let environment_manager = Arc::new(
-        EnvironmentManager::from_codex_home(
+        EnvironmentManager::from_ditfa_home(
             config.ditfa_home.clone(),
             Some(ExecServerRuntimePaths::from_optional_paths(
                 arg0_paths.ditfa_self_exe.clone(),

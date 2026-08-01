@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use ditfa_features::Feature;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_mcp::ToolInfo;
 use ditfa_model_provider::create_model_provider;
 use ditfa_model_provider_info::AMAZON_BEDROCK_PROVIDER_ID;
@@ -259,7 +259,7 @@ fn set_web_search_mode(turn: &mut TurnContext, mode: WebSearchMode) {
 
 fn use_chatgpt_auth(turn: &mut TurnContext) {
     turn.auth_manager = Some(AuthManager::from_auth_for_testing(
-        CodexAuth::create_dummy_chatgpt_auth_for_testing(),
+        DitfaAuth::create_dummy_chatgpt_auth_for_testing(),
     ));
     turn.provider = create_model_provider(
         turn.config.model_provider.clone(),

@@ -39,7 +39,7 @@ async fn memory_reset_clears_memory_files_and_rows_preserves_threads() -> Result
     let thread_id = seed_stage1_output(&state_db, ditfa_home.path()).await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;

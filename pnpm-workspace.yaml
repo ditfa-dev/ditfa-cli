@@ -1,7 +1,7 @@
 packages:
   - ditfa-cli
   - ditfa-vscode
-  - codex-rs/responses-api-proxy/npm
+  - ditfa-rs/responses-api-proxy/npm
   - sdk/typescript
 
 ignoredBuiltDependencies:

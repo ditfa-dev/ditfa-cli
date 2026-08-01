@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package codex.exec_server.relay.v1;
+package ditfa.exec_server.relay.v1;
 
 message RelayMessageFrame {
   uint32 version = 1;

@@ -1,8 +1,8 @@
-//! Tracks when Codex-owned transcript scrollback must be repaired after terminal resize.
+//! Tracks when Ditfa-owned transcript scrollback must be repaired after terminal resize.
 //!
-//! Terminal scrollback is not a retained widget tree: once Codex writes wrapped lines into the
+//! Terminal scrollback is not a retained widget tree: once Ditfa writes wrapped lines into the
 //! terminal, the terminal owns those rows. Width resize reflow treats the in-memory transcript cells
-//! as the source of truth, clears Codex-owned history, and re-emits the cells at the current width.
+//! as the source of truth, clears Ditfa-owned history, and re-emits the cells at the current width.
 //! Height-only growth also schedules a rebuild so rows exposed above the inline viewport are
 //! restored from the same source of truth.
 //!

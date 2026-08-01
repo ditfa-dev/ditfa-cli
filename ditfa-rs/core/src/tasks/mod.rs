@@ -54,8 +54,8 @@ use ditfa_protocol::protocol::TurnCompleteEvent;
 use ditfa_protocol::protocol::WarningEvent;
 
 use ditfa_features::Feature;
-use ditfa_protocol::error::CodexErr;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::DitfaErr;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::models::ContentItem;
 pub(crate) use compact::CompactTask;
 pub(crate) use regular::RegularTask;
@@ -65,9 +65,9 @@ pub(crate) use user_shell::UserShellCommandTask;
 pub(crate) use user_shell::execute_user_shell_command;
 
 const GRACEFULL_INTERRUPTION_TIMEOUT_MS: u64 = 100;
-const TASK_COMPACT_METRIC: &str = "codex.task.compact";
+const TASK_COMPACT_METRIC: &str = "ditfa.task.compact";
 
-pub(crate) type SessionTaskResult = CodexResult<Option<String>>;
+pub(crate) type SessionTaskResult = DitfaResult<Option<String>>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum InterruptedTurnHistoryMarker {
@@ -205,7 +205,7 @@ impl SessionTaskContext {
 
 /// Async task that drives a [`Session`] turn.
 ///
-/// Implementations encapsulate a specific Codex workflow (regular chat,
+/// Implementations encapsulate a specific Ditfa workflow (regular chat,
 /// reviews, ghost snapshots, etc.). Each task instance is owned by a
 /// [`Session`] and executed on a background Tokio task. The trait is
 /// intentionally small: implementers identify themselves via
@@ -227,7 +227,7 @@ pub(crate) trait SessionTask: Send + Sync + 'static {
     /// abort; implementers should watch for it and terminate quickly once it
     /// fires. Returning [`Some`] yields a final message that
     /// [`Session::on_task_finished`] will emit to the client. Returning
-    /// [`CodexErr::TurnAborted`] completes the task through the aborted-turn
+    /// [`DitfaErr::TurnAborted`] completes the task through the aborted-turn
     /// lifecycle instead.
     fn run(
         self: Arc<Self>,
@@ -390,14 +390,14 @@ impl Session {
             thread.id = %self.thread_id,
             turn.id = %turn_context.sub_id,
             model = %turn_context.model_info.slug,
-            codex.turn.reasoning_effort = %reasoning_effort,
-            codex.turn.token_usage.input_tokens = field::Empty,
-            codex.turn.token_usage.cached_input_tokens = field::Empty,
-            codex.turn.token_usage.cache_write_input_tokens = field::Empty,
-            codex.turn.token_usage.non_cached_input_tokens = field::Empty,
-            codex.turn.token_usage.output_tokens = field::Empty,
-            codex.turn.token_usage.reasoning_output_tokens = field::Empty,
-            codex.turn.token_usage.total_tokens = field::Empty,
+            ditfa.turn.reasoning_effort = %reasoning_effort,
+            ditfa.turn.token_usage.input_tokens = field::Empty,
+            ditfa.turn.token_usage.cached_input_tokens = field::Empty,
+            ditfa.turn.token_usage.cache_write_input_tokens = field::Empty,
+            ditfa.turn.token_usage.non_cached_input_tokens = field::Empty,
+            ditfa.turn.token_usage.output_tokens = field::Empty,
+            ditfa.turn.token_usage.reasoning_output_tokens = field::Empty,
+            ditfa.turn.token_usage.total_tokens = field::Empty,
         );
         let handle = tokio::spawn(
             async move {
@@ -418,7 +418,7 @@ impl Session {
                         ctx_for_finish.as_ref(),
                         EventMsg::Warning(WarningEvent {
                             message: format!(
-                                "Failed to save the conversation transcript; Codex will continue retrying. Error: {err}"
+                                "Failed to save the conversation transcript; Ditfa will continue retrying. Error: {err}"
                             ),
                         }),
                     )
@@ -584,7 +584,7 @@ impl Session {
     ) {
         let (last_agent_message, abort_reason) = match task_result {
             Ok(last_agent_message) => (last_agent_message, None),
-            Err(CodexErr::TurnAborted) => (None, Some(TurnAbortReason::Interrupted)),
+            Err(DitfaErr::TurnAborted) => (None, Some(TurnAbortReason::Interrupted)),
             Err(err) => {
                 warn!(%err, "session task returned an unexpected error");
                 (None, None)
@@ -698,31 +698,31 @@ impl Session {
             };
             let current_span = Span::current();
             current_span.record(
-                "codex.turn.token_usage.input_tokens",
+                "ditfa.turn.token_usage.input_tokens",
                 turn_token_usage.input_tokens,
             );
             current_span.record(
-                "codex.turn.token_usage.cached_input_tokens",
+                "ditfa.turn.token_usage.cached_input_tokens",
                 turn_token_usage.cached_input(),
             );
             current_span.record(
-                "codex.turn.token_usage.cache_write_input_tokens",
+                "ditfa.turn.token_usage.cache_write_input_tokens",
                 turn_token_usage.cache_write_input_tokens,
             );
             current_span.record(
-                "codex.turn.token_usage.non_cached_input_tokens",
+                "ditfa.turn.token_usage.non_cached_input_tokens",
                 turn_token_usage.non_cached_input(),
             );
             current_span.record(
-                "codex.turn.token_usage.output_tokens",
+                "ditfa.turn.token_usage.output_tokens",
                 turn_token_usage.output_tokens,
             );
             current_span.record(
-                "codex.turn.token_usage.reasoning_output_tokens",
+                "ditfa.turn.token_usage.reasoning_output_tokens",
                 turn_token_usage.reasoning_output_tokens,
             );
             current_span.record(
-                "codex.turn.token_usage.total_tokens",
+                "ditfa.turn.token_usage.total_tokens",
                 turn_token_usage.total_tokens,
             );
             self.services

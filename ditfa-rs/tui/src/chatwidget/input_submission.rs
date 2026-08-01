@@ -360,7 +360,7 @@ impl ChatWidget {
         // Queue the optimistic prompt first so the user's input is visible while that happens.
         // Direct submissions do not share that queue, so keep their existing failure behavior.
         let render_before_submit =
-            render_in_history && matches!(&self.ditfa_op_target, CodexOpTarget::AppEvent);
+            render_in_history && matches!(&self.ditfa_op_target, DitfaOpTarget::AppEvent);
         if render_before_submit {
             self.on_user_message_display(user_message_display_for_history(
                 submitted_message.clone(),

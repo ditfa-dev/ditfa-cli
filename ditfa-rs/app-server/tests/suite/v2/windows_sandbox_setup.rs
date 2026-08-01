@@ -32,7 +32,7 @@ async fn windows_sandbox_setup_start_emits_completion_notification() -> Result<(
         "compact prompt",
     )?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -71,7 +71,7 @@ async fn windows_sandbox_setup_start_emits_completion_notification() -> Result<(
 async fn windows_sandbox_setup_start_rejects_relative_cwd() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;

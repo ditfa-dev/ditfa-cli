@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 env:
-  WINDOWS_BINARIES: "codex codex-code-mode-host codex-responses-api-proxy codex-windows-sandbox-setup codex-command-runner codex-app-server"
+  WINDOWS_BINARIES: "ditfa ditfa-code-mode-host ditfa-responses-api-proxy ditfa-windows-sandbox-setup ditfa-command-runner ditfa-app-server"
 
 jobs:
   build-windows-binaries:
@@ -17,7 +17,7 @@ jobs:
       contents: read
     defaults:
       run:
-        working-directory: codex-rs
+        working-directory: ditfa-rs
     strategy:
       fail-fast: false
       matrix:
@@ -25,42 +25,42 @@ jobs:
           - runner: windows-x64
             target: x86_64-pc-windows-msvc
             bundle: primary
-            binaries: "codex codex-code-mode-host codex-responses-api-proxy"
+            binaries: "ditfa ditfa-code-mode-host ditfa-responses-api-proxy"
             runs_on:
               group: ${{ github.event.repository.name }}-runners
               labels: ${{ github.event.repository.name }}-windows-x64
           - runner: windows-arm64
             target: aarch64-pc-windows-msvc
             bundle: primary
-            binaries: "codex codex-code-mode-host codex-responses-api-proxy"
+            binaries: "ditfa ditfa-code-mode-host ditfa-responses-api-proxy"
             runs_on:
               group: ${{ github.event.repository.name }}-runners
               labels: ${{ github.event.repository.name }}-windows-arm64
           - runner: windows-x64
             target: x86_64-pc-windows-msvc
             bundle: helpers
-            binaries: "codex-windows-sandbox-setup codex-command-runner"
+            binaries: "ditfa-windows-sandbox-setup ditfa-command-runner"
             runs_on:
               group: ${{ github.event.repository.name }}-runners
               labels: ${{ github.event.repository.name }}-windows-x64
           - runner: windows-arm64
             target: aarch64-pc-windows-msvc
             bundle: helpers
-            binaries: "codex-windows-sandbox-setup codex-command-runner"
+            binaries: "ditfa-windows-sandbox-setup ditfa-command-runner"
             runs_on:
               group: ${{ github.event.repository.name }}-runners
               labels: ${{ github.event.repository.name }}-windows-arm64
           - runner: windows-x64
             target: x86_64-pc-windows-msvc
             bundle: app-server
-            binaries: "codex-app-server codex-code-mode-host"
+            binaries: "ditfa-app-server ditfa-code-mode-host"
             runs_on:
               group: ${{ github.event.repository.name }}-runners
               labels: ${{ github.event.repository.name }}-windows-x64
           - runner: windows-arm64
             target: aarch64-pc-windows-msvc
             bundle: app-server
-            binaries: "codex-app-server codex-code-mode-host"
+            binaries: "ditfa-app-server ditfa-code-mode-host"
             runs_on:
               group: ${{ github.event.repository.name }}-runners
               labels: ${{ github.event.repository.name }}-windows-arm64
@@ -151,7 +151,7 @@ jobs:
       contents: read
     defaults:
       run:
-        working-directory: codex-rs
+        working-directory: ditfa-rs
     strategy:
       fail-fast: false
       matrix:
@@ -182,7 +182,7 @@ jobs:
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: ${{ matrix.target }}-symbols
-          path: codex-rs/symbols-dist/${{ matrix.target }}/*
+          path: ditfa-rs/symbols-dist/${{ matrix.target }}/*
           if-no-files-found: error
 
   build-windows:
@@ -199,7 +199,7 @@ jobs:
       id-token: write
     defaults:
       run:
-        working-directory: codex-rs
+        working-directory: ditfa-rs
     strategy:
       fail-fast: false
       matrix:
@@ -271,13 +271,13 @@ jobs:
               "$dest/${binary}-${{ matrix.target }}.exe"
           done
 
-      - name: Build Codex package archives
+      - name: Build Ditfa Code package archives
         shell: bash
         run: |
           set -euo pipefail
           target="${{ matrix.target }}"
-          archive_script="${GITHUB_WORKSPACE}/.github/scripts/build-codex-package-archive.sh"
-          temp_root="${RUNNER_TEMP}/codex-package-archives"
+          archive_script="${GITHUB_WORKSPACE}/.github/scripts/build-ditfa-package-archive.sh"
+          temp_root="${RUNNER_TEMP}/ditfa-package-archives"
 
           # The package helper rewrites cached DotSlash executables. Keep the
           # concurrent processes in separate temp roots because Windows cannot
@@ -315,13 +315,13 @@ jobs:
           python -m venv "${RUNNER_TEMP}/python-runtime-build-venv"
           "${RUNNER_TEMP}/python-runtime-build-venv/Scripts/python.exe" -m pip install build
 
-          stage_dir="${RUNNER_TEMP}/openai-codex-cli-bin-${{ matrix.target }}"
+          stage_dir="${RUNNER_TEMP}/openai-ditfa-cli-bin-${{ matrix.target }}"
           wheel_dir="${GITHUB_WORKSPACE}/python-runtime-dist/${{ matrix.target }}"
           python "${GITHUB_WORKSPACE}/sdk/python/scripts/update_sdk_artifacts.py" \
             stage-runtime \
             "$stage_dir" \
-            "dist/${{ matrix.target }}/codex-package-${{ matrix.target }}.tar.gz" \
-            --codex-version "${GITHUB_REF_NAME}" \
+            "dist/${{ matrix.target }}/ditfa-package-${{ matrix.target }}.tar.gz" \
+            --ditfa-version "${GITHUB_REF_NAME}" \
             --platform-tag "$platform_tag"
           "${RUNNER_TEMP}/python-runtime-build-venv/Scripts/python.exe" -m build --wheel --outdir "$wheel_dir" "$stage_dir"
 
@@ -345,9 +345,9 @@ jobs:
           # For compatibility with environments that lack the `zstd` tool we
           # additionally create a `.tar.gz` and `.zip` for every Windows binary.
           # The end result is:
-          #   codex-<target>.zst
-          #   codex-<target>.tar.gz
-          #   codex-<target>.zip
+          #   ditfa-<target>.zst
+          #   ditfa-<target>.tar.gz
+          #   ditfa-<target>.zip
           # Variables in the single-quoted script expand in the child shell.
           # shellcheck disable=SC2016
           printf '%s\0' "$dest"/* |
@@ -372,18 +372,18 @@ jobs:
             # Create zip archive for Windows binaries.
             # Must run from inside the dest dir so 7z does not embed the
             # directory path inside the zip.
-            if [[ "$base" == "codex-${target}.exe" ]]; then
-              # Bundle the sandbox helper binaries into the main codex zip so
-              # WinGet installs include the required helpers next to codex.exe.
+            if [[ "$base" == "ditfa-${target}.exe" ]]; then
+              # Bundle the sandbox helper binaries into the main ditfa zip so
+              # WinGet installs include the required helpers next to ditfa.exe.
               # Fall back to the single-binary zip if the helpers are missing
               # to avoid breaking releases.
               bundle_dir="$(mktemp -d)"
-              runner_src="$dest/codex-command-runner-${target}.exe"
-              setup_src="$dest/codex-windows-sandbox-setup-${target}.exe"
+              runner_src="$dest/ditfa-command-runner-${target}.exe"
+              setup_src="$dest/ditfa-windows-sandbox-setup-${target}.exe"
               if [[ -f "$runner_src" && -f "$setup_src" ]]; then
                 cp "$dest/$base" "$bundle_dir/$base"
-                cp "$runner_src" "$bundle_dir/codex-command-runner.exe"
-                cp "$setup_src" "$bundle_dir/codex-windows-sandbox-setup.exe"
+                cp "$runner_src" "$bundle_dir/ditfa-command-runner.exe"
+                cp "$setup_src" "$bundle_dir/ditfa-windows-sandbox-setup.exe"
                 # Use an absolute path so bundle zips land in the real dist
                 # dir even when 7z runs from a temp directory.
                 (cd "$bundle_dir" && 7z a "$repo_root/$dest/${base}.zip" .)
@@ -405,4 +405,4 @@ jobs:
         with:
           name: ${{ matrix.target }}
           path: |
-            codex-rs/dist/${{ matrix.target }}/*
+            ditfa-rs/dist/${{ matrix.target }}/*

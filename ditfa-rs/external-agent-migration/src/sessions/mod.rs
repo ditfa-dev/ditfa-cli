@@ -160,7 +160,7 @@ mod tests {
     #[test]
     fn skips_session_that_was_already_imported() {
         let root = TempDir::new().expect("tempdir");
-        let ditfa_home = root.path().join("codex-home");
+        let ditfa_home = root.path().join("ditfa-home");
         let source_path = root.path().join("session.jsonl");
         std::fs::write(&source_path, "{}\n").expect("session");
         ledger::record_imported_session(&ditfa_home, &source_path, ThreadId::new())

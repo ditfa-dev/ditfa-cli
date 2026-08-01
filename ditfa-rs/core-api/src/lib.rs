@@ -1,4 +1,4 @@
-//! Public facade for thread management APIs built on `codex-core`.
+//! Public facade for thread management APIs built on `ditfa-core`.
 
 #![deny(private_bounds, private_interfaces, unreachable_pub)]
 
@@ -25,8 +25,8 @@ pub use ditfa_config::types::TuiKeymap;
 pub use ditfa_config::types::TuiNotificationSettings;
 pub use ditfa_config::types::TuiPetAnchor;
 pub use ditfa_config::types::UriBasedFileOpener;
-pub use ditfa_core::CodexAppsToolsCache;
-pub use ditfa_core::CodexThread;
+pub use ditfa_core::DitfaAppsToolsCache;
+pub use ditfa_core::DitfaThread;
 pub use ditfa_core::ForkSnapshot;
 pub use ditfa_core::LoadedAgentsMd;
 pub use ditfa_core::McpManager;
@@ -44,7 +44,7 @@ pub use ditfa_core::config::MultiAgentV2Config;
 pub use ditfa_core::config::Permissions;
 pub use ditfa_core::config::TerminalResizeReflowConfig;
 pub use ditfa_core::config::ThreadStoreConfig;
-pub use ditfa_core::config::find_codex_home;
+pub use ditfa_core::config::find_ditfa_home;
 pub use ditfa_core::init_state_db;
 pub use ditfa_core::local_agent_graph_store_from_state_db;
 pub use ditfa_core::resolve_installation_id;
@@ -71,11 +71,11 @@ pub use ditfa_extension_api::UserInstructionsProvider;
 pub use ditfa_extension_api::empty_extension_registry;
 pub use ditfa_features::Feature;
 pub use ditfa_features::Features;
-pub use ditfa_home::CodexHomeUserInstructionsProvider;
+pub use ditfa_home::DitfaHomeUserInstructionsProvider;
 pub use ditfa_image_generation_extension::install as install_image_generation_extension;
 pub use ditfa_login::AuthHeaders;
 pub use ditfa_login::AuthManager;
-pub use ditfa_login::CodexAuth;
+pub use ditfa_login::DitfaAuth;
 pub use ditfa_login::ExternalAuth;
 pub use ditfa_login::ExternalAuthFuture;
 pub use ditfa_login::ExternalAuthRefreshContext;
@@ -96,7 +96,7 @@ pub use ditfa_protocol::dynamic_tools::DynamicToolFunctionSpec;
 pub use ditfa_protocol::dynamic_tools::DynamicToolNamespaceSpec;
 pub use ditfa_protocol::dynamic_tools::DynamicToolNamespaceTool;
 pub use ditfa_protocol::dynamic_tools::DynamicToolSpec;
-pub use ditfa_protocol::error::Result as CodexResult;
+pub use ditfa_protocol::error::Result as DitfaResult;
 pub use ditfa_protocol::models::PermissionProfile;
 pub use ditfa_protocol::openai_models::ModelPreset;
 pub use ditfa_protocol::protocol::AskForApproval;

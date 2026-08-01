@@ -29,7 +29,7 @@ use ditfa_config::types::ToolSuggestDiscoverableType;
 use ditfa_core_plugins::PluginsManager;
 use ditfa_features::Feature;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_mcp::DITFA_APPS_MCP_SERVER_NAME;
 use ditfa_mcp::MCP_TOOL_DITFA_APPS_META_KEY;
 use ditfa_mcp::McpRuntime;
@@ -83,7 +83,7 @@ pub async fn list_accessible_connectors_from_mcp_tools(
 pub(crate) async fn list_tool_suggest_discoverable_tools_with_auth(
     config: &Config,
     plugins_manager: &PluginsManager,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     accessible_connectors: &[AppInfo],
     loaded_plugin_app_connector_ids: &[String],
 ) -> anyhow::Result<Vec<DiscoverableTool>> {
@@ -118,11 +118,11 @@ pub async fn list_cached_accessible_connectors_from_mcp_tools(
     config: &Config,
 ) -> Option<Vec<AppInfo>> {
     let auth_manager =
-        AuthManager::shared_from_config(config, /*enable_codex_api_key_env*/ false).await;
+        AuthManager::shared_from_config(config, /*enable_ditfa_api_key_env*/ false).await;
     let auth = auth_manager.auth().await;
     if !config
         .features
-        .apps_enabled_for_auth(auth.as_ref().is_some_and(CodexAuth::uses_codex_backend))
+        .apps_enabled_for_auth(auth.as_ref().is_some_and(DitfaAuth::uses_ditfa_backend))
     {
         return Some(Vec::new());
     }
@@ -132,7 +132,7 @@ pub async fn list_cached_accessible_connectors_from_mcp_tools(
 
 pub(crate) fn refresh_accessible_connectors_cache_from_mcp_tools(
     config: &Config,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     mcp_tools: &[ToolInfo],
 ) {
     if !config.features.enabled(Feature::Apps) {
@@ -167,7 +167,7 @@ pub async fn list_accessible_connectors_from_mcp_tools_with_options_and_status(
         config.ditfa_linux_sandbox_exe.clone(),
     )?;
     let environment_manager =
-        EnvironmentManager::from_codex_home(config.ditfa_home.clone(), Some(local_runtime_paths))
+        EnvironmentManager::from_ditfa_home(config.ditfa_home.clone(), Some(local_runtime_paths))
             .await?;
     list_accessible_connectors_from_mcp_tools_with_environment_manager(
         config,
@@ -200,11 +200,11 @@ pub async fn list_accessible_connectors_from_mcp_tools_with_mcp_manager(
     mcp_manager: Arc<McpManager>,
 ) -> anyhow::Result<AccessibleConnectorsStatus> {
     let auth_manager =
-        AuthManager::shared_from_config(config, /*enable_codex_api_key_env*/ false).await;
+        AuthManager::shared_from_config(config, /*enable_ditfa_api_key_env*/ false).await;
     let auth = auth_manager.auth().await;
     if !config
         .features
-        .apps_enabled_for_auth(auth.as_ref().is_some_and(CodexAuth::uses_codex_backend))
+        .apps_enabled_for_auth(auth.as_ref().is_some_and(DitfaAuth::uses_ditfa_backend))
     {
         return Ok(AccessibleConnectorsStatus {
             connectors: Vec::new(),
@@ -240,7 +240,7 @@ pub async fn list_accessible_connectors_from_mcp_tools_with_mcp_manager(
 
     let cancel_token = CancellationToken::new();
     let ditfa_apps_auth_manager =
-        ditfa_mcp::host_owned_codex_apps_enabled(&mcp_config, auth.as_ref())
+        ditfa_mcp::host_owned_ditfa_apps_enabled(&mcp_config, auth.as_ref())
             .then(|| Arc::clone(&auth_manager));
     let mcp_runtime = McpRuntime::new(McpRuntimeInput {
         config: Arc::clone(&mcp_config),
@@ -266,7 +266,7 @@ pub async fn list_accessible_connectors_from_mcp_tools_with_mcp_manager(
 
     let refreshed_tools = if force_refetch {
         match mcp_runtime
-            .latest_hard_refresh_codex_apps_tools_cache()
+            .latest_hard_refresh_ditfa_apps_tools_cache()
             .await
         {
             Ok(tools) => Some(tools),
@@ -334,11 +334,11 @@ pub async fn list_accessible_connectors_from_mcp_tools_with_mcp_manager(
 
 fn accessible_connectors_cache_key(
     config: &Config,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
 ) -> AccessibleConnectorsCacheKey {
-    let account_id = auth.and_then(CodexAuth::get_account_id);
-    let chatgpt_user_id = auth.and_then(CodexAuth::get_chatgpt_user_id);
-    let is_workspace_account = auth.is_some_and(CodexAuth::is_workspace_account);
+    let account_id = auth.and_then(DitfaAuth::get_account_id);
+    let chatgpt_user_id = auth.and_then(DitfaAuth::get_chatgpt_user_id);
+    let is_workspace_account = auth.is_some_and(DitfaAuth::is_workspace_account);
     AccessibleConnectorsCacheKey {
         chatgpt_base_url: config.chatgpt_base_url.clone(),
         account_id,
@@ -411,7 +411,7 @@ fn tool_suggest_connector_ids(
 #[instrument(level = "trace", skip_all)]
 async fn cached_directory_connectors_for_tool_suggest_with_auth(
     config: &Config,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
 ) -> Vec<AppInfo> {
     if !config.features.enabled(Feature::Apps) {
         return Vec::new();
@@ -422,11 +422,11 @@ async fn cached_directory_connectors_for_tool_suggest_with_auth(
         Some(auth)
     } else {
         let auth_manager =
-            AuthManager::shared_from_config(config, /*enable_codex_api_key_env*/ false).await;
+            AuthManager::shared_from_config(config, /*enable_ditfa_api_key_env*/ false).await;
         loaded_auth = auth_manager.auth().await;
         loaded_auth.as_ref()
     };
-    let Some(auth) = auth.filter(|auth| auth.uses_codex_backend()) else {
+    let Some(auth) = auth.filter(|auth| auth.uses_ditfa_backend()) else {
         return Vec::new();
     };
 

@@ -15,10 +15,10 @@ use core_test_support::responses::ev_function_call;
 use core_test_support::responses::ev_response_created;
 use core_test_support::responses::mount_sse_sequence;
 use core_test_support::responses::sse;
-use core_test_support::test_codex::TestCodexHarness;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfaHarness;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_event_match;
 use pretty_assertions::assert_eq;
@@ -42,8 +42,8 @@ struct SnapshotRun {
     ditfa_home: PathBuf,
 }
 
-const POLICY_PATH_FOR_TEST: &str = "/codex/policy/path";
-const SNAPSHOT_PATH_FOR_TEST: &str = "/codex/snapshot/path";
+const POLICY_PATH_FOR_TEST: &str = "/ditfa/policy/path";
+const SNAPSHOT_PATH_FOR_TEST: &str = "/ditfa/snapshot/path";
 const SNAPSHOT_MARKER_VAR: &str = "DITFA_SNAPSHOT_POLICY_MARKER";
 const SNAPSHOT_MARKER_VALUE: &str = "from_snapshot";
 const POLICY_SUCCESS_OUTPUT: &str = "policy-after-snapshot";
@@ -121,7 +121,7 @@ async fn run_snapshot_command_with_options(
     let SnapshotRunOptions {
         shell_environment_set,
     } = options;
-    let builder = test_codex().with_config(move |config| {
+    let builder = test_ditfa().with_config(move |config| {
         config.use_experimental_unified_exec_tool = true;
         config
             .features
@@ -133,7 +133,7 @@ async fn run_snapshot_command_with_options(
             .expect("test config should allow feature update");
         config.permissions.shell_environment_policy.r#set = shell_environment_set;
     });
-    let harness = TestCodexHarness::with_builder(builder).await?;
+    let harness = TestDitfaHarness::with_builder(builder).await?;
     let args = json!({
         "cmd": command,
         "yield_time_ms": 1000,
@@ -154,14 +154,14 @@ async fn run_snapshot_command_with_options(
     mount_sse_sequence(harness.server(), responses).await;
 
     let test = harness.test();
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
     let ditfa_home = test.home.path().to_path_buf();
     let session_model = test.session_configured.model.clone();
     let cwd = test.config.cwd.clone();
     let (sandbox_policy, permission_profile) =
         turn_permission_fields(PermissionProfile::Disabled, cwd.as_path());
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "run unified exec with shell snapshot".into(),
@@ -188,7 +188,7 @@ async fn run_snapshot_command_with_options(
         })
         .await?;
 
-    let begin = wait_for_event_match(&codex, |ev| match ev {
+    let begin = wait_for_event_match(&ditfa, |ev| match ev {
         EventMsg::ExecCommandBegin(ev) if ev.call_id == call_id => Some(ev.clone()),
         _ => None,
     })
@@ -196,13 +196,13 @@ async fn run_snapshot_command_with_options(
     let snapshot_path = wait_for_snapshot(&ditfa_home).await?;
     let snapshot_content = fs::read_to_string(&snapshot_path).await?;
 
-    let end = wait_for_event_match(&codex, |ev| match ev {
+    let end = wait_for_event_match(&ditfa, |ev| match ev {
         EventMsg::ExecCommandEnd(ev) if ev.call_id == call_id => Some(ev.clone()),
         _ => None,
     })
     .await;
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     Ok(SnapshotRun {
         begin,
@@ -224,14 +224,14 @@ async fn run_shell_command_snapshot_with_options(
     let SnapshotRunOptions {
         shell_environment_set,
     } = options;
-    let builder = test_codex().with_config(move |config| {
+    let builder = test_ditfa().with_config(move |config| {
         config
             .features
             .enable(Feature::ShellSnapshot)
             .expect("test config should allow feature update");
         config.permissions.shell_environment_policy.r#set = shell_environment_set;
     });
-    let harness = TestCodexHarness::with_builder(builder).await?;
+    let harness = TestDitfaHarness::with_builder(builder).await?;
     let args = json!({
         "command": command,
         "timeout_ms": 1000,
@@ -252,14 +252,14 @@ async fn run_shell_command_snapshot_with_options(
     mount_sse_sequence(harness.server(), responses).await;
 
     let test = harness.test();
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
     let ditfa_home = test.home.path().to_path_buf();
     let session_model = test.session_configured.model.clone();
     let cwd = test.config.cwd.clone();
     let (sandbox_policy, permission_profile) =
         turn_permission_fields(PermissionProfile::Disabled, cwd.as_path());
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "run shell_command with shell snapshot".into(),
@@ -286,7 +286,7 @@ async fn run_shell_command_snapshot_with_options(
         })
         .await?;
 
-    let begin = wait_for_event_match(&codex, |ev| match ev {
+    let begin = wait_for_event_match(&ditfa, |ev| match ev {
         EventMsg::ExecCommandBegin(ev) if ev.call_id == call_id => Some(ev.clone()),
         _ => None,
     })
@@ -294,13 +294,13 @@ async fn run_shell_command_snapshot_with_options(
     let snapshot_path = wait_for_snapshot(&ditfa_home).await?;
     let snapshot_content = fs::read_to_string(&snapshot_path).await?;
 
-    let end = wait_for_event_match(&codex, |ev| match ev {
+    let end = wait_for_event_match(&ditfa, |ev| match ev {
         EventMsg::ExecCommandEnd(ev) if ev.call_id == call_id => Some(ev.clone()),
         _ => None,
     })
     .await;
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     Ok(SnapshotRun {
         begin,
@@ -312,7 +312,7 @@ async fn run_shell_command_snapshot_with_options(
 }
 
 async fn run_tool_turn_on_harness(
-    harness: &TestCodexHarness,
+    harness: &TestDitfaHarness,
     prompt: &str,
     call_id: &str,
     tool_name: &str,
@@ -333,12 +333,12 @@ async fn run_tool_turn_on_harness(
     mount_sse_sequence(harness.server(), responses).await;
 
     let test = harness.test();
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
     let session_model = test.session_configured.model.clone();
     let cwd = test.config.cwd.clone();
     let (sandbox_policy, permission_profile) =
         turn_permission_fields(PermissionProfile::Disabled, cwd.as_path());
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: prompt.into(),
@@ -365,17 +365,17 @@ async fn run_tool_turn_on_harness(
         })
         .await?;
 
-    wait_for_event_match(&codex, |ev| match ev {
+    wait_for_event_match(&ditfa, |ev| match ev {
         EventMsg::ExecCommandBegin(ev) if ev.call_id == call_id => Some(ev.clone()),
         _ => None,
     })
     .await;
-    let end = wait_for_event_match(&codex, |ev| match ev {
+    let end = wait_for_event_match(&ditfa, |ev| match ev {
         EventMsg::ExecCommandEnd(ev) if ev.call_id == call_id => Some(ev.clone()),
         _ => None,
     })
     .await;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
     Ok(end)
 }
 
@@ -438,14 +438,14 @@ async fn linux_shell_command_uses_shell_snapshot() -> Result<()> {
 #[cfg_attr(target_os = "windows", ignore)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn shell_command_snapshot_preserves_shell_environment_policy_set() -> Result<()> {
-    let builder = test_codex().with_config(|config| {
+    let builder = test_ditfa().with_config(|config| {
         config
             .features
             .enable(Feature::ShellSnapshot)
             .expect("test config should allow feature update");
         config.permissions.shell_environment_policy.r#set = policy_set_path_for_test();
     });
-    let harness = TestCodexHarness::with_builder(builder).await?;
+    let harness = TestDitfaHarness::with_builder(builder).await?;
     let ditfa_home = harness.test().home.path().to_path_buf();
     run_tool_turn_on_harness(
         &harness,
@@ -487,7 +487,7 @@ async fn shell_command_snapshot_preserves_shell_environment_policy_set() -> Resu
 #[cfg_attr(not(target_os = "linux"), ignore)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn linux_unified_exec_snapshot_preserves_shell_environment_policy_set() -> Result<()> {
-    let builder = test_codex().with_config(|config| {
+    let builder = test_ditfa().with_config(|config| {
         config.use_experimental_unified_exec_tool = true;
         config
             .features
@@ -499,7 +499,7 @@ async fn linux_unified_exec_snapshot_preserves_shell_environment_policy_set() ->
             .expect("test config should allow feature update");
         config.permissions.shell_environment_policy.r#set = policy_set_path_for_test();
     });
-    let harness = TestCodexHarness::with_builder(builder).await?;
+    let harness = TestDitfaHarness::with_builder(builder).await?;
     let ditfa_home = harness.test().home.path().to_path_buf();
     run_tool_turn_on_harness(
         &harness,
@@ -541,16 +541,16 @@ async fn linux_unified_exec_snapshot_preserves_shell_environment_policy_set() ->
 #[cfg_attr(target_os = "windows", ignore)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn shell_command_snapshot_still_intercepts_apply_patch() -> Result<()> {
-    let builder = test_codex().with_config(|config| {
+    let builder = test_ditfa().with_config(|config| {
         config
             .features
             .enable(Feature::ShellSnapshot)
             .expect("test config should allow feature update");
     });
-    let harness = TestCodexHarness::with_builder(builder).await?;
+    let harness = TestDitfaHarness::with_builder(builder).await?;
 
     let test = harness.test();
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
     let cwd = test.config.cwd.clone();
     let ditfa_home = test.home.path().to_path_buf();
     let target = cwd.join("snapshot-apply.txt");
@@ -581,7 +581,7 @@ async fn shell_command_snapshot_still_intercepts_apply_patch() -> Result<()> {
     let model = test.session_configured.model.clone();
     let (sandbox_policy, permission_profile) =
         turn_permission_fields(PermissionProfile::Disabled, cwd.as_path());
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "apply patch via shell_command with snapshot".into(),
@@ -614,7 +614,7 @@ async fn shell_command_snapshot_still_intercepts_apply_patch() -> Result<()> {
 
     let mut saw_patch_begin = false;
     let mut patch_end = None;
-    wait_for_event(&codex, |ev| match ev {
+    wait_for_event(&ditfa, |ev| match ev {
         EventMsg::PatchApplyBegin(begin) if begin.call_id == call_id => {
             saw_patch_begin = true;
             false
@@ -650,24 +650,24 @@ async fn shell_command_snapshot_still_intercepts_apply_patch() -> Result<()> {
 #[cfg_attr(target_os = "windows", ignore)]
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn shell_snapshot_deleted_after_shutdown_with_skills() -> Result<()> {
-    let builder = test_codex().with_config(|config| {
+    let builder = test_ditfa().with_config(|config| {
         config
             .features
             .enable(Feature::ShellSnapshot)
             .expect("test config should allow feature update");
     });
-    let harness = TestCodexHarness::with_builder(builder).await?;
+    let harness = TestDitfaHarness::with_builder(builder).await?;
     let home = harness.test().home.clone();
     let ditfa_home = home.path().to_path_buf();
-    let codex = harness.test().ditfa.clone();
+    let ditfa = harness.test().ditfa.clone();
 
     let snapshot_path = wait_for_snapshot(&ditfa_home).await?;
     assert!(snapshot_path.exists());
 
-    codex.submit(Op::Shutdown {}).await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::ShutdownComplete)).await;
+    ditfa.submit(Op::Shutdown {}).await?;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::ShutdownComplete)).await;
 
-    drop(codex);
+    drop(ditfa);
     drop(harness);
     sleep(Duration::from_millis(150)).await;
 
@@ -683,7 +683,7 @@ async fn shell_snapshot_deleted_after_shutdown_with_skills() -> Result<()> {
 #[cfg(target_os = "macos")]
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn macos_shell_command_resolves_command_from_tied_path_snapshot() -> Result<()> {
-    let builder = test_codex()
+    let builder = test_ditfa()
         .with_user_shell(get_shell_by_model_provided_path(&PathBuf::from("/bin/zsh")))
         .with_config(|config| {
             config
@@ -691,7 +691,7 @@ async fn macos_shell_command_resolves_command_from_tied_path_snapshot() -> Resul
                 .enable(Feature::ShellSnapshot)
                 .expect("test config should allow feature update");
         });
-    let harness = TestCodexHarness::with_builder(builder).await?;
+    let harness = TestDitfaHarness::with_builder(builder).await?;
     let command_dir = harness
         .test()
         .config

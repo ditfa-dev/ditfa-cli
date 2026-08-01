@@ -2,7 +2,7 @@ use ditfa_experimental_api_macros::ExperimentalApi;
 use ditfa_protocol::config_types::ApprovalsReviewer as CoreApprovalsReviewer;
 use ditfa_protocol::config_types::SandboxMode as CoreSandboxMode;
 use ditfa_protocol::protocol::AskForApproval as CoreAskForApproval;
-use ditfa_protocol::protocol::CodexErrorInfo as CoreCodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo as CoreDitfaErrorInfo;
 use ditfa_protocol::protocol::GranularApprovalConfig as CoreGranularApprovalConfig;
 use ditfa_protocol::protocol::NonSteerableTurnKind as CoreNonSteerableTurnKind;
 use schemars::JsonSchema;
@@ -61,14 +61,14 @@ pub enum NonSteerableTurnKind {
     Compact,
 }
 
-/// This translation layer make sure that we expose codex error code in camel case.
+/// This translation layer make sure that we expose ditfa error code in camel case.
 ///
 /// When an upstream HTTP status is available (for example, from the Responses API or a provider),
-/// it is forwarded in `httpStatusCode` on the relevant `codexErrorInfo` variant.
+/// it is forwarded in `httpStatusCode` on the relevant `ditfaErrorInfo` variant.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
-pub enum CodexErrorInfo {
+pub enum DitfaErrorInfo {
     ContextWindowExceeded,
     SessionBudgetExceeded,
     UsageLimitExceeded,
@@ -112,37 +112,37 @@ pub enum CodexErrorInfo {
     Other,
 }
 
-impl From<CoreCodexErrorInfo> for CodexErrorInfo {
-    fn from(value: CoreCodexErrorInfo) -> Self {
+impl From<CoreDitfaErrorInfo> for DitfaErrorInfo {
+    fn from(value: CoreDitfaErrorInfo) -> Self {
         match value {
-            CoreCodexErrorInfo::ContextWindowExceeded => CodexErrorInfo::ContextWindowExceeded,
-            CoreCodexErrorInfo::SessionBudgetExceeded => CodexErrorInfo::SessionBudgetExceeded,
-            CoreCodexErrorInfo::UsageLimitExceeded => CodexErrorInfo::UsageLimitExceeded,
-            CoreCodexErrorInfo::ServerOverloaded => CodexErrorInfo::ServerOverloaded,
-            CoreCodexErrorInfo::CyberPolicy => CodexErrorInfo::CyberPolicy,
-            CoreCodexErrorInfo::HttpConnectionFailed { http_status_code } => {
-                CodexErrorInfo::HttpConnectionFailed { http_status_code }
+            CoreDitfaErrorInfo::ContextWindowExceeded => DitfaErrorInfo::ContextWindowExceeded,
+            CoreDitfaErrorInfo::SessionBudgetExceeded => DitfaErrorInfo::SessionBudgetExceeded,
+            CoreDitfaErrorInfo::UsageLimitExceeded => DitfaErrorInfo::UsageLimitExceeded,
+            CoreDitfaErrorInfo::ServerOverloaded => DitfaErrorInfo::ServerOverloaded,
+            CoreDitfaErrorInfo::CyberPolicy => DitfaErrorInfo::CyberPolicy,
+            CoreDitfaErrorInfo::HttpConnectionFailed { http_status_code } => {
+                DitfaErrorInfo::HttpConnectionFailed { http_status_code }
             }
-            CoreCodexErrorInfo::ResponseStreamConnectionFailed { http_status_code } => {
-                CodexErrorInfo::ResponseStreamConnectionFailed { http_status_code }
+            CoreDitfaErrorInfo::ResponseStreamConnectionFailed { http_status_code } => {
+                DitfaErrorInfo::ResponseStreamConnectionFailed { http_status_code }
             }
-            CoreCodexErrorInfo::InternalServerError => CodexErrorInfo::InternalServerError,
-            CoreCodexErrorInfo::Unauthorized => CodexErrorInfo::Unauthorized,
-            CoreCodexErrorInfo::BadRequest => CodexErrorInfo::BadRequest,
-            CoreCodexErrorInfo::ThreadRollbackFailed => CodexErrorInfo::ThreadRollbackFailed,
-            CoreCodexErrorInfo::SandboxError => CodexErrorInfo::SandboxError,
-            CoreCodexErrorInfo::ResponseStreamDisconnected { http_status_code } => {
-                CodexErrorInfo::ResponseStreamDisconnected { http_status_code }
+            CoreDitfaErrorInfo::InternalServerError => DitfaErrorInfo::InternalServerError,
+            CoreDitfaErrorInfo::Unauthorized => DitfaErrorInfo::Unauthorized,
+            CoreDitfaErrorInfo::BadRequest => DitfaErrorInfo::BadRequest,
+            CoreDitfaErrorInfo::ThreadRollbackFailed => DitfaErrorInfo::ThreadRollbackFailed,
+            CoreDitfaErrorInfo::SandboxError => DitfaErrorInfo::SandboxError,
+            CoreDitfaErrorInfo::ResponseStreamDisconnected { http_status_code } => {
+                DitfaErrorInfo::ResponseStreamDisconnected { http_status_code }
             }
-            CoreCodexErrorInfo::ResponseTooManyFailedAttempts { http_status_code } => {
-                CodexErrorInfo::ResponseTooManyFailedAttempts { http_status_code }
+            CoreDitfaErrorInfo::ResponseTooManyFailedAttempts { http_status_code } => {
+                DitfaErrorInfo::ResponseTooManyFailedAttempts { http_status_code }
             }
-            CoreCodexErrorInfo::ActiveTurnNotSteerable { turn_kind } => {
-                CodexErrorInfo::ActiveTurnNotSteerable {
+            CoreDitfaErrorInfo::ActiveTurnNotSteerable { turn_kind } => {
+                DitfaErrorInfo::ActiveTurnNotSteerable {
                     turn_kind: turn_kind.into(),
                 }
             }
-            CoreCodexErrorInfo::Other => CodexErrorInfo::Other,
+            CoreDitfaErrorInfo::Other => DitfaErrorInfo::Other,
         }
     }
 }

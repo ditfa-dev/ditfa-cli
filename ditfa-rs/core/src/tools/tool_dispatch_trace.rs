@@ -1,6 +1,6 @@
 //! Adapter between core tool dispatch objects and rollout-trace events.
 //!
-//! `codex-rollout-trace` owns the event schema and writer behavior. This module
+//! `ditfa-rollout-trace` owns the event schema and writer behavior. This module
 //! keeps the core-specific mapping from registry invocations/results out of the
 //! registry control flow.
 

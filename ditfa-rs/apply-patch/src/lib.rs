@@ -31,14 +31,14 @@ pub use standalone_executable::main;
 
 use crate::invocation::ExtractHeredocError;
 
-/// Special argv[1] flag used when the Codex executable self-invokes to run the
+/// Special argv[1] flag used when the Ditfa executable self-invokes to run the
 /// internal `apply_patch` path.
 ///
-/// Although this constant lives in `codex-apply-patch` (to avoid forcing
-/// `codex-arg0` to depend on `codex-core`), it remains part of the "codex core"
+/// Although this constant lives in `ditfa-apply-patch` (to avoid forcing
+/// `ditfa-arg0` to depend on `ditfa-core`), it remains part of the "ditfa core"
 /// process-invocation contract for the standalone `apply_patch` command
 /// surface.
-pub const DITFA_CORE_APPLY_PATCH_ARG1: &str = "--codex-run-as-apply-patch";
+pub const DITFA_CORE_APPLY_PATCH_ARG1: &str = "--ditfa-run-as-apply-patch";
 
 #[derive(Debug, Error, PartialEq)]
 pub enum ApplyPatchError {

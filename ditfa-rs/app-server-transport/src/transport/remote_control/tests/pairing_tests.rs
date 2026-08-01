@@ -44,7 +44,7 @@ async fn auth_manager_with_replacement(
     .expect("stale auth should save");
     let auth_manager = AuthManager::shared(
         ditfa_home.path().to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -1082,7 +1082,7 @@ async fn remote_control_handle_discards_pairing_response_after_auth_change() {
     .expect("initial auth should save");
     let auth_manager = AuthManager::shared(
         ditfa_home.path().to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,

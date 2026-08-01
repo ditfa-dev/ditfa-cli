@@ -12,7 +12,7 @@ use serde_json::json;
 use tempfile::TempDir;
 
 fn ditfa_command(ditfa_home: &Path) -> Result<assert_cmd::Command> {
-    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("codex")?);
+    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa")?);
     cmd.env("DITFA_HOME", ditfa_home);
     Ok(cmd)
 }
@@ -126,7 +126,7 @@ async fn list_and_get_render_expected_output() -> Result<()> {
     assert!(stdout.contains("APP_TOKEN=*****"));
     assert!(stdout.contains("WORKSPACE_ID=*****"));
     assert!(stdout.contains("enabled: true"));
-    assert!(stdout.contains("remove: codex mcp remove docs"));
+    assert!(stdout.contains("remove: ditfa mcp remove docs"));
 
     let mut get_json_cmd = ditfa_command(ditfa_home.path())?;
     get_json_cmd

@@ -3,7 +3,7 @@ use ditfa_protocol::models::ContentItem;
 use ditfa_protocol::models::PermissionProfile;
 use ditfa_protocol::models::ResponseItem;
 use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::CodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::ModelRerouteReason;
 use ditfa_protocol::protocol::ModelVerification;
@@ -20,10 +20,10 @@ use core_test_support::responses::sse_completed;
 use core_test_support::responses::sse_response;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use wiremock::ResponseTemplate;
@@ -35,7 +35,7 @@ const TRUSTED_ACCESS_FOR_CYBER_VERIFICATION: &str = "trusted_access_for_cyber";
 const CYBER_POLICY_MESSAGE: &str =
     "This request has been flagged for potentially high-risk cyber activity.";
 
-fn disabled_text_turn(test: &TestCodex, text: &str) -> Op {
+fn disabled_text_turn(test: &TestDitfa, text: &str) -> Op {
     let (sandbox_policy, permission_profile) =
         turn_permission_fields(PermissionProfile::Disabled, test.cwd_path());
     Op::UserInput {
@@ -73,7 +73,7 @@ async fn openai_model_header_mismatch_emits_warning_event() -> Result<()> {
         sse_response(sse_completed("resp-1")).insert_header("OpenAI-Model", SERVER_MODEL);
     let _mock = mount_response_once(&server, response).await;
 
-    let mut builder = test_codex().with_model(REQUESTED_MODEL);
+    let mut builder = test_ditfa().with_model(REQUESTED_MODEL);
     let test = builder.build(&server).await?;
 
     test.ditfa
@@ -121,7 +121,7 @@ async fn cyber_policy_response_emits_typed_error_without_retry() -> Result<()> {
     }));
     let mock = mount_response_once(&server, response).await;
 
-    let mut builder = test_codex().with_model(REQUESTED_MODEL);
+    let mut builder = test_ditfa().with_model(REQUESTED_MODEL);
     let test = builder.build(&server).await?;
 
     test.ditfa
@@ -133,7 +133,7 @@ async fn cyber_policy_response_emits_typed_error_without_retry() -> Result<()> {
         panic!("expected error event");
     };
     assert_eq!(error.message, CYBER_POLICY_MESSAGE);
-    assert_eq!(error.ditfa_error_info, Some(CodexErrorInfo::CyberPolicy));
+    assert_eq!(error.ditfa_error_info, Some(DitfaErrorInfo::CyberPolicy));
 
     mock.single_request();
 
@@ -160,7 +160,7 @@ async fn response_model_field_mismatch_emits_warning_when_header_matches_request
     .insert_header("OpenAI-Model", REQUESTED_MODEL);
     let _mock = mount_response_once(&server, response).await;
 
-    let mut builder = test_codex().with_model(REQUESTED_MODEL);
+    let mut builder = test_ditfa().with_model(REQUESTED_MODEL);
     let test = builder.build(&server).await?;
 
     test.ditfa
@@ -230,7 +230,7 @@ async fn openai_model_header_mismatch_only_emits_one_warning_per_turn() -> Resul
     .insert_header("OpenAI-Model", SERVER_MODEL);
     let _mock = mount_response_sequence(&server, vec![first_response, second_response]).await;
 
-    let mut builder = test_codex().with_model(REQUESTED_MODEL);
+    let mut builder = test_ditfa().with_model(REQUESTED_MODEL);
     let test = builder.build(&server).await?;
 
     test.ditfa
@@ -268,7 +268,7 @@ async fn openai_model_header_casing_only_mismatch_does_not_warn() -> Result<()> 
         .insert_header("OpenAI-Model", requested_header.as_str());
     let _mock = mount_response_once(&server, response).await;
 
-    let mut builder = test_codex().with_model(REQUESTED_MODEL);
+    let mut builder = test_ditfa().with_model(REQUESTED_MODEL);
     let test = builder.build(&server).await?;
 
     test.ditfa
@@ -311,7 +311,7 @@ async fn model_verification_emits_structured_event_without_reroute_or_warning() 
     ]));
     let _mock = mount_response_once(&server, response).await;
 
-    let mut builder = test_codex().with_model(SERVER_MODEL);
+    let mut builder = test_ditfa().with_model(SERVER_MODEL);
     let test = builder.build(&server).await?;
 
     test.ditfa
@@ -387,7 +387,7 @@ async fn model_verification_only_emits_once_per_turn() -> Result<()> {
     ]));
     let _mock = mount_response_sequence(&server, vec![first_response, second_response]).await;
 
-    let mut builder = test_codex().with_model(SERVER_MODEL);
+    let mut builder = test_ditfa().with_model(SERVER_MODEL);
     let test = builder.build(&server).await?;
 
     test.ditfa

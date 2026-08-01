@@ -15,7 +15,7 @@ use core_test_support::responses::mount_sse_once;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event_match;
 use pretty_assertions::assert_eq;
 use std::collections::BTreeMap;
@@ -30,7 +30,7 @@ async fn additional_context_is_model_visible_but_not_a_user_message_item() -> Re
         sse(vec![ev_response_created("resp-1"), ev_completed("resp-1")]),
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| config.include_environment_context = false)
         .build(&server)
         .await?;
@@ -124,7 +124,7 @@ async fn external_context_like_user_text_remains_a_user_message_item() -> Result
         sse(vec![ev_response_created("resp-1"), ev_completed("resp-1")]),
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| config.include_environment_context = false)
         .build(&server)
         .await?;
@@ -173,7 +173,7 @@ async fn additional_context_trust_controls_message_role() -> Result<()> {
         sse(vec![ev_response_created("resp-1"), ev_completed("resp-1")]),
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| config.include_environment_context = false)
         .build(&server)
         .await?;
@@ -246,7 +246,7 @@ async fn additional_context_is_deduplicated_between_turns_while_retained() -> Re
         sse(vec![ev_response_created("resp-2"), ev_completed("resp-2")]),
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| config.include_environment_context = false)
         .build(&server)
         .await?;
@@ -331,7 +331,7 @@ async fn additional_context_removes_one_value_while_adding_another() -> Result<(
         sse(vec![ev_response_created("resp-3"), ev_completed("resp-3")]),
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| config.include_environment_context = false)
         .build(&server)
         .await?;
@@ -485,7 +485,7 @@ async fn additional_context_values_are_truncated_before_model_input() -> Result<
         sse(vec![ev_response_created("resp-1"), ev_completed("resp-1")]),
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| config.include_environment_context = false)
         .build(&server)
         .await?;

@@ -12,9 +12,9 @@ use ditfa_protocol::user_input::UserInput;
 use core_test_support::responses::mount_function_call_agent_response;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_event_match;
 use core_test_support::zsh_fork::build_zsh_fork_test;
@@ -39,7 +39,7 @@ fn shell_command_arguments(command: &str) -> Result<String> {
 }
 
 async fn submit_turn_with_policies(
-    test: &TestCodex,
+    test: &TestDitfa,
     prompt: &str,
     approval_policy: AskForApproval,
     permission_profile: PermissionProfile,
@@ -106,7 +106,7 @@ description: {name} skill
     Ok(script_path)
 }
 
-fn skill_script_command(test: &TestCodex, script_name: &str) -> Result<String> {
+fn skill_script_command(test: &TestDitfa, script_name: &str) -> Result<String> {
     let script_path = fs::canonicalize(
         test.ditfa_home_path()
             .join("skills/mbolin-test-skill/scripts")
@@ -115,7 +115,7 @@ fn skill_script_command(test: &TestCodex, script_name: &str) -> Result<String> {
     Ok(shlex::try_join([script_path.to_string_lossy().as_ref()])?)
 }
 
-async fn wait_for_exec_approval_request(test: &TestCodex) -> Option<ExecApprovalRequestEvent> {
+async fn wait_for_exec_approval_request(test: &TestDitfa) -> Option<ExecApprovalRequestEvent> {
     wait_for_event_match(test.ditfa.as_ref(), |event| match event {
         EventMsg::ExecApprovalRequest(request) => Some(Some(request.clone())),
         EventMsg::TurnComplete(_) => Some(None),
@@ -124,7 +124,7 @@ async fn wait_for_exec_approval_request(test: &TestCodex) -> Option<ExecApproval
     .await
 }
 
-async fn wait_for_turn_complete(test: &TestCodex) {
+async fn wait_for_turn_complete(test: &TestDitfa) {
     wait_for_event(test.ditfa.as_ref(), |event| {
         matches!(event, EventMsg::TurnComplete(_))
     })
@@ -243,7 +243,7 @@ async fn shell_zsh_fork_still_enforces_workspace_write_sandbox() -> Result<()> {
 
     let server = start_mock_server().await;
     let tool_call_id = "zsh-fork-workspace-write-deny";
-    let outside_path = "/tmp/codex-zsh-fork-workspace-write-deny.txt";
+    let outside_path = "/tmp/ditfa-zsh-fork-workspace-write-deny.txt";
     let workspace_write_profile = restrictive_workspace_write_profile();
     let _ = fs::remove_file(outside_path);
     let test = build_zsh_fork_test(

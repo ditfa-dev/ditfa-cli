@@ -301,9 +301,9 @@ pub struct WebSearchItem {
     pub action: WebSearchAction,
     /// Structured search results returned out-of-band by standalone web search.
     ///
-    /// These stay as opaque JSON at the Codex transport boundary so new result
+    /// These stay as opaque JSON at the Ditfa transport boundary so new result
     /// fields and result types can pass through without changing model-visible
-    /// context or requiring a Codex release.
+    /// context or requiring a Ditfa release.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
     pub results: Option<Vec<JsonValue>>,

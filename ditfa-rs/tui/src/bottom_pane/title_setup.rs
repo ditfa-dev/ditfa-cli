@@ -65,7 +65,7 @@ pub(crate) enum TerminalTitleItem {
     /// Remaining usage on the secondary rate limit.
     WeeklyLimit,
     /// Ditfa application version.
-    CodexVersion,
+    DitfaVersion,
     /// Total tokens used in the current session.
     UsedTokens,
     /// Total input tokens consumed.
@@ -91,7 +91,7 @@ pub(crate) enum TerminalTitleItem {
 impl TerminalTitleItem {
     pub(crate) fn description(self) -> &'static str {
         match self {
-            TerminalTitleItem::AppName => "Codex app name",
+            TerminalTitleItem::AppName => "Ditfa app name",
             TerminalTitleItem::Project => "Project name (falls back to current directory name)",
             TerminalTitleItem::CurrentDir => "Current working directory",
             TerminalTitleItem::Spinner => {
@@ -114,7 +114,7 @@ impl TerminalTitleItem {
             TerminalTitleItem::WeeklyLimit => {
                 "Remaining usage on the secondary usage limit (omitted when unavailable)"
             }
-            TerminalTitleItem::CodexVersion => "Codex application version",
+            TerminalTitleItem::DitfaVersion => "Ditfa application version",
             TerminalTitleItem::UsedTokens => "Total tokens used in session (omitted when zero)",
             TerminalTitleItem::TotalInputTokens => "Total input tokens used in session",
             TerminalTitleItem::TotalOutputTokens => "Total output tokens used in session",
@@ -144,7 +144,7 @@ impl TerminalTitleItem {
             TerminalTitleItem::ContextUsed => Some(StatusSurfacePreviewItem::ContextUsed),
             TerminalTitleItem::FiveHourLimit => Some(StatusSurfacePreviewItem::FiveHourLimit),
             TerminalTitleItem::WeeklyLimit => Some(StatusSurfacePreviewItem::WeeklyLimit),
-            TerminalTitleItem::CodexVersion => Some(StatusSurfacePreviewItem::CodexVersion),
+            TerminalTitleItem::DitfaVersion => Some(StatusSurfacePreviewItem::DitfaVersion),
             TerminalTitleItem::UsedTokens => Some(StatusSurfacePreviewItem::UsedTokens),
             TerminalTitleItem::TotalInputTokens => Some(StatusSurfacePreviewItem::TotalInputTokens),
             TerminalTitleItem::TotalOutputTokens => {
@@ -545,7 +545,7 @@ mod tests {
                 "model-with-reasoning",
                 "reasoning",
                 "weekly-limit",
-                "codex-version",
+                "ditfa-version",
                 "used-tokens",
                 "total-input-tokens",
                 "total-output-tokens",
@@ -569,7 +569,7 @@ mod tests {
                 TerminalTitleItem::ModelWithReasoning,
                 TerminalTitleItem::Reasoning,
                 TerminalTitleItem::WeeklyLimit,
-                TerminalTitleItem::CodexVersion,
+                TerminalTitleItem::DitfaVersion,
                 TerminalTitleItem::UsedTokens,
                 TerminalTitleItem::TotalInputTokens,
                 TerminalTitleItem::TotalOutputTokens,

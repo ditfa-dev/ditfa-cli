@@ -22,7 +22,7 @@ runs:
     - name: Configure CI build root (Unix)
       if: runner.os != 'Windows'
       shell: bash
-      run: echo "CI_BUILD_ROOT=$HOME/.cache/codex-ci" >> "$GITHUB_ENV"
+      run: echo "CI_BUILD_ROOT=$HOME/.cache/ditfa-ci" >> "$GITHUB_ENV"
 
     - name: Configure CI build paths
       id: configure_ci_build_paths

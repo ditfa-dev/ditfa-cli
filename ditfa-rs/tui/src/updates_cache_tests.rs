@@ -5,7 +5,7 @@ use tempfile::tempdir;
 
 #[tokio::test]
 async fn dismiss_version_creates_cache_file_when_missing() {
-    let ditfa_home = tempdir().expect("temp codex home");
+    let ditfa_home = tempdir().expect("temp ditfa home");
     let config = ConfigBuilder::default()
         .ditfa_home(ditfa_home.path().to_path_buf())
         .build()

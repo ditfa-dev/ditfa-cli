@@ -19,7 +19,7 @@ pub const OPENAI_FILE_UPLOAD_LIMIT_BYTES: u64 = 512 * 1024 * 1024;
 const OPENAI_FILE_REQUEST_TIMEOUT: Duration = Duration::from_secs(60);
 const OPENAI_FILE_FINALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const OPENAI_FILE_FINALIZE_RETRY_DELAY: Duration = Duration::from_millis(250);
-const OPENAI_FILE_USE_CASE: &str = "codex";
+const OPENAI_FILE_USE_CASE: &str = "ditfa";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UploadedOpenAiFile {
@@ -192,7 +192,7 @@ pub async fn upload_openai_file(
             tracing::event!(
                 target: "ditfa_otel.log_only",
                 tracing::Level::WARN,
-                event.name = "codex.openai_file_blob_upload_failed",
+                event.name = "ditfa.openai_file_blob_upload_failed",
                 file_id = %create_payload.file_id,
                 host = %upload_host,
                 file_size_bytes,
@@ -217,7 +217,7 @@ pub async fn upload_openai_file(
         tracing::event!(
             target: "ditfa_otel.log_only",
             tracing::Level::WARN,
-            event.name = "codex.openai_file_blob_upload_failed",
+            event.name = "ditfa.openai_file_blob_upload_failed",
             file_id = %create_payload.file_id,
             host = %upload_host,
             file_size_bytes,
@@ -412,7 +412,7 @@ mod tests {
             .and(body_json(serde_json::json!({
                 "file_name": "hello.txt",
                 "file_size": 5,
-                "use_case": "codex",
+                "use_case": "ditfa",
             })))
             .respond_with(
                 ResponseTemplate::new(200)

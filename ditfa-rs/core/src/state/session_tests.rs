@@ -36,7 +36,7 @@ async fn clear_connector_selection_removes_entries() {
 }
 
 #[tokio::test]
-async fn set_rate_limits_defaults_limit_id_to_codex_when_missing() {
+async fn set_rate_limits_defaults_limit_id_to_ditfa_when_missing() {
     let session_configuration = make_session_configuration_for_tests().await;
     let mut state = SessionState::new(session_configuration);
 
@@ -61,7 +61,7 @@ async fn set_rate_limits_defaults_limit_id_to_codex_when_missing() {
             .latest_rate_limits
             .as_ref()
             .and_then(|v| v.limit_id.clone()),
-        Some("codex".to_string())
+        Some("ditfa".to_string())
     );
 }
 
@@ -82,7 +82,7 @@ async fn replace_history_clears_auto_compact_window_prefill() {
 }
 
 #[tokio::test]
-async fn set_rate_limits_defaults_to_codex_when_limit_id_missing_after_other_bucket() {
+async fn set_rate_limits_defaults_to_ditfa_when_limit_id_missing_after_other_bucket() {
     let session_configuration = make_session_configuration_for_tests().await;
     let mut state = SessionState::new(session_configuration);
 
@@ -122,18 +122,18 @@ async fn set_rate_limits_defaults_to_codex_when_limit_id_missing_after_other_buc
             .latest_rate_limits
             .as_ref()
             .and_then(|v| v.limit_id.clone()),
-        Some("codex".to_string())
+        Some("ditfa".to_string())
     );
 }
 
 #[tokio::test]
-async fn set_rate_limits_carries_account_metadata_from_codex_to_codex_other() {
+async fn set_rate_limits_carries_account_metadata_from_ditfa_to_ditfa_other() {
     let session_configuration = make_session_configuration_for_tests().await;
     let mut state = SessionState::new(session_configuration);
 
     state.set_rate_limits(RateLimitSnapshot {
-        limit_id: Some("codex".to_string()),
-        limit_name: Some("codex".to_string()),
+        limit_id: Some("ditfa".to_string()),
+        limit_name: Some("ditfa".to_string()),
         primary: Some(RateLimitWindow {
             used_percent: 10.0,
             window_minutes: Some(60),

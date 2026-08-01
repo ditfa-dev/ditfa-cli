@@ -1,4 +1,4 @@
-"""Version discovery for Codex packages."""
+"""Version discovery for Ditfa Code packages."""
 
 import re
 
@@ -9,7 +9,7 @@ WORKSPACE_VERSION_PATTERN = re.compile(r'^version\s*=\s*"([^"]+)"')
 
 
 def read_workspace_version() -> str:
-    cargo_toml = REPO_ROOT / "codex-rs" / "Cargo.toml"
+    cargo_toml = REPO_ROOT / "ditfa-rs" / "Cargo.toml"
     in_workspace_package = False
     with open(cargo_toml, encoding="utf-8") as fh:
         for line in fh:

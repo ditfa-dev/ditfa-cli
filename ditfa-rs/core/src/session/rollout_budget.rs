@@ -1,8 +1,8 @@
 use super::session::Session;
 use super::turn_context::TurnContext;
 use crate::context::ContextualUserFragment;
-use ditfa_protocol::error::CodexErr;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::DitfaErr;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::protocol::TokenUsage;
 
 pub(super) async fn maybe_record_reminder(
@@ -23,14 +23,14 @@ pub(super) async fn maybe_record_reminder(
 }
 
 impl Session {
-    pub(crate) fn record_rollout_budget_usage(&self, usage: &TokenUsage) -> CodexResult<()> {
+    pub(crate) fn record_rollout_budget_usage(&self, usage: &TokenUsage) -> DitfaResult<()> {
         if self
             .services
             .agent_control
             .rollout_budget()
             .record_usage(usage)
         {
-            return Err(CodexErr::SessionBudgetExceeded);
+            return Err(DitfaErr::SessionBudgetExceeded);
         }
         Ok(())
     }

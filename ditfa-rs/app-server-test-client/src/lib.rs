@@ -106,27 +106,27 @@ const NOTIFICATIONS_TO_OPT_OUT: &[&str] = &[
 const APP_SERVER_GRACEFUL_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(5);
 const APP_SERVER_GRACEFUL_SHUTDOWN_POLL_INTERVAL: Duration = Duration::from_millis(100);
 const DEFAULT_ANALYTICS_ENABLED: bool = true;
-const OTEL_SERVICE_NAME: &str = "codex-app-server-test-client";
+const OTEL_SERVICE_NAME: &str = "ditfa-app-server-test-client";
 const TRACE_DISABLED_MESSAGE: &str =
     "Not enabled - enable tracing in $DITFA_HOME/config.toml to get a trace URL!";
 
 /// Minimal launcher that initializes the Ditfa app-server and logs the handshake.
 #[derive(Parser)]
-#[command(author = "Codex", version, about = "Bootstrap Codex app-server", long_about = None)]
+#[command(author = "Ditfa", version, about = "Bootstrap Ditfa app-server", long_about = None)]
 struct Cli {
-    /// Path to the `codex` CLI binary. When set, requests use stdio by
-    /// spawning `codex app-server` as a child process.
+    /// Path to the `ditfa` CLI binary. When set, requests use stdio by
+    /// spawning `ditfa app-server` as a child process.
     #[arg(long, env = "DITFA_BIN", global = true)]
     ditfa_bin: Option<PathBuf>,
 
     /// Existing websocket server URL to connect to.
     ///
-    /// If neither `--codex-bin` nor `--url` is provided, defaults to
+    /// If neither `--ditfa-bin` nor `--url` is provided, defaults to
     /// `ws://127.0.0.1:4222`.
     #[arg(long, env = "DITFA_APP_SERVER_URL", global = true)]
     url: Option<String>,
 
-    /// Forwarded to the `codex` CLI as `--config key=value`. Repeatable.
+    /// Forwarded to the `ditfa` CLI as `--config key=value`. Repeatable.
     ///
     /// Example:
     ///   `--config 'model_providers.mock.base_url="http://localhost:4010/v2"'`
@@ -154,12 +154,12 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum CliCommand {
-    /// Start `codex app-server` on a websocket endpoint in the background.
+    /// Start `ditfa app-server` on a websocket endpoint in the background.
     ///
     /// Logs are written to:
-    ///   `/tmp/codex-app-server-test-client/`
+    ///   `/tmp/ditfa-app-server-test-client/`
     Serve {
-        /// WebSocket listen URL passed to `codex app-server --listen`.
+        /// WebSocket listen URL passed to `ditfa app-server --listen`.
         #[arg(long, default_value = "ws://127.0.0.1:4222")]
         listen: String,
         /// Kill any process listening on the same port before starting.
@@ -236,7 +236,7 @@ enum CliCommand {
         /// Use the device-code login flow instead of the browser callback flow.
         #[arg(long, default_value_t = false, conflicts_with = "amazon_bedrock")]
         device_code: bool,
-        /// Use a Codex-managed Amazon Bedrock API key.
+        /// Use a Ditfa-managed Amazon Bedrock API key.
         #[arg(long, default_value_t = false, conflicts_with = "device_code")]
         amazon_bedrock: bool,
         /// Amazon Bedrock API key.
@@ -345,7 +345,7 @@ pub async fn run() -> Result<()> {
     match command {
         CliCommand::Serve { listen, kill } => {
             ensure_dynamic_tools_unused(&dynamic_tools, "serve")?;
-            let ditfa_bin = ditfa_bin.unwrap_or_else(|| PathBuf::from("codex"));
+            let ditfa_bin = ditfa_bin.unwrap_or_else(|| PathBuf::from("ditfa"));
             serve(&ditfa_bin, &config_overrides, &listen, kill)
         }
         CliCommand::SendMessage { user_message } => {
@@ -505,9 +505,9 @@ pub async fn run() -> Result<()> {
         } => {
             ensure_dynamic_tools_unused(&dynamic_tools, "plugin-analytics-smoke")?;
             if url.is_some() {
-                bail!("plugin-analytics-smoke requires --codex-bin and does not support --url");
+                bail!("plugin-analytics-smoke requires --ditfa-bin and does not support --url");
             }
-            let ditfa_bin = ditfa_bin.context("plugin-analytics-smoke requires --codex-bin")?;
+            let ditfa_bin = ditfa_bin.context("plugin-analytics-smoke requires --ditfa-bin")?;
             plugin_analytics_smoke::run(&ditfa_bin, &config_overrides, &plugin_id, capture_file)
         }
         CliCommand::PluginAnalyticsMutationSmoke {
@@ -518,11 +518,11 @@ pub async fn run() -> Result<()> {
             ensure_dynamic_tools_unused(&dynamic_tools, "plugin-analytics-mutation-smoke")?;
             if url.is_some() {
                 bail!(
-                    "plugin-analytics-mutation-smoke requires --codex-bin and does not support --url"
+                    "plugin-analytics-mutation-smoke requires --ditfa-bin and does not support --url"
                 );
             }
             let ditfa_bin =
-                ditfa_bin.context("plugin-analytics-mutation-smoke requires --codex-bin")?;
+                ditfa_bin.context("plugin-analytics-mutation-smoke requires --ditfa-bin")?;
             plugin_analytics_mutation_smoke::run(
                 &ditfa_bin,
                 &config_overrides,
@@ -539,9 +539,9 @@ pub async fn run() -> Result<()> {
         } => {
             ensure_dynamic_tools_unused(&dynamic_tools, "plugin-remote-uninstall")?;
             if url.is_some() {
-                bail!("plugin-remote-uninstall requires --codex-bin and does not support --url");
+                bail!("plugin-remote-uninstall requires --ditfa-bin and does not support --url");
             }
-            let ditfa_bin = ditfa_bin.context("plugin-remote-uninstall requires --codex-bin")?;
+            let ditfa_bin = ditfa_bin.context("plugin-remote-uninstall requires --ditfa-bin")?;
             plugin_analytics_mutation_smoke::run_cleanup(
                 &ditfa_bin,
                 &config_overrides,
@@ -555,7 +555,7 @@ pub async fn run() -> Result<()> {
 }
 
 enum Endpoint {
-    SpawnCodex(PathBuf),
+    SpawnDitfa(PathBuf),
     ConnectWs(String),
 }
 
@@ -566,10 +566,10 @@ struct BackgroundAppServer {
 
 fn resolve_endpoint(ditfa_bin: Option<PathBuf>, url: Option<String>) -> Result<Endpoint> {
     if ditfa_bin.is_some() && url.is_some() {
-        bail!("--codex-bin and --url are mutually exclusive");
+        bail!("--ditfa-bin and --url are mutually exclusive");
     }
     if let Some(ditfa_bin) = ditfa_bin {
-        return Ok(Endpoint::SpawnCodex(ditfa_bin));
+        return Ok(Endpoint::SpawnDitfa(ditfa_bin));
     }
     if let Some(url) = url {
         return Ok(Endpoint::ConnectWs(url));
@@ -584,7 +584,7 @@ fn resolve_shared_websocket_url(
 ) -> Result<String> {
     if ditfa_bin.is_some() {
         bail!(
-            "{command} requires --url or an already-running websocket app-server; --codex-bin would spawn a private stdio app-server instead"
+            "{command} requires --url or an already-running websocket app-server; --ditfa-bin would spawn a private stdio app-server instead"
         );
     }
 
@@ -638,7 +638,7 @@ impl Drop for BackgroundAppServer {
 }
 
 fn serve(ditfa_bin: &Path, config_overrides: &[String], listen: &str, kill: bool) -> Result<()> {
-    let runtime_dir = PathBuf::from("/tmp/codex-app-server-test-client");
+    let runtime_dir = PathBuf::from("/tmp/ditfa-app-server-test-client");
     fs::create_dir_all(&runtime_dir)
         .with_context(|| format!("failed to create runtime dir {}", runtime_dir.display()))?;
     let log_path = runtime_dir.join("app-server.log");
@@ -656,7 +656,7 @@ fn serve(ditfa_bin: &Path, config_overrides: &[String], listen: &str, kill: bool
         .with_context(|| format!("failed to clone log file handle {}", log_path.display()))?;
 
     let mut cmdline = format!(
-        "tail -f /dev/null | RUST_BACKTRACE=full RUST_LOG=warn,codex_=trace {}",
+        "tail -f /dev/null | RUST_BACKTRACE=full RUST_LOG=warn,ditfa_=trace {}",
         shell_quote(&ditfa_bin.display().to_string())
     );
     for override_kv in config_overrides {
@@ -676,7 +676,7 @@ fn serve(ditfa_bin: &Path, config_overrides: &[String], listen: &str, kill: bool
 
     let pid = child.id();
 
-    println!("started codex app-server");
+    println!("started ditfa app-server");
     println!("listen: {listen}");
     println!("pid: {pid} (launcher process)");
     println!("log: {}", log_path.display());
@@ -784,7 +784,7 @@ pub async fn send_message_v2(
     user_message: String,
     dynamic_tools: &Option<Vec<DynamicToolSpec>>,
 ) -> Result<()> {
-    let endpoint = Endpoint::SpawnCodex(ditfa_bin.to_path_buf());
+    let endpoint = Endpoint::SpawnDitfa(ditfa_bin.to_path_buf());
     send_message_v2_endpoint(
         &endpoint,
         config_overrides,
@@ -1326,7 +1326,7 @@ async fn with_client<T>(
     command_name: &'static str,
     endpoint: &Endpoint,
     config_overrides: &[String],
-    f: impl FnOnce(&mut CodexClient) -> Result<T>,
+    f: impl FnOnce(&mut DitfaClient) -> Result<T>,
 ) -> Result<T> {
     let tracing = TestClientTracing::initialize(config_overrides).await?;
     let command_span = info_span!(
@@ -1337,7 +1337,7 @@ async fn with_client<T>(
     );
     let trace_summary = command_span.in_scope(|| TraceSummary::capture(tracing.traces_enabled));
     let result = command_span.in_scope(|| {
-        let mut client = CodexClient::connect(endpoint, config_overrides)?;
+        let mut client = DitfaClient::connect(endpoint, config_overrides)?;
         f(&mut client)
     });
     print_trace_summary(&trace_summary);
@@ -1346,7 +1346,7 @@ async fn with_client<T>(
 
 fn thread_increment_elicitation(url: &str, thread_id: String) -> Result<()> {
     let endpoint = Endpoint::ConnectWs(url.to_string());
-    let mut client = CodexClient::connect(&endpoint, &[])?;
+    let mut client = DitfaClient::connect(&endpoint, &[])?;
 
     let initialize = client.initialize()?;
     println!("< initialize response: {initialize:?}");
@@ -1360,7 +1360,7 @@ fn thread_increment_elicitation(url: &str, thread_id: String) -> Result<()> {
 
 fn thread_decrement_elicitation(url: &str, thread_id: String) -> Result<()> {
     let endpoint = Endpoint::ConnectWs(url.to_string());
-    let mut client = CodexClient::connect(&endpoint, &[])?;
+    let mut client = DitfaClient::connect(&endpoint, &[])?;
 
     let initialize = client.initialize()?;
     println!("< initialize response: {initialize:?}");
@@ -1390,7 +1390,7 @@ fn live_elicitation_timeout_pause(
 
     let mut _background_server = None;
     let websocket_url = match (ditfa_bin, url) {
-        (Some(_), Some(_)) => bail!("--codex-bin and --url are mutually exclusive"),
+        (Some(_), Some(_)) => bail!("--ditfa-bin and --url are mutually exclusive"),
         (Some(ditfa_bin), None) => {
             let server = BackgroundAppServer::spawn(&ditfa_bin, config_overrides)?;
             let websocket_url = server.url.clone();
@@ -1414,9 +1414,9 @@ fn live_elicitation_timeout_pause(
         .canonicalize()
         .with_context(|| format!("failed to resolve workspace `{}`", workspace.display()))?;
     let app_server_test_client_bin = std::env::current_exe()
-        .context("failed to resolve codex-app-server-test-client binary path")?;
+        .context("failed to resolve ditfa-app-server-test-client binary path")?;
     let endpoint = Endpoint::ConnectWs(websocket_url.clone());
-    let mut client = CodexClient::connect(&endpoint, &[])?;
+    let mut client = DitfaClient::connect(&endpoint, &[])?;
 
     let initialize = client.initialize()?;
     println!("< initialize response: {initialize:?}");
@@ -1576,7 +1576,7 @@ enum ClientTransport {
     },
 }
 
-struct CodexClient {
+struct DitfaClient {
     transport: ClientTransport,
     pending_notifications: VecDeque<JSONRPCNotification>,
     command_approval_behavior: CommandApprovalBehavior,
@@ -1611,10 +1611,10 @@ fn item_started_before_helper_done_is_unexpected(
     !matches!(item, ThreadItem::UserMessage { .. })
 }
 
-impl CodexClient {
+impl DitfaClient {
     fn connect(endpoint: &Endpoint, config_overrides: &[String]) -> Result<Self> {
         match endpoint {
-            Endpoint::SpawnCodex(ditfa_bin) => Self::spawn_stdio(ditfa_bin, config_overrides),
+            Endpoint::SpawnDitfa(ditfa_bin) => Self::spawn_stdio(ditfa_bin, config_overrides),
             Endpoint::ConnectWs(url) => Self::connect_websocket(url),
         }
     }
@@ -1655,11 +1655,11 @@ impl CodexClient {
         let stdin = ditfa_app_server
             .stdin
             .take()
-            .context("codex app-server stdin unavailable")?;
+            .context("ditfa app-server stdin unavailable")?;
         let stdout = ditfa_app_server
             .stdout
             .take()
-            .context("codex app-server stdout unavailable")?;
+            .context("ditfa app-server stdout unavailable")?;
 
         Ok(Self {
             transport: ClientTransport::Stdio {
@@ -1693,7 +1693,7 @@ impl CodexClient {
                     if Instant::now() >= deadline {
                         return Err(err).with_context(|| {
                             format!(
-                                "failed to connect to websocket app-server at `{url}`; if no server is running, start one with `codex-app-server-test-client serve --listen {url}`"
+                                "failed to connect to websocket app-server at `{url}`; if no server is running, start one with `ditfa-app-server-test-client serve --listen {url}`"
                             )
                         });
                     }
@@ -1745,8 +1745,8 @@ impl CodexClient {
             request_id: request_id.clone(),
             params: InitializeParams {
                 client_info: ClientInfo {
-                    name: "codex-toy-app-server".to_string(),
-                    title: Some("Codex Toy App Server".to_string()),
+                    name: "ditfa-toy-app-server".to_string(),
+                    title: Some("Ditfa Toy App Server".to_string()),
                     version: env!("CARGO_PKG_VERSION").to_string(),
                 },
                 capabilities: Some(InitializeCapabilities {
@@ -2297,10 +2297,10 @@ impl CodexClient {
                     writeln!(stdin, "{payload}")?;
                     stdin
                         .flush()
-                        .context("failed to flush payload to codex app-server")?;
+                        .context("failed to flush payload to ditfa app-server")?;
                     return Ok(());
                 }
-                bail!("codex app-server stdin closed")
+                bail!("ditfa app-server stdin closed")
             }
             ClientTransport::WebSocket { socket, url } => {
                 socket
@@ -2317,9 +2317,9 @@ impl CodexClient {
                 let mut response_line = String::new();
                 let bytes = stdout
                     .read_line(&mut response_line)
-                    .context("failed to read from codex app-server")?;
+                    .context("failed to read from ditfa app-server")?;
                 if bytes == 0 {
-                    bail!("codex app-server closed stdout");
+                    bail!("ditfa app-server closed stdout");
                 }
                 Ok(response_line)
             }
@@ -2425,7 +2425,7 @@ fn print_trace_summary(trace_summary: &TraceSummary) {
     }
 }
 
-impl Drop for CodexClient {
+impl Drop for DitfaClient {
     fn drop(&mut self) {
         let ClientTransport::Stdio { child, stdin, .. } = &mut self.transport else {
             return;
@@ -2434,14 +2434,14 @@ impl Drop for CodexClient {
         let _ = stdin.take();
 
         if let Ok(Some(status)) = child.try_wait() {
-            println!("[codex app-server exited: {status}]");
+            println!("[ditfa app-server exited: {status}]");
             return;
         }
 
         let deadline = SystemTime::now() + APP_SERVER_GRACEFUL_SHUTDOWN_TIMEOUT;
         loop {
             if let Ok(Some(status)) = child.try_wait() {
-                println!("[codex app-server exited: {status}]");
+                println!("[ditfa app-server exited: {status}]");
                 return;
             }
 

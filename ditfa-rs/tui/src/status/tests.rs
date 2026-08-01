@@ -63,7 +63,7 @@ use unicode_width::UnicodeWidthStr;
 fn stale_monthly_limit_marks_fresh_rolling_snapshot_stale() {
     let now = Local::now();
     let snapshot = RateLimitSnapshotDisplay {
-        limit_name: "codex".to_string(),
+        limit_name: "ditfa".to_string(),
         captured_at: now,
         primary: Some(RateLimitWindowDisplay {
             used_percent: 20.0,
@@ -1594,7 +1594,7 @@ async fn status_snapshot_uses_default_reasoning_when_config_empty() {
         .single()
         .expect("timestamp");
     let remote_connection = RemoteConnectionStatus {
-        address: "unix:///tmp/codex-home/app-server-control/app-server-control.sock".to_string(),
+        address: "unix:///tmp/ditfa-home/app-server-control/app-server-control.sock".to_string(),
         version: "v0.133.0".to_string(),
     };
 

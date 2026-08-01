@@ -7,7 +7,7 @@ use super::*;
 
 impl ChatWidget {
     pub(super) fn open_theme_picker(&mut self) {
-        let ditfa_home = ditfa_utils_home_dir::find_codex_home().ok();
+        let ditfa_home = ditfa_utils_home_dir::find_ditfa_home().ok();
         let terminal_width = self
             .last_rendered_width
             .get()
@@ -49,7 +49,7 @@ impl ChatWidget {
                 let name = Self::personality_label(personality).to_string();
                 let description = Some(Self::personality_description(personality).to_string());
                 let actions: Vec<SelectionAction> = vec![Box::new(move |tx| {
-                    tx.send(AppEvent::CodexOp(AppCommand::override_turn_context(
+                    tx.send(AppEvent::DitfaOp(AppCommand::override_turn_context(
                         /*cwd*/ None,
                         /*approval_policy*/ None,
                         /*approvals_reviewer*/ None,

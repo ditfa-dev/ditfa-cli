@@ -287,9 +287,9 @@ impl AppServerSession {
 
     pub(crate) fn ditfa_home_path(
         &self,
-        local_codex_home: &AbsolutePathBuf,
+        local_ditfa_home: &AbsolutePathBuf,
     ) -> Option<AppServerPath> {
-        self.client.ditfa_home(local_codex_home)
+        self.client.ditfa_home(local_ditfa_home)
     }
 
     pub(crate) fn server_version(&self) -> Option<&str> {
@@ -1951,9 +1951,9 @@ mod tests {
     #[test]
     fn app_server_rate_limit_snapshots_deduplicates_top_level_limit_from_map() {
         let response = GetAccountRateLimitsResponse {
-            rate_limits: rate_limit_snapshot("codex"),
+            rate_limits: rate_limit_snapshot("ditfa"),
             rate_limits_by_limit_id: Some(HashMap::from([
-                ("codex".to_string(), rate_limit_snapshot("codex")),
+                ("ditfa".to_string(), rate_limit_snapshot("ditfa")),
                 ("other".to_string(), rate_limit_snapshot("other")),
             ])),
             rate_limit_reset_credits: None,
@@ -1966,7 +1966,7 @@ mod tests {
                 .iter()
                 .map(|snapshot| snapshot.limit_id.as_deref())
                 .collect::<Vec<_>>(),
-            vec![Some("codex"), Some("other")]
+            vec![Some("ditfa"), Some("other")]
         );
     }
 
@@ -2769,7 +2769,7 @@ mod tests {
         assert!(!started.blocks_direct_input);
 
         let embedded_config = ConfigBuilder::default()
-            .ditfa_home(temp_dir.path().join("embedded-codex-home"))
+            .ditfa_home(temp_dir.path().join("embedded-ditfa-home"))
             .harness_overrides(ConfigOverrides {
                 default_permissions: Some(BUILT_IN_PERMISSION_PROFILE_WORKSPACE.to_string()),
                 ..ConfigOverrides::default()

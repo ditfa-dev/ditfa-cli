@@ -231,11 +231,11 @@ fn project_layers_for_cwd(cwd: &Path) -> Vec<ConfigLayerEntry> {
     layers
         .into_iter()
         .filter_map(|dir| {
-            let dot_codex = dir.join(REPO_ROOT_CONFIG_DIR_NAME);
-            dot_codex.is_dir().then(|| {
+            let dot_ditfa = dir.join(REPO_ROOT_CONFIG_DIR_NAME);
+            dot_ditfa.is_dir().then(|| {
                 ConfigLayerEntry::new(
                     ConfigLayerSource::Project {
-                        dot_codex_folder: dot_codex.abs(),
+                        dot_ditfa_folder: dot_ditfa.abs(),
                     },
                     TomlValue::Table(toml::map::Map::new()),
                 )
@@ -246,7 +246,7 @@ fn project_layers_for_cwd(cwd: &Path) -> Vec<ConfigLayerEntry> {
 
 async fn make_config_for_cwd(ditfa_home: &TempDir, cwd: PathBuf) -> TestConfig {
     let user_config_path = ditfa_home.path().join(CONFIG_TOML_FILE);
-    let system_config_path = ditfa_home.path().join("etc/codex/config.toml");
+    let system_config_path = ditfa_home.path().join("etc/ditfa/config.toml");
     fs::create_dir_all(
         system_config_path
             .parent()
@@ -316,9 +316,9 @@ async fn skill_roots_from_layer_stack_maps_user_to_user_and_system_cache_and_sys
 -> anyhow::Result<()> {
     let tmp = tempfile::tempdir()?;
 
-    let system_folder = tmp.path().join("etc/codex");
+    let system_folder = tmp.path().join("etc/ditfa");
     let home_folder = tmp.path().join("home");
-    let user_folder = home_folder.join("codex");
+    let user_folder = home_folder.join("ditfa");
     fs::create_dir_all(&system_folder)?;
     fs::create_dir_all(&user_folder)?;
 
@@ -381,15 +381,15 @@ async fn skill_roots_from_layer_stack_includes_disabled_project_layers() -> anyh
     let tmp = tempfile::tempdir()?;
 
     let home_folder = tmp.path().join("home");
-    let user_folder = home_folder.join("codex");
+    let user_folder = home_folder.join("ditfa");
     fs::create_dir_all(&user_folder)?;
 
     let project_root = tmp.path().join("repo");
-    let dot_codex = project_root.join(".ditfa");
-    fs::create_dir_all(&dot_codex)?;
+    let dot_ditfa = project_root.join(".ditfa");
+    fs::create_dir_all(&dot_ditfa)?;
 
     let user_file = user_folder.join("config.toml").abs();
-    let project_dot_codex = dot_codex.abs();
+    let project_dot_ditfa = dot_ditfa.abs();
 
     let layers = vec![
         ConfigLayerEntry::new(
@@ -401,7 +401,7 @@ async fn skill_roots_from_layer_stack_includes_disabled_project_layers() -> anyh
         ),
         ConfigLayerEntry::new_disabled(
             ConfigLayerSource::Project {
-                dot_codex_folder: project_dot_codex,
+                dot_ditfa_folder: project_dot_ditfa,
             },
             TomlValue::Table(toml::map::Map::new()),
             "marked untrusted",
@@ -429,7 +429,7 @@ async fn skill_roots_from_layer_stack_includes_disabled_project_layers() -> anyh
     assert_eq!(
         got,
         vec![
-            (SkillScope::Repo, dot_codex.join("skills")),
+            (SkillScope::Repo, dot_ditfa.join("skills")),
             (SkillScope::User, user_folder.join("skills")),
             (
                 SkillScope::User,
@@ -450,7 +450,7 @@ async fn loads_skills_from_home_agents_dir_for_user_scope() -> anyhow::Result<()
     let tmp = tempfile::tempdir()?;
 
     let home_folder = tmp.path().join("home");
-    let user_folder = home_folder.join("codex");
+    let user_folder = home_folder.join("ditfa");
     fs::create_dir_all(&user_folder)?;
 
     let user_file = user_folder.join("config.toml").abs();
@@ -818,7 +818,7 @@ async fn loads_skill_policy_products_from_yaml() {
         r#"
 policy:
   products:
-    - codex
+    - ditfa
     - CHATGPT
     - atlas
 "#,
@@ -837,7 +837,7 @@ policy:
         outcome.skills[0].policy,
         Some(SkillPolicy {
             allow_implicit_invocation: None,
-            products: vec![Product::Codex, Product::Chatgpt, Product::Atlas],
+            products: vec![Product::Ditfa, Product::Chatgpt, Product::Atlas],
         })
     );
 }
@@ -2129,7 +2129,7 @@ async fn loads_skills_from_repo_root() {
 }
 
 #[tokio::test]
-async fn loads_skills_from_agents_dir_without_codex_dir() {
+async fn loads_skills_from_agents_dir_without_ditfa_dir() {
     let ditfa_home = tempfile::tempdir().expect("tempdir");
     let repo_dir = tempfile::tempdir().expect("tempdir");
     mark_as_git_repo(repo_dir.path());
@@ -2165,7 +2165,7 @@ async fn loads_skills_from_agents_dir_without_codex_dir() {
 }
 
 #[tokio::test]
-async fn loads_skills_from_all_codex_dirs_under_project_root() {
+async fn loads_skills_from_all_ditfa_dirs_under_project_root() {
     let ditfa_home = tempfile::tempdir().expect("tempdir");
     let repo_dir = tempfile::tempdir().expect("tempdir");
     mark_as_git_repo(repo_dir.path());
@@ -2465,7 +2465,7 @@ async fn skill_root_scans_wait_for_shared_capacity() {
 }
 
 #[tokio::test]
-async fn loads_skills_from_codex_dir_when_not_git_repo() {
+async fn loads_skills_from_ditfa_dir_when_not_git_repo() {
     let ditfa_home = tempfile::tempdir().expect("tempdir");
     let work_dir = tempfile::tempdir().expect("tempdir");
 
@@ -2609,7 +2609,7 @@ async fn keeps_duplicate_names_from_repo_and_user() {
 }
 
 #[tokio::test]
-async fn keeps_duplicate_names_from_nested_codex_dirs() {
+async fn keeps_duplicate_names_from_nested_ditfa_dirs() {
     let ditfa_home = tempfile::tempdir().expect("tempdir");
     let repo_dir = tempfile::tempdir().expect("tempdir");
     mark_as_git_repo(repo_dir.path());

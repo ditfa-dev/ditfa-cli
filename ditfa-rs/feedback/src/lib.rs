@@ -29,12 +29,12 @@ pub use feedback_diagnostics::FEEDBACK_DIAGNOSTICS_ATTACHMENT_FILENAME;
 pub use feedback_diagnostics::FeedbackDiagnostic;
 pub use feedback_diagnostics::FeedbackDiagnostics;
 
-/// Filename used for the redacted `codex doctor --json` feedback attachment.
-pub const DOCTOR_REPORT_ATTACHMENT_FILENAME: &str = "codex-doctor-report.json";
-/// Filename used for the raw Codex Apps MCP tools cache feedback attachment.
-pub const DITFA_APPS_TOOLS_CACHE_ATTACHMENT_FILENAME: &str = "codex-apps-tools-cache.json";
+/// Filename used for the redacted `ditfa doctor --json` feedback attachment.
+pub const DOCTOR_REPORT_ATTACHMENT_FILENAME: &str = "ditfa-doctor-report.json";
+/// Filename used for the raw Ditfa Apps MCP tools cache feedback attachment.
+pub const DITFA_APPS_TOOLS_CACHE_ATTACHMENT_FILENAME: &str = "ditfa-apps-tools-cache.json";
 /// Filename used for the raw connector directory cache feedback attachment.
-pub const DITFA_APP_DIRECTORY_CACHE_ATTACHMENT_FILENAME: &str = "codex-app-directory-cache.json";
+pub const DITFA_APP_DIRECTORY_CACHE_ATTACHMENT_FILENAME: &str = "ditfa-app-directory-cache.json";
 /// Filename used for the Windows sandbox log feedback attachment.
 pub const WINDOWS_SANDBOX_LOG_ATTACHMENT_FILENAME: &str = "windows-sandbox.log";
 const DEFAULT_MAX_BYTES: usize = 4 * 1024 * 1024; // 4 MiB
@@ -151,8 +151,8 @@ pub fn emit_feedback_request_tags_with_auth_env(
         auth_recovery_followup_success = tracing::field::debug(&snapshot.auth_recovery_followup_success),
         auth_recovery_followup_status = tracing::field::debug(&snapshot.auth_recovery_followup_status),
         auth_env_openai_api_key_present = tracing::field::debug(auth_env.openai_api_key_env_present),
-        auth_env_codex_api_key_present = tracing::field::debug(auth_env.ditfa_api_key_env_present),
-        auth_env_codex_api_key_enabled = tracing::field::debug(auth_env.ditfa_api_key_env_enabled),
+        auth_env_ditfa_api_key_present = tracing::field::debug(auth_env.ditfa_api_key_env_present),
+        auth_env_ditfa_api_key_enabled = tracing::field::debug(auth_env.ditfa_api_key_env_enabled),
         // Custom provider `env_key` is arbitrary config text, so emit only a safe bucket.
         auth_env_provider_key_name = tracing::field::debug(
             auth_env.provider_env_key_name.as_deref().unwrap_or("")
@@ -167,17 +167,17 @@ pub fn emit_feedback_request_tags_with_auth_env(
 }
 
 #[derive(Clone)]
-pub struct CodexFeedback {
+pub struct DitfaFeedback {
     inner: Arc<FeedbackInner>,
 }
 
-impl Default for CodexFeedback {
+impl Default for DitfaFeedback {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl CodexFeedback {
+impl DitfaFeedback {
     pub fn new() -> Self {
         Self::with_capacity(DEFAULT_MAX_BYTES)
     }
@@ -386,7 +386,7 @@ pub struct FeedbackUploadOptions<'a> {
     pub include_logs: bool,
     /// Generated attachments that are already buffered and safe to upload.
     ///
-    /// These are included after `codex-logs.log` and before path-backed rollout
+    /// These are included after `ditfa-logs.log` and before path-backed rollout
     /// attachments. They are only passed by the caller after any user consent
     /// gate has decided logs and diagnostics should be uploaded.
     pub extra_attachments: &'a [FeedbackAttachment],
@@ -448,7 +448,7 @@ impl FeedbackSnapshot {
 
         let mut envelope = Envelope::new();
         let title = format!(
-            "[{}]: Codex session {}",
+            "[{}]: Ditfa session {}",
             display_classification(options.classification),
             self.thread_id
         );
@@ -548,7 +548,7 @@ impl FeedbackSnapshot {
         if include_logs {
             attachments.push(Attachment {
                 buffer: logs_override.unwrap_or_else(|| self.bytes.clone()),
-                filename: String::from("codex-logs.log"),
+                filename: String::from("ditfa-logs.log"),
                 content_type: Some("text/plain".to_string()),
                 ty: None,
             });
@@ -709,7 +709,7 @@ mod tests {
 
     #[test]
     fn ring_buffer_drops_front_when_full() {
-        let fb = CodexFeedback::with_capacity(/*max_bytes*/ 8);
+        let fb = DitfaFeedback::with_capacity(/*max_bytes*/ 8);
         {
             let mut w = fb.make_writer().make_writer();
             w.write_all(b"abcdefgh").unwrap();
@@ -722,7 +722,7 @@ mod tests {
 
     #[test]
     fn logger_layer_excludes_responses_websocket_timing_payloads() {
-        let fb = CodexFeedback::new();
+        let fb = DitfaFeedback::new();
         let _guard = tracing_subscriber::registry()
             .with(fb.logger_layer())
             .set_default();
@@ -737,7 +737,7 @@ mod tests {
 
     #[test]
     fn metadata_layer_records_tags_from_feedback_target() {
-        let fb = CodexFeedback::new();
+        let fb = DitfaFeedback::new();
         let _guard = tracing_subscriber::registry()
             .with(fb.metadata_layer())
             .set_default();
@@ -751,7 +751,7 @@ mod tests {
 
     #[test]
     fn feedback_attachments_gate_connectivity_diagnostics() {
-        let extra_filename = format!("codex-feedback-extra-{}.jsonl", ThreadId::new());
+        let extra_filename = format!("ditfa-feedback-extra-{}.jsonl", ThreadId::new());
         let extra_path = std::env::temp_dir().join(&extra_filename);
         let extra_attachment_path = FeedbackAttachmentPath {
             path: extra_path.clone(),
@@ -759,7 +759,7 @@ mod tests {
         };
         fs::write(&extra_path, "rollout").expect("extra attachment should be written");
 
-        let snapshot_with_diagnostics = CodexFeedback::new()
+        let snapshot_with_diagnostics = DitfaFeedback::new()
             .snapshot(/*session_id*/ None)
             .with_feedback_diagnostics(FeedbackDiagnostics::new(vec![FeedbackDiagnostic {
                 headline: "Proxy environment variables are set and may affect connectivity."
@@ -784,7 +784,7 @@ mod tests {
                 .map(|attachment| attachment.filename.as_str())
                 .collect::<Vec<_>>(),
             vec![
-                "codex-logs.log",
+                "ditfa-logs.log",
                 DOCTOR_REPORT_ATTACHMENT_FILENAME,
                 FEEDBACK_DIAGNOSTICS_ATTACHMENT_FILENAME,
                 extra_filename.as_str()
@@ -808,7 +808,7 @@ mod tests {
             OsStr::new(attachments_with_diagnostics[3].filename.as_str()),
             OsStr::new(extra_filename.as_str())
         );
-        let attachments_without_diagnostics = CodexFeedback::new()
+        let attachments_without_diagnostics = DitfaFeedback::new()
             .snapshot(/*session_id*/ None)
             .with_feedback_diagnostics(FeedbackDiagnostics::default())
             .feedback_attachments(/*include_logs*/ true, &[], &[], Some(vec![1]));
@@ -818,7 +818,7 @@ mod tests {
                 .iter()
                 .map(|attachment| attachment.filename.as_str())
                 .collect::<Vec<_>>(),
-            vec!["codex-logs.log"]
+            vec!["ditfa-logs.log"]
         );
         assert_eq!(attachments_without_diagnostics[0].buffer, vec![1]);
         fs::remove_file(extra_path).expect("extra attachment should be removed");
@@ -827,8 +827,8 @@ mod tests {
     #[test]
     fn path_backed_attachments_use_binary_content_types() {
         let suffix = ThreadId::new();
-        let gzip_filename = format!("codex-desktop-app-logs-{suffix}.tar.gz");
-        let unknown_filename = format!("codex-feedback-extra-{suffix}.binunknown");
+        let gzip_filename = format!("ditfa-desktop-app-logs-{suffix}.tar.gz");
+        let unknown_filename = format!("ditfa-feedback-extra-{suffix}.binunknown");
         let gzip_path = std::env::temp_dir().join(&gzip_filename);
         let unknown_path = std::env::temp_dir().join(&unknown_filename);
         let gzip_bytes = b"\x1f\x8b\x08\x00\xff";
@@ -836,7 +836,7 @@ mod tests {
         fs::write(&gzip_path, gzip_bytes).expect("gzip attachment should be written");
         fs::write(&unknown_path, unknown_bytes).expect("unknown attachment should be written");
 
-        let attachments = CodexFeedback::new()
+        let attachments = DitfaFeedback::new()
             .snapshot(/*session_id*/ None)
             .feedback_attachments(
                 /*include_logs*/ false,

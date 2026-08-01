@@ -1,86 +1,86 @@
 {
   "outputs": {
-    "codex": {
+    "ditfa": {
       "platforms": {
         "macos-aarch64": {
-          "regex": "^codex-package-aarch64-apple-darwin\\.tar\\.zst$",
-          "path": "bin/codex"
+          "regex": "^ditfa-package-aarch64-apple-darwin\\.tar\\.zst$",
+          "path": "bin/ditfa"
         },
         "macos-x86_64": {
-          "regex": "^codex-package-x86_64-apple-darwin\\.tar\\.zst$",
-          "path": "bin/codex"
+          "regex": "^ditfa-package-x86_64-apple-darwin\\.tar\\.zst$",
+          "path": "bin/ditfa"
         },
         "linux-x86_64": {
-          "regex": "^codex-package-x86_64-unknown-linux-musl\\.tar\\.zst$",
-          "path": "bin/codex"
+          "regex": "^ditfa-package-x86_64-unknown-linux-musl\\.tar\\.zst$",
+          "path": "bin/ditfa"
         },
         "linux-aarch64": {
-          "regex": "^codex-package-aarch64-unknown-linux-musl\\.tar\\.zst$",
-          "path": "bin/codex"
+          "regex": "^ditfa-package-aarch64-unknown-linux-musl\\.tar\\.zst$",
+          "path": "bin/ditfa"
         },
         "windows-x86_64": {
-          "regex": "^codex-package-x86_64-pc-windows-msvc\\.tar\\.zst$",
-          "path": "bin/codex.exe"
+          "regex": "^ditfa-package-x86_64-pc-windows-msvc\\.tar\\.zst$",
+          "path": "bin/ditfa.exe"
         },
         "windows-aarch64": {
-          "regex": "^codex-package-aarch64-pc-windows-msvc\\.tar\\.zst$",
-          "path": "bin/codex.exe"
+          "regex": "^ditfa-package-aarch64-pc-windows-msvc\\.tar\\.zst$",
+          "path": "bin/ditfa.exe"
         }
       }
     },
-    "codex-app-server": {
+    "ditfa-app-server": {
       "platforms": {
         "macos-aarch64": {
-          "regex": "^codex-app-server-package-aarch64-apple-darwin\\.tar\\.zst$",
-          "path": "bin/codex-app-server"
+          "regex": "^ditfa-app-server-package-aarch64-apple-darwin\\.tar\\.zst$",
+          "path": "bin/ditfa-app-server"
         },
         "macos-x86_64": {
-          "regex": "^codex-app-server-package-x86_64-apple-darwin\\.tar\\.zst$",
-          "path": "bin/codex-app-server"
+          "regex": "^ditfa-app-server-package-x86_64-apple-darwin\\.tar\\.zst$",
+          "path": "bin/ditfa-app-server"
         },
         "linux-x86_64": {
-          "regex": "^codex-app-server-package-x86_64-unknown-linux-musl\\.tar\\.zst$",
-          "path": "bin/codex-app-server"
+          "regex": "^ditfa-app-server-package-x86_64-unknown-linux-musl\\.tar\\.zst$",
+          "path": "bin/ditfa-app-server"
         },
         "linux-aarch64": {
-          "regex": "^codex-app-server-package-aarch64-unknown-linux-musl\\.tar\\.zst$",
-          "path": "bin/codex-app-server"
+          "regex": "^ditfa-app-server-package-aarch64-unknown-linux-musl\\.tar\\.zst$",
+          "path": "bin/ditfa-app-server"
         },
         "windows-x86_64": {
-          "regex": "^codex-app-server-package-x86_64-pc-windows-msvc\\.tar\\.zst$",
-          "path": "bin/codex-app-server.exe"
+          "regex": "^ditfa-app-server-package-x86_64-pc-windows-msvc\\.tar\\.zst$",
+          "path": "bin/ditfa-app-server.exe"
         },
         "windows-aarch64": {
-          "regex": "^codex-app-server-package-aarch64-pc-windows-msvc\\.tar\\.zst$",
-          "path": "bin/codex-app-server.exe"
+          "regex": "^ditfa-app-server-package-aarch64-pc-windows-msvc\\.tar\\.zst$",
+          "path": "bin/ditfa-app-server.exe"
         }
       }
     },
-    "codex-responses-api-proxy": {
+    "ditfa-responses-api-proxy": {
       "platforms": {
         "macos-aarch64": {
-          "regex": "^codex-responses-api-proxy-aarch64-apple-darwin\\.zst$",
-          "path": "codex-responses-api-proxy"
+          "regex": "^ditfa-responses-api-proxy-aarch64-apple-darwin\\.zst$",
+          "path": "ditfa-responses-api-proxy"
         },
         "macos-x86_64": {
-          "regex": "^codex-responses-api-proxy-x86_64-apple-darwin\\.zst$",
-          "path": "codex-responses-api-proxy"
+          "regex": "^ditfa-responses-api-proxy-x86_64-apple-darwin\\.zst$",
+          "path": "ditfa-responses-api-proxy"
         },
         "linux-x86_64": {
-          "regex": "^codex-responses-api-proxy-x86_64-unknown-linux-musl\\.zst$",
-          "path": "codex-responses-api-proxy"
+          "regex": "^ditfa-responses-api-proxy-x86_64-unknown-linux-musl\\.zst$",
+          "path": "ditfa-responses-api-proxy"
         },
         "linux-aarch64": {
-          "regex": "^codex-responses-api-proxy-aarch64-unknown-linux-musl\\.zst$",
-          "path": "codex-responses-api-proxy"
+          "regex": "^ditfa-responses-api-proxy-aarch64-unknown-linux-musl\\.zst$",
+          "path": "ditfa-responses-api-proxy"
         },
         "windows-x86_64": {
-          "regex": "^codex-responses-api-proxy-x86_64-pc-windows-msvc\\.exe\\.zst$",
-          "path": "codex-responses-api-proxy.exe"
+          "regex": "^ditfa-responses-api-proxy-x86_64-pc-windows-msvc\\.exe\\.zst$",
+          "path": "ditfa-responses-api-proxy.exe"
         },
         "windows-aarch64": {
-          "regex": "^codex-responses-api-proxy-aarch64-pc-windows-msvc\\.exe\\.zst$",
-          "path": "codex-responses-api-proxy.exe"
+          "regex": "^ditfa-responses-api-proxy-aarch64-pc-windows-msvc\\.exe\\.zst$",
+          "path": "ditfa-responses-api-proxy.exe"
         }
       }
     },
@@ -96,27 +96,27 @@
         }
       }
     },
-    "codex-command-runner": {
+    "ditfa-command-runner": {
       "platforms": {
         "windows-x86_64": {
-          "regex": "^codex-command-runner-x86_64-pc-windows-msvc\\.exe\\.zst$",
-          "path": "codex-command-runner.exe"
+          "regex": "^ditfa-command-runner-x86_64-pc-windows-msvc\\.exe\\.zst$",
+          "path": "ditfa-command-runner.exe"
         },
         "windows-aarch64": {
-          "regex": "^codex-command-runner-aarch64-pc-windows-msvc\\.exe\\.zst$",
-          "path": "codex-command-runner.exe"
+          "regex": "^ditfa-command-runner-aarch64-pc-windows-msvc\\.exe\\.zst$",
+          "path": "ditfa-command-runner.exe"
         }
       }
     },
-    "codex-windows-sandbox-setup": {
+    "ditfa-windows-sandbox-setup": {
       "platforms": {
         "windows-x86_64": {
-          "regex": "^codex-windows-sandbox-setup-x86_64-pc-windows-msvc\\.exe\\.zst$",
-          "path": "codex-windows-sandbox-setup.exe"
+          "regex": "^ditfa-windows-sandbox-setup-x86_64-pc-windows-msvc\\.exe\\.zst$",
+          "path": "ditfa-windows-sandbox-setup.exe"
         },
         "windows-aarch64": {
-          "regex": "^codex-windows-sandbox-setup-aarch64-pc-windows-msvc\\.exe\\.zst$",
-          "path": "codex-windows-sandbox-setup.exe"
+          "regex": "^ditfa-windows-sandbox-setup-aarch64-pc-windows-msvc\\.exe\\.zst$",
+          "path": "ditfa-windows-sandbox-setup.exe"
         }
       }
     }

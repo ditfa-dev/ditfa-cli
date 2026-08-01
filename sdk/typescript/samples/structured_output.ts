@@ -1,12 +1,12 @@
 #!/usr/bin/env -S NODE_NO_WARNINGS=1 pnpm ts-node-esm --files
 
-import { Codex } from "@openai/codex-sdk";
+import { Ditfa } from "@ditfa/sdk";
 
-import { codexPathOverride } from "./helpers.ts";
+import { ditfaPathOverride } from "./helpers.ts";
 
-const codex = new Codex({ codexPathOverride: codexPathOverride() });
+const ditfa = new Ditfa({ ditfaPathOverride: ditfaPathOverride() });
 
-const thread = codex.startThread();
+const thread = ditfa.startThread();
 
 const schema = {
   type: "object",

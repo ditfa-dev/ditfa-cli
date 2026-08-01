@@ -85,7 +85,7 @@ pub(crate) struct SessionConfiguration {
     /// Sticky thread-level environment selections plus the legacy cwd used
     /// when a turn does not select an environment.
     pub(super) environments: TurnEnvironmentSelections,
-    /// Directory containing all Codex state for this session.
+    /// Directory containing all Ditfa state for this session.
     pub(super) ditfa_home: AbsolutePathBuf,
     /// Optional user-facing name for the thread, updated during the session.
     pub(super) thread_name: Option<String>,
@@ -813,10 +813,10 @@ impl Session {
             }
             let telemetry_auth = auth.as_ref();
             let auth_mode = telemetry_auth
-                .map(CodexAuth::auth_mode)
+                .map(DitfaAuth::auth_mode)
                 .map(TelemetryAuthMode::from);
-            let account_id = telemetry_auth.and_then(CodexAuth::get_account_id);
-            let account_email = telemetry_auth.and_then(CodexAuth::get_account_email);
+            let account_id = telemetry_auth.and_then(DitfaAuth::get_account_id);
+            let account_email = telemetry_auth.and_then(DitfaAuth::get_account_email);
             let originator = session_configuration.originator.clone();
             let terminal_type = user_agent();
             let session_model = session_configuration.collaboration_mode.model().to_string();

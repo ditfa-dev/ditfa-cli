@@ -62,7 +62,7 @@ impl PluginStore {
             AbsolutePathBuf::from_absolute_path_checked(ditfa_home.join(PLUGINS_DATA_DIR))
                 .map_err(|err| PluginStoreError::io("failed to resolve plugin data root", err))?;
         let ditfa_home = AbsolutePathBuf::from_absolute_path_checked(ditfa_home)
-            .map_err(|err| PluginStoreError::io("failed to resolve Codex home", err))?;
+            .map_err(|err| PluginStoreError::io("failed to resolve Ditfa home", err))?;
 
         Ok(Self {
             ditfa_home,

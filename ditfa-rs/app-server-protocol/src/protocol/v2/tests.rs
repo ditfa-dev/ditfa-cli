@@ -3780,20 +3780,20 @@ fn plugin_share_params_and_response_serialization_use_camel_case_fields() {
     assert_eq!(
         serde_json::to_value(PluginShareCheckoutResponse {
             remote_plugin_id: "plugins~Plugin_00000000000000000000000000000000".to_string(),
-            plugin_id: "gmail@codex-curated".to_string(),
+            plugin_id: "gmail@ditfa-curated".to_string(),
             plugin_name: "gmail".to_string(),
             plugin_path,
-            marketplace_name: "codex-curated".to_string(),
+            marketplace_name: "ditfa-curated".to_string(),
             marketplace_path,
             remote_version: Some("1.2.3".to_string()),
         })
         .unwrap(),
         json!({
             "remotePluginId": "plugins~Plugin_00000000000000000000000000000000",
-            "pluginId": "gmail@codex-curated",
+            "pluginId": "gmail@ditfa-curated",
             "pluginName": "gmail",
             "pluginPath": plugin_path_json,
-            "marketplaceName": "codex-curated",
+            "marketplaceName": "ditfa-curated",
             "marketplacePath": marketplace_path_json,
             "remoteVersion": "1.2.3",
         }),
@@ -4008,7 +4008,7 @@ fn marketplace_upgrade_response_serializes_camel_case_fields() {
 
 #[test]
 fn ditfa_error_info_serializes_http_status_code_in_camel_case() {
-    let value = CodexErrorInfo::ResponseTooManyFailedAttempts {
+    let value = DitfaErrorInfo::ResponseTooManyFailedAttempts {
         http_status_code: Some(401),
     };
 
@@ -4025,14 +4025,14 @@ fn ditfa_error_info_serializes_http_status_code_in_camel_case() {
 #[test]
 fn ditfa_error_info_serializes_cyber_policy_in_camel_case() {
     assert_eq!(
-        serde_json::to_value(CodexErrorInfo::CyberPolicy).unwrap(),
+        serde_json::to_value(DitfaErrorInfo::CyberPolicy).unwrap(),
         json!("cyberPolicy")
     );
 }
 
 #[test]
 fn ditfa_error_info_serializes_active_turn_not_steerable_turn_kind_in_camel_case() {
-    let value = CodexErrorInfo::ActiveTurnNotSteerable {
+    let value = DitfaErrorInfo::ActiveTurnNotSteerable {
         turn_kind: NonSteerableTurnKind::Review,
     };
 
@@ -4515,7 +4515,7 @@ fn realtime_start_deserializes_client_handoff_channel_prefixes() {
     let params = serde_json::from_value::<ThreadRealtimeStartParams>(json!({
         "threadId": "thread_123",
         "outputModality": "audio",
-        "codexResponseHandoffChannelPrefixes": {
+        "ditfaResponseHandoffChannelPrefixes": {
             "analysis": ["[THINKING]"],
             "commentary": ["[PROGRESS]", "[UPDATE]"],
             "final": ["[DONE]"]

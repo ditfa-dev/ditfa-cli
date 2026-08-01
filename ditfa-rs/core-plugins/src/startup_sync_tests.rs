@@ -332,7 +332,7 @@ fn assert_curated_gmail_repo(repo_path: &Path) {
 }
 
 #[test]
-fn curated_plugins_repo_path_uses_codex_home_tmp_dir() {
+fn curated_plugins_repo_path_uses_ditfa_home_tmp_dir() {
     let tmp = tempdir().expect("tempdir");
     assert_eq!(
         curated_plugins_repo_path(tmp.path()),
@@ -523,9 +523,9 @@ fn sync_openai_plugins_repo_via_git_succeeds_with_local_rewritten_remote() {
         &work_repo,
         &[
             "-c",
-            "user.name=Codex Test",
+            "user.name=Ditfa Test",
             "-c",
-            "user.email=codex@example.com",
+            "user.email=ditfa@example.com",
             "commit",
             "-m",
             "init",
@@ -606,9 +606,9 @@ fn sync_openai_plugins_repo_via_git_succeeds_with_local_rewritten_remote() {
         &work_repo,
         &[
             "-c",
-            "user.name=Codex Test",
+            "user.name=Ditfa Test",
             "-c",
-            "user.email=codex@example.com",
+            "user.email=ditfa@example.com",
             "commit",
             "-m",
             "update",

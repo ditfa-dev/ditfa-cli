@@ -1,8 +1,8 @@
 use chrono::DateTime;
 use chrono::Utc;
 use ditfa_features::CurrentTimeReminderDeliveryMode;
-use ditfa_protocol::error::CodexErr;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::DitfaErr;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::models::ResponseItem;
 
 use super::session::Session;
@@ -72,7 +72,7 @@ pub(super) async fn maybe_record_current_time_reminder(
     sess: &Session,
     turn_context: &TurnContext,
     window_id: &str,
-) -> CodexResult<()> {
+) -> DitfaResult<()> {
     let Some(config) = turn_context.config.current_time_reminder else {
         return Ok(());
     };
@@ -82,7 +82,7 @@ pub(super) async fn maybe_record_current_time_reminder(
         .time_provider
         .current_time(sess.thread_id)
         .await
-        .map_err(|err| CodexErr::Fatal(format!("failed to read current time: {err:#}")))?;
+        .map_err(|err| DitfaErr::Fatal(format!("failed to read current time: {err:#}")))?;
 
     let reminder_is_due = {
         let mut state = sess.state.lock().await;

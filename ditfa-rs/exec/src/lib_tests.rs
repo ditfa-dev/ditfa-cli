@@ -19,7 +19,7 @@ use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 fn test_tracing_subscriber() -> impl tracing::Subscriber + Send + Sync {
     let provider = SdkTracerProvider::builder().build();
-    let tracer = provider.tracer("codex-exec-tests");
+    let tracer = provider.tracer("ditfa-exec-tests");
     tracing_subscriber::registry().with(tracing_opentelemetry::layer().with_tracer(tracer))
 }
 
@@ -293,7 +293,7 @@ fn runtime_warnings_are_filtered_to_the_primary_thread() {
 
 #[tokio::test]
 async fn resume_lookup_model_providers_filters_only_last_lookup() {
-    let ditfa_home = tempdir().expect("create temp codex home");
+    let ditfa_home = tempdir().expect("create temp ditfa home");
     let cwd = tempdir().expect("create temp cwd");
     let mut config = ConfigBuilder::default()
         .ditfa_home(ditfa_home.path().to_path_buf())
@@ -442,7 +442,7 @@ fn canceled_mcp_server_elicitation_response_uses_cancel_action() {
 
 #[tokio::test]
 async fn thread_start_params_include_review_policy_when_review_policy_is_manual_only() {
-    let ditfa_home = tempdir().expect("create temp codex home");
+    let ditfa_home = tempdir().expect("create temp ditfa home");
     let cwd = tempdir().expect("create temp cwd");
     let config = ConfigBuilder::default()
         .loader_overrides(LoaderOverrides::without_managed_config_for_tests())
@@ -471,7 +471,7 @@ async fn thread_start_params_include_review_policy_when_review_policy_is_manual_
 
 #[tokio::test]
 async fn thread_start_params_include_review_policy_when_auto_review_is_enabled() {
-    let ditfa_home = tempdir().expect("create temp codex home");
+    let ditfa_home = tempdir().expect("create temp ditfa home");
     let cwd = tempdir().expect("create temp cwd");
     let config = ConfigBuilder::default()
         .ditfa_home(ditfa_home.path().to_path_buf())
@@ -494,7 +494,7 @@ async fn thread_start_params_include_review_policy_when_auto_review_is_enabled()
 
 #[tokio::test]
 async fn thread_resume_params_only_include_explicit_review_policy_override() {
-    let ditfa_home = tempdir().expect("create temp codex home");
+    let ditfa_home = tempdir().expect("create temp ditfa home");
     let cwd = tempdir().expect("create temp cwd");
     let config = ConfigBuilder::default()
         .ditfa_home(ditfa_home.path().to_path_buf())
@@ -527,7 +527,7 @@ async fn thread_resume_params_only_include_explicit_review_policy_override() {
 
 #[tokio::test]
 async fn build_exec_config_retries_without_invalid_headless_policy_for_auto_review() {
-    let ditfa_home = tempdir().expect("create temp codex home");
+    let ditfa_home = tempdir().expect("create temp ditfa home");
     let cwd = tempdir().expect("create temp cwd");
     std::fs::write(
         ditfa_home.path().join("config.toml"),
@@ -613,7 +613,7 @@ async fn build_exec_config_preserves_headless_error_when_retry_fails() {
 
 #[tokio::test]
 async fn thread_start_params_include_user_thread_source() {
-    let ditfa_home = tempdir().expect("create temp codex home");
+    let ditfa_home = tempdir().expect("create temp ditfa home");
     let cwd = tempdir().expect("create temp cwd");
     let config = ConfigBuilder::default()
         .ditfa_home(ditfa_home.path().to_path_buf())
@@ -632,7 +632,7 @@ async fn thread_start_params_include_user_thread_source() {
 
 #[tokio::test]
 async fn thread_lifecycle_params_preserve_hook_trust_bypass() {
-    let ditfa_home = tempdir().expect("create temp codex home");
+    let ditfa_home = tempdir().expect("create temp ditfa home");
     let cwd = tempdir().expect("create temp cwd");
     let config = ConfigBuilder::default()
         .ditfa_home(ditfa_home.path().to_path_buf())
@@ -671,7 +671,7 @@ fn active_profile_selection_uses_profile_id_only() {
 
 #[tokio::test]
 async fn thread_lifecycle_params_include_legacy_sandbox_when_no_active_profile() {
-    let ditfa_home = tempdir().expect("create temp codex home");
+    let ditfa_home = tempdir().expect("create temp ditfa home");
     let cwd = tempdir().expect("create temp cwd");
     let config = ConfigBuilder::default()
         .loader_overrides(LoaderOverrides::without_managed_config_for_tests())
@@ -707,7 +707,7 @@ async fn thread_lifecycle_params_include_legacy_sandbox_when_no_active_profile()
 
 #[tokio::test]
 async fn session_configured_from_thread_response_uses_review_policy_from_response() {
-    let ditfa_home = tempdir().expect("create temp codex home");
+    let ditfa_home = tempdir().expect("create temp ditfa home");
     let cwd = tempdir().expect("create temp cwd");
     let config = ConfigBuilder::default()
         .ditfa_home(ditfa_home.path().to_path_buf())
@@ -733,7 +733,7 @@ async fn session_configured_from_thread_response_uses_review_policy_from_respons
 
 #[tokio::test]
 async fn session_configured_from_thread_response_uses_permission_profile_from_config() {
-    let ditfa_home = tempdir().expect("create temp codex home");
+    let ditfa_home = tempdir().expect("create temp ditfa home");
     let cwd = tempdir().expect("create temp cwd");
     let config = ConfigBuilder::default()
         .ditfa_home(ditfa_home.path().to_path_buf())
@@ -754,7 +754,7 @@ async fn session_configured_from_thread_response_uses_permission_profile_from_co
 
 #[tokio::test]
 async fn session_configured_from_thread_response_preserves_thread_source() {
-    let ditfa_home = tempdir().expect("create temp codex home");
+    let ditfa_home = tempdir().expect("create temp ditfa home");
     let cwd = tempdir().expect("create temp cwd");
     let config = ConfigBuilder::default()
         .ditfa_home(ditfa_home.path().to_path_buf())
@@ -775,7 +775,7 @@ async fn session_configured_from_thread_response_preserves_thread_source() {
 
 #[tokio::test]
 async fn session_configured_from_thread_response_preserves_parent_thread_id() {
-    let ditfa_home = tempdir().expect("create temp codex home");
+    let ditfa_home = tempdir().expect("create temp ditfa home");
     let cwd = tempdir().expect("create temp cwd");
     let config = ConfigBuilder::default()
         .ditfa_home(ditfa_home.path().to_path_buf())

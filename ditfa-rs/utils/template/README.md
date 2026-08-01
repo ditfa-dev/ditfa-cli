@@ -1,4 +1,4 @@
-# codex-utils-template
+# ditfa-utils-template
 
 Small, strict string templating for prompt and text assets.
 
@@ -18,21 +18,21 @@ The library is intentionally strict:
 ## Example
 
 ```rust
-use codex_utils_template::Template;
-use codex_utils_template::render;
+use ditfa_utils_template::Template;
+use ditfa_utils_template::render;
 
 let template = Template::parse(
     "Hello, {{ name }}.\nLiteral braces: {{{{ and }}}}.\nMode: {{ mode }}",
 )?;
 
 let rendered = template.render([
-    ("name", "Codex"),
+    ("name", "Ditfa"),
     ("mode", "strict"),
 ])?;
 
 assert_eq!(
     rendered,
-    "Hello, Codex.\nLiteral braces: {{ and }}.\nMode: strict"
+    "Hello, Ditfa.\nLiteral braces: {{ and }}.\nMode: strict"
 );
 
 let one_shot = render("Hi {{ who }}!", [("who", "there")])?;

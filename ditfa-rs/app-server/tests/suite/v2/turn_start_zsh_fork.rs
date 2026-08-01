@@ -729,7 +729,7 @@ async fn create_zsh_test_mcp_process(
     let app_server = create_test_package_app_server(ditfa_home, zsh_path)?;
     let zdotdir = zdotdir.to_string_lossy().into_owned();
     TestAppServer::builder()
-        .with_codex_home(ditfa_home)
+        .with_ditfa_home(ditfa_home)
         .with_program(&app_server)
         .with_env_overrides(&[("ZDOTDIR", Some(zdotdir.as_str()))])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -745,11 +745,11 @@ fn create_test_package_app_server(ditfa_home: &Path, zsh_path: &Path) -> Result<
     };
     std::fs::create_dir_all(&bin_dir)?;
     std::fs::create_dir_all(zsh_bin_dir)?;
-    std::fs::write(package_dir.join("codex-package.json"), "{}")?;
+    std::fs::write(package_dir.join("ditfa-package.json"), "{}")?;
 
-    let app_server = bin_dir.join("codex-app-server");
+    let app_server = bin_dir.join("ditfa-app-server");
     copy_with_permissions(
-        &ditfa_utils_cargo_bin::cargo_bin("codex-app-server")?,
+        &ditfa_utils_cargo_bin::cargo_bin("ditfa-app-server")?,
         &app_server,
     )?;
     copy_with_permissions(zsh_path, &package_zsh_path)?;
@@ -759,7 +759,7 @@ fn create_test_package_app_server(ditfa_home: &Path, zsh_path: &Path) -> Result<
 fn packaged_zsh_path(ditfa_home: &Path) -> PathBuf {
     ditfa_home
         .join("test-package")
-        .join("codex-resources")
+        .join("ditfa-resources")
         .join("zsh")
         .join("bin")
         .join("zsh")
@@ -790,7 +790,7 @@ fn create_config_toml(
 
 fn find_test_zsh_path() -> Result<Option<std::path::PathBuf>> {
     let repo_root = ditfa_utils_cargo_bin::repo_root()?;
-    let dotslash_zsh = repo_root.join("codex-rs/app-server/tests/suite/zsh");
+    let dotslash_zsh = repo_root.join("ditfa-rs/app-server/tests/suite/zsh");
     if !dotslash_zsh.is_file() {
         eprintln!(
             "skipping zsh fork test: shared zsh DotSlash file not found at {}",

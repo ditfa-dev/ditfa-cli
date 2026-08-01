@@ -1,0 +1,113 @@
+name: Verify
+
+# Self-contained verification that needs no secrets, no Bazel, and no
+# self-hosted runners — everything runs on GitHub's free runners.
+#
+# The upstream `blocking-ci` workflow depends on BuildBuddy RBE and a full Bazel
+# setup. This one covers the checks that actually gate correctness for this
+# fork: the Rust workspace compiles, the protocol round-trips, and the VS Code
+# extension type-checks, tests, and packages.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
+
+jobs:
+  rust:
+    name: Rust — compile and protocol tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      # The workspace is large; reclaim the runner space Docker images occupy
+      # before Cargo starts writing to target/.
+      - name: Free runner disk
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force || true
+          df -h /
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ditfa-rs
+
+      - name: Compile the ditfa binary
+        run: cargo check --manifest-path ditfa-rs/Cargo.toml --bin ditfa
+
+      - name: Protocol tests
+        run: cargo test --manifest-path ditfa-rs/Cargo.toml -p ditfa-app-server-protocol
+
+      # A drifted schema means the checked-in TypeScript no longer matches the
+      # Rust types the extension talks to.
+      - name: Protocol schema is up to date
+        run: git diff --exit-code ditfa-rs/app-server-protocol/schema
+
+  extension:
+    name: VS Code extension
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: ditfa-vscode
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: ditfa-vscode/pnpm-lock.yaml
+
+      - run: pnpm install --ignore-workspace --frozen-lockfile
+
+      - name: Protocol types match the Rust schema
+        run: |
+          pnpm run sync-protocol
+          git diff --exit-code src/protocol/generated
+
+      - run: pnpm run typecheck
+      - run: pnpm test
+      - run: node esbuild.mjs --production
+      - run: pnpm exec vsce package --no-dependencies --out ditfa-code.vsix
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vsix-preview
+          path: ditfa-vscode/ditfa-code.vsix
+          if-no-files-found: error
+
+  brand:
+    name: No stray Codex naming
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for un-rebranded references
+        run: |
+          # Exempt by design:
+          #   gpt-*-codex          OpenAI model identifiers sent on the wire
+          #   x-codex-turn-*       headers the OpenAI Responses API expects
+          #   openai.com / openai/codex   upstream links and Apache-2.0 attribution
+          hits=$(git grep -nI -i codex -- . \
+            ':!**/pnpm-lock.yaml' ':!**/dist/**' ':!LICENSE' ':!NOTICE' \
+            ':!REFACTOR_PLAN.md' ':!.github/workflows/verify.yml' \
+            | grep -viE 'gpt-[0-9.]+-codex|x-codex-(turn-metadata|window-id)|openai\.com|openai/codex' \
+            || true)
+          if [ -n "$hits" ]; then
+            echo "Found un-rebranded references:"
+            echo "$hits" | head -40
+            echo
+            echo "total: $(echo "$hits" | wc -l)"
+            exit 1
+          fi
+          echo "No stray Codex naming."

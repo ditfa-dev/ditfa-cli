@@ -60,7 +60,7 @@ use crate::unified_exec::process::SpawnLifecycleHandle;
 use crate::unified_exec::process::UnifiedExecProcess;
 use ditfa_network_proxy::NetworkProxy;
 use ditfa_protocol::config_types::ShellEnvironmentPolicy;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::SandboxErr;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::ExecCommandSource;
@@ -83,7 +83,7 @@ const UNIFIED_EXEC_ENV: [(&str, &str); 10] = [
     ("DITFA_CI", "1"),
 ];
 const NETWORK_ACCESS_DENIED_MESSAGE: &str =
-    "Network access was denied by the Codex sandbox network proxy.";
+    "Network access was denied by the Ditfa sandbox network proxy.";
 const LATE_NETWORK_DENIAL_GRACE_PERIOD: Duration = Duration::from_millis(100);
 const INTERRUPT: &str = "\u{3}";
 
@@ -265,7 +265,7 @@ async fn finish_deferred_network_approval_for_session(
 fn network_approval_error_message(err: ToolError) -> String {
     match err {
         ToolError::Rejected(message) => message,
-        ToolError::Codex(err) => err.to_string(),
+        ToolError::Ditfa(err) => err.to_string(),
     }
 }
 
@@ -995,7 +995,7 @@ impl UnifiedExecProcessManager {
         } else {
             attempt.env_for(command, options, network, environment_id)
         }
-        .map_err(ToolError::Codex)?;
+        .map_err(ToolError::Ditfa)?;
         request.exec_server_network_proxy = network_proxy_launch;
         request.exec_server_env_config = exec_server_env_config;
         self.open_session_with_prepared_exec_env(
@@ -1008,7 +1008,7 @@ impl UnifiedExecProcessManager {
         .await
         .map_err(|err| match err {
             UnifiedExecError::SandboxDenied { output, .. } => {
-                ToolError::Codex(CodexErr::Sandbox(SandboxErr::Denied {
+                ToolError::Ditfa(DitfaErr::Sandbox(SandboxErr::Denied {
                     output: Box::new(output),
                     network_policy_decision: None,
                 }))
@@ -1203,7 +1203,7 @@ impl UnifiedExecProcessManager {
             .await
             .map(|result| (result.output, result.deferred_network_approval))
             .map_err(|err| match err {
-                ToolError::Codex(CodexErr::Sandbox(SandboxErr::Denied { output, .. })) => {
+                ToolError::Ditfa(DitfaErr::Sandbox(SandboxErr::Denied { output, .. })) => {
                     let output = *output;
                     let message = if output.aggregated_output.text.is_empty() {
                         let exit_code = output.exit_code;

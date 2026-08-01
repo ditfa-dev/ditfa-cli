@@ -1,5 +1,5 @@
 //! Shared tool definitions and Responses API tool primitives that can live
-//! outside `codex-core`.
+//! outside `ditfa-core`.
 
 mod code_mode;
 mod dynamic_tool;

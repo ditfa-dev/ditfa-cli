@@ -6,7 +6,7 @@ use clap::ArgGroup;
 use clap::Parser;
 use ditfa_core::config::ConfigBuilder;
 use ditfa_core::config::edit::ConfigEditsBuilder;
-use ditfa_core::config::find_codex_home;
+use ditfa_core::config::find_ditfa_home;
 use ditfa_utils_cli::ProfileV2Name;
 use toml::Value as TomlValue;
 
@@ -30,7 +30,7 @@ pub(crate) struct SandboxSetupCommand {
     )]
     user: Option<String>,
 
-    /// Use the current Windows user as the Codex user.
+    /// Use the current Windows user as the Ditfa user.
     #[arg(
         long = "current-user",
         default_value_t = false,
@@ -38,8 +38,8 @@ pub(crate) struct SandboxSetupCommand {
     )]
     current_user: bool,
 
-    /// DITFA_HOME for the Codex user. Required with --user.
-    #[arg(long = "codex-home", value_name = "DIR")]
+    /// DITFA_HOME for the Ditfa user. Required with --user.
+    #[arg(long = "ditfa-home", value_name = "DIR")]
     ditfa_home: Option<PathBuf>,
 }
 
@@ -53,7 +53,7 @@ impl SandboxSetupCommand {
         if self.elevated_sandbox_level {
             Ok(SandboxSetupLevel::Elevated)
         } else {
-            anyhow::bail!("`codex sandbox setup` currently requires --elevated");
+            anyhow::bail!("`ditfa sandbox setup` currently requires --elevated");
         }
     }
 }
@@ -92,14 +92,14 @@ async fn run_elevated(
     let config = ConfigBuilder::default()
         .ditfa_home(identity.ditfa_home.clone())
         .fallback_cwd(Some(identity.ditfa_home.clone()))
-        .loader_overrides(super::loader_overrides_for_profile_at_codex_home(
+        .loader_overrides(super::loader_overrides_for_profile_at_ditfa_home(
             config_profile.as_ref(),
             &identity.ditfa_home,
         ))
         .cli_overrides(cli_overrides)
         .build()
         .await
-        .context("failed to load target user's Codex config for sandbox provisioning")?;
+        .context("failed to load target user's Ditfa config for sandbox provisioning")?;
 
     ditfa_core::windows_sandbox::run_elevated_provisioning_setup(
         identity.ditfa_home.as_path(),
@@ -140,7 +140,7 @@ fn resolve_sandbox_setup_identity(
             })?;
         let ditfa_home = match cmd.ditfa_home.clone() {
             Some(ditfa_home) => ditfa_home,
-            None => find_codex_home()?.to_path_buf(),
+            None => find_ditfa_home()?.to_path_buf(),
         };
         return Ok(SandboxSetupIdentity {
             real_user,
@@ -155,7 +155,7 @@ fn resolve_sandbox_setup_identity(
     let ditfa_home = cmd
         .ditfa_home
         .clone()
-        .ok_or_else(|| anyhow::anyhow!("--codex-home is required with --user"))?;
+        .ok_or_else(|| anyhow::anyhow!("--ditfa-home is required with --user"))?;
     Ok(SandboxSetupIdentity {
         real_user,
         ditfa_home,
@@ -173,7 +173,7 @@ mod tests {
             "--elevated",
             "--user",
             "DOMAIN\\alice",
-            "--codex-home",
+            "--ditfa-home",
             r"C:\Users\alice\.ditfa",
         ])
         .expect("parse");
@@ -196,7 +196,7 @@ mod tests {
     }
 
     #[test]
-    fn requires_codex_home_for_managed_user() {
+    fn requires_ditfa_home_for_managed_user() {
         let err =
             SandboxSetupCommand::try_parse_from(["setup", "--elevated", "--user", "DOMAIN\\alice"])
                 .expect_err("parse should fail");
@@ -211,7 +211,7 @@ mod tests {
             "--elevated".to_string(),
             "--user".to_string(),
             r"DOMAIN\alice".to_string(),
-            "--codex-home".to_string(),
+            "--ditfa-home".to_string(),
             r"C:\Users\alice\.ditfa".to_string(),
         ])
         .expect("parse")

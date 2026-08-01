@@ -8,7 +8,7 @@ use crate::session::TurnInput;
 use crate::session::turn_context::TurnContext;
 use crate::state::TaskKind;
 use ditfa_features::Feature;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::user_input::UserInput;
 use tokio_util::sync::CancellationToken;
 
@@ -76,7 +76,7 @@ impl SessionTask for CompactTask {
             }];
             crate::compact::run_compact_task(session.clone(), ctx, input).await
         };
-        if let Err(err @ CodexErr::TurnAborted) = result {
+        if let Err(err @ DitfaErr::TurnAborted) = result {
             return Err(err);
         }
         Ok(None)

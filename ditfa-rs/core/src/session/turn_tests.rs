@@ -41,7 +41,7 @@ fn assistant_output_text(text: &str) -> ResponseItem {
 
 #[test]
 fn post_sampling_token_estimate_is_disabled_by_always_on_sinks() {
-    let feedback = ditfa_feedback::CodexFeedback::new();
+    let feedback = ditfa_feedback::DitfaFeedback::new();
     let subscriber = tracing_subscriber::registry()
         .with(feedback.logger_layer())
         .with(tracing_subscriber::fmt::layer().with_filter(ditfa_state::log_db::default_filter()));

@@ -2,12 +2,12 @@
 
 ## Is the Python SDK stable?
 
-`openai-codex` publishes stable releases. Install the latest one with
-`pip install openai-codex`.
+`openai-ditfa` publishes stable releases. Install the latest one with
+`pip install openai-ditfa`.
 
 ## Why does the SDK install a runtime package?
 
-The SDK version tracks the corresponding Codex CLI release. Each SDK release
+The SDK version tracks the corresponding Ditfa CLI release. Each SDK release
 pins and installs its matching runtime dependency automatically.
 
 ## Thread vs turn
@@ -26,13 +26,13 @@ Choose `run()` for most apps. Choose `stream()` for progress UIs, custom timeout
 
 ## Sync vs async clients
 
-- `Codex` is the sync public API.
-- `AsyncCodex` is an async replica of the same public API shape.
-- Prefer `async with AsyncCodex()` for async code. It is the standard path for
-  explicit startup/shutdown, and `AsyncCodex` initializes lazily on context
+- `Ditfa` is the sync public API.
+- `AsyncDitfa` is an async replica of the same public API shape.
+- Prefer `async with AsyncDitfa()` for async code. It is the standard path for
+  explicit startup/shutdown, and `AsyncDitfa` initializes lazily on context
   entry or first awaited API use.
 
-If your app is not already async, stay with `Codex`.
+If your app is not already async, stay with `Ditfa`.
 
 ## How do I log in?
 
@@ -64,9 +64,9 @@ If you are migrating older code, update these names:
 Use the same `sandbox=` keyword for threads and turns:
 
 ```python
-from openai_codex import Sandbox
+from ditfa import Sandbox
 
-thread = codex.thread_start(sandbox=Sandbox.workspace_write)
+thread = ditfa.thread_start(sandbox=Sandbox.workspace_write)
 result = thread.run("Review only.", sandbox=Sandbox.read_only)
 ```
 
@@ -76,7 +76,7 @@ The presets are:
 - `Sandbox.workspace_write`: the normal default for projects with a recorded trust decision; read files and write inside the workspace and configured writable roots.
 - `Sandbox.full_access`: run without filesystem access restrictions.
 
-When `sandbox=` is omitted, Codex uses its configured default. A turn
+When `sandbox=` is omitted, Ditfa uses its configured default. A turn
 sandbox override applies to that turn and subsequent turns.
 
 ## Why only `thread_start(...)` and `thread_resume(...)`?
@@ -90,13 +90,13 @@ This avoids duplicate ways to do the same operation and keeps behavior explicit.
 
 ## Why does constructor fail?
 
-`Codex()` is eager: it starts transport and calls `initialize` in `__init__`.
+`Ditfa()` is eager: it starts transport and calls `initialize` in `__init__`.
 
 Common causes:
 
-- installation is incomplete and the pinned `openai-codex-cli-bin` dependency is missing
-- local `codex_bin` override points to a missing file
-- a custom local Codex executable does not support the SDK operation being used
+- installation is incomplete and the pinned `openai-ditfa-cli-bin` dependency is missing
+- local `ditfa_bin` override points to a missing file
+- a custom local Ditfa executable does not support the SDK operation being used
 
 ## Why does a turn "hang"?
 

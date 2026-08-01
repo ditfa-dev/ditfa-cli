@@ -26,7 +26,7 @@ use tracing::debug;
 use tracing::trace;
 
 const X_REASONING_INCLUDED_HEADER: &str = "x-reasoning-included";
-const X_DITFA_TURN_STATE_HEADER: &str = "x-codex-turn-state";
+const X_DITFA_TURN_STATE_HEADER: &str = "x-ditfa-turn-state";
 const OPENAI_MODEL_HEADER: &str = "openai-model";
 const REQUEST_ID_HEADER: &str = "x-request-id";
 const TRUSTED_ACCESS_FOR_CYBER_VERIFICATION: &str = "trusted_access_for_cyber";

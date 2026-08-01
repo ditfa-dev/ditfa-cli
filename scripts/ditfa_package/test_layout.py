@@ -7,11 +7,11 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from codex_package.layout import build_package_dir
-from codex_package.layout import validate_package_dir
-from codex_package.targets import PACKAGE_VARIANTS
-from codex_package.targets import PackageInputs
-from codex_package.targets import TARGET_SPECS
+from ditfa_package.layout import build_package_dir
+from ditfa_package.layout import validate_package_dir
+from ditfa_package.targets import PACKAGE_VARIANTS
+from ditfa_package.targets import PackageInputs
+from ditfa_package.targets import TARGET_SPECS
 
 
 class PackageLayoutTest(unittest.TestCase):
@@ -21,30 +21,30 @@ class PackageLayoutTest(unittest.TestCase):
             package_dir = root / "package"
             package_dir.mkdir()
             inputs = PackageInputs(
-                entrypoint_bin=touch_executable(root / "codex-app-server"),
-                code_mode_host_bin=touch_executable(root / "codex-code-mode-host"),
+                entrypoint_bin=touch_executable(root / "ditfa-app-server"),
+                code_mode_host_bin=touch_executable(root / "ditfa-code-mode-host"),
                 rg_bin=touch_executable(root / "rg"),
                 zsh_bin=None,
                 bwrap_bin=touch_executable(root / "bwrap"),
-                codex_command_runner_bin=None,
-                codex_windows_sandbox_setup_bin=None,
+                ditfa_command_runner_bin=None,
+                ditfa_windows_sandbox_setup_bin=None,
             )
 
             build_package_dir(
                 package_dir,
                 "1.2.3",
-                PACKAGE_VARIANTS["codex-app-server"],
+                PACKAGE_VARIANTS["ditfa-app-server"],
                 TARGET_SPECS["x86_64-unknown-linux-musl"],
                 inputs,
             )
             validate_package_dir(
                 package_dir,
-                PACKAGE_VARIANTS["codex-app-server"],
+                PACKAGE_VARIANTS["ditfa-app-server"],
                 TARGET_SPECS["x86_64-unknown-linux-musl"],
                 include_zsh=False,
             )
 
-            self.assertTrue((package_dir / "bin" / "codex-code-mode-host").is_file())
+            self.assertTrue((package_dir / "bin" / "ditfa-code-mode-host").is_file())
 
 
 def touch_executable(path: Path) -> Path:

@@ -170,7 +170,7 @@ fn effective_originator_prefers_thread_scoped_sources_before_env_originator() {
         assert_eq!(
             effective_originator_value(
                 metrics_service_name,
-                Some("Codex Desktop".to_string()),
+                Some("Ditfa Desktop".to_string()),
                 persisted_originator.map(str::to_string),
                 inherited_originator.map(str::to_string),
                 "ditfa_cli_rs".to_string(),
@@ -387,12 +387,12 @@ async fn ignores_session_prefix_messages_when_truncating() {
 async fn shutdown_all_threads_bounded_submits_shutdown_to_every_thread() {
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
     config.cwd = config.ditfa_home.abs();
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
 
     let manager = ThreadManager::with_models_provider_and_home_for_tests(
-        CodexAuth::from_api_key("dummy"),
+        DitfaAuth::from_api_key("dummy"),
         config.model_provider.clone(),
         config.ditfa_home.to_path_buf(),
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -424,12 +424,12 @@ async fn shutdown_all_threads_bounded_submits_shutdown_to_every_thread() {
 async fn code_mode_session_provider_is_shared_across_threads() {
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
     config.cwd = config.ditfa_home.abs();
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
 
     let manager = ThreadManager::with_models_provider_and_home_for_tests(
-        CodexAuth::from_api_key("dummy"),
+        DitfaAuth::from_api_key("dummy"),
         config.model_provider.clone(),
         config.ditfa_home.to_path_buf(),
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -480,12 +480,12 @@ async fn code_mode_session_provider_is_shared_across_threads() {
 async fn start_thread_keeps_internal_threads_hidden_from_normal_lookups() {
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
     config.cwd = config.ditfa_home.abs();
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
 
     let manager = ThreadManager::with_models_provider_and_home_for_tests(
-        CodexAuth::from_api_key("dummy"),
+        DitfaAuth::from_api_key("dummy"),
         config.model_provider.clone(),
         config.ditfa_home.to_path_buf(),
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -587,13 +587,13 @@ async fn start_thread_seeds_extension_data_for_mcp_and_lifecycle_contributors() 
 
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
     config.cwd = config.ditfa_home.abs();
     config
         .features
         .enable(Feature::Apps)
         .expect("test config should allow apps");
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
 
     let lifecycle_observed = Arc::new(std::sync::Mutex::new(Vec::new()));
     let mcp_observed = Arc::new(std::sync::Mutex::new(Vec::new()));
@@ -605,12 +605,12 @@ async fn start_thread_seeds_extension_data_for_mcp_and_lifecycle_contributors() 
     extensions.thread_lifecycle_contributor(recorder.clone());
     extensions.mcp_server_contributor(recorder);
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let manager = ThreadManager::new(
         &config,
         auth_manager.clone(),
         build_models_manager(&config, auth_manager),
-        crate::CodexAppsToolsCache::default(),
+        crate::DitfaAppsToolsCache::default(),
         SessionSource::Exec,
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
         Arc::new(extensions.build()),
@@ -720,16 +720,16 @@ async fn start_thread_seeds_extension_data_for_mcp_and_lifecycle_contributors() 
     );
     let ditfa_apps_server = ditfa_mcp::configured_mcp_servers(&first_resolved.config)
         .remove(ditfa_mcp::DITFA_APPS_MCP_SERVER_NAME)
-        .expect("Codex Apps server should be configured");
+        .expect("Ditfa Apps server should be configured");
     let ditfa_apps_headers = match ditfa_apps_server.transport {
         ditfa_config::McpServerTransportConfig::StreamableHttp { http_headers, .. } => http_headers,
         ditfa_config::McpServerTransportConfig::Stdio { .. } => {
-            panic!("Codex Apps server should use streamable HTTP")
+            panic!("Ditfa Apps server should use streamable HTTP")
         }
     };
     assert_eq!(
         ditfa_apps_headers
-            .expect("Codex Apps headers should be configured")
+            .expect("Ditfa Apps headers should be configured")
             .get("originator"),
         Some(&"ditfa_work_desktop".to_string())
     );
@@ -739,12 +739,12 @@ async fn start_thread_seeds_extension_data_for_mcp_and_lifecycle_contributors() 
 async fn selected_capability_roots_round_trip_through_fork() {
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
     config.cwd = config.ditfa_home.abs();
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
 
     let manager = ThreadManager::with_models_provider_and_home_for_tests(
-        CodexAuth::from_api_key("dummy"),
+        DitfaAuth::from_api_key("dummy"),
         config.model_provider.clone(),
         config.ditfa_home.to_path_buf(),
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -797,17 +797,17 @@ async fn selected_capability_roots_round_trip_through_fork() {
 async fn resume_and_fork_do_not_restore_thread_environments_from_rollout() {
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
     config.cwd = config.ditfa_home.abs();
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
 
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let manager = ThreadManager::new(
         &config,
         auth_manager.clone(),
         build_models_manager(&config, auth_manager.clone()),
-        crate::CodexAppsToolsCache::default(),
+        crate::DitfaAppsToolsCache::default(),
         SessionSource::Exec,
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
         empty_extension_registry(),
@@ -924,15 +924,15 @@ async fn resume_and_fork_do_not_restore_thread_environments_from_rollout() {
 }
 
 #[tokio::test]
-async fn explicit_installation_id_skips_codex_home_file() {
+async fn explicit_installation_id_skips_ditfa_home_file() {
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
     config.cwd = config.ditfa_home.abs();
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
 
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let installation_id = uuid::Uuid::new_v4().to_string();
     let state_db = init_state_db(&config).await;
     let thread_store = thread_store_from_config(&config, state_db.clone());
@@ -940,7 +940,7 @@ async fn explicit_installation_id_skips_codex_home_file() {
         &config,
         auth_manager.clone(),
         build_models_manager(&config, auth_manager),
-        crate::CodexAppsToolsCache::default(),
+        crate::DitfaAppsToolsCache::default(),
         SessionSource::Exec,
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
         empty_extension_registry(),
@@ -973,17 +973,17 @@ async fn explicit_installation_id_skips_codex_home_file() {
 async fn resume_active_thread_from_rollout_returns_running_thread() {
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
     config.cwd = config.ditfa_home.abs();
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
 
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let manager = ThreadManager::new(
         &config,
         auth_manager.clone(),
         build_models_manager(&config, auth_manager.clone()),
-        crate::CodexAppsToolsCache::default(),
+        crate::DitfaAppsToolsCache::default(),
         SessionSource::Exec,
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
         empty_extension_registry(),
@@ -1035,17 +1035,17 @@ async fn resume_active_thread_from_rollout_returns_running_thread() {
 async fn resume_stopped_thread_from_rollout_spawns_new_thread() {
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
     config.cwd = config.ditfa_home.abs();
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
 
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let manager = ThreadManager::new(
         &config,
         auth_manager.clone(),
         build_models_manager(&config, auth_manager.clone()),
-        crate::CodexAppsToolsCache::default(),
+        crate::DitfaAppsToolsCache::default(),
         SessionSource::Exec,
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
         empty_extension_registry(),
@@ -1102,19 +1102,19 @@ async fn resume_stopped_thread_from_rollout_spawns_new_thread() {
 async fn resume_stopped_thread_from_rollout_preserves_thread_source() {
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
     config.cwd = config.ditfa_home.abs();
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
 
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let state_db = init_state_db(&config).await;
     let thread_store = thread_store_from_config(&config, state_db.clone());
     let manager = ThreadManager::new(
         &config,
         auth_manager.clone(),
         build_models_manager(&config, auth_manager.clone()),
-        crate::CodexAppsToolsCache::default(),
+        crate::DitfaAppsToolsCache::default(),
         SessionSource::Exec,
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
         empty_extension_registry(),
@@ -1184,8 +1184,8 @@ async fn resume_stopped_thread_from_rollout_preserves_thread_source() {
 async fn subtree_listing_uses_injected_graph_store_without_state_db() {
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
 
     let root_thread_id = ThreadId::new();
     let descendant_thread_ids = vec![ThreadId::new(), ThreadId::new()];
@@ -1194,12 +1194,12 @@ async fn subtree_listing_uses_injected_graph_store_without_state_db() {
         descendant_thread_ids: descendant_thread_ids.clone(),
     });
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let manager = ThreadManager::new(
         &config,
         auth_manager.clone(),
         build_models_manager(&config, auth_manager),
-        crate::CodexAppsToolsCache::default(),
+        crate::DitfaAppsToolsCache::default(),
         SessionSource::Exec,
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
         empty_extension_registry(),
@@ -1227,15 +1227,15 @@ async fn subtree_listing_uses_injected_graph_store_without_state_db() {
 async fn rollout_path_resume_and_fork_read_history_through_thread_store() {
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
     config.cwd = config.ditfa_home.abs();
     config.experimental_thread_store = ThreadStoreConfig::InMemory {
         id: format!("thread-manager-{}", uuid::Uuid::new_v4()),
     };
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
 
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let state_db = init_state_db(&config).await;
     let thread_store = thread_store_from_config(&config, state_db.clone());
     let in_memory_store = thread_store
@@ -1246,7 +1246,7 @@ async fn rollout_path_resume_and_fork_read_history_through_thread_store() {
         &config,
         auth_manager.clone(),
         build_models_manager(&config, auth_manager.clone()),
-        crate::CodexAppsToolsCache::default(),
+        crate::DitfaAppsToolsCache::default(),
         SessionSource::Exec,
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
         empty_extension_registry(),
@@ -1341,19 +1341,19 @@ async fn new_uses_active_provider_for_model_refresh() {
 
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
     config.cwd = config.ditfa_home.abs();
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
     config.model_catalog = None;
     config.model_provider.base_url = Some(server.uri());
 
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let manager = ThreadManager::new(
         &config,
         auth_manager.clone(),
         build_models_manager(&config, auth_manager),
-        crate::CodexAppsToolsCache::default(),
+        crate::DitfaAppsToolsCache::default(),
         SessionSource::Exec,
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
         empty_extension_registry(),
@@ -1383,14 +1383,14 @@ async fn injected_models_manager_controls_refresh_policy() {
 
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
     config.cwd = config.ditfa_home.abs();
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
     config.model_catalog = None;
     config.model_provider.base_url = Some(server.uri());
 
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let provider = create_model_provider(
         config.model_provider.clone(),
         Some(Arc::clone(&auth_manager)),
@@ -1400,7 +1400,7 @@ async fn injected_models_manager_controls_refresh_policy() {
         &config,
         auth_manager,
         models_manager,
-        crate::CodexAppsToolsCache::default(),
+        crate::DitfaAppsToolsCache::default(),
         SessionSource::Custom("test-embedder".to_string()),
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
         empty_extension_registry(),
@@ -1639,18 +1639,18 @@ fn mixed_response_and_legacy_user_event_history_is_mid_turn() {
 async fn interrupted_fork_snapshot_does_not_synthesize_turn_id_for_legacy_history() {
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
     config.cwd = config.ditfa_home.abs();
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
 
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let state_db = init_state_db(&config).await;
     let manager = ThreadManager::new(
         &config,
         auth_manager.clone(),
         build_models_manager(&config, auth_manager.clone()),
-        crate::CodexAppsToolsCache::default(),
+        crate::DitfaAppsToolsCache::default(),
         SessionSource::Exec,
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
         empty_extension_registry(),
@@ -1752,18 +1752,18 @@ async fn interrupted_fork_snapshot_does_not_synthesize_turn_id_for_legacy_histor
 async fn interrupted_fork_snapshot_preserves_explicit_turn_id() {
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
     config.cwd = config.ditfa_home.abs();
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
 
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let state_db = init_state_db(&config).await;
     let manager = ThreadManager::new(
         &config,
         auth_manager.clone(),
         build_models_manager(&config, auth_manager.clone()),
-        crate::CodexAppsToolsCache::default(),
+        crate::DitfaAppsToolsCache::default(),
         SessionSource::Exec,
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
         empty_extension_registry(),
@@ -1855,18 +1855,18 @@ async fn interrupted_fork_snapshot_preserves_explicit_turn_id() {
 async fn interrupted_fork_snapshot_uses_persisted_mid_turn_history_without_live_source() {
     let temp_dir = tempdir().expect("tempdir");
     let mut config = test_config().await;
-    config.ditfa_home = temp_dir.path().join("codex-home").abs();
+    config.ditfa_home = temp_dir.path().join("ditfa-home").abs();
     config.cwd = config.ditfa_home.abs();
-    std::fs::create_dir_all(&config.ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&config.ditfa_home).expect("create ditfa home");
 
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let state_db = init_state_db(&config).await;
     let manager = ThreadManager::new(
         &config,
         auth_manager.clone(),
         build_models_manager(&config, auth_manager.clone()),
-        crate::CodexAppsToolsCache::default(),
+        crate::DitfaAppsToolsCache::default(),
         SessionSource::Exec,
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
         empty_extension_registry(),

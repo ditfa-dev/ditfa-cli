@@ -42,7 +42,7 @@ use std::time::Duration;
 use tracing::debug;
 
 const ENV_ATTRIBUTE: &str = "env";
-const METER_NAME: &str = "codex";
+const METER_NAME: &str = "ditfa";
 const MILLISECOND_DURATION_UNIT: &str = "ms";
 const MILLISECOND_DURATION_DESCRIPTION: &str = "Duration in milliseconds.";
 const MILLISECOND_DURATION_BOUNDARIES: &[f64] = &[

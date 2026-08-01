@@ -1,5 +1,5 @@
 use ditfa_analytics::AnalyticsEventsClient;
-use ditfa_analytics::CodexGoalEvent;
+use ditfa_analytics::DitfaGoalEvent;
 use ditfa_analytics::GoalEventKind;
 
 #[derive(Clone)]
@@ -60,7 +60,7 @@ impl GoalAnalytics {
                 (None, None)
             }
         };
-        self.client.track_goal_event(CodexGoalEvent {
+        self.client.track_goal_event(DitfaGoalEvent {
             thread_id: goal.thread_id.to_string(),
             turn_id: match attribution {
                 GoalEventAttribution::Turn(turn_id) => Some(turn_id.to_string()),

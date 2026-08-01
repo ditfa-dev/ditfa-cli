@@ -198,7 +198,7 @@ fn composition_strategy_applies_to_non_cloud_layers() {
     let system_file = if cfg!(windows) {
         "C:\\requirements.toml"
     } else {
-        "/etc/codex/requirements.toml"
+        "/etc/ditfa/requirements.toml"
     };
     let system_source = RequirementSource::SystemRequirementsToml {
         file: AbsolutePathBuf::from_absolute_path(system_file).expect("absolute path"),

@@ -20,7 +20,7 @@ use crate::tools::sandboxing::with_cached_approval;
 use ditfa_apply_patch::AppliedPatchDelta;
 use ditfa_apply_patch::ApplyPatchAction;
 use ditfa_exec_server::FileSystemSandboxContext;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::SandboxErr;
 use ditfa_protocol::exec_output::ExecToolCallOutput;
 use ditfa_protocol::exec_output::StreamOutput;
@@ -256,7 +256,7 @@ impl ToolRuntime<ApplyPatchRequest, ApplyPatchRuntimeOutput> for ApplyPatchRunti
             timed_out: false,
         };
         if failed && is_likely_sandbox_denied(attempt.sandbox, &output) {
-            return Err(ToolError::Codex(CodexErr::Sandbox(SandboxErr::Denied {
+            return Err(ToolError::Ditfa(DitfaErr::Sandbox(SandboxErr::Denied {
                 output: Box::new(output),
                 network_policy_decision: None,
             })));

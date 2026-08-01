@@ -55,7 +55,7 @@
               "title": "AmazonBedrockAccountType",
               "type": "string"
             },
-            "usesCodexManagedCredentials": {
+            "usesDitfaManagedCredentials": {
               "default": false,
               "type": "boolean"
             }

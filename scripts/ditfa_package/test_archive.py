@@ -7,7 +7,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from codex_package.archive import resolve_zstd_command
+from ditfa_package.archive import resolve_zstd_command
 
 
 class ResolveZstdCommandTest(unittest.TestCase):

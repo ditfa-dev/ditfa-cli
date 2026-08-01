@@ -9,8 +9,8 @@ use std::sync::atomic::Ordering;
 use serde_json::Value;
 use tokio::task::JoinHandle;
 
-use crate::responses_metadata::CodexResponsesMetadata;
-use crate::responses_metadata::CodexResponsesRequestKind;
+use crate::responses_metadata::DitfaResponsesMetadata;
+use crate::responses_metadata::DitfaResponsesRequestKind;
 use crate::responses_metadata::TurnMetadataWorkspace;
 use crate::responses_metadata::filter_extra_metadata;
 use crate::responses_metadata::subagent_header_value;
@@ -72,13 +72,13 @@ pub async fn detached_memory_responses_metadata(
     session_source: &SessionSource,
     cwd: &AbsolutePathBuf,
     sandbox: Option<&str>,
-) -> CodexResponsesMetadata {
-    CodexResponsesMetadata {
-        request_kind: Some(CodexResponsesRequestKind::Memory),
+) -> DitfaResponsesMetadata {
+    DitfaResponsesMetadata {
+        request_kind: Some(DitfaResponsesRequestKind::Memory),
         subagent_header: subagent_header_value(session_source),
         sandbox: sandbox.map(ToString::to_string),
         workspaces: memory_workspaces(cwd).await,
-        ..CodexResponsesMetadata::new(installation_id, session_id, thread_id, window_id)
+        ..DitfaResponsesMetadata::new(installation_id, session_id, thread_id, window_id)
     }
 }
 
@@ -188,9 +188,9 @@ impl TurnMetadataState {
         &self,
         installation_id: String,
         window_id: String,
-        request_kind: CodexResponsesRequestKind,
-    ) -> CodexResponsesMetadata {
-        CodexResponsesMetadata {
+        request_kind: DitfaResponsesRequestKind,
+    ) -> DitfaResponsesMetadata {
+        DitfaResponsesMetadata {
             installation_id,
             window_id,
             request_kind: Some(request_kind),
@@ -222,8 +222,8 @@ impl TurnMetadataState {
             .cloned()
     }
 
-    fn responses_metadata_template(&self) -> CodexResponsesMetadata {
-        CodexResponsesMetadata {
+    fn responses_metadata_template(&self) -> DitfaResponsesMetadata {
+        DitfaResponsesMetadata {
             turn_id: Some(self.turn_id.clone()),
             forked_from_thread_id: self.forked_from_thread_id,
             parent_thread_id: self.parent_thread_id,
@@ -238,7 +238,7 @@ impl TurnMetadataState {
                 .read()
                 .unwrap_or_else(std::sync::PoisonError::into_inner)
                 .clone(),
-            ..CodexResponsesMetadata::new(
+            ..DitfaResponsesMetadata::new(
                 String::new(),
                 self.session_id.clone(),
                 self.thread_id.clone(),

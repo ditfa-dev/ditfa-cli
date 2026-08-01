@@ -3,9 +3,9 @@ name: VS Code Extension
 on:
   push:
     branches: [main]
-    paths: ["ditfa-code/ditfa-vscode/**", ".github/workflows/vscode-extension.yml"]
+    paths: ["ditfa-vscode/**", ".github/workflows/vscode-extension.yml"]
   pull_request:
-    paths: ["ditfa-code/ditfa-vscode/**", ".github/workflows/vscode-extension.yml"]
+    paths: ["ditfa-vscode/**", ".github/workflows/vscode-extension.yml"]
   # Publishing runs from a GitHub release, or on demand. A path filter cannot be
   # scoped per ref type, so tags are not used as the trigger.
   release:
@@ -23,7 +23,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: ditfa-code/ditfa-vscode
+    working-directory: ditfa-vscode
 
 jobs:
   check:
@@ -79,12 +79,12 @@ jobs:
           targets: ${{ matrix.rust-target }}
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: ditfa-code/ditfa-rs
+          workspaces: ditfa-rs
 
       # The VSIX ships the matching ditfa binary so users get a working
       # extension without a separate CLI install.
       - name: Build ditfa
-        working-directory: ditfa-code
+        working-directory: .
         run: cargo build --release --target ${{ matrix.rust-target }} --manifest-path ditfa-rs/Cargo.toml --bin ditfa
 
       - uses: pnpm/action-setup@v4
@@ -98,7 +98,7 @@ jobs:
 
       - name: Stage the binary
         shell: bash
-        working-directory: ditfa-code
+        working-directory: .
         run: |
           mkdir -p ditfa-vscode/dist/bin
           if [ "${{ runner.os }}" = "Windows" ]; then
@@ -114,7 +114,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: vsix-${{ matrix.vscode-target }}
-          path: ditfa-code/ditfa-vscode/*.vsix
+          path: ditfa-vscode/*.vsix
           if-no-files-found: error
 
   publish:
@@ -138,7 +138,7 @@ jobs:
         with:
           pattern: vsix-*
           merge-multiple: true
-          path: ditfa-code/ditfa-vscode/artifacts
+          path: ditfa-vscode/artifacts
 
       - name: Publish to the Visual Studio Marketplace
         env:
@@ -158,5 +158,5 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
-          files: ditfa-code/ditfa-vscode/artifacts/*.vsix
+          files: ditfa-vscode/artifacts/*.vsix
           fail_on_unmatched_files: true

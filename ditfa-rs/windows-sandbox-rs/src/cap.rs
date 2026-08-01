@@ -149,8 +149,8 @@ mod tests {
     #[test]
     fn equivalent_cwd_spellings_share_workspace_sid_key() {
         let temp = tempfile::tempdir().expect("tempdir");
-        let ditfa_home = temp.path().join("codex-home");
-        std::fs::create_dir_all(&ditfa_home).expect("create codex home");
+        let ditfa_home = temp.path().join("ditfa-home");
+        std::fs::create_dir_all(&ditfa_home).expect("create ditfa home");
 
         let workspace = temp.path().join("WorkspaceRoot");
         std::fs::create_dir_all(&workspace).expect("create workspace root");
@@ -177,8 +177,8 @@ mod tests {
     #[test]
     fn write_roots_get_path_scoped_sids() {
         let temp = tempfile::tempdir().expect("tempdir");
-        let ditfa_home = temp.path().join("codex-home");
-        std::fs::create_dir_all(&ditfa_home).expect("create codex home");
+        let ditfa_home = temp.path().join("ditfa-home");
+        std::fs::create_dir_all(&ditfa_home).expect("create ditfa home");
 
         let workspace = temp.path().join("workspace");
         let extra_root = temp.path().join("extra-root");

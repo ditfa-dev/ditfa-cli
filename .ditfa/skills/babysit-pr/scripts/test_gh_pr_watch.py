@@ -15,8 +15,8 @@ MODULE_SPEC.loader.exec_module(gh_pr_watch)
 def sample_pr():
     return {
         "number": 123,
-        "url": "https://github.com/openai/codex/pull/123",
-        "repo": "openai/codex",
+        "url": "https://github.com/Teamtem-dev/ditfa-code/pull/123",
+        "repo": "Teamtem-dev/ditfa-code",
         "head_sha": "abc123",
         "head_branch": "feature",
         "state": "OPEN",
@@ -131,7 +131,7 @@ def test_pending_review_feedback_surfaces_only_after_publication(monkeypatch):
         "body": "Please rename this.",
         "created_at": "2026-06-08T10:00:00Z",
         "submitted_at": None,
-        "html_url": "https://github.com/openai/codex/pull/123#pullrequestreview-10",
+        "html_url": "https://github.com/Teamtem-dev/ditfa-code/pull/123#pullrequestreview-10",
     }
     review_comment = {
         "id": 20,
@@ -142,7 +142,7 @@ def test_pending_review_feedback_surfaces_only_after_publication(monkeypatch):
         "created_at": "2026-06-08T10:00:00Z",
         "path": "src/example.rs",
         "line": 7,
-        "html_url": "https://github.com/openai/codex/pull/123#discussion_r20",
+        "html_url": "https://github.com/Teamtem-dev/ditfa-code/pull/123#discussion_r20",
     }
 
     def fake_list(endpoint, **kwargs):
@@ -205,7 +205,7 @@ def test_run_watch_keeps_polling_open_ready_to_merge_pr(monkeypatch):
     monkeypatch.setattr(
         gh_pr_watch,
         "collect_snapshot",
-        lambda args: (snapshot, Path("/tmp/codex-babysit-pr-state.json")),
+        lambda args: (snapshot, Path("/tmp/ditfa-babysit-pr-state.json")),
     )
     monkeypatch.setattr(
         gh_pr_watch,
@@ -238,7 +238,7 @@ def test_failed_jobs_include_direct_logs_endpoint(monkeypatch):
                 "name": "unit tests",
                 "status": "completed",
                 "conclusion": "failure",
-                "html_url": "https://github.com/openai/codex/actions/runs/99/job/555",
+                "html_url": "https://github.com/Teamtem-dev/ditfa-code/actions/runs/99/job/555",
             },
             {
                 "id": 556,
@@ -256,7 +256,7 @@ def test_failed_jobs_include_direct_logs_endpoint(monkeypatch):
     )
 
     failed_jobs = gh_pr_watch.failed_jobs_from_workflow_runs(
-        "openai/codex",
+        "Teamtem-dev/ditfa-code",
         [
             {
                 "id": 99,
@@ -279,7 +279,7 @@ def test_failed_jobs_include_direct_logs_endpoint(monkeypatch):
             "job_name": "unit tests",
             "status": "completed",
             "conclusion": "failure",
-            "html_url": "https://github.com/openai/codex/actions/runs/99/job/555",
-            "logs_endpoint": "repos/openai/codex/actions/jobs/555/logs",
+            "html_url": "https://github.com/Teamtem-dev/ditfa-code/actions/runs/99/job/555",
+            "logs_endpoint": "repos/Teamtem-dev/ditfa-code/actions/jobs/555/logs",
         }
     ]

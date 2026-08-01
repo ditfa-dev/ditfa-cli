@@ -1,6 +1,6 @@
-load("//:defs.bzl", "codex_rust_crate")
+load("//:defs.bzl", "ditfa_rust_crate")
 
-codex_rust_crate(
+ditfa_rust_crate(
     name = "state",
     compile_data = glob([
         "goals_migrations/**",
@@ -9,5 +9,5 @@ codex_rust_crate(
         "migrations/**",
         "thread_history_migrations/**",
     ]),
-    crate_name = "codex_state",
+    crate_name = "ditfa_state",
 )

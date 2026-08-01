@@ -33,7 +33,7 @@ fn detailed_reset_credits(
 fn reset_credit(id: &str, expires_at: Option<i64>) -> RateLimitResetCredit {
     RateLimitResetCredit {
         id: id.to_string(),
-        reset_type: RateLimitResetType::CodexRateLimits,
+        reset_type: RateLimitResetType::DitfaRateLimits,
         status: RateLimitResetCreditStatus::Available,
         granted_at: 0,
         expires_at,
@@ -230,7 +230,7 @@ async fn account_update_invalidates_usage_menu_refresh_when_visible_state_is_unc
 
     chat.update_account_state(
         /*status_account_display*/ None, /*plan_type*/ None,
-        /*has_chatgpt_account*/ true, /*has_codex_backend_auth*/ true,
+        /*has_chatgpt_account*/ true, /*has_ditfa_backend_auth*/ true,
     );
     chat.finish_usage_menu_rate_limit_refresh(
         /*request_id*/ 1,
@@ -302,7 +302,7 @@ async fn rate_limit_reset_popup_states_snapshot() {
     let first_expiry = expiry_timestamp(/*day*/ 18, /*hour*/ 9, /*minute*/ 39);
     let second_expiry = expiry_timestamp(/*day*/ 27, /*hour*/ 8, /*minute*/ 59);
     let mut rate_limit_snapshot = snapshot(/*percent*/ 50.0);
-    rate_limit_snapshot.limit_id = Some("codex".to_string());
+    rate_limit_snapshot.limit_id = Some("ditfa".to_string());
     rate_limit_snapshot
         .primary
         .as_mut()
@@ -822,7 +822,7 @@ async fn account_change_invalidates_pending_reset_requests() {
 
     chat.update_account_state(
         /*status_account_display*/ None, /*plan_type*/ None,
-        /*has_chatgpt_account*/ false, /*has_codex_backend_auth*/ false,
+        /*has_chatgpt_account*/ false, /*has_ditfa_backend_auth*/ false,
     );
 
     assert!(!chat.finish_rate_limit_reset_credits_refresh(
@@ -936,7 +936,7 @@ async fn account_change_dismisses_reset_popup_beneath_overlay() {
 
     chat.update_account_state(
         /*status_account_display*/ None, /*plan_type*/ None,
-        /*has_chatgpt_account*/ false, /*has_codex_backend_auth*/ false,
+        /*has_chatgpt_account*/ false, /*has_ditfa_backend_auth*/ false,
     );
     assert!(!chat.show_rate_limit_reset_confirmation(
         request_id,

@@ -125,8 +125,8 @@ use ditfa_exec_server::DITFA_EXEC_SERVER_NOISE_REGISTRY_URL_ENV_VAR;
 use ditfa_exec_server::DITFA_EXEC_SERVER_URL_ENV_VAR;
 use ditfa_login::default_client::DITFA_INTERNAL_ORIGINATOR_OVERRIDE_ENV_VAR;
 use core_test_support::is_remote_test_environment;
-use core_test_support::test_codex::TestEnv;
-use core_test_support::test_codex::test_env;
+use core_test_support::test_ditfa::TestEnv;
+use core_test_support::test_ditfa::test_env;
 use serde::de::DeserializeOwned;
 use tempfile::TempDir;
 use tokio::process::Command;
@@ -156,10 +156,10 @@ pub struct TestAppServer {
     // removing an owned DITFA_HOME that may still be its cwd on Windows.
     _delayed_exec_server: Option<(LocalWebsocketExecServer, WebsocketDelayInterposer)>,
     _attribution_settings_server: Option<MockServer>,
-    _owned_codex_home: Option<TempDir>,
+    _owned_ditfa_home: Option<TempDir>,
 }
 
-pub const DEFAULT_CLIENT_NAME: &str = "codex-app-server-tests";
+pub const DEFAULT_CLIENT_NAME: &str = "ditfa-app-server-tests";
 pub const DISABLE_PLUGIN_STARTUP_TASKS_ARG: &str = "--disable-plugin-startup-tasks-for-tests";
 const DISABLE_MANAGED_CONFIG_ENV_VAR: &str = "DITFA_APP_SERVER_DISABLE_MANAGED_CONFIG";
 const CODE_MODE_HOST_PATH_ENV_VAR: &str = "DITFA_CODE_MODE_HOST_PATH";
@@ -258,7 +258,7 @@ impl TestAppServer {
         let mut process = cmd
             .kill_on_drop(true)
             .spawn()
-            .context("codex-mcp-server proc should start")?;
+            .context("ditfa-mcp-server proc should start")?;
         let stdin = process
             .stdin
             .take()
@@ -292,7 +292,7 @@ impl TestAppServer {
             json_logs,
             _delayed_exec_server: None,
             _attribution_settings_server: None,
-            _owned_codex_home: None,
+            _owned_ditfa_home: None,
         })
     }
 
@@ -1782,7 +1782,7 @@ enum TestAppServerEnvironment {
 
 impl TestAppServerBuilder {
     /// Uses this existing DITFA_HOME instead of a temporary one.
-    pub fn with_codex_home(mut self, ditfa_home: &Path) -> Self {
+    pub fn with_ditfa_home(mut self, ditfa_home: &Path) -> Self {
         self.ditfa_home = Some(ditfa_home.to_path_buf());
         self
     }
@@ -1876,13 +1876,13 @@ impl TestAppServerBuilder {
             args,
             exec_server_delay,
         } = self;
-        let (ditfa_home, owned_codex_home) = match ditfa_home {
+        let (ditfa_home, owned_ditfa_home) = match ditfa_home {
             Some(ditfa_home) => (ditfa_home, None),
             None => {
-                let owned_codex_home = TempDir::new()?;
+                let owned_ditfa_home = TempDir::new()?;
                 (
-                    owned_codex_home.path().to_path_buf(),
-                    Some(owned_codex_home),
+                    owned_ditfa_home.path().to_path_buf(),
+                    Some(owned_ditfa_home),
                 )
             }
         };
@@ -1991,7 +1991,7 @@ impl TestAppServerBuilder {
             .iter()
             .any(|(key, _)| key == CODE_MODE_HOST_PATH_ENV_VAR)
             && let Ok(code_mode_host_program) =
-                ditfa_utils_cargo_bin::cargo_bin("codex-code-mode-host")
+                ditfa_utils_cargo_bin::cargo_bin("ditfa-code-mode-host")
         {
             env_overrides.insert(
                 0,
@@ -2003,8 +2003,8 @@ impl TestAppServerBuilder {
         }
         let program = match program {
             Some(program) => program,
-            None => ditfa_utils_cargo_bin::cargo_bin("codex-app-server")
-                .context("should find binary for codex-app-server")?,
+            None => ditfa_utils_cargo_bin::cargo_bin("ditfa-app-server")
+                .context("should find binary for ditfa-app-server")?,
         };
         let env_overrides = env_overrides
             .iter()
@@ -2019,7 +2019,7 @@ impl TestAppServerBuilder {
         )
         .await?;
         app_server.auto_env = auto_env;
-        app_server._owned_codex_home = owned_codex_home;
+        app_server._owned_ditfa_home = owned_ditfa_home;
         app_server._delayed_exec_server = delayed_exec_server;
         app_server._attribution_settings_server = attribution_settings_server;
         Ok(app_server)
@@ -2028,7 +2028,7 @@ impl TestAppServerBuilder {
 
 impl Drop for TestAppServer {
     fn drop(&mut self) {
-        // These tests spawn a `codex-app-server` child process.
+        // These tests spawn a `ditfa-app-server` child process.
         //
         // We keep that child alive for the test and rely on Tokio's `kill_on_drop(true)` when this
         // helper is dropped. Tokio documents kill-on-drop as best-effort: dropping requests

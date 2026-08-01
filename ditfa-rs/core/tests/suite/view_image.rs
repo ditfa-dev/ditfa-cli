@@ -7,7 +7,7 @@ use ditfa_exec_server::CreateDirectoryOptions;
 use ditfa_exec_server::LOCAL_ENVIRONMENT_ID;
 use ditfa_exec_server::REMOTE_ENVIRONMENT_ID;
 use ditfa_exec_server::RemoveOptions;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_protocol::config_types::ReasoningSummary;
 use ditfa_protocol::models::PermissionProfile;
 use ditfa_protocol::openai_models::ConfigShellToolType;
@@ -42,10 +42,10 @@ use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
 use core_test_support::skip_if_no_remote_env;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::local;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::local;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::test_target_os;
 use core_test_support::wait_for_event_with_timeout;
 use image::DynamicImage;
@@ -66,7 +66,7 @@ use wiremock::MockServer;
 
 const VIEW_IMAGE_TURN_COMPLETE_TIMEOUT: Duration = Duration::from_secs(30);
 
-fn disabled_user_turn(test: &TestCodex, items: Vec<UserInput>, model: String) -> Op {
+fn disabled_user_turn(test: &TestDitfa, items: Vec<UserInput>, model: String) -> Op {
     let (sandbox_policy, permission_profile) =
         turn_permission_fields(PermissionProfile::Disabled, test.config.cwd.as_path());
     Op::UserInput {
@@ -125,7 +125,7 @@ fn png_bytes(width: u32, height: u32, rgba: [u8; 4]) -> anyhow::Result<Vec<u8>> 
     Ok(cursor.into_inner())
 }
 
-async fn create_workspace_directory(test: &TestCodex, rel_path: &str) -> anyhow::Result<PathBuf> {
+async fn create_workspace_directory(test: &TestDitfa, rel_path: &str) -> anyhow::Result<PathBuf> {
     let abs_path = test.config.cwd.join(rel_path);
     let abs_path_uri = PathUri::from_host_native_path(&abs_path)?;
     test.fs()
@@ -139,7 +139,7 @@ async fn create_workspace_directory(test: &TestCodex, rel_path: &str) -> anyhow:
 }
 
 async fn write_workspace_file(
-    test: &TestCodex,
+    test: &TestDitfa,
     rel_path: &str,
     contents: Vec<u8>,
 ) -> anyhow::Result<PathBuf> {
@@ -162,7 +162,7 @@ async fn write_workspace_file(
 }
 
 async fn write_workspace_png(
-    test: &TestCodex,
+    test: &TestDitfa,
     rel_path: &str,
     width: u32,
     height: u32,
@@ -177,10 +177,10 @@ async fn assert_user_turn_local_image_resizes_to(
 ) -> anyhow::Result<()> {
     let server = start_mock_server().await;
 
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build_with_auto_env(&server).await?;
-    let TestCodex {
-        codex,
+    let TestDitfa {
+        ditfa,
         session_configured,
         ..
     } = &test;
@@ -200,7 +200,7 @@ async fn assert_user_turn_local_image_resizes_to(
 
     let session_model = session_configured.model.clone();
 
-    codex
+    ditfa
         .submit(disabled_user_turn(
             &test,
             vec![UserInput::LocalImage {
@@ -212,7 +212,7 @@ async fn assert_user_turn_local_image_resizes_to(
         .await?;
 
     wait_for_event_with_timeout(
-        codex,
+        ditfa,
         |event| matches!(event, EventMsg::TurnComplete(_)),
         // Empirically, image attachment can be slow under Bazel/RBE.
         VIEW_IMAGE_TURN_COMPLETE_TIMEOUT,
@@ -277,10 +277,10 @@ async fn view_image_tool_attaches_local_image() -> anyhow::Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build_with_auto_env(&server).await?;
-    let TestCodex {
-        codex,
+    let TestDitfa {
+        ditfa,
         session_configured,
         config,
         ..
@@ -319,7 +319,7 @@ async fn view_image_tool_attaches_local_image() -> anyhow::Result<()> {
 
     let session_model = session_configured.model.clone();
 
-    codex
+    ditfa
         .submit(disabled_user_turn(
             &test,
             vec![UserInput::Text {
@@ -334,7 +334,7 @@ async fn view_image_tool_attaches_local_image() -> anyhow::Result<()> {
     let mut item_completed = None;
     let mut legacy_event = None;
     wait_for_event_with_timeout(
-        codex,
+        ditfa,
         |event| match event {
             EventMsg::ItemStarted(event) => {
                 if matches!(&event.item, ditfa_protocol::items::TurnItem::ImageView(_)) {
@@ -426,7 +426,7 @@ async fn view_image_routes_to_selected_local_environment() -> anyhow::Result<()>
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build(&server).await?;
     write_workspace_file(
         &test,
@@ -492,7 +492,7 @@ async fn view_image_tool_applies_local_sandbox_read_denies() -> anyhow::Result<(
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build(&server).await?;
     let rel_path = "denied.png";
     let denied_path = test.config.cwd.join(rel_path);
@@ -572,7 +572,7 @@ async fn view_image_routes_to_selected_remote_environment() -> anyhow::Result<()
     skip_if_no_remote_env!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build_with_remote_and_local_env(&server).await?;
     let local_cwd = TempDir::new()?;
     fs::write(local_cwd.path().join("remote.png"), b"not a remote image")?;
@@ -676,10 +676,10 @@ async fn view_image_tool_can_preserve_original_resolution_when_requested_on_gpt5
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex().with_model("gpt-5.4");
+    let mut builder = test_ditfa().with_model("gpt-5.4");
     let test = builder.build_with_auto_env(&server).await?;
-    let TestCodex {
-        codex,
+    let TestDitfa {
+        ditfa,
         session_configured,
         ..
     } = &test;
@@ -714,7 +714,7 @@ async fn view_image_tool_can_preserve_original_resolution_when_requested_on_gpt5
 
     let session_model = session_configured.model.clone();
 
-    codex
+    ditfa
         .submit(disabled_user_turn(
             &test,
             vec![UserInput::Text {
@@ -726,7 +726,7 @@ async fn view_image_tool_can_preserve_original_resolution_when_requested_on_gpt5
         .await?;
 
     wait_for_event_with_timeout(
-        codex,
+        ditfa,
         |event| matches!(event, EventMsg::TurnComplete(_)),
         VIEW_IMAGE_TURN_COMPLETE_TIMEOUT,
     )
@@ -767,10 +767,10 @@ async fn view_image_tool_errors_clearly_for_unsupported_detail_values() -> anyho
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex().with_model("gpt-5.4");
+    let mut builder = test_ditfa().with_model("gpt-5.4");
     let test = builder.build_with_auto_env(&server).await?;
-    let TestCodex {
-        codex,
+    let TestDitfa {
+        ditfa,
         session_configured,
         ..
     } = &test;
@@ -803,7 +803,7 @@ async fn view_image_tool_errors_clearly_for_unsupported_detail_values() -> anyho
 
     let session_model = session_configured.model.clone();
 
-    codex
+    ditfa
         .submit(disabled_user_turn(
             &test,
             vec![UserInput::Text {
@@ -815,7 +815,7 @@ async fn view_image_tool_errors_clearly_for_unsupported_detail_values() -> anyho
         .await?;
 
     wait_for_event_with_timeout(
-        codex,
+        ditfa,
         |event| matches!(event, EventMsg::TurnComplete(_)),
         VIEW_IMAGE_TURN_COMPLETE_TIMEOUT,
     )
@@ -845,10 +845,10 @@ async fn view_image_tool_treats_null_detail_as_omitted() -> anyhow::Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex().with_model("gpt-5.4");
+    let mut builder = test_ditfa().with_model("gpt-5.4");
     let test = builder.build_with_auto_env(&server).await?;
-    let TestCodex {
-        codex,
+    let TestDitfa {
+        ditfa,
         session_configured,
         ..
     } = &test;
@@ -883,7 +883,7 @@ async fn view_image_tool_treats_null_detail_as_omitted() -> anyhow::Result<()> {
 
     let session_model = session_configured.model.clone();
 
-    codex
+    ditfa
         .submit(disabled_user_turn(
             &test,
             vec![UserInput::Text {
@@ -895,7 +895,7 @@ async fn view_image_tool_treats_null_detail_as_omitted() -> anyhow::Result<()> {
         .await?;
 
     wait_for_event_with_timeout(
-        codex,
+        ditfa,
         |event| matches!(event, EventMsg::TurnComplete(_)),
         VIEW_IMAGE_TURN_COMPLETE_TIMEOUT,
     )
@@ -935,10 +935,10 @@ async fn view_image_tool_resizes_when_model_lacks_original_detail_support() -> a
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex().with_model("gpt-5.2");
+    let mut builder = test_ditfa().with_model("gpt-5.2");
     let test = builder.build_with_auto_env(&server).await?;
-    let TestCodex {
-        codex,
+    let TestDitfa {
+        ditfa,
         session_configured,
         ..
     } = &test;
@@ -973,7 +973,7 @@ async fn view_image_tool_resizes_when_model_lacks_original_detail_support() -> a
 
     let session_model = session_configured.model.clone();
 
-    codex
+    ditfa
         .submit(disabled_user_turn(
             &test,
             vec![UserInput::Text {
@@ -985,7 +985,7 @@ async fn view_image_tool_resizes_when_model_lacks_original_detail_support() -> a
         .await?;
 
     wait_for_event_with_timeout(
-        codex,
+        ditfa,
         |event| matches!(event, EventMsg::TurnComplete(_)),
         VIEW_IMAGE_TURN_COMPLETE_TIMEOUT,
     )
@@ -1029,10 +1029,10 @@ async fn view_image_tool_does_not_force_original_resolution_with_capability_only
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex().with_model("gpt-5.4");
+    let mut builder = test_ditfa().with_model("gpt-5.4");
     let test = builder.build_with_auto_env(&server).await?;
-    let TestCodex {
-        codex,
+    let TestDitfa {
+        ditfa,
         session_configured,
         ..
     } = &test;
@@ -1067,7 +1067,7 @@ async fn view_image_tool_does_not_force_original_resolution_with_capability_only
 
     let session_model = session_configured.model.clone();
 
-    codex
+    ditfa
         .submit(disabled_user_turn(
             &test,
             vec![UserInput::Text {
@@ -1079,7 +1079,7 @@ async fn view_image_tool_does_not_force_original_resolution_with_capability_only
         .await?;
 
     wait_for_event_with_timeout(
-        codex,
+        ditfa,
         |event| matches!(event, EventMsg::TurnComplete(_)),
         VIEW_IMAGE_TURN_COMPLETE_TIMEOUT,
     )
@@ -1120,10 +1120,10 @@ async fn view_image_tool_errors_when_path_is_directory() -> anyhow::Result<()> {
 
     let server = start_mock_server().await;
 
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build_with_auto_env(&server).await?;
-    let TestCodex {
-        codex,
+    let TestDitfa {
+        ditfa,
         session_configured,
         ..
     } = &test;
@@ -1149,7 +1149,7 @@ async fn view_image_tool_errors_when_path_is_directory() -> anyhow::Result<()> {
 
     let session_model = session_configured.model.clone();
 
-    codex
+    ditfa
         .submit(disabled_user_turn(
             &test,
             vec![UserInput::Text {
@@ -1161,7 +1161,7 @@ async fn view_image_tool_errors_when_path_is_directory() -> anyhow::Result<()> {
         .await?;
 
     wait_for_event_with_timeout(
-        codex,
+        ditfa,
         |event| matches!(event, EventMsg::TurnComplete(_)),
         VIEW_IMAGE_TURN_COMPLETE_TIMEOUT,
     )
@@ -1190,10 +1190,10 @@ async fn view_image_tool_turns_invalid_image_into_placeholder() -> anyhow::Resul
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build_with_auto_env(&server).await?;
-    let TestCodex {
-        codex,
+    let TestDitfa {
+        ditfa,
         session_configured,
         ..
     } = &test;
@@ -1221,7 +1221,7 @@ async fn view_image_tool_turns_invalid_image_into_placeholder() -> anyhow::Resul
     )
     .await;
 
-    codex
+    ditfa
         .submit(disabled_user_turn(
             &test,
             vec![UserInput::Text {
@@ -1232,7 +1232,7 @@ async fn view_image_tool_turns_invalid_image_into_placeholder() -> anyhow::Resul
         ))
         .await?;
     wait_for_event_with_timeout(
-        codex,
+        ditfa,
         |event| matches!(event, EventMsg::TurnComplete(_)),
         VIEW_IMAGE_TURN_COMPLETE_TIMEOUT,
     )
@@ -1261,10 +1261,10 @@ async fn view_image_tool_errors_when_file_missing() -> anyhow::Result<()> {
 
     let server = start_mock_server().await;
 
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build_with_auto_env(&server).await?;
-    let TestCodex {
-        codex,
+    let TestDitfa {
+        ditfa,
         session_configured,
         ..
     } = &test;
@@ -1295,7 +1295,7 @@ async fn view_image_tool_errors_when_file_missing() -> anyhow::Result<()> {
 
     let session_model = session_configured.model.clone();
 
-    codex
+    ditfa
         .submit(disabled_user_turn(
             &test,
             vec![UserInput::Text {
@@ -1307,7 +1307,7 @@ async fn view_image_tool_errors_when_file_missing() -> anyhow::Result<()> {
         .await?;
 
     wait_for_event_with_timeout(
-        codex,
+        ditfa,
         |event| matches!(event, EventMsg::TurnComplete(_)),
         VIEW_IMAGE_TURN_COMPLETE_TIMEOUT,
     )
@@ -1398,13 +1398,13 @@ async fn view_image_tool_returns_unsupported_message_for_text_only_model() -> an
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(|config| {
             config.model = Some(model_slug.to_string());
         });
     let test = builder.build_with_auto_env(&server).await?;
-    let TestCodex { codex, .. } = &test;
+    let TestDitfa { ditfa, .. } = &test;
 
     let rel_path = "assets/example.png";
     write_workspace_png(
@@ -1431,7 +1431,7 @@ async fn view_image_tool_returns_unsupported_message_for_text_only_model() -> an
     ]);
     let mock = responses::mount_sse_once(&server, second_response).await;
 
-    codex
+    ditfa
         .submit(disabled_user_turn(
             &test,
             vec![UserInput::Text {
@@ -1443,7 +1443,7 @@ async fn view_image_tool_returns_unsupported_message_for_text_only_model() -> an
         .await?;
 
     wait_for_event_with_timeout(
-        codex,
+        ditfa,
         |event| matches!(event, EventMsg::TurnComplete(_)),
         VIEW_IMAGE_TURN_COMPLETE_TIMEOUT,
     )

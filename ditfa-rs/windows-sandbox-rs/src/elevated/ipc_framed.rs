@@ -63,7 +63,7 @@ pub struct SpawnRequest {
     pub permission_profile: PermissionProfile,
     pub workspace_roots: Vec<AbsolutePathBuf>,
     pub ditfa_home: PathBuf,
-    pub real_codex_home: PathBuf,
+    pub real_ditfa_home: PathBuf,
     pub cap_sids: Vec<String>,
     /// Optional managed-network identity added only to the child's restricting SID set.
     #[serde(default)]
@@ -224,8 +224,8 @@ mod tests {
                     env: HashMap::new(),
                     permission_profile: PermissionProfile::read_only(),
                     workspace_roots: workspace_roots.clone(),
-                    ditfa_home: PathBuf::from(r"C:\codex"),
-                    real_codex_home: PathBuf::from(r"C:\Users\codex"),
+                    ditfa_home: PathBuf::from(r"C:\ditfa"),
+                    real_ditfa_home: PathBuf::from(r"C:\Users\ditfa"),
                     cap_sids: vec!["S-1-15-3-1024-1".to_string()],
                     network_proxy_restricting_sid: Some("S-1-5-21-100-200-300-400".to_string()),
                     timeout_ms: Some(1000),

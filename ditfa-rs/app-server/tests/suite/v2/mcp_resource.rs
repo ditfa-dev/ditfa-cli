@@ -30,7 +30,7 @@ use ditfa_config::types::AuthCredentialsStoreMode;
 use ditfa_core::config::ConfigBuilder;
 use ditfa_exec_server::EnvironmentManager;
 use ditfa_features::Feature;
-use ditfa_feedback::CodexFeedback;
+use ditfa_feedback::DitfaFeedback;
 use ditfa_protocol::protocol::SessionSource;
 use core_test_support::responses;
 use pretty_assertions::assert_eq;
@@ -64,11 +64,11 @@ use tokio::task::JoinHandle;
 use tokio::time::timeout;
 
 const DEFAULT_READ_TIMEOUT: Duration = Duration::from_secs(10);
-const TEST_RESOURCE_URI: &str = "test://codex/resource";
-const TEST_BLOB_RESOURCE_URI: &str = "test://codex/resource.bin";
+const TEST_RESOURCE_URI: &str = "test://ditfa/resource";
+const TEST_BLOB_RESOURCE_URI: &str = "test://ditfa/resource.bin";
 const TEST_RESOURCE_BLOB: &str = "YmluYXJ5LXJlc291cmNl";
 const TEST_RESOURCE_TEXT: &str = "Resource body from the MCP server.";
-const TEST_ELICITATION_RESOURCE_URI: &str = "test://codex/elicitation";
+const TEST_ELICITATION_RESOURCE_URI: &str = "test://ditfa/elicitation";
 const TEST_ELICITATION_RESOURCE_TEXT: &str = "Threadless elicitation was declined.";
 const SKILL_NAME: &str = "demo-plugin:deploy";
 const RAW_SKILL_DESCRIPTION: &str = "Deploy\nthrough the <hosted> orchestrator.";
@@ -98,7 +98,7 @@ async fn mcp_resource_read_returns_resource_contents() -> Result<()> {
     let (apps_server_url, _apps_server_calls, apps_server_handle) =
         start_resource_apps_mcp_server().await?;
     let responses_server_uri = responses_server.uri();
-    let (_codex_home, mut mcp) = start_resource_test_app_server(
+    let (_ditfa_home, mut mcp) = start_resource_test_app_server(
         &apps_server_url,
         &responses_server_uri,
         ResourceTestEnvironment::Auto,
@@ -134,7 +134,7 @@ async fn orchestrator_skill_can_read_referenced_resource_without_an_executor() -
     let (apps_server_url, apps_server_calls, apps_server_handle) =
         start_resource_apps_mcp_server().await?;
     let responses_server_uri = responses_server.uri();
-    let (_codex_home, mut mcp) = start_resource_test_app_server(
+    let (_ditfa_home, mut mcp) = start_resource_test_app_server(
         &apps_server_url,
         &responses_server_uri,
         ResourceTestEnvironment::Auto,
@@ -367,7 +367,7 @@ async fn local_executor_does_not_expose_orchestrator_skills() -> Result<()> {
     let (apps_server_url, _apps_server_calls, apps_server_handle) =
         start_resource_apps_mcp_server().await?;
     let responses_server_uri = responses_server.uri();
-    let (_codex_home, mut mcp) = start_resource_test_app_server(
+    let (_ditfa_home, mut mcp) = start_resource_test_app_server(
         &apps_server_url,
         &responses_server_uri,
         // This test exercises the implicit local executor.
@@ -438,7 +438,7 @@ async fn disabled_orchestrator_skills_do_not_expose_skills_namespace() -> Result
     let (apps_server_url, apps_server_calls, apps_server_handle) =
         start_resource_apps_mcp_server().await?;
     let responses_server_uri = responses_server.uri();
-    let (_codex_home, mut mcp) = start_resource_test_app_server_with_extra_config(
+    let (_ditfa_home, mut mcp) = start_resource_test_app_server_with_extra_config(
         &apps_server_url,
         &responses_server_uri,
         r#"
@@ -542,7 +542,7 @@ apps = true
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -604,16 +604,16 @@ async fn mcp_resource_read_returns_error_for_unknown_thread() -> Result<()> {
         strict_config: false,
         cloud_config_bundle: CloudConfigBundleLoader::default(),
         thread_config_loader: Arc::new(ditfa_config::NoopThreadConfigLoader),
-        feedback: CodexFeedback::new(),
+        feedback: DitfaFeedback::new(),
         log_db: None,
         state_db: None,
         environment_manager: Arc::new(EnvironmentManager::default_for_tests()),
         config_warnings: Vec::new(),
         session_source: SessionSource::Cli,
-        enable_codex_api_key_env: false,
+        enable_ditfa_api_key_env: false,
         initialize: InitializeParams {
             client_info: ClientInfo {
-                name: "codex-app-server-tests".to_string(),
+                name: "ditfa-app-server-tests".to_string(),
                 title: None,
                 version: "0.1.0".to_string(),
             },
@@ -687,7 +687,7 @@ async fn start_resource_test_app_server_with_extra_config(
         AuthCredentialsStoreMode::File,
     )?;
 
-    let builder = TestAppServer::builder().with_codex_home(ditfa_home.path());
+    let builder = TestAppServer::builder().with_ditfa_home(ditfa_home.path());
     let builder = match environment {
         ResourceTestEnvironment::Auto => builder,
         // The Local caller explicitly exercises the implicit local executor.

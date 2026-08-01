@@ -11,7 +11,7 @@ use crate::tools::context::ToolPayload;
 use ditfa_models_manager::manager::RefreshStrategy;
 use ditfa_protocol::AgentPath;
 use ditfa_protocol::ThreadId;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::models::BaseInstructions;
 use ditfa_protocol::models::ResponseInputItem;
 use ditfa_protocol::openai_models::ModelPreset;
@@ -79,25 +79,25 @@ where
     })
 }
 
-pub(crate) fn collab_spawn_error(err: CodexErr) -> FunctionCallError {
+pub(crate) fn collab_spawn_error(err: DitfaErr) -> FunctionCallError {
     match err {
-        CodexErr::UnsupportedOperation(message) if message == "thread manager dropped" => {
+        DitfaErr::UnsupportedOperation(message) if message == "thread manager dropped" => {
             FunctionCallError::RespondToModel("collab manager unavailable".to_string())
         }
-        CodexErr::UnsupportedOperation(message) => FunctionCallError::RespondToModel(message),
+        DitfaErr::UnsupportedOperation(message) => FunctionCallError::RespondToModel(message),
         err => FunctionCallError::RespondToModel(format!("collab spawn failed: {err}")),
     }
 }
 
-pub(crate) fn collab_agent_error(agent_id: ThreadId, err: CodexErr) -> FunctionCallError {
+pub(crate) fn collab_agent_error(agent_id: ThreadId, err: DitfaErr) -> FunctionCallError {
     match err {
-        CodexErr::ThreadNotFound(id) => {
+        DitfaErr::ThreadNotFound(id) => {
             FunctionCallError::RespondToModel(format!("agent with id {id} not found"))
         }
-        CodexErr::InternalAgentDied => {
+        DitfaErr::InternalAgentDied => {
             FunctionCallError::RespondToModel(format!("agent with id {agent_id} is closed"))
         }
-        CodexErr::UnsupportedOperation(_) => {
+        DitfaErr::UnsupportedOperation(_) => {
             FunctionCallError::RespondToModel("collab manager unavailable".to_string())
         }
         err => FunctionCallError::RespondToModel(format!("collab tool failed: {err}")),

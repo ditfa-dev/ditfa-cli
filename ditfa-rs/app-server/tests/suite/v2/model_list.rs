@@ -96,7 +96,7 @@ async fn list_models_returns_all_models_with_large_limit() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     write_models_cache(ditfa_home.path())?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -126,7 +126,7 @@ async fn list_models_includes_hidden_models() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     write_models_cache(ditfa_home.path())?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -207,7 +207,7 @@ openai_base_url = "{server_uri}/v1"
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized()
@@ -261,7 +261,7 @@ async fn list_models_pagination_works() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     write_models_cache(ditfa_home.path())?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -307,7 +307,7 @@ async fn list_models_rejects_invalid_cursor() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     write_models_cache(ditfa_home.path())?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;

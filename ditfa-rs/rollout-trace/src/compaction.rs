@@ -2,7 +2,7 @@
 //!
 //! Remote compaction is a model-facing request with a different semantic role
 //! from normal sampling. Keeping the no-op capable trace handle in this crate
-//! lets `codex-core` record exact endpoint payloads without owning trace schema
+//! lets `ditfa-core` record exact endpoint payloads without owning trace schema
 //! details.
 
 use std::fmt::Display;
@@ -17,7 +17,7 @@ use tracing::warn;
 
 use crate::inference::trace_response_item_json;
 use crate::model::AgentThreadId;
-use crate::model::CodexTurnId;
+use crate::model::DitfaTurnId;
 use crate::model::CompactionId;
 use crate::model::CompactionRequestId;
 use crate::payload::RawPayloadKind;
@@ -46,7 +46,7 @@ enum CompactionTraceContextState {
 struct EnabledCompactionTraceContext {
     writer: Arc<TraceWriter>,
     thread_id: AgentThreadId,
-    ditfa_turn_id: CodexTurnId,
+    ditfa_turn_id: DitfaTurnId,
     compaction_id: CompactionId,
     model: String,
     provider_name: String,
@@ -98,7 +98,7 @@ impl CompactionTraceContext {
     pub fn enabled(
         writer: Arc<TraceWriter>,
         thread_id: AgentThreadId,
-        ditfa_turn_id: CodexTurnId,
+        ditfa_turn_id: DitfaTurnId,
         compaction_id: CompactionId,
         model: String,
         provider_name: String,

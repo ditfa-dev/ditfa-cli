@@ -10,15 +10,15 @@ jobs:
   gather-duplicates-all:
     name: Identify potential duplicates (all issues)
     # Prevent runs on forks (requires OpenAI API key, wastes Actions minutes)
-    if: github.repository == 'openai/codex' && (github.event.action == 'opened' || (github.event.action == 'labeled' && github.event.label.name == 'codex-deduplicate'))
+    if: github.repository == 'Teamtem-dev/ditfa-code' && (github.event.action == 'opened' || (github.event.action == 'labeled' && github.event.label.name == 'ditfa-deduplicate'))
     runs-on: ubuntu-latest
     environment: issue-triage
     permissions:
       contents: read
     outputs:
-      codex_output: ${{ steps.codex-all.outputs.final-message }}
+      ditfa_output: ${{ steps.ditfa-all.outputs.final-message }}
     steps:
-      - name: Prepare Codex inputs
+      - name: Prepare Ditfa Code inputs
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -26,8 +26,8 @@ jobs:
         run: |
           set -eo pipefail
 
-          CURRENT_ISSUE_FILE=codex-current-issue.json
-          EXISTING_ALL_FILE=codex-existing-issues-all.json
+          CURRENT_ISSUE_FILE=ditfa-current-issue.json
+          EXISTING_ALL_FILE=ditfa-existing-issues-all.json
 
           gh issue list --repo "$REPO" \
             --json number,title,body,createdAt,updatedAt,state,labels \
@@ -56,11 +56,11 @@ jobs:
 
       # Prompt instructions are intentionally inline in this workflow. The old
       # .github/prompts/issue-deduplicator.txt file is obsolete and removed.
-      - id: codex-all
+      - id: ditfa-all
         name: Find duplicates (pass 1, all issues)
-        uses: openai/codex-action@5c3f4ccdb2b8790f73d6b21751ac00e602aa0c02 # v1.7
+        uses: Teamtem-dev/ditfa-code-action@5c3f4ccdb2b8790f73d6b21751ac00e602aa0c02 # v1.7
         with:
-          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
+          openai-api-key: ${{ secrets.DITFA_OPENAI_API_KEY }}
           allow-users: "*"
           safety-strategy: drop-sudo
           sandbox: read-only
@@ -68,8 +68,8 @@ jobs:
             You are an assistant that triages new GitHub issues by identifying potential duplicates.
 
             You will receive the following JSON files located in the current working directory:
-            - `codex-current-issue.json`: JSON object describing the newly created issue (fields: number, title, body).
-            - `codex-existing-issues-all.json`: JSON array of recent issues with states, timestamps, and labels.
+            - `ditfa-current-issue.json`: JSON object describing the newly created issue (fields: number, title, body).
+            - `ditfa-existing-issues-all.json`: JSON array of recent issues with states, timestamps, and labels.
 
             Instructions:
             - Compare the current issue against the existing issues to find up to five that appear to describe the same underlying problem or request.
@@ -111,12 +111,12 @@ jobs:
       - id: normalize-all
         name: Normalize pass 1 output
         env:
-          CODEX_OUTPUT: ${{ needs.gather-duplicates-all.outputs.codex_output }}
+          DITFA_OUTPUT: ${{ needs.gather-duplicates-all.outputs.ditfa_output }}
           CURRENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           set -eo pipefail
 
-          raw=${CODEX_OUTPUT//$'\r'/}
+          raw=${DITFA_OUTPUT//$'\r'/}
           parsed=false
           issues='[]'
           reason=''
@@ -154,7 +154,7 @@ jobs:
 
   gather-duplicates-open:
     name: Identify potential duplicates (open issues fallback)
-    # Pass 1 Codex execution drops sudo on its runner, so run the fallback in a fresh job.
+    # Pass 1 Ditfa Code execution drops sudo on its runner, so run the fallback in a fresh job.
     needs: normalize-duplicates-all
     if: ${{ needs.normalize-duplicates-all.result == 'success' && needs.normalize-duplicates-all.outputs.has_matches != 'true' }}
     runs-on: ubuntu-latest
@@ -162,9 +162,9 @@ jobs:
     permissions:
       contents: read
     outputs:
-      codex_output: ${{ steps.codex-open.outputs.final-message }}
+      ditfa_output: ${{ steps.ditfa-open.outputs.final-message }}
     steps:
-      - name: Prepare Codex inputs
+      - name: Prepare Ditfa Code inputs
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -172,8 +172,8 @@ jobs:
         run: |
           set -eo pipefail
 
-          CURRENT_ISSUE_FILE=codex-current-issue.json
-          EXISTING_OPEN_FILE=codex-existing-issues-open.json
+          CURRENT_ISSUE_FILE=ditfa-current-issue.json
+          EXISTING_OPEN_FILE=ditfa-existing-issues-open.json
 
           gh issue list --repo "$REPO" \
             --json number,title,body,createdAt,updatedAt,state,labels \
@@ -200,11 +200,11 @@ jobs:
           echo "Prepared fallback duplicate detection input files."
           echo "open_issue_count=$(jq 'length' "$EXISTING_OPEN_FILE")"
 
-      - id: codex-open
+      - id: ditfa-open
         name: Find duplicates (pass 2, open issues)
-        uses: openai/codex-action@5c3f4ccdb2b8790f73d6b21751ac00e602aa0c02 # v1.7
+        uses: Teamtem-dev/ditfa-code-action@5c3f4ccdb2b8790f73d6b21751ac00e602aa0c02 # v1.7
         with:
-          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
+          openai-api-key: ${{ secrets.DITFA_OPENAI_API_KEY }}
           allow-users: "*"
           safety-strategy: drop-sudo
           sandbox: read-only
@@ -214,8 +214,8 @@ jobs:
             This is a fallback pass because a broad search did not find convincing matches.
 
             You will receive the following JSON files located in the current working directory:
-            - `codex-current-issue.json`: JSON object describing the newly created issue (fields: number, title, body).
-            - `codex-existing-issues-open.json`: JSON array of open issues only.
+            - `ditfa-current-issue.json`: JSON object describing the newly created issue (fields: number, title, body).
+            - `ditfa-existing-issues-open.json`: JSON array of open issues only.
 
             Instructions:
             - Search only these active unresolved issues for duplicates of the current issue.
@@ -255,12 +255,12 @@ jobs:
       - id: normalize-open
         name: Normalize pass 2 output
         env:
-          CODEX_OUTPUT: ${{ needs.gather-duplicates-open.outputs.codex_output }}
+          DITFA_OUTPUT: ${{ needs.gather-duplicates-open.outputs.ditfa_output }}
           CURRENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           set -eo pipefail
 
-          raw=${CODEX_OUTPUT//$'\r'/}
+          raw=${DITFA_OUTPUT//$'\r'/}
           parsed=false
           issues='[]'
           reason=''
@@ -306,7 +306,7 @@ jobs:
     permissions:
       contents: read
     outputs:
-      codex_output: ${{ steps.select-final.outputs.codex_output }}
+      ditfa_output: ${{ steps.select-final.outputs.ditfa_output }}
     steps:
       - id: select-final
         name: Select final duplicate set
@@ -347,7 +347,7 @@ jobs:
           echo "Final reason: $(jq -r '.reason' <<< "$final_json")"
 
           {
-            echo "codex_output<<EOF"
+            echo "ditfa_output<<EOF"
             echo "$final_json"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
@@ -364,16 +364,16 @@ jobs:
       - name: Comment on issue
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         env:
-          CODEX_OUTPUT: ${{ needs.select-final.outputs.codex_output }}
+          DITFA_OUTPUT: ${{ needs.select-final.outputs.ditfa_output }}
         with:
           github-token: ${{ github.token }}
           script: |
-            const raw = process.env.CODEX_OUTPUT ?? '';
+            const raw = process.env.DITFA_OUTPUT ?? '';
             let parsed;
             try {
               parsed = JSON.parse(raw);
             } catch (error) {
-              core.info(`Codex output was not valid JSON. Raw output: ${raw}`);
+              core.info(`Ditfa Code output was not valid JSON. Raw output: ${raw}`);
               core.info(`Parse error: ${error.message}`);
               return;
             }
@@ -393,7 +393,7 @@ jobs:
             const filteredIssues = [...new Set(issues.map((value) => String(value)))].filter((value) => value !== currentIssueNumber).slice(0, 5);
 
             if (filteredIssues.length === 0) {
-              core.info('Codex reported no potential duplicates.');
+              core.info('Ditfa Code reported no potential duplicates.');
               return;
             }
 
@@ -402,7 +402,7 @@ jobs:
               '',
               ...filteredIssues.map((value) => `- #${String(value)}`),
               '',
-              '*Powered by [Codex Action](https://github.com/openai/codex-action)*'];
+              '*Powered by [Ditfa Code Action](https://github.com/Teamtem-dev/ditfa-code-action)*'];
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -411,12 +411,12 @@ jobs:
               body: lines.join("\n"),
             });
 
-      - name: Remove codex-deduplicate label
-        if: ${{ always() && github.event.action == 'labeled' && github.event.label.name == 'codex-deduplicate' }}
+      - name: Remove ditfa-deduplicate label
+        if: ${{ always() && github.event.action == 'labeled' && github.event.label.name == 'ditfa-deduplicate' }}
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
-          gh issue edit "$ISSUE_NUMBER" --remove-label codex-deduplicate || true
-          echo "Attempted to remove label: codex-deduplicate"
+          gh issue edit "$ISSUE_NUMBER" --remove-label ditfa-deduplicate || true
+          echo "Attempted to remove label: ditfa-deduplicate"

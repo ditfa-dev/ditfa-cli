@@ -1,8 +1,8 @@
-use crate::CodexAppsToolsCache;
+use crate::DitfaAppsToolsCache;
 use crate::SkillsService;
 use crate::agent::AgentControl;
 use crate::attestation::AttestationProvider;
-use crate::ditfa_thread::CodexThread;
+use crate::ditfa_thread::DitfaThread;
 use crate::config::Config;
 use crate::config::ThreadStoreConfig;
 use crate::current_time::TimeProvider;
@@ -35,7 +35,7 @@ use ditfa_extension_api::UserInstructionsProvider;
 use ditfa_extension_api::empty_extension_registry;
 use ditfa_features::Feature;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::default_client::DITFA_INTERNAL_ORIGINATOR_OVERRIDE_ENV_VAR;
 use ditfa_login::default_client::originator;
 use ditfa_model_provider::create_model_provider;
@@ -45,8 +45,8 @@ use ditfa_models_manager::manager::RefreshStrategy;
 use ditfa_models_manager::manager::SharedModelsManager;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::config_types::CollaborationModeMask;
-use ditfa_protocol::error::CodexErr;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::DitfaErr;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::openai_models::ModelPreset;
 use ditfa_protocol::protocol::Event;
 use ditfa_protocol::protocol::EventMsg;
@@ -111,21 +111,21 @@ fn should_use_test_thread_manager_behavior() -> bool {
     FORCE_TEST_THREAD_MANAGER_BEHAVIOR.load(Ordering::Relaxed)
 }
 
-struct TempCodexHomeGuard {
+struct TempDitfaHomeGuard {
     path: PathBuf,
 }
 
-impl Drop for TempCodexHomeGuard {
+impl Drop for TempDitfaHomeGuard {
     fn drop(&mut self) {
         let _ = std::fs::remove_dir_all(&self.path);
     }
 }
 
-/// Represents a newly created Codex thread (formerly called a conversation), including the first event
+/// Represents a newly created Ditfa thread (formerly called a conversation), including the first event
 /// (which is [`EventMsg::SessionConfigured`]).
 pub struct NewThread {
     pub thread_id: ThreadId,
-    pub thread: Arc<CodexThread>,
+    pub thread: Arc<DitfaThread>,
     pub session_configured: SessionConfiguredEvent,
 }
 
@@ -185,7 +185,7 @@ enum ShutdownOutcome {
 /// them in memory.
 pub struct ThreadManager {
     state: Arc<ThreadManagerState>,
-    _test_codex_home_guard: Option<TempCodexHomeGuard>,
+    _test_ditfa_home_guard: Option<TempDitfaHomeGuard>,
 }
 
 pub struct StartThreadOptions {
@@ -266,7 +266,7 @@ pub(crate) struct ResumeThreadWithHistoryOptions {
 /// `Arc` reference that can be downgraded to by `AgentControl` while preventing every single
 /// function to require an `Arc<&Self>`.
 pub(crate) struct ThreadManagerState {
-    threads: Arc<RwLock<HashMap<ThreadId, Arc<CodexThread>>>>,
+    threads: Arc<RwLock<HashMap<ThreadId, Arc<DitfaThread>>>>,
     thread_created_tx: broadcast::Sender<ThreadId>,
     auth_manager: Arc<AuthManager>,
     models_manager: SharedModelsManager,
@@ -335,7 +335,7 @@ impl ThreadManager {
         config: &Config,
         auth_manager: Arc<AuthManager>,
         models_manager: SharedModelsManager,
-        ditfa_apps_tools_cache: CodexAppsToolsCache,
+        ditfa_apps_tools_cache: DitfaAppsToolsCache,
         session_source: SessionSource,
         environment_manager: Arc<EnvironmentManager>,
         extensions: Arc<ExtensionRegistry<Config>>,
@@ -392,7 +392,7 @@ impl ThreadManager {
                 ops_log: should_use_test_thread_manager_behavior()
                     .then(|| Arc::new(std::sync::Mutex::new(Vec::new()))),
             }),
-            _test_codex_home_guard: None,
+            _test_ditfa_home_guard: None,
         }
     }
 
@@ -406,33 +406,33 @@ impl ThreadManager {
         self
     }
 
-    /// Construct with a dummy AuthManager containing the provided CodexAuth.
+    /// Construct with a dummy AuthManager containing the provided DitfaAuth.
     /// Used for integration tests: should not be used by ordinary business logic.
     pub(crate) fn with_models_provider_for_tests(
-        auth: CodexAuth,
+        auth: DitfaAuth,
         provider: ModelProviderInfo,
     ) -> Self {
         set_thread_manager_test_mode_for_tests(/*enabled*/ true);
         let ditfa_home = std::env::temp_dir().join(format!(
-            "codex-thread-manager-test-{}",
+            "ditfa-thread-manager-test-{}",
             uuid::Uuid::new_v4()
         ));
         std::fs::create_dir_all(&ditfa_home)
-            .unwrap_or_else(|err| panic!("temp codex home dir create failed: {err}"));
+            .unwrap_or_else(|err| panic!("temp ditfa home dir create failed: {err}"));
         let mut manager = Self::with_models_provider_and_home_for_tests(
             auth,
             provider,
             ditfa_home.clone(),
             Arc::new(EnvironmentManager::default_for_tests()),
         );
-        manager._test_codex_home_guard = Some(TempCodexHomeGuard { path: ditfa_home });
+        manager._test_ditfa_home_guard = Some(TempDitfaHomeGuard { path: ditfa_home });
         manager
     }
 
-    /// Construct with a dummy AuthManager containing the provided CodexAuth and codex home.
+    /// Construct with a dummy AuthManager containing the provided DitfaAuth and ditfa home.
     /// Used for integration tests: should not be used by ordinary business logic.
     pub(crate) fn with_models_provider_and_home_for_tests(
-        auth: CodexAuth,
+        auth: DitfaAuth,
         provider: ModelProviderInfo,
         ditfa_home: PathBuf,
         environment_manager: Arc<EnvironmentManager>,
@@ -447,7 +447,7 @@ impl ThreadManager {
     }
 
     pub(crate) fn with_models_provider_home_and_state_for_tests(
-        auth: CodexAuth,
+        auth: DitfaAuth,
         provider: ModelProviderInfo,
         ditfa_home: PathBuf,
         environment_manager: Arc<EnvironmentManager>,
@@ -456,7 +456,7 @@ impl ThreadManager {
         set_thread_manager_test_mode_for_tests(/*enabled*/ true);
         let auth_manager = AuthManager::from_auth_for_testing(auth);
         let installation_id = uuid::Uuid::new_v4().to_string();
-        let absolute_codex_home = match AbsolutePathBuf::from_absolute_path_checked(&ditfa_home) {
+        let absolute_ditfa_home = match AbsolutePathBuf::from_absolute_path_checked(&ditfa_home) {
             Ok(ditfa_home) => ditfa_home,
             Err(err) => panic!("test ditfa_home should be absolute: {err}"),
         };
@@ -469,7 +469,7 @@ impl ThreadManager {
         ));
         let mcp_manager = Arc::new(McpManager::new(Arc::clone(&plugins_manager)));
         let skills_service = Arc::new(SkillsService::new_with_restriction_product(
-            absolute_codex_home.clone(),
+            absolute_ditfa_home.clone(),
             /*bundled_skills_enabled*/ true,
             restriction_product,
         ));
@@ -478,7 +478,7 @@ impl ThreadManager {
         let thread_store: Arc<dyn ThreadStore> = Arc::new(LocalThreadStore::new(
             LocalThreadStoreConfig {
                 ditfa_home: ditfa_home.clone(),
-                sqlite: ditfa_state::SqliteConfig::new_for_testing(absolute_codex_home),
+                sqlite: ditfa_state::SqliteConfig::new_for_testing(absolute_ditfa_home),
                 default_model_provider_id: OPENAI_PROVIDER_ID.to_string(),
             },
             state_db.clone(),
@@ -510,7 +510,7 @@ impl ThreadManager {
                 ops_log: should_use_test_thread_manager_behavior()
                     .then(|| Arc::new(std::sync::Mutex::new(Vec::new()))),
             }),
-            _test_codex_home_guard: None,
+            _test_ditfa_home_guard: None,
         }
     }
 
@@ -553,11 +553,11 @@ impl ThreadManager {
     pub fn validate_environment_selections(
         &self,
         environments: &[TurnEnvironmentSelection],
-    ) -> CodexResult<()> {
+    ) -> DitfaResult<()> {
         let mut environment_ids = HashSet::with_capacity(environments.len());
         for environment in environments {
             if !environment_ids.insert(environment.environment_id.as_str()) {
-                return Err(CodexErr::InvalidRequest(format!(
+                return Err(DitfaErr::InvalidRequest(format!(
                     "duplicate turn environment id `{}`",
                     environment.environment_id
                 )));
@@ -566,7 +566,7 @@ impl ThreadManager {
                 .environment_manager
                 .get_environment(&environment.environment_id)
                 .ok_or_else(|| {
-                    CodexErr::InvalidRequest(format!(
+                    DitfaErr::InvalidRequest(format!(
                         "unknown turn environment id `{}`",
                         environment.environment_id
                     ))
@@ -602,13 +602,13 @@ impl ThreadManager {
         self.state.thread_created_tx.subscribe()
     }
 
-    pub async fn get_thread(&self, thread_id: ThreadId) -> CodexResult<Arc<CodexThread>> {
+    pub async fn get_thread(&self, thread_id: ThreadId) -> DitfaResult<Arc<DitfaThread>> {
         self.state.get_thread(thread_id).await
     }
 
     /// Updates metadata for loaded and cold threads through one entrypoint.
     ///
-    /// Loaded threads route through `CodexThread`/`LiveThread`, so metadata changes stay ordered
+    /// Loaded threads route through `DitfaThread`/`LiveThread`, so metadata changes stay ordered
     /// with live rollout writes. Cold threads go directly to the store, which owns unloaded JSONL
     /// compatibility and SQLite metadata updates.
     pub async fn update_thread_metadata(
@@ -616,10 +616,10 @@ impl ThreadManager {
         thread_id: ThreadId,
         patch: ThreadMetadataPatch,
         include_archived: bool,
-    ) -> CodexResult<StoredThread> {
+    ) -> DitfaResult<StoredThread> {
         if let Ok(thread) = self.get_thread(thread_id).await {
             if thread.config_snapshot().await.ephemeral {
-                return Err(CodexErr::InvalidRequest(format!(
+                return Err(DitfaErr::InvalidRequest(format!(
                     "ephemeral thread does not support metadata updates: {thread_id}"
                 )));
             }
@@ -638,7 +638,7 @@ impl ThreadManager {
             .await
             .map_err(|err| match err {
                 ThreadStoreError::ThreadNotFound { thread_id } => {
-                    CodexErr::ThreadNotFound(thread_id)
+                    DitfaErr::ThreadNotFound(thread_id)
                 }
                 err => thread_store_metadata_update_error(thread_id, err),
             })
@@ -648,7 +648,7 @@ impl ThreadManager {
     pub async fn list_agent_subtree_thread_ids(
         &self,
         thread_id: ThreadId,
-    ) -> CodexResult<Vec<ThreadId>> {
+    ) -> DitfaResult<Vec<ThreadId>> {
         let mut subtree_thread_ids = Vec::new();
         let mut seen_thread_ids = HashSet::new();
         subtree_thread_ids.push(thread_id);
@@ -659,7 +659,7 @@ impl ThreadManager {
                 .list_thread_spawn_descendants(thread_id, /*status_filter*/ None)
                 .await
                 .map_err(|err| {
-                    CodexErr::Fatal(format!("failed to load thread-spawn descendants: {err}"))
+                    DitfaErr::Fatal(format!("failed to load thread-spawn descendants: {err}"))
                 })?
             {
                 if seen_thread_ids.insert(descendant_id) {
@@ -681,7 +681,7 @@ impl ThreadManager {
         Ok(subtree_thread_ids)
     }
 
-    pub async fn start_thread(&self, options: StartThreadOptions) -> CodexResult<NewThread> {
+    pub async fn start_thread(&self, options: StartThreadOptions) -> DitfaResult<NewThread> {
         Box::pin(self.start_thread_inner(options, /*forked_from_thread_id*/ None)).await
     }
 
@@ -689,7 +689,7 @@ impl ThreadManager {
         &self,
         options: StartThreadOptions,
         forked_from_thread_id: Option<ThreadId>,
-    ) -> CodexResult<NewThread> {
+    ) -> DitfaResult<NewThread> {
         let environments = options.environments.unwrap_or_else(|| {
             default_thread_environment_selections(
                 self.state.environment_manager.as_ref(),
@@ -734,7 +734,7 @@ impl ThreadManager {
         &self,
         forked_from_thread_id: ThreadId,
         mut options: StartThreadOptions,
-    ) -> CodexResult<NewThread> {
+    ) -> DitfaResult<NewThread> {
         let fork_source = self.get_thread(forked_from_thread_id).await?;
         // Persist queued rollout updates before reading the fork snapshot.
         fork_source.ensure_rollout_materialized().await;
@@ -745,7 +745,7 @@ impl ThreadManager {
             )
             .await
             .map_err(|err| {
-                CodexErr::Fatal(format!(
+                DitfaErr::Fatal(format!(
                     "failed to read subagent fork source {forked_from_thread_id}: {err}"
                 ))
             })?;
@@ -772,7 +772,7 @@ impl ThreadManager {
         auth_manager: Arc<AuthManager>,
         parent_trace: Option<W3cTraceContext>,
         supports_openai_form_elicitation: bool,
-    ) -> CodexResult<NewThread> {
+    ) -> DitfaResult<NewThread> {
         let initial_history = self.initial_history_from_rollout_path(rollout_path).await?;
         Box::pin(self.resume_thread_with_history(
             config,
@@ -792,7 +792,7 @@ impl ThreadManager {
         auth_manager: Arc<AuthManager>,
         parent_trace: Option<W3cTraceContext>,
         supports_openai_form_elicitation: bool,
-    ) -> CodexResult<NewThread> {
+    ) -> DitfaResult<NewThread> {
         let agent_control = self.agent_control_for_config(&config);
         let environments = default_thread_environment_selections(
             self.state.environment_manager.as_ref(),
@@ -839,7 +839,7 @@ impl ThreadManager {
         config: Config,
         user_shell_override: crate::shell::Shell,
         supports_openai_form_elicitation: bool,
-    ) -> CodexResult<NewThread> {
+    ) -> DitfaResult<NewThread> {
         let agent_control = self.agent_control_for_config(&config);
         let environments = default_thread_environment_selections(
             self.state.environment_manager.as_ref(),
@@ -872,7 +872,7 @@ impl ThreadManager {
         auth_manager: Arc<AuthManager>,
         user_shell_override: crate::shell::Shell,
         supports_openai_form_elicitation: bool,
-    ) -> CodexResult<NewThread> {
+    ) -> DitfaResult<NewThread> {
         let agent_control = self.agent_control_for_config(&config);
         let initial_history = self.initial_history_from_rollout_path(rollout_path).await?;
         let environments = default_thread_environment_selections(
@@ -908,9 +908,9 @@ impl ThreadManager {
     }
 
     /// Removes the thread from the manager's internal map, though the thread is stored
-    /// as `Arc<CodexThread>`, it is possible that other references to it exist elsewhere.
+    /// as `Arc<DitfaThread>`, it is possible that other references to it exist elsewhere.
     /// Returns the thread if the thread was found and removed.
-    pub async fn remove_thread(&self, thread_id: &ThreadId) -> Option<Arc<CodexThread>> {
+    pub async fn remove_thread(&self, thread_id: &ThreadId) -> Option<Arc<DitfaThread>> {
         self.state.threads.write().await.remove(thread_id)
     }
 
@@ -976,7 +976,7 @@ impl ThreadManager {
         path: PathBuf,
         thread_source: Option<ThreadSource>,
         parent_trace: Option<W3cTraceContext>,
-    ) -> CodexResult<NewThread>
+    ) -> DitfaResult<NewThread>
     where
         S: Into<ForkSnapshot>,
     {
@@ -996,7 +996,7 @@ impl ThreadManager {
     async fn initial_history_from_rollout_path(
         &self,
         rollout_path: PathBuf,
-    ) -> CodexResult<InitialHistory> {
+    ) -> DitfaResult<InitialHistory> {
         let requested_rollout_path = rollout_path.clone();
         let stored_thread = self
             .state
@@ -1020,7 +1020,7 @@ impl ThreadManager {
         thread_source: Option<ThreadSource>,
         parent_trace: Option<W3cTraceContext>,
         supports_openai_form_elicitation: bool,
-    ) -> CodexResult<NewThread>
+    ) -> DitfaResult<NewThread>
     where
         S: Into<ForkSnapshot>,
     {
@@ -1043,7 +1043,7 @@ impl ThreadManager {
         thread_source: Option<ThreadSource>,
         parent_trace: Option<W3cTraceContext>,
         supports_openai_form_elicitation: bool,
-    ) -> CodexResult<NewThread> {
+    ) -> DitfaResult<NewThread> {
         // `forked_from_id()` describes this history's existing lineage. When
         // forking a resumed thread, the child copies the resumed thread itself.
         let source_thread_id = match &history {
@@ -1145,59 +1145,59 @@ impl ThreadManagerState {
     }
 
     /// Fetch a thread by ID or return ThreadNotFound.
-    pub(crate) async fn get_thread(&self, thread_id: ThreadId) -> CodexResult<Arc<CodexThread>> {
+    pub(crate) async fn get_thread(&self, thread_id: ThreadId) -> DitfaResult<Arc<DitfaThread>> {
         let threads = self.threads.read().await;
         match threads.get(&thread_id) {
             Some(thread) if !thread.session_source.is_internal() => Ok(thread.clone()),
-            Some(_) | None => Err(CodexErr::ThreadNotFound(thread_id)),
+            Some(_) | None => Err(DitfaErr::ThreadNotFound(thread_id)),
         }
     }
 
     pub(crate) async fn read_stored_thread(
         &self,
         params: ReadThreadParams,
-    ) -> CodexResult<StoredThread> {
+    ) -> DitfaResult<StoredThread> {
         let thread_id = params.thread_id;
         self.thread_store
             .read_thread(params)
             .await
             .map_err(|err| match err {
                 ThreadStoreError::ThreadNotFound { thread_id } => {
-                    CodexErr::ThreadNotFound(thread_id)
+                    DitfaErr::ThreadNotFound(thread_id)
                 }
                 ThreadStoreError::InvalidRequest { message } => {
                     if message.starts_with("no rollout found for thread id ") {
-                        CodexErr::ThreadNotFound(thread_id)
+                        DitfaErr::ThreadNotFound(thread_id)
                     } else {
-                        CodexErr::Fatal(format!(
+                        DitfaErr::Fatal(format!(
                             "failed to read stored thread {thread_id}: invalid thread-store request: {message}"
                         ))
                     }
                 }
-                err => CodexErr::Fatal(format!("failed to read stored thread {thread_id}: {err}")),
+                err => DitfaErr::Fatal(format!("failed to read stored thread {thread_id}: {err}")),
             })
     }
 
     pub(crate) async fn load_latest_model_context(
         &self,
         params: LoadThreadHistoryParams,
-    ) -> CodexResult<StoredModelContext> {
+    ) -> DitfaResult<StoredModelContext> {
         let thread_id = params.thread_id;
         self.thread_store
             .load_latest_model_context(params)
             .await
             .map_err(|err| match err {
                 ThreadStoreError::ThreadNotFound { thread_id } => {
-                    CodexErr::ThreadNotFound(thread_id)
+                    DitfaErr::ThreadNotFound(thread_id)
                 }
-                err => CodexErr::Fatal(format!(
+                err => DitfaErr::Fatal(format!(
                     "failed to load model context for thread {thread_id}: {err}"
                 )),
             })
     }
 
     /// Send an operation to a thread by ID.
-    pub(crate) async fn send_op(&self, thread_id: ThreadId, op: Op) -> CodexResult<String> {
+    pub(crate) async fn send_op(&self, thread_id: ThreadId, op: Op) -> DitfaResult<String> {
         let thread = self.get_thread(thread_id).await?;
         if let Some(ops_log) = &self.ops_log
             && let Ok(mut log) = ops_log.lock()
@@ -1208,7 +1208,7 @@ impl ThreadManagerState {
     }
 
     /// Remove a thread from the manager by ID, returning it when present.
-    pub(crate) async fn remove_thread(&self, thread_id: &ThreadId) -> Option<Arc<CodexThread>> {
+    pub(crate) async fn remove_thread(&self, thread_id: &ThreadId) -> Option<Arc<DitfaThread>> {
         self.threads.write().await.remove(thread_id)
     }
 
@@ -1374,7 +1374,7 @@ impl ThreadManagerState {
         &self,
         config: Config,
         agent_control: AgentControl,
-    ) -> CodexResult<NewThread> {
+    ) -> DitfaResult<NewThread> {
         Box::pin(self.spawn_new_thread_with_source(
             config,
             agent_control,
@@ -1405,7 +1405,7 @@ impl ThreadManagerState {
         inherited_environments: Option<TurnEnvironmentSnapshot>,
         inherited_exec_policy: Option<Arc<crate::exec_policy::ExecPolicyManager>>,
         environments: Option<Vec<TurnEnvironmentSelection>>,
-    ) -> CodexResult<NewThread> {
+    ) -> DitfaResult<NewThread> {
         let environments = environments.unwrap_or_else(|| {
             default_thread_environment_selections(
                 self.environment_manager.as_ref(),
@@ -1440,7 +1440,7 @@ impl ThreadManagerState {
     pub(crate) async fn resume_thread_with_history_with_source(
         &self,
         options: ResumeThreadWithHistoryOptions,
-    ) -> CodexResult<NewThread> {
+    ) -> DitfaResult<NewThread> {
         let ResumeThreadWithHistoryOptions {
             config,
             initial_history,
@@ -1495,7 +1495,7 @@ impl ThreadManagerState {
         inherited_exec_policy: Option<Arc<crate::exec_policy::ExecPolicyManager>>,
         environments: Option<Vec<TurnEnvironmentSelection>>,
         thread_extension_init: ExtensionDataInit,
-    ) -> CodexResult<NewThread> {
+    ) -> DitfaResult<NewThread> {
         let environments = environments.unwrap_or_else(|| {
             default_thread_environment_selections(
                 self.environment_manager.as_ref(),
@@ -1545,7 +1545,7 @@ impl ThreadManagerState {
         thread_extension_init: ExtensionDataInit,
         supports_openai_form_elicitation: bool,
         user_shell_override: Option<crate::shell::Shell>,
-    ) -> CodexResult<NewThread> {
+    ) -> DitfaResult<NewThread> {
         Box::pin(self.spawn_thread_with_source(
             config,
             initial_history,
@@ -1592,7 +1592,7 @@ impl ThreadManagerState {
         thread_extension_init: ExtensionDataInit,
         supports_openai_form_elicitation: bool,
         user_shell_override: Option<crate::shell::Shell>,
-    ) -> CodexResult<NewThread> {
+    ) -> DitfaResult<NewThread> {
         let is_resumed_thread = matches!(&initial_history, InitialHistory::Resumed(_));
         if let InitialHistory::Resumed(resumed) = &initial_history {
             let mut threads = self.threads.write().await;
@@ -1601,7 +1601,7 @@ impl ThreadManagerState {
                     if let Some(requested_rollout_path) = resumed.rollout_path.as_deref()
                         && thread.rollout_path().as_deref() != Some(requested_rollout_path)
                     {
-                        return Err(CodexErr::InvalidRequest(format!(
+                        return Err(DitfaErr::InvalidRequest(format!(
                             "thread {} is already running with a different rollout path",
                             resumed.conversation_id
                         )));
@@ -1692,7 +1692,7 @@ impl ThreadManagerState {
         session: Arc<Session>,
         io: SessionIo,
         session_source: SessionSource,
-    ) -> CodexResult<NewThread> {
+    ) -> DitfaResult<NewThread> {
         let thread_id = session.thread_id();
         let event = io.next_event().await?;
         let session_configured = match event {
@@ -1701,14 +1701,14 @@ impl ThreadManagerState {
                 msg: EventMsg::SessionConfigured(session_configured),
             } if id == INITIAL_SUBMIT_ID => session_configured,
             _ => {
-                return Err(CodexErr::SessionConfiguredNotFirstEvent);
+                return Err(DitfaErr::SessionConfiguredNotFirstEvent);
             }
         };
 
         {
             let mut threads = self.threads.write().await;
             if let std::collections::hash_map::Entry::Vacant(e) = threads.entry(thread_id) {
-                let thread = Arc::new(CodexThread::new(
+                let thread = Arc::new(DitfaThread::new(
                     session,
                     io,
                     session_configured.clone(),
@@ -1727,7 +1727,7 @@ impl ThreadManagerState {
         if let Err(err) = io.shutdown_and_wait().await {
             warn!("failed to shut down duplicate thread {thread_id}: {err}");
         }
-        Err(CodexErr::InvalidRequest(format!(
+        Err(DitfaErr::InvalidRequest(format!(
             "thread {thread_id} is already running"
         )))
     }
@@ -1770,10 +1770,10 @@ impl ThreadManagerState {
 fn stored_thread_to_initial_history(
     stored_thread: StoredThread,
     rollout_path: Option<PathBuf>,
-) -> CodexResult<InitialHistory> {
+) -> DitfaResult<InitialHistory> {
     let thread_id = stored_thread.thread_id;
     let history = stored_thread.history.ok_or_else(|| {
-        CodexErr::Fatal(format!(
+        DitfaErr::Fatal(format!(
             "thread {thread_id} did not include persisted history"
         ))
     })?;
@@ -1784,22 +1784,22 @@ fn stored_thread_to_initial_history(
     }))
 }
 
-fn thread_store_rollout_read_error(err: ThreadStoreError) -> CodexErr {
+fn thread_store_rollout_read_error(err: ThreadStoreError) -> DitfaErr {
     match err {
-        ThreadStoreError::ThreadNotFound { thread_id } => CodexErr::ThreadNotFound(thread_id),
-        ThreadStoreError::InvalidRequest { message } => CodexErr::InvalidRequest(message),
-        err => CodexErr::Fatal(format!("failed to read thread by rollout path: {err}")),
+        ThreadStoreError::ThreadNotFound { thread_id } => DitfaErr::ThreadNotFound(thread_id),
+        ThreadStoreError::InvalidRequest { message } => DitfaErr::InvalidRequest(message),
+        err => DitfaErr::Fatal(format!("failed to read thread by rollout path: {err}")),
     }
 }
 
-fn thread_store_metadata_update_error(thread_id: ThreadId, err: ThreadStoreError) -> CodexErr {
+fn thread_store_metadata_update_error(thread_id: ThreadId, err: ThreadStoreError) -> DitfaErr {
     match err {
-        ThreadStoreError::ThreadNotFound { thread_id } => CodexErr::ThreadNotFound(thread_id),
-        ThreadStoreError::InvalidRequest { message } => CodexErr::InvalidRequest(message),
-        ThreadStoreError::Unsupported { operation } => CodexErr::UnsupportedOperation(format!(
+        ThreadStoreError::ThreadNotFound { thread_id } => DitfaErr::ThreadNotFound(thread_id),
+        ThreadStoreError::InvalidRequest { message } => DitfaErr::InvalidRequest(message),
+        ThreadStoreError::Unsupported { operation } => DitfaErr::UnsupportedOperation(format!(
             "thread metadata update is not supported by this store: {operation}"
         )),
-        err => CodexErr::Fatal(format!(
+        err => DitfaErr::Fatal(format!(
             "failed to update thread metadata {thread_id}: {err}"
         )),
     }

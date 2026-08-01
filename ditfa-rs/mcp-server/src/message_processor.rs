@@ -7,10 +7,10 @@ use ditfa_core::ThreadManager;
 use ditfa_core::config::Config;
 use ditfa_exec_server::EnvironmentManager;
 use ditfa_extension_api::ExtensionRegistryBuilder;
-use ditfa_home::CodexHomeUserInstructionsProvider;
+use ditfa_home::DitfaHomeUserInstructionsProvider;
 use ditfa_login::AuthManager;
 use ditfa_login::default_client::USER_AGENT_SUFFIX;
-use ditfa_login::default_client::get_codex_user_agent;
+use ditfa_login::default_client::get_ditfa_user_agent;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::protocol::SessionSource;
 use ditfa_protocol::protocol::Submission;
@@ -32,10 +32,10 @@ use serde_json::json;
 use tokio::sync::Mutex;
 use tokio::task;
 
-use crate::ditfa_tool_config::CodexToolCallParam;
-use crate::ditfa_tool_config::CodexToolCallReplyParam;
-use crate::ditfa_tool_config::create_tool_for_codex_tool_call_param;
-use crate::ditfa_tool_config::create_tool_for_codex_tool_call_reply_param;
+use crate::ditfa_tool_config::DitfaToolCallParam;
+use crate::ditfa_tool_config::DitfaToolCallReplyParam;
+use crate::ditfa_tool_config::create_tool_for_ditfa_tool_call_param;
+use crate::ditfa_tool_config::create_tool_for_ditfa_tool_call_reply_param;
 use crate::outgoing_message::OutgoingMessageSender;
 
 pub(crate) struct MessageProcessor {
@@ -43,7 +43,7 @@ pub(crate) struct MessageProcessor {
     initialized: bool,
     arg0_paths: Arg0DispatchPaths,
     thread_manager: Arc<ThreadManager>,
-    running_requests_id_to_codex_uuid: Arc<Mutex<HashMap<RequestId, ThreadId>>>,
+    running_requests_id_to_ditfa_uuid: Arc<Mutex<HashMap<RequestId, ThreadId>>>,
 }
 
 impl MessageProcessor {
@@ -60,10 +60,10 @@ impl MessageProcessor {
         let outgoing = Arc::new(outgoing);
         let auth_manager = AuthManager::shared_from_config(
             config.as_ref(),
-            /*enable_codex_api_key_env*/ false,
+            /*enable_ditfa_api_key_env*/ false,
         )
         .await;
-        let user_instructions_provider = Arc::new(CodexHomeUserInstructionsProvider::new(
+        let user_instructions_provider = Arc::new(DitfaHomeUserInstructionsProvider::new(
             config.ditfa_home.clone(),
         ));
         let mut extensions = ExtensionRegistryBuilder::<Config>::new();
@@ -82,7 +82,7 @@ impl MessageProcessor {
             config.as_ref(),
             Arc::clone(&auth_manager),
             ditfa_core::build_models_manager(config.as_ref(), auth_manager),
-            ditfa_core::CodexAppsToolsCache::default(),
+            ditfa_core::DitfaAppsToolsCache::default(),
             SessionSource::Mcp,
             environment_manager,
             Arc::new(extensions.build()),
@@ -99,7 +99,7 @@ impl MessageProcessor {
             initialized: false,
             arg0_paths,
             thread_manager,
-            running_requests_id_to_codex_uuid: Arc::new(Mutex::new(HashMap::new())),
+            running_requests_id_to_ditfa_uuid: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -238,9 +238,9 @@ impl MessageProcessor {
         }
 
         let server_info =
-            Implementation::new("codex-mcp-server", env!("CARGO_PKG_VERSION")).with_title("Codex");
+            Implementation::new("ditfa-mcp-server", env!("CARGO_PKG_VERSION")).with_title("Ditfa");
 
-        // Preserve Codex's existing non-spec `serverInfo.user_agent` field.
+        // Preserve Ditfa's existing non-spec `serverInfo.user_agent` field.
         let mut server_info_value = match serde_json::to_value(&server_info) {
             Ok(value) => value,
             Err(err) => {
@@ -257,7 +257,7 @@ impl MessageProcessor {
             }
         };
         if let serde_json::Value::Object(ref mut obj) = server_info_value {
-            obj.insert("user_agent".to_string(), json!(get_codex_user_agent()));
+            obj.insert("user_agent".to_string(), json!(get_ditfa_user_agent()));
         }
 
         let capabilities = ServerCapabilities::builder()
@@ -333,8 +333,8 @@ impl MessageProcessor {
         let result = rmcp::model::ListToolsResult {
             meta: None,
             tools: vec![
-                create_tool_for_codex_tool_call_param(),
-                create_tool_for_codex_tool_call_reply_param(),
+                create_tool_for_ditfa_tool_call_param(),
+                create_tool_for_ditfa_tool_call_reply_param(),
             ],
             next_cursor: None,
         };
@@ -349,9 +349,9 @@ impl MessageProcessor {
         } = params;
 
         match name.as_ref() {
-            "codex" => self.handle_tool_call_codex(id, arguments).await,
-            "codex-reply" => {
-                self.handle_tool_call_codex_session_reply(id, arguments)
+            "ditfa" => self.handle_tool_call_ditfa(id, arguments).await,
+            "ditfa-reply" => {
+                self.handle_tool_call_ditfa_session_reply(id, arguments)
                     .await
             }
             _ => {
@@ -363,19 +363,19 @@ impl MessageProcessor {
         }
     }
 
-    async fn handle_tool_call_codex(
+    async fn handle_tool_call_ditfa(
         &self,
         id: RequestId,
         arguments: Option<rmcp::model::JsonObject>,
     ) {
         let arguments = arguments.map(serde_json::Value::Object);
         let (initial_prompt, config): (String, Config) = match arguments {
-            Some(json_val) => match serde_json::from_value::<CodexToolCallParam>(json_val) {
+            Some(json_val) => match serde_json::from_value::<DitfaToolCallParam>(json_val) {
                 Ok(tool_cfg) => match tool_cfg.into_config(self.arg0_paths.clone()).await {
                     Ok(cfg) => cfg,
                     Err(e) => {
                         let result = CallToolResult::error(vec![rmcp::model::Content::text(
-                            format!("Failed to load Codex configuration from overrides: {e}"),
+                            format!("Failed to load Ditfa configuration from overrides: {e}"),
                         )]);
                         self.outgoing.send_response(id, result).await;
                         return;
@@ -391,7 +391,7 @@ impl MessageProcessor {
             },
             None => {
                 let result = CallToolResult::error(vec![rmcp::model::Content::text(
-                    "Missing arguments for codex tool-call; the `prompt` field is required.",
+                    "Missing arguments for ditfa tool-call; the `prompt` field is required.",
                 )]);
                 self.outgoing.send_response(id, result).await;
                 return;
@@ -401,25 +401,25 @@ impl MessageProcessor {
         // Clone outgoing and server to move into async task.
         let outgoing = self.outgoing.clone();
         let thread_manager = self.thread_manager.clone();
-        let running_requests_id_to_codex_uuid = self.running_requests_id_to_codex_uuid.clone();
+        let running_requests_id_to_ditfa_uuid = self.running_requests_id_to_ditfa_uuid.clone();
 
-        // Spawn an async task to handle the Codex session so that we do not
+        // Spawn an async task to handle the Ditfa session so that we do not
         // block the synchronous message-processing loop.
         task::spawn(async move {
-            // Run the Codex session and stream events back to the client.
-            crate::ditfa_tool_runner::run_codex_tool_session(
+            // Run the Ditfa session and stream events back to the client.
+            crate::ditfa_tool_runner::run_ditfa_tool_session(
                 id,
                 initial_prompt,
                 config,
                 outgoing,
                 thread_manager,
-                running_requests_id_to_codex_uuid,
+                running_requests_id_to_ditfa_uuid,
             )
             .await;
         });
     }
 
-    async fn handle_tool_call_codex_session_reply(
+    async fn handle_tool_call_ditfa_session_reply(
         &self,
         request_id: RequestId,
         arguments: Option<rmcp::model::JsonObject>,
@@ -428,11 +428,11 @@ impl MessageProcessor {
         tracing::info!("tools/call -> params: {:?}", arguments);
 
         // parse arguments
-        let ditfa_tool_call_reply_param: CodexToolCallReplyParam = match arguments {
-            Some(json_val) => match serde_json::from_value::<CodexToolCallReplyParam>(json_val) {
+        let ditfa_tool_call_reply_param: DitfaToolCallReplyParam = match arguments {
+            Some(json_val) => match serde_json::from_value::<DitfaToolCallReplyParam>(json_val) {
                 Ok(params) => params,
                 Err(e) => {
-                    tracing::error!("Failed to parse Codex tool call reply parameters: {e}");
+                    tracing::error!("Failed to parse Ditfa tool call reply parameters: {e}");
                     let result = CallToolResult::error(vec![rmcp::model::Content::text(format!(
                         "Failed to parse configuration for Ditfa tool: {e}"
                     ))]);
@@ -442,10 +442,10 @@ impl MessageProcessor {
             },
             None => {
                 tracing::error!(
-                    "Missing arguments for codex-reply tool-call; the `thread_id` and `prompt` fields are required."
+                    "Missing arguments for ditfa-reply tool-call; the `thread_id` and `prompt` fields are required."
                 );
                 let result = CallToolResult::error(vec![rmcp::model::Content::text(
-                    "Missing arguments for codex-reply tool-call; the `thread_id` and `prompt` fields are required.",
+                    "Missing arguments for ditfa-reply tool-call; the `thread_id` and `prompt` fields are required.",
                 )]);
                 self.outgoing.send_response(request_id, result).await;
                 return;
@@ -466,9 +466,9 @@ impl MessageProcessor {
 
         // Clone outgoing to move into async task.
         let outgoing = self.outgoing.clone();
-        let running_requests_id_to_codex_uuid = self.running_requests_id_to_codex_uuid.clone();
+        let running_requests_id_to_ditfa_uuid = self.running_requests_id_to_ditfa_uuid.clone();
 
-        let codex = match self.thread_manager.get_thread(thread_id).await {
+        let ditfa = match self.thread_manager.get_thread(thread_id).await {
             Ok(c) => c,
             Err(_) => {
                 tracing::warn!("Session not found for thread_id: {thread_id}");
@@ -486,16 +486,16 @@ impl MessageProcessor {
         let prompt = ditfa_tool_call_reply_param.prompt.clone();
         tokio::spawn({
             let outgoing = outgoing.clone();
-            let running_requests_id_to_codex_uuid = running_requests_id_to_codex_uuid.clone();
+            let running_requests_id_to_ditfa_uuid = running_requests_id_to_ditfa_uuid.clone();
 
             async move {
-                crate::ditfa_tool_runner::run_codex_tool_session_reply(
+                crate::ditfa_tool_runner::run_ditfa_tool_session_reply(
                     thread_id,
-                    codex,
+                    ditfa,
                     outgoing,
                     request_id,
                     prompt,
-                    running_requests_id_to_codex_uuid,
+                    running_requests_id_to_ditfa_uuid,
                 )
                 .await;
             }
@@ -534,7 +534,7 @@ impl MessageProcessor {
 
         // Obtain the thread id while holding the first lock, then release.
         let thread_id = {
-            let map_guard = self.running_requests_id_to_codex_uuid.lock().await;
+            let map_guard = self.running_requests_id_to_ditfa_uuid.lock().await;
             match map_guard.get(&request_id) {
                 Some(id) => *id,
                 None => {
@@ -545,7 +545,7 @@ impl MessageProcessor {
         };
         tracing::info!("thread_id: {thread_id}");
 
-        // Obtain the Codex thread from the server.
+        // Obtain the Ditfa thread from the server.
         let ditfa_arc = match self.thread_manager.get_thread(thread_id).await {
             Ok(c) => c,
             Err(_) => {
@@ -568,7 +568,7 @@ impl MessageProcessor {
             return;
         }
         // unregister the id so we don't keep it in the map
-        self.running_requests_id_to_codex_uuid
+        self.running_requests_id_to_ditfa_uuid
             .lock()
             .await
             .remove(&request_id);

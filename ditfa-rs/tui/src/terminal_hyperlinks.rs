@@ -738,7 +738,7 @@ mod tests {
             .expect("test path should convert to file URL");
         let mut link = TerminalHyperlink::web(
             /*columns*/ 0..4,
-            "https://codex.invalid/viewer".to_string(),
+            "https://ditfa.invalid/viewer".to_string(),
         );
         link.retarget_to_trusted_file(&file_url);
         let line = HyperlinkLine {

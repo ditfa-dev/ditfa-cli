@@ -263,7 +263,7 @@ async fn mitm_policy_allows_matching_hooked_write_in_full_mode() {
     );
     let req = Request::builder()
         .method(Method::POST)
-        .uri("/repos/openai/codex/issues")
+        .uri("/repos/openai/ditfa/issues")
         .header(HOST, "api.github.com")
         .body(Body::empty())
         .unwrap();
@@ -297,7 +297,7 @@ async fn mitm_policy_blocks_matching_hooked_write_in_limited_mode() {
     );
     let req = Request::builder()
         .method(Method::POST)
-        .uri("/repos/openai/codex/issues")
+        .uri("/repos/openai/ditfa/issues")
         .header(HOST, "api.github.com")
         .body(Body::empty())
         .unwrap();
@@ -345,7 +345,7 @@ async fn mitm_policy_blocks_hook_miss_for_hooked_host_and_records_telemetry_in_f
     );
     let req = Request::builder()
         .method(Method::GET)
-        .uri("/repos/openai/codex/issues?token=secret")
+        .uri("/repos/openai/ditfa/issues?token=secret")
         .header(HOST, "api.github.com")
         .header("authorization", "Bearer user-supplied")
         .body(Body::empty())

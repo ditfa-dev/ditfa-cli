@@ -9,7 +9,7 @@ use ditfa_models_manager::manager::ModelsEndpointClient;
 use ditfa_models_manager::manager::ModelsEndpointFuture;
 use ditfa_models_manager::manager::OpenAiModelsManager;
 use ditfa_models_manager::manager::SharedModelsManager;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::Result as CoreResult;
 use ditfa_protocol::openai_models::ModelInfo;
 use pretty_assertions::assert_eq;
@@ -50,7 +50,7 @@ impl ModelsEndpointClient for TestModelsEndpoint {
         true
     }
 
-    fn uses_codex_backend(&self) -> ModelsEndpointFuture<'_, bool> {
+    fn uses_ditfa_backend(&self) -> ModelsEndpointFuture<'_, bool> {
         Box::pin(async { false })
     }
 
@@ -63,7 +63,7 @@ impl ModelsEndpointClient for TestModelsEndpoint {
             let fetch_index = self.fetch_count.fetch_add(1, Ordering::SeqCst);
             self.fetched.notify_one();
             if fetch_index == 0 {
-                return Err(CodexErr::Io(std::io::Error::other("test failure")));
+                return Err(DitfaErr::Io(std::io::Error::other("test failure")));
             }
             if fetch_index == 1 {
                 self.release_second_fetch.notified().await;

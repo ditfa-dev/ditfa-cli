@@ -18,7 +18,7 @@ use ditfa_app_server_protocol::ThreadTokenUsage;
 use ditfa_app_server_protocol::ThreadTokenUsageUpdatedNotification;
 use ditfa_app_server_protocol::Turn;
 use ditfa_app_server_protocol::TurnStatus;
-use ditfa_core::CodexThread;
+use ditfa_core::DitfaThread;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::RolloutItem;
@@ -37,7 +37,7 @@ pub(super) async fn send_thread_token_usage_update_to_connection(
     outgoing: &Arc<OutgoingMessageSender>,
     connection_id: ConnectionId,
     thread_id: ThreadId,
-    conversation: &CodexThread,
+    conversation: &DitfaThread,
     token_usage_turn_id: String,
 ) {
     let Some(info) = conversation.token_usage_info().await else {

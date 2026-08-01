@@ -13,7 +13,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 use std::time::Instant;
 
-use ditfa_utils_home_dir::find_codex_home;
+use ditfa_utils_home_dir::find_ditfa_home;
 
 const OAUTH_LOCK_DIR: &str = "mcp-oauth-locks";
 const STORE_LOCK_ACQUIRE_TIMEOUT: Duration = Duration::from_secs(60);
@@ -57,8 +57,8 @@ impl OAuthStoreLock {
         // the default home (`~/.ditfa`), and if an embedder has no local home/filesystem authority
         // those stores already cannot operate. A future provider-backed credential store should
         // provide its own matching lock authority instead of using this local path.
-        let ditfa_home = find_codex_home()
-            .map_err(|source| OAuthStoreLockFailure::CodexHome { store, source })?;
+        let ditfa_home = find_ditfa_home()
+            .map_err(|source| OAuthStoreLockFailure::DitfaHome { store, source })?;
         Self::acquire_in(&ditfa_home, store, STORE_LOCK_ACQUIRE_TIMEOUT)
     }
 
@@ -130,7 +130,7 @@ impl OAuthStoreLock {
 #[derive(Debug, thiserror::Error)]
 pub(super) enum OAuthStoreLockFailure {
     #[error("failed to resolve DITFA_HOME for MCP OAuth {store} aggregate-store lock")]
-    CodexHome {
+    DitfaHome {
         store: OAuthStore,
         #[source]
         source: io::Error,

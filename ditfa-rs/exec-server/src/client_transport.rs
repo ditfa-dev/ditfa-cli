@@ -34,7 +34,7 @@ use crate::noise_relay::noise_relay_websocket_config;
 use crate::relay::harness_connection_from_websocket;
 use crate::trace_context::current_trace_context_headers;
 
-const ENVIRONMENT_CLIENT_NAME: &str = "codex-environment";
+const ENVIRONMENT_CLIENT_NAME: &str = "ditfa-environment";
 
 /// Reopens the transport for one logical exec-server client session.
 ///
@@ -240,11 +240,11 @@ impl ExecServerClient {
     /// retained [`NoiseRendezvousConnectProvider`] so recovery can fetch a fresh
     /// bundle for each reconnect.
     #[tracing::instrument(
-        name = "codex.exec_server.remote.harness.connect",
+        name = "ditfa.exec_server.remote.harness.connect",
         skip_all,
         fields(
             otel.kind = "client",
-            otel.name = "codex.exec_server.remote.harness.connect",
+            otel.name = "ditfa.exec_server.remote.harness.connect",
         )
     )]
     pub async fn connect_noise_rendezvous(

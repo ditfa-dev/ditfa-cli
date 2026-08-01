@@ -1,11 +1,11 @@
-# codex-core
+# ditfa-core
 
-This crate implements the business logic for Ditfa. It is designed to be used by the various Codex UIs written in Rust.
+This crate implements the business logic for Ditfa. It is designed to be used by the various Ditfa UIs written in Rust.
 
 ## Wine-exec integration tests
 
 On x86-64 Linux, run the shared suite against the Windows exec server with
-`bazel test //codex-rs/core:core-all-wine-exec-test`.
+`bazel test //ditfa-rs/core:core-all-wine-exec-test`.
 
 Local execution targets the host OS, Docker targets Linux, and Wine exec targets
 Windows. Choose the skip macro by what the test depends on:
@@ -18,7 +18,7 @@ Windows. Choose the skip macro by what the test depends on:
 
 ## Dependencies
 
-Note that `codex-core` makes some assumptions about certain helper utilities being available in the environment. Currently, this support matrix is:
+Note that `ditfa-core` makes some assumptions about certain helper utilities being available in the environment. Currently, this support matrix is:
 
 ### macOS
 
@@ -26,7 +26,7 @@ Expects `/usr/bin/sandbox-exec` to be present.
 
 When using the workspace-write sandbox policy, the Seatbelt profile allows
 writes under the configured writable roots while keeping `.git` (directory or
-pointer file), the resolved `gitdir:` target, and `.codex` read-only.
+pointer file), the resolved `gitdir:` target, and `.ditfa` read-only.
 
 Network access and filesystem read/write roots are controlled by
 `SandboxPolicy`. Seatbelt consumes the resolved policy and enforces it.
@@ -36,7 +36,7 @@ Seatbelt also keeps the legacy default preferences read access
 
 ### Linux
 
-Expects the binary containing `codex-core` to run the equivalent of `codex sandbox` when `arg0` is `codex-linux-sandbox`. See the `codex-arg0` crate for details.
+Expects the binary containing `ditfa-core` to run the equivalent of `ditfa sandbox` when `arg0` is `ditfa-linux-sandbox`. See the `ditfa-arg0` crate for details.
 
 Legacy `SandboxPolicy` / `sandbox_mode` configs are still supported on Linux.
 They can continue to use the legacy Landlock path when the split filesystem
@@ -53,13 +53,13 @@ The Linux sandbox helper prefers the first `bwrap` found on `PATH` outside the
 current working directory whenever it is available. If `bwrap` is present but
 too old to support `--argv0`, the helper keeps using system bubblewrap and
 switches to a no-`--argv0` compatibility path for the inner re-exec. If
-`bwrap` is missing, it falls back to the bundled `codex-resources/bwrap`
-binary shipped with Ditfa and Codex surfaces a startup warning through its
+`bwrap` is missing, it falls back to the bundled `ditfa-resources/bwrap`
+binary shipped with Ditfa and Ditfa surfaces a startup warning through its
 normal notification path instead of printing directly from the sandbox helper.
-Codex also surfaces a startup warning when bubblewrap cannot create user
+Ditfa also surfaces a startup warning when bubblewrap cannot create user
 namespaces. WSL2 uses the normal Linux bubblewrap path. WSL1 is not supported
 for bubblewrap sandboxing because it cannot create the required user
-namespaces, so Codex rejects sandboxed shell commands that would enter the
+namespaces, so Ditfa rejects sandboxed shell commands that would enter the
 bubblewrap path before invoking `bwrap`.
 
 ### Windows
@@ -93,6 +93,6 @@ instead of running with weaker enforcement.
 
 ### All Platforms
 
-Expects the binary containing `codex-core` to simulate the virtual
-`apply_patch` CLI when `arg1` is `--codex-run-as-apply-patch`. See the
-`codex-arg0` crate for details.
+Expects the binary containing `ditfa-core` to simulate the virtual
+`apply_patch` CLI when `arg1` is `--ditfa-run-as-apply-patch`. See the
+`ditfa-arg0` crate for details.

@@ -513,10 +513,10 @@ impl PluginRequestProcessor {
             .map_err(|err| internal_error(format!("failed to reload config: {err}")))
     }
 
-    async fn workspace_codex_plugins_enabled(
+    async fn workspace_ditfa_plugins_enabled(
         &self,
         config: &Config,
-        auth: Option<&CodexAuth>,
+        auth: Option<&DitfaAuth>,
     ) -> bool {
         match workspace_settings::ditfa_plugins_enabled_for_workspace(
             config,
@@ -528,7 +528,7 @@ impl PluginRequestProcessor {
             Ok(enabled) => enabled,
             Err(err) => {
                 warn!(
-                    "failed to fetch workspace Codex plugins setting; allowing Codex plugins: {err:#}"
+                    "failed to fetch workspace Ditfa plugins setting; allowing Ditfa plugins: {err:#}"
                 );
                 true
             }
@@ -563,12 +563,12 @@ impl PluginRequestProcessor {
         }
         let auth = self.auth_manager.auth().await;
         if !self
-            .workspace_codex_plugins_enabled(&config, auth.as_ref())
+            .workspace_ditfa_plugins_enabled(&config, auth.as_ref())
             .await
         {
             return Ok(empty_response());
         }
-        let auth_mode = auth.as_ref().map(CodexAuth::api_auth_mode);
+        let auth_mode = auth.as_ref().map(DitfaAuth::api_auth_mode);
         plugins_manager.set_auth_mode(auth_mode);
         let plugins_input = config.plugins_config_input();
         if include_local
@@ -587,7 +587,7 @@ impl PluginRequestProcessor {
         let include_global_remote =
             !explicit_marketplace_kinds && config.features.enabled(Feature::RemotePlugin);
         let use_remote_global_catalog =
-            include_global_remote && auth_mode.is_some_and(DomainAuthMode::uses_codex_backend);
+            include_global_remote && auth_mode.is_some_and(DomainAuthMode::uses_ditfa_backend);
         let remote_plugin_service_config = remote_plugin_service_config(&config);
         let remote_catalog_cache_mode = if force_refetch {
             RemotePluginCatalogCacheMode::ForceRefetch
@@ -823,12 +823,12 @@ impl PluginRequestProcessor {
         }
         let auth = self.auth_manager.auth().await;
         if !self
-            .workspace_codex_plugins_enabled(&config, auth.as_ref())
+            .workspace_ditfa_plugins_enabled(&config, auth.as_ref())
             .await
         {
             return Ok(empty_response());
         }
-        plugins_manager.set_auth_mode(auth.as_ref().map(CodexAuth::api_auth_mode));
+        plugins_manager.set_auth_mode(auth.as_ref().map(DitfaAuth::api_auth_mode));
 
         let plugins_input = config.plugins_config_input();
         let remote_installed_plugin_visible_marketplaces =
@@ -957,7 +957,7 @@ impl PluginRequestProcessor {
         plugins_manager: Arc<ditfa_core_plugins::PluginsManager>,
         plugins_input: &ditfa_core_plugins::PluginsConfigInput,
         visible_marketplaces: &[&str],
-        auth: Option<&CodexAuth>,
+        auth: Option<&DitfaAuth>,
     ) -> Vec<PluginMarketplaceEntry> {
         let remote_marketplaces = if let Some(remote_marketplaces) = plugins_manager
             .build_remote_installed_plugin_marketplaces_from_cache(visible_marketplaces)
@@ -1019,7 +1019,7 @@ impl PluginRequestProcessor {
         let config = self.load_latest_config(config_cwd).await?;
         let plugins_input = config.plugins_config_input();
         let auth = self.auth_manager.auth().await;
-        plugins_manager.set_auth_mode(auth.as_ref().map(CodexAuth::api_auth_mode));
+        plugins_manager.set_auth_mode(auth.as_ref().map(DitfaAuth::api_auth_mode));
 
         let plugin = match read_source {
             Ok(marketplace_path) => {
@@ -1430,7 +1430,7 @@ impl PluginRequestProcessor {
 
     async fn load_plugin_share_config_and_auth(
         &self,
-    ) -> Result<(Config, Option<CodexAuth>), JSONRPCErrorError> {
+    ) -> Result<(Config, Option<DitfaAuth>), JSONRPCErrorError> {
         let config = self.load_latest_config(/*fallback_cwd*/ None).await?;
         if !config.features.enabled(Feature::Plugins) {
             return Err(invalid_request("plugin sharing is not enabled"));
@@ -1466,11 +1466,11 @@ impl PluginRequestProcessor {
         let auth = self.auth_manager.auth().await;
 
         if !self
-            .workspace_codex_plugins_enabled(&config, auth.as_ref())
+            .workspace_ditfa_plugins_enabled(&config, auth.as_ref())
             .await
         {
             return Err(invalid_request(
-                "Codex plugins are disabled for this workspace",
+                "Ditfa plugins are disabled for this workspace",
             ));
         }
 
@@ -1510,7 +1510,7 @@ impl PluginRequestProcessor {
 
         let plugin_mcp_servers = load_plugin_mcp_servers(
             result.installed_path.as_path(),
-            auth.as_ref().map(CodexAuth::auth_mode),
+            auth.as_ref().map(DitfaAuth::auth_mode),
         )
         .await;
         if !plugin_mcp_servers.is_empty() {
@@ -1684,7 +1684,7 @@ impl PluginRequestProcessor {
 
         let plugin_mcp_servers = load_plugin_mcp_servers(
             result.installed_path.as_path(),
-            auth.as_ref().map(CodexAuth::auth_mode),
+            auth.as_ref().map(DitfaAuth::auth_mode),
         )
         .await;
         if !plugin_mcp_servers.is_empty() {
@@ -1692,7 +1692,7 @@ impl PluginRequestProcessor {
                 .await;
         }
 
-        let is_chatgpt_auth = auth.as_ref().is_some_and(CodexAuth::is_chatgpt_auth);
+        let is_chatgpt_auth = auth.as_ref().is_some_and(DitfaAuth::is_chatgpt_auth);
         let apps_needing_auth = if let Some(app_ids_needing_auth) =
             install_result.app_ids_needing_auth
         {
@@ -1769,14 +1769,14 @@ impl PluginRequestProcessor {
     async fn plugin_apps_needing_auth_for_install(
         &self,
         config: &Config,
-        auth: Option<&CodexAuth>,
+        auth: Option<&DitfaAuth>,
         plugin_id: &str,
         plugin_app_declarations: &[ditfa_plugin::AppDeclaration],
     ) -> Vec<AppSummary> {
         if plugin_app_declarations.is_empty()
             || !config
                 .features
-                .apps_enabled_for_auth(auth.is_some_and(CodexAuth::is_chatgpt_auth))
+                .apps_enabled_for_auth(auth.is_some_and(DitfaAuth::is_chatgpt_auth))
         {
             return Vec::new();
         }
@@ -2076,7 +2076,7 @@ impl PluginRequestProcessor {
 
 async fn load_plugin_app_summaries(
     config: &Config,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     plugin_apps: &[ditfa_plugin::AppConnectorId],
     app_category_by_id: &HashMap<String, String>,
 ) -> Vec<AppSummary> {
@@ -2090,7 +2090,7 @@ async fn load_plugin_app_summaries(
     if let Some(auth) = auth.filter(|auth| {
         config
             .features
-            .apps_enabled_for_auth(auth.uses_codex_backend())
+            .apps_enabled_for_auth(auth.uses_ditfa_backend())
     }) {
         metadata_by_id.extend(
             ditfa_connectors::ConnectorMetadataStore::new(

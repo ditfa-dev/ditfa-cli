@@ -223,11 +223,11 @@ pub mod thread_config_loader_client {
             })?;
             let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/codex.thread_config.v1.ThreadConfigLoader/Load",
+                "/ditfa.thread_config.v1.ThreadConfigLoader/Load",
             );
             let mut req = request.into_request();
             req.extensions_mut().insert(GrpcMethod::new(
-                "codex.thread_config.v1.ThreadConfigLoader",
+                "ditfa.thread_config.v1.ThreadConfigLoader",
                 "Load",
             ));
             self.inner.unary(req, path, codec).await
@@ -325,7 +325,7 @@ pub mod thread_config_loader_server {
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
             match req.uri().path() {
-                "/codex.thread_config.v1.ThreadConfigLoader/Load" => {
+                "/ditfa.thread_config.v1.ThreadConfigLoader/Load" => {
                     #[allow(non_camel_case_types)]
                     struct LoadSvc<T: ThreadConfigLoader>(pub Arc<T>);
                     impl<T: ThreadConfigLoader>
@@ -395,7 +395,7 @@ pub mod thread_config_loader_server {
         }
     }
     /// Generated gRPC service name
-    pub const SERVICE_NAME: &str = "codex.thread_config.v1.ThreadConfigLoader";
+    pub const SERVICE_NAME: &str = "ditfa.thread_config.v1.ThreadConfigLoader";
     impl<T> tonic::server::NamedService for ThreadConfigLoaderServer<T> {
         const NAME: &'static str = SERVICE_NAME;
     }

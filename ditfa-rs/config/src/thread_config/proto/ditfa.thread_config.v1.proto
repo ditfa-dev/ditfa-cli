@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package codex.thread_config.v1;
+package ditfa.thread_config.v1;
 
 service ThreadConfigLoader {
   rpc Load(LoadThreadConfigRequest) returns (LoadThreadConfigResponse);

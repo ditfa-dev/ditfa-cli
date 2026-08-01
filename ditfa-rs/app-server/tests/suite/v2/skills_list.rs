@@ -182,7 +182,7 @@ enabled = true
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -328,7 +328,7 @@ async fn skills_list_loads_remote_installed_plugin_skills_from_cache() -> Result
             .await;
     }
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -417,7 +417,7 @@ async fn skills_list_loads_remote_installed_plugin_skills_from_cache() -> Result
 }
 
 #[tokio::test]
-async fn skills_list_excludes_plugin_skills_when_workspace_codex_plugins_disabled() -> Result<()> {
+async fn skills_list_excludes_plugin_skills_when_workspace_ditfa_plugins_disabled() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let repo_root = TempDir::new()?;
     let server = MockServer::start().await;
@@ -448,7 +448,7 @@ async fn skills_list_excludes_plugin_skills_when_workspace_codex_plugins_disable
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .without_managed_config()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -476,7 +476,7 @@ async fn skills_list_excludes_plugin_skills_when_workspace_codex_plugins_disable
             .skills
             .iter()
             .all(|skill| skill.name != "demo-plugin:plugin-skill"),
-        "plugin skills should be hidden when workspace Codex plugins are disabled"
+        "plugin skills should be hidden when workspace Ditfa plugins are disabled"
     );
     Ok(())
 }
@@ -494,7 +494,7 @@ async fn skills_list_skips_cwd_roots_when_environment_disabled() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[(DITFA_EXEC_SERVER_URL_ENV_VAR, Some("none"))])
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -534,7 +534,7 @@ async fn skills_list_accepts_relative_cwds() -> Result<()> {
     std::fs::create_dir_all(ditfa_home.path().join(&relative_cwd))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -561,7 +561,7 @@ async fn skills_list_preserves_requested_cwd_order() -> Result<()> {
     let second_cwd = TempDir::new()?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -597,7 +597,7 @@ async fn skills_list_uses_cached_result_after_session_default_writes_until_force
     let cwd = TempDir::new()?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -715,7 +715,7 @@ async fn skills_extra_roots_set_updates_process_runtime_roots() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -800,7 +800,7 @@ async fn skills_extra_roots_set_updates_process_runtime_roots() -> Result<()> {
 
     drop(mcp);
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -839,7 +839,7 @@ async fn skills_changed_notification_is_emitted_after_skill_change() -> Result<(
     write_skill(&ditfa_home, "demo")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
     let initial_skills_request_id = mcp

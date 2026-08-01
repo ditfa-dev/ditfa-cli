@@ -51,7 +51,7 @@ const DEFAULT_READ_TIMEOUT: std::time::Duration = std::time::Duration::from_secs
 
 async fn init_mcp(ditfa_home: &Path) -> Result<TestAppServer> {
     TestAppServer::builder()
-        .with_codex_home(ditfa_home)
+        .with_ditfa_home(ditfa_home)
         .build_initialized()
         .await
 }

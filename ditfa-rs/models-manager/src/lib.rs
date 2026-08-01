@@ -9,7 +9,7 @@ pub mod test_support;
 pub use ditfa_protocol::auth::AuthMode;
 pub use config::ModelsManagerConfig;
 
-/// Load the bundled model catalog shipped with `codex-models-manager`.
+/// Load the bundled model catalog shipped with `ditfa-models-manager`.
 pub fn bundled_models_response()
 -> std::result::Result<ditfa_protocol::openai_models::ModelsResponse, serde_json::Error> {
     serde_json::from_str(include_str!("../models.json"))

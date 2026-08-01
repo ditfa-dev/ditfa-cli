@@ -130,7 +130,7 @@ impl ChatWidget {
             } else {
                 "is"
             };
-            let model_path = if current_model.starts_with("codex-auto-") {
+            let model_path = if current_model.starts_with("ditfa-auto-") {
                 current_model
             } else {
                 format!("All models → {current_model}")

@@ -327,7 +327,7 @@ mod tests {
         let ditfa_home = unique_temp_dir();
         tokio::fs::create_dir_all(&ditfa_home)
             .await
-            .expect("create codex home");
+            .expect("create ditfa home");
         let old_state_migrator = Migrator {
             migrations: Cow::Owned(
                 STATE_MIGRATOR

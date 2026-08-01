@@ -7,13 +7,13 @@
     }
   },
   "properties": {
-    "codexHome": {
+    "ditfaHome": {
       "allOf": [
         {
           "$ref": "#/definitions/AbsolutePathBuf"
         }
       ],
-      "description": "Absolute path to the server's $CODEX_HOME directory."
+      "description": "Absolute path to the server's $DITFA_HOME directory."
     },
     "platformFamily": {
       "description": "Platform family for the running app-server target, for example `\"unix\"` or `\"windows\"`.",
@@ -28,7 +28,7 @@
     }
   },
   "required": [
-    "codexHome",
+    "ditfaHome",
     "platformFamily",
     "platformOs",
     "userAgent"

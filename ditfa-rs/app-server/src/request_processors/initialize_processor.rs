@@ -5,7 +5,7 @@ use axum::http::HeaderValue;
 use ditfa_analytics::AppServerRpcTransport;
 use ditfa_login::default_client::SetOriginatorError;
 use ditfa_login::default_client::USER_AGENT_SUFFIX;
-use ditfa_login::default_client::get_codex_user_agent;
+use ditfa_login::default_client::get_ditfa_user_agent;
 use ditfa_login::default_client::set_default_client_residency_requirement;
 use ditfa_login::default_client::set_default_originator;
 
@@ -13,7 +13,7 @@ use super::*;
 use crate::message_processor::ConnectionSessionState;
 use crate::message_processor::InitializedConnectionSessionState;
 
-const NON_ORIGINATING_CLIENT_NAMES: &[&str] = &["ditfa_app_server_daemon", "codex-backend"];
+const NON_ORIGINATING_CLIENT_NAMES: &[&str] = &["ditfa_app_server_daemon", "ditfa-backend"];
 
 #[derive(Clone)]
 pub(crate) struct InitializeRequestProcessor {
@@ -134,7 +134,7 @@ impl InitializeRequestProcessor {
             *suffix = Some(user_agent_suffix);
         }
 
-        let user_agent = get_codex_user_agent();
+        let user_agent = get_ditfa_user_agent();
         let response = InitializeResponse {
             user_agent,
             ditfa_home,

@@ -15,15 +15,15 @@ Remote executor tests currently require an x86_64 Linux host machine. There are 
 
 Individual test cases must opt-in to being run against a remote executor.
 
-### codex_core
+### ditfa_core
 
-Use `TestCodexBuilder::build_with_auto_env()` to opt-in to remote execution in core integration
+Use `TestDitfa CodeBuilder::build_with_auto_env()` to opt-in to remote execution in core integration
 tests unless the test needs more precise control over its executor.
 
 ### app-server
 
 Start the server with `TestAppServer::new_with_auto_env()` unless the test defines its own
-`$CODEX_HOME/environments.toml` or will define custom environments at runtime.
+`$DITFA_HOME/environments.toml` or will define custom environments at runtime.
 
 Start threads with `TestAppServer::send_thread_start_request_with_auto_env()` if you've created the
 server with the `auto_env` approach. Omit `ThreadStartParams.environments` (leave it as `None`) when
@@ -49,19 +49,19 @@ skill for the most common changes required to make tests compatible.
 ## Docker
 
 Docker container is built and initialized via ./scripts/test-remote-env.sh. Sourcing this script
-in bash also provides the `codex_remote_env_cleanup` function to use after testing.
+in bash also provides the `ditfa_remote_env_cleanup` function to use after testing.
 
 To run core integration tests against a Docker remote executor:
 
 ```bash
 bash -c '
   set -euo pipefail
-  unset CODEX_TEST_REMOTE_EXEC_SERVER_URL
+  unset DITFA_TEST_REMOTE_EXEC_SERVER_URL
   source scripts/test-remote-env.sh
-  trap codex_remote_env_cleanup EXIT
+  trap ditfa_remote_env_cleanup EXIT
 
-  cd codex-rs
-  just test -p codex-core --test all
+  cd ditfa-rs
+  just test -p ditfa-core --test all
 '
 ```
 
@@ -70,12 +70,12 @@ To run app-server integration tests against a Docker remote executor:
 ```bash
 bash -c '
   set -euo pipefail
-  unset CODEX_TEST_REMOTE_EXEC_SERVER_URL
+  unset DITFA_TEST_REMOTE_EXEC_SERVER_URL
   source scripts/test-remote-env.sh
-  trap codex_remote_env_cleanup EXIT
+  trap ditfa_remote_env_cleanup EXIT
 
-  cd codex-rs
-  just test -p codex-app-server --test all
+  cd ditfa-rs
+  just test -p ditfa-app-server --test all
 '
 ```
 
@@ -87,20 +87,20 @@ the Linux host. The cross-platform build dependency means they only run in Bazel
 For core integration tests:
 
 ```sh
-bazel test //codex-rs/core:core-all-wine-exec-test
+bazel test //ditfa-rs/core:core-all-wine-exec-test
 ```
 
 For app-server integration tests:
 
 ```sh
-bazel test //codex-rs/app-server:app-server-all-wine-exec-test
+bazel test //ditfa-rs/app-server:app-server-all-wine-exec-test
 ```
 
 ## Devboxes
 
 You can use a devbox to run these tests if you are running on a macOS machine.
 
-You can list devboxes via `applied_devbox ls`, pick the one with `codex` in the name.
+You can list devboxes via `applied_devbox ls`, pick the one with `ditfa` in the name.
 Connect to devbox via `ssh <devbox_name>`.
-Reuse the same checkout of codex in `~/code/codex`. Reset files if needed. Multiple checkouts take longer to build and take up more space.
+Reuse the same checkout of ditfa in `~/code/ditfa`. Reset files if needed. Multiple checkouts take longer to build and take up more space.
 Check whether the SHA and modified files are in sync between remote and local.

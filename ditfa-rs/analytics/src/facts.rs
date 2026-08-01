@@ -1,5 +1,5 @@
 use crate::events::AppServerRpcTransport;
-use crate::events::CodexRuntimeMetadata;
+use crate::events::DitfaRuntimeMetadata;
 use crate::events::GuardianReviewEventParams;
 use ditfa_app_server_protocol::ClientRequest;
 use ditfa_app_server_protocol::ClientResponsePayload;
@@ -15,7 +15,7 @@ use ditfa_protocol::config_types::ModeKind;
 use ditfa_protocol::config_types::Personality;
 use ditfa_protocol::config_types::ReasoningSummary;
 use ditfa_protocol::config_types::ServiceTier;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::models::PermissionProfile;
 use ditfa_protocol::openai_models::ReasoningEffort;
 use ditfa_protocol::protocol::AskForApproval;
@@ -123,25 +123,25 @@ pub struct TurnProfileFact {
 }
 
 #[derive(Clone)]
-pub struct TurnCodexErrorFact {
+pub struct TurnDitfaErrorFact {
     pub(crate) turn_id: String,
     pub(crate) thread_id: String,
-    pub(crate) error: TurnCodexError,
+    pub(crate) error: TurnDitfaError,
 }
 
-impl TurnCodexErrorFact {
-    pub fn from_codex_err(thread_id: String, turn_id: String, error: &CodexErr) -> Self {
+impl TurnDitfaErrorFact {
+    pub fn from_ditfa_err(thread_id: String, turn_id: String, error: &DitfaErr) -> Self {
         Self {
             turn_id,
             thread_id,
-            error: TurnCodexError::from_codex_err(error),
+            error: TurnDitfaError::from_ditfa_err(error),
         }
     }
 }
 
 #[derive(Clone, Copy, Debug, Serialize)]
 #[serde(rename_all = "snake_case")]
-pub enum CodexErrKind {
+pub enum DitfaErrKind {
     TurnAborted,
     SessionBudgetExceeded,
     Stream,
@@ -182,13 +182,13 @@ pub enum CodexErrKind {
 }
 
 #[derive(Clone)]
-pub(crate) struct TurnCodexError {
-    pub(crate) kind: CodexErrKind,
+pub(crate) struct TurnDitfaError {
+    pub(crate) kind: DitfaErrKind,
     pub(crate) http_status_code: Option<u16>,
 }
 
-impl TurnCodexError {
-    fn from_codex_err(error: &CodexErr) -> Self {
+impl TurnDitfaError {
+    fn from_ditfa_err(error: &DitfaErr) -> Self {
         Self {
             kind: error.into(),
             http_status_code: error.http_status_code_value(),
@@ -196,50 +196,50 @@ impl TurnCodexError {
     }
 }
 
-impl From<&CodexErr> for CodexErrKind {
-    fn from(error: &CodexErr) -> Self {
+impl From<&DitfaErr> for DitfaErrKind {
+    fn from(error: &DitfaErr) -> Self {
         match error {
-            CodexErr::TurnAborted => CodexErrKind::TurnAborted,
-            CodexErr::SessionBudgetExceeded => CodexErrKind::SessionBudgetExceeded,
-            CodexErr::Stream(..) => CodexErrKind::Stream,
-            CodexErr::ContextWindowExceeded => CodexErrKind::ContextWindowExceeded,
-            CodexErr::ThreadNotFound(_) => CodexErrKind::ThreadNotFound,
-            CodexErr::AgentLimitReached { .. } => CodexErrKind::AgentLimitReached,
-            CodexErr::SessionConfiguredNotFirstEvent => {
-                CodexErrKind::SessionConfiguredNotFirstEvent
+            DitfaErr::TurnAborted => DitfaErrKind::TurnAborted,
+            DitfaErr::SessionBudgetExceeded => DitfaErrKind::SessionBudgetExceeded,
+            DitfaErr::Stream(..) => DitfaErrKind::Stream,
+            DitfaErr::ContextWindowExceeded => DitfaErrKind::ContextWindowExceeded,
+            DitfaErr::ThreadNotFound(_) => DitfaErrKind::ThreadNotFound,
+            DitfaErr::AgentLimitReached { .. } => DitfaErrKind::AgentLimitReached,
+            DitfaErr::SessionConfiguredNotFirstEvent => {
+                DitfaErrKind::SessionConfiguredNotFirstEvent
             }
-            CodexErr::Timeout => CodexErrKind::Timeout,
-            CodexErr::RequestTimeout => CodexErrKind::RequestTimeout,
-            CodexErr::Spawn => CodexErrKind::Spawn,
-            CodexErr::Interrupted => CodexErrKind::Interrupted,
-            CodexErr::UnexpectedStatus(_) => CodexErrKind::UnexpectedStatus,
-            CodexErr::InvalidRequest(_) => CodexErrKind::InvalidRequest,
-            CodexErr::InvalidImageRequest() => CodexErrKind::InvalidImageRequest,
-            CodexErr::UsageLimitReached(_) => CodexErrKind::UsageLimitReached,
-            CodexErr::ServerOverloaded => CodexErrKind::ServerOverloaded,
-            CodexErr::CyberPolicy { .. } => CodexErrKind::CyberPolicy,
-            CodexErr::ResponseStreamFailed(_) => CodexErrKind::ResponseStreamFailed,
-            CodexErr::ConnectionFailed(_) => CodexErrKind::ConnectionFailed,
-            CodexErr::QuotaExceeded => CodexErrKind::QuotaExceeded,
-            CodexErr::UsageNotIncluded => CodexErrKind::UsageNotIncluded,
-            CodexErr::InternalServerError => CodexErrKind::InternalServerError,
-            CodexErr::RetryLimit(_) => CodexErrKind::RetryLimit,
-            CodexErr::InternalAgentDied => CodexErrKind::InternalAgentDied,
-            CodexErr::Sandbox(_) => CodexErrKind::Sandbox,
-            CodexErr::LandlockSandboxExecutableNotProvided => {
-                CodexErrKind::LandlockSandboxExecutableNotProvided
+            DitfaErr::Timeout => DitfaErrKind::Timeout,
+            DitfaErr::RequestTimeout => DitfaErrKind::RequestTimeout,
+            DitfaErr::Spawn => DitfaErrKind::Spawn,
+            DitfaErr::Interrupted => DitfaErrKind::Interrupted,
+            DitfaErr::UnexpectedStatus(_) => DitfaErrKind::UnexpectedStatus,
+            DitfaErr::InvalidRequest(_) => DitfaErrKind::InvalidRequest,
+            DitfaErr::InvalidImageRequest() => DitfaErrKind::InvalidImageRequest,
+            DitfaErr::UsageLimitReached(_) => DitfaErrKind::UsageLimitReached,
+            DitfaErr::ServerOverloaded => DitfaErrKind::ServerOverloaded,
+            DitfaErr::CyberPolicy { .. } => DitfaErrKind::CyberPolicy,
+            DitfaErr::ResponseStreamFailed(_) => DitfaErrKind::ResponseStreamFailed,
+            DitfaErr::ConnectionFailed(_) => DitfaErrKind::ConnectionFailed,
+            DitfaErr::QuotaExceeded => DitfaErrKind::QuotaExceeded,
+            DitfaErr::UsageNotIncluded => DitfaErrKind::UsageNotIncluded,
+            DitfaErr::InternalServerError => DitfaErrKind::InternalServerError,
+            DitfaErr::RetryLimit(_) => DitfaErrKind::RetryLimit,
+            DitfaErr::InternalAgentDied => DitfaErrKind::InternalAgentDied,
+            DitfaErr::Sandbox(_) => DitfaErrKind::Sandbox,
+            DitfaErr::LandlockSandboxExecutableNotProvided => {
+                DitfaErrKind::LandlockSandboxExecutableNotProvided
             }
-            CodexErr::UnsupportedOperation(_) => CodexErrKind::UnsupportedOperation,
-            CodexErr::RefreshTokenFailed(_) => CodexErrKind::RefreshTokenFailed,
-            CodexErr::Fatal(_) => CodexErrKind::Fatal,
-            CodexErr::Io(_) => CodexErrKind::Io,
-            CodexErr::Json(_) => CodexErrKind::Json,
+            DitfaErr::UnsupportedOperation(_) => DitfaErrKind::UnsupportedOperation,
+            DitfaErr::RefreshTokenFailed(_) => DitfaErrKind::RefreshTokenFailed,
+            DitfaErr::Fatal(_) => DitfaErrKind::Fatal,
+            DitfaErr::Io(_) => DitfaErrKind::Io,
+            DitfaErr::Json(_) => DitfaErrKind::Json,
             #[cfg(target_os = "linux")]
-            CodexErr::LandlockRuleset(_) => CodexErrKind::LandlockRuleset,
+            DitfaErr::LandlockRuleset(_) => DitfaErrKind::LandlockRuleset,
             #[cfg(target_os = "linux")]
-            CodexErr::LandlockPathFd(_) => CodexErrKind::LandlockPathFd,
-            CodexErr::TokioJoin(_) => CodexErrKind::TokioJoin,
-            CodexErr::EnvVar(_) => CodexErrKind::EnvVar,
+            DitfaErr::LandlockPathFd(_) => DitfaErrKind::LandlockPathFd,
+            DitfaErr::TokioJoin(_) => DitfaErrKind::TokioJoin,
+            DitfaErr::EnvVar(_) => DitfaErrKind::EnvVar,
         }
     }
 }
@@ -271,7 +271,7 @@ pub enum TurnSteerRejectionReason {
 }
 
 #[derive(Clone)]
-pub struct CodexTurnSteerEvent {
+pub struct DitfaTurnSteerEvent {
     pub expected_turn_id: Option<String>,
     pub accepted_turn_id: Option<String>,
     pub num_input_images: usize,
@@ -405,7 +405,7 @@ pub enum CompactionStatus {
 }
 
 #[derive(Clone)]
-pub struct CodexCompactionEvent {
+pub struct DitfaCompactionEvent {
     pub thread_id: String,
     pub turn_id: String,
     pub trigger: CompactionTrigger,
@@ -414,7 +414,7 @@ pub struct CodexCompactionEvent {
     pub phase: CompactionPhase,
     pub strategy: CompactionStrategy,
     pub status: CompactionStatus,
-    pub ditfa_error_kind: Option<CodexErrKind>,
+    pub ditfa_error_kind: Option<DitfaErrKind>,
     pub ditfa_error_http_status_code: Option<u16>,
     pub active_context_tokens_before: i64,
     pub active_context_tokens_after: i64,
@@ -437,7 +437,7 @@ pub enum GoalEventKind {
 }
 
 #[derive(Clone)]
-pub struct CodexGoalEvent {
+pub struct DitfaGoalEvent {
     pub thread_id: String,
     pub turn_id: Option<String>,
     pub goal_id: String,
@@ -454,7 +454,7 @@ pub(crate) enum AnalyticsFact {
         connection_id: u64,
         params: InitializeParams,
         product_client_id: String,
-        runtime: CodexRuntimeMetadata,
+        runtime: DitfaRuntimeMetadata,
         rpc_transport: AppServerRpcTransport,
     },
     ClientRequest {
@@ -499,13 +499,13 @@ pub(crate) enum AnalyticsFact {
 
 pub(crate) enum CustomAnalyticsFact {
     SubAgentThreadStarted(SubAgentThreadStartedInput),
-    Compaction(Box<CodexCompactionEvent>),
-    Goal(Box<CodexGoalEvent>),
+    Compaction(Box<DitfaCompactionEvent>),
+    Goal(Box<DitfaGoalEvent>),
     GuardianReview(Box<GuardianReviewEventParams>),
     TurnResolvedConfig(Box<TurnResolvedConfigFact>),
     TurnTokenUsage(Box<TurnTokenUsageFact>),
     TurnProfile(Box<TurnProfileFact>),
-    TurnCodexError(Box<TurnCodexErrorFact>),
+    TurnDitfaError(Box<TurnDitfaErrorFact>),
     SkillInvoked(SkillInvokedInput),
     AppMentioned(AppMentionedInput),
     AppUsed(AppUsedInput),

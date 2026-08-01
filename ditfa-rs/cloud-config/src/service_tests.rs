@@ -51,7 +51,7 @@ async fn auth_manager_with_api_key() -> Arc<AuthManager> {
     Arc::new(
         AuthManager::new(
             tmp.path().to_path_buf(),
-            /*enable_codex_api_key_env*/ false,
+            /*enable_ditfa_api_key_env*/ false,
             AuthCredentialsStoreMode::File,
             /*forced_chatgpt_workspace_id*/ None,
             /*chatgpt_base_url*/ None,
@@ -82,7 +82,7 @@ async fn auth_manager_with_plan_and_identity(
     Arc::new(
         AuthManager::new(
             tmp.path().to_path_buf(),
-            /*enable_codex_api_key_env*/ false,
+            /*enable_ditfa_api_key_env*/ false,
             AuthCredentialsStoreMode::File,
             /*forced_chatgpt_workspace_id*/ None,
             /*chatgpt_base_url*/ None,
@@ -100,7 +100,7 @@ async fn auth_manager_with_plan(plan_type: &str) -> Arc<AuthManager> {
 async fn auth_manager_with_agent_identity_business_plan() -> Arc<AuthManager> {
     let key_material =
         ditfa_agent_identity::generate_agent_key_material().expect("generate agent key material");
-    AuthManager::from_auth_for_testing(CodexAuth::AgentIdentity(
+    AuthManager::from_auth_for_testing(DitfaAuth::AgentIdentity(
         AgentIdentityAuth::from_record(
             AgentIdentityAuthRecord {
                 agent_runtime_id: "agent-runtime-123".to_string(),
@@ -234,7 +234,7 @@ impl StaticBundleClient {
 }
 
 impl BundleClient for StaticBundleClient {
-    async fn get_bundle(&self, _auth: &CodexAuth) -> Result<CloudConfigBundle, BundleRequestError> {
+    async fn get_bundle(&self, _auth: &DitfaAuth) -> Result<CloudConfigBundle, BundleRequestError> {
         self.request_count.fetch_add(1, Ordering::SeqCst);
         Ok(self.bundle.clone())
     }
@@ -243,7 +243,7 @@ impl BundleClient for StaticBundleClient {
 struct PendingBundleClient;
 
 impl BundleClient for PendingBundleClient {
-    async fn get_bundle(&self, _auth: &CodexAuth) -> Result<CloudConfigBundle, BundleRequestError> {
+    async fn get_bundle(&self, _auth: &DitfaAuth) -> Result<CloudConfigBundle, BundleRequestError> {
         pending::<()>().await;
         Ok(CloudConfigBundle::default())
     }
@@ -264,7 +264,7 @@ impl SequenceBundleClient {
 }
 
 impl BundleClient for SequenceBundleClient {
-    async fn get_bundle(&self, _auth: &CodexAuth) -> Result<CloudConfigBundle, BundleRequestError> {
+    async fn get_bundle(&self, _auth: &DitfaAuth) -> Result<CloudConfigBundle, BundleRequestError> {
         self.request_count.fetch_add(1, Ordering::SeqCst);
         let mut responses = self.responses.lock().await;
         responses
@@ -280,7 +280,7 @@ struct TokenBundleClient {
 }
 
 impl BundleClient for TokenBundleClient {
-    async fn get_bundle(&self, auth: &CodexAuth) -> Result<CloudConfigBundle, BundleRequestError> {
+    async fn get_bundle(&self, auth: &DitfaAuth) -> Result<CloudConfigBundle, BundleRequestError> {
         self.request_count.fetch_add(1, Ordering::SeqCst);
         if matches!(
             auth.get_token().as_deref(),
@@ -302,13 +302,13 @@ struct UnauthorizedBundleClient {
 }
 
 struct TestExternalChatgptAuth {
-    current: RwLock<CodexAuth>,
-    refreshed: CodexAuth,
+    current: RwLock<DitfaAuth>,
+    refreshed: DitfaAuth,
     refresh_count: AtomicUsize,
 }
 
 impl ExternalAuth for TestExternalChatgptAuth {
-    fn resolve(&self) -> ditfa_login::ExternalAuthFuture<'_, CodexAuth> {
+    fn resolve(&self) -> ditfa_login::ExternalAuthFuture<'_, DitfaAuth> {
         Box::pin(async {
             self.current
                 .read()
@@ -320,7 +320,7 @@ impl ExternalAuth for TestExternalChatgptAuth {
     fn refresh(
         &self,
         _context: ExternalAuthRefreshContext,
-    ) -> ditfa_login::ExternalAuthFuture<'_, CodexAuth> {
+    ) -> ditfa_login::ExternalAuthFuture<'_, DitfaAuth> {
         Box::pin(async {
             let refreshed = self.refreshed.clone();
             *self
@@ -335,7 +335,7 @@ impl ExternalAuth for TestExternalChatgptAuth {
 }
 
 impl BundleClient for UnauthorizedBundleClient {
-    async fn get_bundle(&self, _auth: &CodexAuth) -> Result<CloudConfigBundle, BundleRequestError> {
+    async fn get_bundle(&self, _auth: &DitfaAuth) -> Result<CloudConfigBundle, BundleRequestError> {
         self.request_count.fetch_add(1, Ordering::SeqCst);
         Err(BundleRequestError::Unauthorized {
             status_code: Some(401),
@@ -699,7 +699,7 @@ async fn get_bundle_recovers_after_unauthorized_reload() {
     let auth_manager = Arc::new(
         AuthManager::new(
             auth_home.path().to_path_buf(),
-            /*enable_codex_api_key_env*/ false,
+            /*enable_ditfa_api_key_env*/ false,
             AuthCredentialsStoreMode::File,
             /*forced_chatgpt_workspace_id*/ None,
             /*chatgpt_base_url*/ None,
@@ -756,7 +756,7 @@ async fn get_bundle_recovers_after_unauthorized_reload_updates_cache_identity() 
     let auth_manager = Arc::new(
         AuthManager::new(
             auth_home.path().to_path_buf(),
-            /*enable_codex_api_key_env*/ false,
+            /*enable_ditfa_api_key_env*/ false,
             AuthCredentialsStoreMode::File,
             /*forced_chatgpt_workspace_id*/ None,
             /*chatgpt_base_url*/ None,
@@ -821,7 +821,7 @@ async fn get_bundle_surfaces_auth_recovery_message() {
     let auth_manager = Arc::new(
         AuthManager::new(
             auth_home.path().to_path_buf(),
-            /*enable_codex_api_key_env*/ false,
+            /*enable_ditfa_api_key_env*/ false,
             AuthCredentialsStoreMode::File,
             /*forced_chatgpt_workspace_id*/ None,
             /*chatgpt_base_url*/ None,
@@ -875,7 +875,7 @@ async fn get_bundle_refreshes_external_auth_after_unauthorized() {
     let auth_manager = Arc::new(
         AuthManager::new(
             auth_home.path().to_path_buf(),
-            /*enable_codex_api_key_env*/ false,
+            /*enable_ditfa_api_key_env*/ false,
             AuthCredentialsStoreMode::Ephemeral,
             /*forced_chatgpt_workspace_id*/ None,
             /*chatgpt_base_url*/ None,
@@ -884,14 +884,14 @@ async fn get_bundle_refreshes_external_auth_after_unauthorized() {
         )
         .await,
     );
-    let initial_auth = CodexAuth::from_external_chatgpt_tokens(
+    let initial_auth = DitfaAuth::from_external_chatgpt_tokens(
         &fake_chatgpt_jwt("enterprise", Some("user-12345"), b"initial"),
         "account-12345",
         Some("enterprise"),
     )
     .expect("initial external auth");
     let refreshed_token = fake_chatgpt_jwt("enterprise", Some("user-12345"), b"refreshed");
-    let refreshed_auth = CodexAuth::from_external_chatgpt_tokens(
+    let refreshed_auth = DitfaAuth::from_external_chatgpt_tokens(
         &refreshed_token,
         "account-12345",
         Some("enterprise"),

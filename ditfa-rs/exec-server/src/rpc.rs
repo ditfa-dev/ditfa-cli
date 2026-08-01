@@ -393,7 +393,7 @@ impl RpcClient {
     }
 
     #[tracing::instrument(
-        name = "codex.exec_server.request",
+        name = "ditfa.exec_server.request",
         level = "info",
         skip_all,
         fields(
@@ -427,7 +427,7 @@ impl RpcClient {
     }
 
     #[tracing::instrument(
-        name = "codex.exec_server.request",
+        name = "ditfa.exec_server.request",
         level = "info",
         skip_all,
         fields(

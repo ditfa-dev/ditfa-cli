@@ -3,12 +3,12 @@ use anyhow::Result;
 use chrono::Utc;
 use ditfa_config::config_toml::RealtimeWsVersion;
 use ditfa_core::test_support::auth_manager_from_auth;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::OPENAI_API_KEY_ENV_VAR;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::models::ContentItem;
 use ditfa_protocol::models::ResponseItem;
-use ditfa_protocol::protocol::CodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::ConversationAudioParams;
 use ditfa_protocol::protocol::ConversationStartParams;
 use ditfa_protocol::protocol::ConversationStartTransport;
@@ -35,8 +35,8 @@ use core_test_support::responses::start_websocket_server_with_headers;
 use core_test_support::skip_if_no_network;
 use core_test_support::streaming_sse::StreamingSseChunk;
 use core_test_support::streaming_sse::start_streaming_sse_server;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_event_match;
 use pretty_assertions::assert_eq;
@@ -210,7 +210,7 @@ fn run_realtime_conversation_test_in_subprocess(
     Ok(())
 }
 async fn seed_recent_thread(
-    test: &TestCodex,
+    test: &TestDitfa,
     title: &str,
     first_user_message: &str,
     slug: &str,
@@ -274,7 +274,7 @@ async fn conversation_start_audio_text_close_round_trip() -> Result<()> {
     ])
     .await;
 
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build_with_websocket_server(&server).await?;
     assert!(
         server
@@ -289,7 +289,7 @@ async fn conversation_start_audio_text_close_round_trip() -> Result<()> {
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -426,7 +426,7 @@ async fn conversation_start_defaults_to_v2_and_gpt_realtime_1_5() -> Result<()> 
     let api_server = start_mock_server().await;
     let realtime_server = start_websocket_server(vec![vec![vec![]]]).await;
     let realtime_base_url = realtime_server.uri().to_string();
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.experimental_realtime_ws_base_url = Some(realtime_base_url);
         config.experimental_realtime_ws_startup_context = Some(String::new());
     });
@@ -439,7 +439,7 @@ async fn conversation_start_defaults_to_v2_and_gpt_realtime_1_5() -> Result<()> 
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -491,7 +491,7 @@ async fn conversation_start_defaults_to_v2_and_gpt_realtime_1_5() -> Result<()> 
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn conversation_webrtc_frameless_chatgpt_sends_codex_headers_to_backend() -> Result<()> {
+async fn conversation_webrtc_frameless_chatgpt_sends_ditfa_headers_to_backend() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
@@ -514,8 +514,8 @@ async fn conversation_webrtc_frameless_chatgpt_sends_codex_headers_to_backend() 
 
     let backend_base_url = format!("{}/backend-api/codex", server.uri());
     let realtime_ws_base_url = realtime_server.uri().to_string();
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(move |config| {
             config.model_provider.base_url = Some(backend_base_url);
             config.experimental_realtime_ws_backend_prompt = Some("backend prompt".to_string());
@@ -530,7 +530,7 @@ async fn conversation_webrtc_frameless_chatgpt_sends_codex_headers_to_backend() 
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: Some("session-override-model".to_string()),
             output_modality: RealtimeOutputModality::Audio,
@@ -638,7 +638,7 @@ async fn conversation_webrtc_start_posts_generated_session() -> Result<()> {
     .await;
 
     let realtime_ws_base_url = realtime_server.uri().to_string();
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.experimental_realtime_ws_backend_prompt = Some("backend prompt".to_string());
         config.experimental_realtime_ws_model = Some("realtime-test-model".to_string());
         config.experimental_realtime_ws_startup_context = Some("startup context".to_string());
@@ -654,7 +654,7 @@ async fn conversation_webrtc_start_posts_generated_session() -> Result<()> {
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: Some("session-override-model".to_string()),
             output_modality: RealtimeOutputModality::Audio,
@@ -725,7 +725,7 @@ async fn conversation_webrtc_start_posts_generated_session() -> Result<()> {
             .headers
             .get("content-type")
             .and_then(|value| value.to_str().ok()),
-        Some("multipart/form-data; boundary=codex-realtime-call-boundary")
+        Some("multipart/form-data; boundary=ditfa-realtime-call-boundary")
     );
     let body = String::from_utf8(request.body).context("multipart body should be utf-8")?;
     let session = r#"{"audio":{"input":{"format":{"type":"audio/pcm","rate":24000}},"output":{"voice":"cove"}},"type":"quicksilver","model":"session-override-model","instructions":"backend prompt\n\nstartup context"}"#;
@@ -733,18 +733,18 @@ async fn conversation_webrtc_start_posts_generated_session() -> Result<()> {
     assert_eq!(
         body,
         format!(
-            "--codex-realtime-call-boundary\r\n\
+            "--ditfa-realtime-call-boundary\r\n\
              Content-Disposition: form-data; name=\"sdp\"\r\n\
              Content-Type: application/sdp\r\n\
              \r\n\
              v=offer\r\n\
              \r\n\
-             --codex-realtime-call-boundary\r\n\
+             --ditfa-realtime-call-boundary\r\n\
              Content-Disposition: form-data; name=\"session\"\r\n\
              Content-Type: application/json\r\n\
              \r\n\
              {session}\r\n\
-             --codex-realtime-call-boundary--\r\n"
+             --ditfa-realtime-call-boundary--\r\n"
         )
     );
 
@@ -831,7 +831,7 @@ async fn conversation_webrtc_start_uses_avas_query() -> Result<()> {
     .await;
 
     let realtime_ws_base_url = realtime_server.uri().to_string();
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.experimental_realtime_ws_backend_prompt = Some("backend prompt".to_string());
         config.experimental_realtime_ws_base_url = Some(realtime_ws_base_url);
         config.realtime.version = RealtimeWsVersion::V1;
@@ -845,7 +845,7 @@ async fn conversation_webrtc_start_uses_avas_query() -> Result<()> {
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -932,7 +932,7 @@ async fn conversation_webrtc_default_v1_ignores_configured_v2_voice() -> Result<
     .await;
 
     let realtime_ws_base_url = realtime_server.uri().to_string();
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.experimental_realtime_ws_backend_prompt = Some("backend prompt".to_string());
         config.experimental_realtime_ws_base_url = Some(realtime_ws_base_url);
         config.realtime.version = RealtimeWsVersion::V2;
@@ -947,7 +947,7 @@ async fn conversation_webrtc_default_v1_ignores_configured_v2_voice() -> Result<
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -999,7 +999,7 @@ async fn conversation_webrtc_default_v1_rejects_explicit_v2_voice() -> Result<()
     skip_if_no_network!(Ok(()));
 
     let api_server = start_mock_server().await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.realtime.version = RealtimeWsVersion::V2;
     });
     let test = builder.build(&api_server).await?;
@@ -1011,7 +1011,7 @@ async fn conversation_webrtc_default_v1_rejects_explicit_v2_voice() -> Result<()
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -1070,7 +1070,7 @@ async fn conversation_webrtc_start_uses_configured_call_base_url_for_avas() -> R
 
     let realtime_ws_base_url = realtime_server.uri().to_string();
     let realtime_call_base_url = format!("{}/v1", server.uri());
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.experimental_realtime_ws_backend_prompt = Some("backend prompt".to_string());
         config.experimental_realtime_ws_base_url = Some(realtime_ws_base_url);
         config.experimental_realtime_webrtc_call_base_url = Some(realtime_call_base_url);
@@ -1085,7 +1085,7 @@ async fn conversation_webrtc_start_uses_configured_call_base_url_for_avas() -> R
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -1167,7 +1167,7 @@ async fn conversation_webrtc_close_while_sideband_connecting_drops_pending_join(
     .await;
 
     let realtime_ws_base_url = realtime_server.uri().to_string();
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.experimental_realtime_ws_backend_prompt = Some("backend prompt".to_string());
         config.experimental_realtime_ws_model = Some("realtime-test-model".to_string());
         config.experimental_realtime_ws_startup_context = Some(String::new());
@@ -1183,7 +1183,7 @@ async fn conversation_webrtc_close_while_sideband_connecting_drops_pending_join(
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -1259,7 +1259,7 @@ async fn conversation_webrtc_sideband_connect_failure_closes_with_error() -> Res
         )
         .mount(&server)
         .await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.experimental_realtime_ws_backend_prompt = Some("backend prompt".to_string());
         config.experimental_realtime_ws_model = Some("realtime-test-model".to_string());
         config.experimental_realtime_ws_startup_context = Some(String::new());
@@ -1278,7 +1278,7 @@ async fn conversation_webrtc_sideband_connect_failure_closes_with_error() -> Res
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -1360,7 +1360,7 @@ async fn conversation_start_uses_openai_env_key_fallback_with_chatgpt_auth() -> 
     ])
     .await;
 
-    let mut builder = test_codex().with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+    let mut builder = test_ditfa().with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let test = builder.build_with_websocket_server(&server).await?;
     assert!(
         server
@@ -1375,7 +1375,7 @@ async fn conversation_start_uses_openai_env_key_fallback_with_chatgpt_auth() -> 
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -1454,7 +1454,7 @@ async fn assert_transport_close_tail_flush(
     ]]])
     .await;
 
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -1470,7 +1470,7 @@ async fn assert_transport_close_tail_flush(
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -1541,7 +1541,7 @@ async fn conversation_audio_before_start_emits_error() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = start_websocket_server(vec![]).await;
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build_with_websocket_server(&server).await?;
 
     test.ditfa
@@ -1561,7 +1561,7 @@ async fn conversation_audio_before_start_emits_error() -> Result<()> {
         _ => None,
     })
     .await;
-    assert_eq!(err.ditfa_error_info, Some(CodexErrorInfo::BadRequest));
+    assert_eq!(err.ditfa_error_info, Some(DitfaErrorInfo::BadRequest));
     assert_eq!(err.message, "conversation is not running");
 
     server.shutdown().await;
@@ -1580,7 +1580,7 @@ async fn conversation_start_preflight_failure_emits_realtime_error_only() -> Res
     skip_if_no_network!(Ok(()));
 
     let server = start_websocket_server(vec![]).await;
-    let mut builder = test_codex().with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+    let mut builder = test_ditfa().with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let test = builder.build_with_websocket_server(&server).await?;
 
     test.ditfa
@@ -1590,7 +1590,7 @@ async fn conversation_start_preflight_failure_emits_realtime_error_only() -> Res
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -1632,7 +1632,7 @@ async fn conversation_start_connect_failure_emits_realtime_error_only() -> Resul
     skip_if_no_network!(Ok(()));
 
     let server = start_websocket_server(vec![]).await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.experimental_realtime_ws_base_url = Some("http://127.0.0.1:1".to_string());
         config.realtime.version = RealtimeWsVersion::V1;
     });
@@ -1645,7 +1645,7 @@ async fn conversation_start_connect_failure_emits_realtime_error_only() -> Resul
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -1687,7 +1687,7 @@ async fn conversation_text_before_start_emits_error() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = start_websocket_server(vec![]).await;
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build_with_websocket_server(&server).await?;
 
     test.ditfa
@@ -1702,7 +1702,7 @@ async fn conversation_text_before_start_emits_error() -> Result<()> {
         _ => None,
     })
     .await;
-    assert_eq!(err.ditfa_error_info, Some(CodexErrorInfo::BadRequest));
+    assert_eq!(err.ditfa_error_info, Some(DitfaErrorInfo::BadRequest));
     assert_eq!(err.message, "conversation is not running");
 
     server.shutdown().await;
@@ -1733,7 +1733,7 @@ async fn conversation_second_start_replaces_runtime() -> Result<()> {
         ],
     ])
     .await;
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let test = builder.build_with_websocket_server(&server).await?;
     assert!(
         server
@@ -1748,7 +1748,7 @@ async fn conversation_second_start_replaces_runtime() -> Result<()> {
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -1782,7 +1782,7 @@ async fn conversation_second_start_replaces_runtime() -> Result<()> {
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -1866,7 +1866,7 @@ async fn conversation_uses_experimental_realtime_ws_base_url_override() -> Resul
     })]]])
     .await;
 
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -1887,7 +1887,7 @@ async fn conversation_uses_experimental_realtime_ws_base_url_override() -> Resul
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -1942,7 +1942,7 @@ async fn conversation_uses_default_realtime_backend_prompt() -> Result<()> {
     ])
     .await;
 
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.experimental_realtime_ws_startup_context =
             Some("controlled startup context".to_string());
     });
@@ -1960,7 +1960,7 @@ async fn conversation_uses_default_realtime_backend_prompt() -> Result<()> {
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -2020,7 +2020,7 @@ async fn conversation_uses_empty_instructions_for_null_or_empty_prompt() -> Resu
     ])
     .await;
 
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.experimental_realtime_ws_startup_context = Some(String::new());
     });
     let test = builder.build_with_websocket_server(&server).await?;
@@ -2041,7 +2041,7 @@ async fn conversation_uses_empty_instructions_for_null_or_empty_prompt() -> Resu
                 ditfa_responses_as_items: false,
                 ditfa_response_item_prefix: None,
                 ditfa_response_handoff_mode:
-                    ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                    ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
                 ditfa_response_handoff_channel_prefixes: None,
                 model: None,
                 output_modality: RealtimeOutputModality::Audio,
@@ -2101,7 +2101,7 @@ async fn conversation_uses_explicit_start_voice() -> Result<()> {
         })]],
     ])
     .await;
-    let test = test_codex().build_with_websocket_server(&server).await?;
+    let test = test_ditfa().build_with_websocket_server(&server).await?;
     assert!(
         server
             .wait_for_handshakes(/*expected*/ 1, Duration::from_secs(2))
@@ -2115,7 +2115,7 @@ async fn conversation_uses_explicit_start_voice() -> Result<()> {
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -2164,7 +2164,7 @@ async fn conversation_uses_configured_realtime_voice() -> Result<()> {
         })]],
     ])
     .await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.realtime.voice = Some(RealtimeVoice::Cove);
     });
     let test = builder.build_with_websocket_server(&server).await?;
@@ -2181,7 +2181,7 @@ async fn conversation_uses_configured_realtime_voice() -> Result<()> {
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -2223,7 +2223,7 @@ async fn conversation_rejects_voice_for_wrong_realtime_version() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let api_server = start_mock_server().await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.realtime.version = RealtimeWsVersion::V2;
     });
     let test = builder.build(&api_server).await?;
@@ -2235,7 +2235,7 @@ async fn conversation_rejects_voice_for_wrong_realtime_version() -> Result<()> {
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -2273,7 +2273,7 @@ async fn conversation_uses_experimental_realtime_ws_backend_prompt_override() ->
     ])
     .await;
 
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.experimental_realtime_ws_backend_prompt = Some("prompt from config".to_string());
     });
     let test = builder.build_with_websocket_server(&server).await?;
@@ -2290,7 +2290,7 @@ async fn conversation_uses_experimental_realtime_ws_backend_prompt_override() ->
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -2338,7 +2338,7 @@ async fn conversation_uses_experimental_realtime_ws_startup_context_override() -
     })]]])
     .await;
 
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -2371,7 +2371,7 @@ async fn conversation_uses_experimental_realtime_ws_startup_context_override() -
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -2414,7 +2414,7 @@ async fn conversation_disables_realtime_startup_context_with_empty_override() ->
     })]]])
     .await;
 
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -2446,7 +2446,7 @@ async fn conversation_disables_realtime_startup_context_with_empty_override() ->
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -2489,7 +2489,7 @@ async fn conversation_start_injects_startup_context_from_thread_history() -> Res
     })]]])
     .await;
 
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -2514,7 +2514,7 @@ async fn conversation_start_injects_startup_context_from_thread_history() -> Res
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -2580,7 +2580,7 @@ async fn conversation_startup_context_current_thread_selects_many_turns_by_budge
         })
         .chain([latest_long_user_turn.clone()]);
 
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -2623,21 +2623,21 @@ async fn conversation_startup_context_current_thread_selects_many_turns_by_budge
         .resume_thread_with_history(
             test.config.clone(),
             InitialHistory::Forked(history),
-            auth_manager_from_auth(CodexAuth::from_api_key("dummy")),
+            auth_manager_from_auth(DitfaAuth::from_api_key("dummy")),
             /*parent_trace*/ None,
             /*supports_openai_form_elicitation*/ false,
         )
         .await?;
-    let codex = resumed_thread.thread;
+    let ditfa = resumed_thread.thread;
 
-    codex
+    ditfa
         .submit(Op::RealtimeConversationStart(ConversationStartParams {
             client_managed_handoffs: false,
             flush_transcript_tail_on_session_end: false,
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -2719,7 +2719,7 @@ async fn conversation_startup_context_current_thread_selects_many_turns_by_budge
         (true, Vec::<(String, usize)>::new()),
     );
 
-    codex.shutdown_and_wait().await?;
+    ditfa.shutdown_and_wait().await?;
     realtime_server.shutdown().await;
     Ok(())
 }
@@ -2735,7 +2735,7 @@ async fn conversation_startup_context_falls_back_to_workspace_map() -> Result<()
     })]]])
     .await;
 
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -2743,7 +2743,7 @@ async fn conversation_startup_context_falls_back_to_workspace_map() -> Result<()
         }
     });
     let test = builder.build_with_websocket_server(&startup_server).await?;
-    fs::create_dir_all(test.workspace_path("codex-rs/core"))?;
+    fs::create_dir_all(test.workspace_path("ditfa-rs/core"))?;
     fs::write(test.workspace_path("notes.txt"), "workspace marker")?;
 
     test.ditfa
@@ -2753,7 +2753,7 @@ async fn conversation_startup_context_falls_back_to_workspace_map() -> Result<()
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -2781,7 +2781,7 @@ async fn conversation_startup_context_falls_back_to_workspace_map() -> Result<()
     assert!(startup_context.contains(STARTUP_CONTEXT_HEADER));
     assert!(startup_context.contains("## Machine / Workspace Map"));
     assert!(startup_context.contains("notes.txt"));
-    assert!(startup_context.contains("codex-rs/"));
+    assert!(startup_context.contains("ditfa-rs/"));
 
     startup_server.shutdown().await;
     realtime_server.shutdown().await;
@@ -2803,7 +2803,7 @@ async fn conversation_startup_context_is_truncated_and_sent_once_per_start() -> 
     .await;
 
     let oversized_summary = "recent work ".repeat(3_500);
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -2821,7 +2821,7 @@ async fn conversation_startup_context_is_truncated_and_sent_once_per_start() -> 
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -2894,7 +2894,7 @@ async fn conversation_user_text_turn_is_not_sent_to_realtime() -> Result<()> {
     ]])
     .await;
 
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -2910,7 +2910,7 @@ async fn conversation_user_text_turn_is_not_sent_to_realtime() -> Result<()> {
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -2999,7 +2999,7 @@ async fn realtime_v2_noop_tool_call_returns_empty_function_output_without_respon
     ]])
     .await;
 
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -3015,7 +3015,7 @@ async fn realtime_v2_noop_tool_call_returns_empty_function_output_without_respon
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -3106,7 +3106,7 @@ async fn conversation_mirrors_assistant_message_text_to_realtime_handoff() -> Re
     ]])
     .await;
 
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -3122,7 +3122,7 @@ async fn conversation_mirrors_assistant_message_text_to_realtime_handoff() -> Re
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -3274,7 +3274,7 @@ async fn conversation_flushes_assistant_deltas_every_200ms_for_v3_handoff() -> R
     ]])
     .await;
 
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -3290,7 +3290,7 @@ async fn conversation_flushes_assistant_deltas_every_200ms_for_v3_handoff() -> R
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::BemTags,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::BemTags,
             ditfa_response_handoff_channel_prefixes: Some(BTreeMap::from([
                 (
                     "commentary".to_string(),
@@ -3450,7 +3450,7 @@ async fn conversation_handoff_persists_across_item_done_until_turn_complete() ->
     ]])
     .await;
 
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -3466,7 +3466,7 @@ async fn conversation_handoff_persists_across_item_done_until_turn_complete() ->
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::BemTags,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::BemTags,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -3610,7 +3610,7 @@ async fn inbound_handoff_request_starts_turn() -> Result<()> {
     ]]])
     .await;
 
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -3626,7 +3626,7 @@ async fn inbound_handoff_request_starts_turn() -> Result<()> {
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -3728,7 +3728,7 @@ async fn inbound_handoff_request_uses_active_transcript() -> Result<()> {
     ]]])
     .await;
 
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -3744,7 +3744,7 @@ async fn inbound_handoff_request_uses_active_transcript() -> Result<()> {
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -3839,7 +3839,7 @@ async fn inbound_handoff_request_sends_transcript_delta_after_each_handoff() -> 
     ]])
     .await;
 
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -3855,7 +3855,7 @@ async fn inbound_handoff_request_sends_transcript_delta_after_each_handoff() -> 
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -3969,7 +3969,7 @@ async fn conversation_close_routes_only_remaining_transcript_tail_once() -> Resu
         vec![],
     ]])
     .await;
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -3985,7 +3985,7 @@ async fn conversation_close_routes_only_remaining_transcript_tail_once() -> Resu
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -4060,7 +4060,7 @@ async fn inbound_conversation_item_does_not_start_turn_and_still_forwards_audio(
     ]]])
     .await;
 
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -4076,7 +4076,7 @@ async fn inbound_conversation_item_does_not_start_turn_and_still_forwards_audio(
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -4191,7 +4191,7 @@ async fn delegated_turn_user_role_echo_does_not_redelegate_and_still_forwards_au
     ]])
     .await;
 
-    let mut builder = test_codex().with_model("gpt-5.4").with_config({
+    let mut builder = test_ditfa().with_model("gpt-5.4").with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -4207,7 +4207,7 @@ async fn delegated_turn_user_role_echo_does_not_redelegate_and_still_forwards_au
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -4352,7 +4352,7 @@ async fn inbound_handoff_request_does_not_block_realtime_event_forwarding() -> R
     ]]])
     .await;
 
-    let mut builder = test_codex().with_model("gpt-5.4").with_config({
+    let mut builder = test_ditfa().with_model("gpt-5.4").with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -4368,7 +4368,7 @@ async fn inbound_handoff_request_does_not_block_realtime_event_forwarding() -> R
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -4502,7 +4502,7 @@ async fn inbound_handoff_request_steers_active_turn() -> Result<()> {
     }])
     .await;
 
-    let mut builder = test_codex().with_model("gpt-5.4").with_config({
+    let mut builder = test_ditfa().with_model("gpt-5.4").with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -4518,7 +4518,7 @@ async fn inbound_handoff_request_steers_active_turn() -> Result<()> {
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,
@@ -4663,7 +4663,7 @@ async fn inbound_handoff_request_starts_turn_and_does_not_block_realtime_audio()
     ]]])
     .await;
 
-    let mut builder = test_codex().with_model("gpt-5.4").with_config({
+    let mut builder = test_ditfa().with_model("gpt-5.4").with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -4679,7 +4679,7 @@ async fn inbound_handoff_request_starts_turn_and_does_not_block_realtime_audio()
             ditfa_responses_as_items: false,
             ditfa_response_item_prefix: None,
             ditfa_response_handoff_mode:
-                ditfa_protocol::protocol::CodexResponseHandoffMode::Thinking,
+                ditfa_protocol::protocol::DitfaResponseHandoffMode::Thinking,
             ditfa_response_handoff_channel_prefixes: None,
             model: None,
             output_modality: RealtimeOutputModality::Audio,

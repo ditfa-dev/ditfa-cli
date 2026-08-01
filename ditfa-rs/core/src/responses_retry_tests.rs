@@ -1,7 +1,7 @@
 use super::ResponsesStreamRequest;
 use super::log_retry;
 use crate::session::tests::make_session_and_context;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use std::time::Duration;
 use tracing_test::internal::MockWriter;
 
@@ -20,7 +20,7 @@ async fn sampling_retry_logs_stream_error_context() {
     log_retry(
         ResponsesStreamRequest::Sampling,
         &turn_context,
-        &CodexErr::Stream(
+        &DitfaErr::Stream(
             "websocket closed by server before response.completed".to_string(),
             None,
         ),

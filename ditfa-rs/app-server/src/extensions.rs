@@ -19,7 +19,7 @@ use ditfa_goal_extension::GoalService;
 use ditfa_http_client::HttpClientFactory;
 use ditfa_login::AuthManager;
 use ditfa_protocol::ThreadId;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::protocol::Event;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_rollout::state_db::StateDbHandle;
@@ -49,7 +49,7 @@ pub(crate) fn thread_extensions<S>(
     dependencies: ThreadExtensionDependencies,
 ) -> Arc<ExtensionRegistry<Config>>
 where
-    S: AgentSpawner<StartThreadOptions, Spawned = NewThread, Error = CodexErr> + 'static,
+    S: AgentSpawner<StartThreadOptions, Spawned = NewThread, Error = DitfaErr> + 'static,
 {
     let ThreadExtensionDependencies {
         event_sink,
@@ -171,14 +171,14 @@ impl ExtensionEventSink for AppServerExtensionEventSink {
 
 pub(crate) fn guardian_agent_spawner(
     thread_manager: Weak<ThreadManager>,
-) -> impl AgentSpawner<StartThreadOptions, Spawned = NewThread, Error = CodexErr> {
+) -> impl AgentSpawner<StartThreadOptions, Spawned = NewThread, Error = DitfaErr> {
     move |forked_from_thread_id: ThreadId,
           options: StartThreadOptions|
-          -> AgentSpawnFuture<'static, NewThread, CodexErr> {
+          -> AgentSpawnFuture<'static, NewThread, DitfaErr> {
         let thread_manager = thread_manager.clone();
         Box::pin(async move {
             let thread_manager = thread_manager.upgrade().ok_or_else(|| {
-                CodexErr::UnsupportedOperation("thread manager dropped".to_string())
+                DitfaErr::UnsupportedOperation("thread manager dropped".to_string())
             })?;
             thread_manager
                 .spawn_subagent(forked_from_thread_id, options)

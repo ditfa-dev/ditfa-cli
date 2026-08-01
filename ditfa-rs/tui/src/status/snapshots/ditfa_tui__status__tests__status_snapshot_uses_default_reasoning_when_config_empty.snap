@@ -5,12 +5,12 @@ expression: sanitized
 /status
 
 ╭─────────────────────────────────────────────────────────────────────────────╮
-│  >_ OpenAI Codex (v0.0.0)                                                   │
+│  >_ OpenAI Ditfa (v0.0.0)                                                   │
 │                                                                             │
 │ Visit http://localhost:3000/ditfa/settings/usage for up-to-date               │
 │ information on rate limits and credits                                      │
 │                                                                             │
-│  Remote:           unix:///tmp/codex-home/app-server-control/app-server-    │
+│  Remote:           unix:///tmp/ditfa-home/app-server-control/app-server-    │
 │                    control.sock (v0.133.0)                                  │
 │                                                                             │
 │  Model:            gpt-5.1-codex-max (reasoning medium, summaries auto)     │

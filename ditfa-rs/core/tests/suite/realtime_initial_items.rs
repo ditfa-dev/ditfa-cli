@@ -1,6 +1,6 @@
 use anyhow::Result;
 use ditfa_config::config_toml::RealtimeWsVersion;
-use ditfa_protocol::protocol::CodexResponseHandoffMode;
+use ditfa_protocol::protocol::DitfaResponseHandoffMode;
 use ditfa_protocol::protocol::ConversationStartParams;
 use ditfa_protocol::protocol::ConversationTextParams;
 use ditfa_protocol::protocol::ConversationTextRole;
@@ -13,7 +13,7 @@ use ditfa_protocol::protocol::RealtimeOutputModality;
 use core_test_support::responses::start_mock_server;
 use core_test_support::responses::start_websocket_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_event_match;
 use pretty_assertions::assert_eq;
@@ -31,7 +31,7 @@ async fn frameless_v3_sends_initial_items_in_session_bootstrap() -> Result<()> {
         "session": { "id": "sess_initial_items", "instructions": "backend prompt" }
     })]]])
     .await;
-    let mut builder = test_codex().with_config({
+    let mut builder = test_ditfa().with_config({
         let realtime_base_url = realtime_server.uri().to_string();
         move |config| {
             config.experimental_realtime_ws_base_url = Some(realtime_base_url);
@@ -152,7 +152,7 @@ async fn initial_items_enforce_aggregate_token_limit() -> Result<()> {
 
 async fn assert_start_error(params: ConversationStartParams, expected_error: &str) -> Result<()> {
     let api_server = start_mock_server().await;
-    let test = test_codex().build_with_auto_env(&api_server).await?;
+    let test = test_ditfa().build_with_auto_env(&api_server).await?;
     test.ditfa
         .submit(Op::RealtimeConversationStart(params))
         .await?;
@@ -176,7 +176,7 @@ fn start_params(version: RealtimeConversationVersion) -> ConversationStartParams
         flush_transcript_tail_on_session_end: false,
         ditfa_responses_as_items: false,
         ditfa_response_item_prefix: None,
-        ditfa_response_handoff_mode: CodexResponseHandoffMode::Thinking,
+        ditfa_response_handoff_mode: DitfaResponseHandoffMode::Thinking,
         ditfa_response_handoff_channel_prefixes: None,
         model: None,
         output_modality: RealtimeOutputModality::Audio,

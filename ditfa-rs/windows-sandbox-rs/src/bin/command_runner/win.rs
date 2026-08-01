@@ -75,8 +75,8 @@ use windows_sys::Win32::System::Threading::WaitForSingleObject;
 
 // Kept in sync with ditfa_exec_server::DITFA_FS_HELPER_ARG1 without introducing
 // a dependency cycle.
-const FS_HELPER_ARG: &str = "--codex-run-as-fs-helper";
-const READ_ACL_MUTEX_NAME: &str = "Local\\CodexSandboxReadAcl";
+const FS_HELPER_ARG: &str = "--ditfa-run-as-fs-helper";
+const READ_ACL_MUTEX_NAME: &str = "Local\\DitfaSandboxReadAcl";
 const TERMINATION_WAIT_MS: u32 = 5_000;
 const WAIT_TIMEOUT: u32 = 0x0000_0102;
 

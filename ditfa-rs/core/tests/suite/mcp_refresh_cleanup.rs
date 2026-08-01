@@ -12,7 +12,7 @@ use core_test_support::process::wait_for_process_exit;
 use core_test_support::responses;
 use core_test_support::skip_if_no_network;
 use core_test_support::stdio_server_bin;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_mcp_server;
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -24,7 +24,7 @@ async fn refresh_keeps_superseded_mcp_server_alive_for_in_flight_calls() -> anyh
     let pid_file = temp_dir.path().join("mcp.pid");
     let pid_file_for_config = pid_file.clone();
     let command = stdio_server_bin()?;
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_config(move |config| {
             let mut servers = config.mcp_servers.get().clone();
             servers.insert(
@@ -75,10 +75,10 @@ async fn refresh_keeps_superseded_mcp_server_alive_for_in_flight_calls() -> anyh
         "timeout_ms": 1_000
     });
     let long_call = tokio::spawn({
-        let codex = Arc::clone(&fixture.ditfa);
+        let ditfa = Arc::clone(&fixture.ditfa);
         let barrier = barrier.clone();
         async move {
-            codex
+            ditfa
                 .call_mcp_tool(
                     "refresh_cleanup",
                     "sync",

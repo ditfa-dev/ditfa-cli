@@ -9,7 +9,7 @@ use crate::facts::AnalyticsJsonRpcError;
 use crate::facts::AppInvocation;
 use crate::facts::AppMentionedInput;
 use crate::facts::AppUsedInput;
-use crate::facts::CodexGoalEvent;
+use crate::facts::DitfaGoalEvent;
 use crate::facts::CustomAnalyticsFact;
 use crate::facts::ExternalAgentConfigImportCompletedInput;
 use crate::facts::ExternalAgentConfigImportFailureInput;
@@ -25,7 +25,7 @@ use crate::facts::SkillInvocation;
 use crate::facts::SkillInvokedInput;
 use crate::facts::SubAgentThreadStartedInput;
 use crate::facts::TrackEventsContext;
-use crate::facts::TurnCodexErrorFact;
+use crate::facts::TurnDitfaErrorFact;
 use crate::facts::TurnProfileFact;
 use crate::facts::TurnResolvedConfigFact;
 use crate::facts::TurnTokenUsageFact;
@@ -39,7 +39,7 @@ use ditfa_app_server_protocol::ServerNotification;
 use ditfa_app_server_protocol::ServerRequest;
 use ditfa_app_server_protocol::ServerResponse;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::default_client::create_client;
 use ditfa_plugin::PluginId;
 use ditfa_plugin::PluginTelemetryMetadata;
@@ -113,7 +113,7 @@ impl AnalyticsEventsDestination {
 
         let base_url = base_url.trim_end_matches('/');
         Self::Http {
-            url: format!("{base_url}/codex/analytics-events/events"),
+            url: format!("{base_url}/ditfa/analytics-events/events"),
         }
     }
 }
@@ -368,13 +368,13 @@ impl AnalyticsEventsClient {
         ));
     }
 
-    pub fn track_compaction(&self, event: crate::facts::CodexCompactionEvent) {
+    pub fn track_compaction(&self, event: crate::facts::DitfaCompactionEvent) {
         self.record_fact(AnalyticsFact::Custom(CustomAnalyticsFact::Compaction(
             Box::new(event),
         )));
     }
 
-    pub fn track_goal_event(&self, event: CodexGoalEvent) {
+    pub fn track_goal_event(&self, event: DitfaGoalEvent) {
         self.record_fact(AnalyticsFact::Custom(CustomAnalyticsFact::Goal(Box::new(
             event,
         ))));
@@ -398,8 +398,8 @@ impl AnalyticsEventsClient {
         )));
     }
 
-    pub fn track_turn_codex_error(&self, fact: TurnCodexErrorFact) {
-        self.record_fact(AnalyticsFact::Custom(CustomAnalyticsFact::TurnCodexError(
+    pub fn track_turn_ditfa_error(&self, fact: TurnDitfaErrorFact) {
+        self.record_fact(AnalyticsFact::Custom(CustomAnalyticsFact::TurnDitfaError(
             Box::new(fact),
         )));
     }
@@ -610,7 +610,7 @@ async fn send_track_events(
     };
     if auth.is_api_key_auth() {
         events.retain(TrackEventRequest::can_send_with_api_key_auth);
-    } else if !auth.uses_codex_backend() {
+    } else if !auth.uses_ditfa_backend() {
         return;
     }
     if events.is_empty() {
@@ -646,7 +646,7 @@ fn track_event_request_batches(events: Vec<TrackEventRequest>) -> Vec<Vec<TrackE
 }
 
 async fn send_track_events_request(
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     destination: &AnalyticsEventsDestination,
     events: Vec<TrackEventRequest>,
 ) {

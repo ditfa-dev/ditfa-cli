@@ -6,7 +6,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::time::Duration;
 
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::default_client::create_client_without_request_logging;
 
 const REMOTE_SKILLS_API_TIMEOUT: Duration = Duration::from_secs(30);
@@ -25,7 +25,7 @@ pub enum RemoteSkillScope {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RemoteSkillProductSurface {
     Chatgpt,
-    Codex,
+    Ditfa,
     Api,
     Atlas,
 }
@@ -42,17 +42,17 @@ fn as_query_scope(scope: RemoteSkillScope) -> Option<&'static str> {
 fn as_query_product_surface(product_surface: RemoteSkillProductSurface) -> &'static str {
     match product_surface {
         RemoteSkillProductSurface::Chatgpt => "chatgpt",
-        RemoteSkillProductSurface::Codex => "codex",
+        RemoteSkillProductSurface::Ditfa => "ditfa",
         RemoteSkillProductSurface::Api => "api",
         RemoteSkillProductSurface::Atlas => "atlas",
     }
 }
 
-fn ensure_codex_backend_auth(auth: Option<&CodexAuth>) -> Result<&CodexAuth> {
+fn ensure_ditfa_backend_auth(auth: Option<&DitfaAuth>) -> Result<&DitfaAuth> {
     let Some(auth) = auth else {
         anyhow::bail!("chatgpt authentication required for remote skill scopes");
     };
-    if !auth.uses_codex_backend() {
+    if !auth.uses_ditfa_backend() {
         anyhow::bail!(
             "chatgpt authentication required for remote skill scopes; api key auth is not supported"
         );
@@ -88,13 +88,13 @@ struct RemoteSkill {
 
 pub async fn list_remote_skills(
     chatgpt_base_url: String,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     scope: RemoteSkillScope,
     product_surface: RemoteSkillProductSurface,
     enabled: Option<bool>,
 ) -> Result<Vec<RemoteSkillSummary>> {
     let base_url = chatgpt_base_url.trim_end_matches('/');
-    let auth = ensure_codex_backend_auth(auth)?;
+    let auth = ensure_ditfa_backend_auth(auth)?;
 
     let url = format!("{base_url}/hazelnuts");
     let product_surface = as_query_product_surface(product_surface);
@@ -141,10 +141,10 @@ pub async fn list_remote_skills(
 pub async fn export_remote_skill(
     chatgpt_base_url: String,
     ditfa_home: PathBuf,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     skill_id: &str,
 ) -> Result<RemoteSkillDownloadResult> {
-    let auth = ensure_codex_backend_auth(auth)?;
+    let auth = ensure_ditfa_backend_auth(auth)?;
 
     let client = create_client_without_request_logging();
     let base_url = chatgpt_base_url.trim_end_matches('/');

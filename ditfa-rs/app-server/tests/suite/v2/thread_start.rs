@@ -97,7 +97,7 @@ model = "gpt-5.4-mini"
 "#,
     )?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -116,7 +116,7 @@ model = "gpt-5.4-mini"
 async fn thread_start_warns_for_exec_policy_parse_failure_after_initialize() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -188,7 +188,7 @@ async fn thread_start_does_not_repeat_initialize_exec_policy_warning() -> Result
     std::fs::write(rules_dir.join("broken.rules"), "prefix_rule(")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     timeout(
@@ -227,7 +227,7 @@ async fn thread_start_provider_model_fallback_uses_bedrock_static_catalog() -> R
 "#,
     )?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -267,7 +267,7 @@ async fn thread_start_provider_model_fallback_ignores_dynamic_catalog() -> Resul
     let ditfa_home = TempDir::new()?;
     create_config_toml_without_approval_policy(ditfa_home.path(), &server.uri())?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -292,7 +292,7 @@ async fn thread_start_creates_thread_and_emits_started() -> Result<()> {
 
     // Start server and initialize.
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -441,7 +441,7 @@ async fn thread_start_history_mode_accepts_legacy_and_paginated() -> Result<()> 
     create_config_toml_without_approval_policy(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -477,7 +477,7 @@ async fn thread_start_accepts_absolute_runtime_workspace_roots() -> Result<()> {
     std::fs::create_dir_all(&extra_root)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -560,7 +560,7 @@ async fn thread_start_excludes_profile_workspace_roots_from_runtime_workspace_ro
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -596,7 +596,7 @@ async fn thread_start_rejects_unknown_environment_as_invalid_request() -> Result
     let workspace = workspace.path().to_path_buf().abs();
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -634,7 +634,7 @@ async fn thread_start_rejects_relative_environment_cwd_as_invalid_request() -> R
     create_config_toml_without_approval_policy(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
     let environment_id = mcp.auto_env_params()?.environment_id;
@@ -679,7 +679,7 @@ async fn thread_start_response_includes_loaded_instruction_sources() -> Result<(
     std::fs::write(&project_agents_path, "project instructions")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         // TODO(anp): Move the instruction-source fixture into the auto environment cwd.
         .without_auto_env()
         .build_initialized()
@@ -725,7 +725,7 @@ async fn thread_start_response_excludes_empty_project_instruction_source() -> Re
     std::fs::write(project_agents_path, "")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         // TODO(anp): Move the instruction-source fixture into the auto environment cwd.
         .without_auto_env()
         .build_initialized()
@@ -767,7 +767,7 @@ async fn thread_start_without_selected_environment_includes_only_global_instruct
     std::fs::write(workspace.path().join("AGENTS.md"), "project instructions")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -854,7 +854,7 @@ async fn thread_start_tracks_thread_initialized_analytics() -> Result<()> {
     mount_analytics_capture(&server, ditfa_home.path()).await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_managed_config()
         .build_initialized()
         .await?;
@@ -901,7 +901,7 @@ model_reasoning_effort = "high"
     set_project_trust_level(ditfa_home.path(), workspace.path(), TrustLevel::Trusted)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -926,7 +926,7 @@ async fn thread_start_drops_unsupported_service_tier_id() -> Result<()> {
     create_config_toml_without_approval_policy(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -951,7 +951,7 @@ async fn thread_start_accepts_default_service_tier() -> Result<()> {
     create_config_toml_without_approval_policy(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -977,7 +977,7 @@ async fn thread_start_accepts_metrics_service_name() -> Result<()> {
     create_config_toml_without_approval_policy(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -999,7 +999,7 @@ async fn thread_start_ephemeral_remains_pathless() -> Result<()> {
     create_config_toml_without_approval_policy(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1047,7 +1047,7 @@ async fn thread_start_fails_when_required_mcp_server_fails_to_initialize() -> Re
     create_config_toml_with_required_broken_mcp(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1085,7 +1085,7 @@ async fn thread_start_emits_mcp_server_status_updated_notifications() -> Result<
     create_config_toml_with_optional_broken_mcp(ditfa_home.path(), &server.uri())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1193,7 +1193,7 @@ async fn thread_start_does_not_wait_for_optional_http_mcp_auth_discovery() -> Re
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1259,7 +1259,7 @@ async fn thread_start_surfaces_cloud_config_bundle_load_errors() -> Result<()> {
 
     let refresh_token_url = format!("{}/oauth/token", server.uri());
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .with_env_overrides(&[
             ("OPENAI_API_KEY", None),
             (
@@ -1318,7 +1318,7 @@ model_reasoning_effort = "high"
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1368,7 +1368,7 @@ async fn thread_start_with_nested_git_cwd_trusts_repo_root() -> Result<()> {
     std::fs::create_dir_all(&nested)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1402,7 +1402,7 @@ async fn thread_start_with_read_only_sandbox_does_not_persist_project_trust() ->
     let workspace = TempDir::new()?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1436,7 +1436,7 @@ async fn thread_start_preserves_untrusted_project_trust() -> Result<()> {
     let config_before = std::fs::read_to_string(&config_path)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -1473,7 +1473,7 @@ model_reasoning_effort = "high"
     let config_before = std::fs::read_to_string(ditfa_home.path().join("config.toml"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 

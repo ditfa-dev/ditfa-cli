@@ -19,7 +19,7 @@ use ditfa_config::CloudConfigBundleLoadError;
 use ditfa_config::CloudConfigBundleLoadErrorCode;
 use ditfa_core::util::backoff;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::RefreshTokenError;
 use ditfa_login::UnauthorizedRecovery;
 use ditfa_protocol::account::PlanType;
@@ -40,15 +40,15 @@ const CLOUD_CONFIG_BUNDLE_AUTH_RECOVERY_FAILED_MESSAGE: &str = concat!(
     "Please log out and sign in again."
 );
 
-fn auth_identity(auth: &CodexAuth) -> (Option<String>, Option<String>) {
+fn auth_identity(auth: &DitfaAuth) -> (Option<String>, Option<String>) {
     (auth.get_chatgpt_user_id(), auth.get_account_id())
 }
 
-fn cloud_config_eligible_auth(auth: &CodexAuth) -> bool {
+fn cloud_config_eligible_auth(auth: &DitfaAuth) -> bool {
     let Some(plan_type) = auth.account_plan_type() else {
         return false;
     };
-    auth.uses_codex_backend()
+    auth.uses_ditfa_backend()
         && (plan_type.is_business_like()
             || matches!(plan_type, PlanType::Enterprise | PlanType::Edu))
 }
@@ -115,7 +115,7 @@ where
         &self,
     ) -> Result<Option<CloudConfigBundle>, CloudConfigBundleLoadError> {
         let _timer =
-            ditfa_otel::start_global_timer("codex.cloud_config_bundle.fetch.duration_ms", &[]);
+            ditfa_otel::start_global_timer("ditfa.cloud_config_bundle.fetch.duration_ms", &[]);
         let started_at = Instant::now();
         let load_result = timeout(self.timeout, self.load_startup_bundle())
             .await
@@ -226,7 +226,7 @@ where
 
     async fn fetch_remote_bundle_and_update_cache_with_retries(
         &self,
-        mut auth: CodexAuth,
+        mut auth: DitfaAuth,
         trigger: &'static str,
     ) -> Result<Option<CloudConfigBundle>, CloudConfigBundleLoadError> {
         let mut attempt = 1;
@@ -299,7 +299,7 @@ where
 
     async fn validate_and_cache_remote_bundle(
         &self,
-        auth: &CodexAuth,
+        auth: &DitfaAuth,
         trigger: &'static str,
         attempt: usize,
         bundle: CloudConfigBundle,
@@ -364,7 +364,7 @@ where
 
     async fn handle_unauthorized(
         &self,
-        auth: &mut CodexAuth,
+        auth: &mut DitfaAuth,
         auth_recovery: &mut UnauthorizedRecovery,
         trigger: &'static str,
         attempt: usize,

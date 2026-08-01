@@ -32,12 +32,12 @@ use ditfa_config::types::McpServerConfig;
 use ditfa_config::types::McpServerTransportConfig;
 use ditfa_config::types::ToolSuggestDisabledTool;
 use ditfa_core_skills::HostSkillsSnapshot;
-use core_test_support::test_codex::local_selections;
+use core_test_support::test_ditfa::local_selections;
 
 use ditfa_features::Feature;
 use ditfa_http_client::HttpClientFactory;
 use ditfa_http_client::OutboundProxyPolicy;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::auth::AgentIdentityAuthPolicy;
 use ditfa_model_provider_info::ModelProviderInfo;
 use ditfa_models_manager::bundled_models_response;
@@ -120,7 +120,7 @@ use ditfa_protocol::models::ContentItem;
 use ditfa_protocol::models::InternalChatMessageMetadataPassthrough;
 use ditfa_protocol::models::ResponseItem;
 use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::CodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::CompactedItem;
 use ditfa_protocol::protocol::ConversationAudioParams;
 use ditfa_protocol::protocol::CreditsSnapshot;
@@ -165,8 +165,8 @@ use core_test_support::responses::start_mock_server;
 use core_test_support::responses::strip_metadata_from_items;
 use core_test_support::responses::strip_response_item_ids;
 use core_test_support::responses::strip_response_item_ids_from_json;
-use core_test_support::test_codex::local;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::local;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::test_path_buf;
 use core_test_support::tracing::install_test_tracing;
 use core_test_support::wait_for_event;
@@ -308,7 +308,7 @@ fn assistant_message(text: &str) -> ResponseItem {
 fn test_session_telemetry_without_metadata() -> SessionTelemetry {
     let exporter = InMemoryMetricExporter::default();
     let metrics = MetricsClient::new(
-        MetricsConfig::in_memory("test", "codex-core", env!("CARGO_PKG_VERSION"), exporter)
+        MetricsConfig::in_memory("test", "ditfa-core", env!("CARGO_PKG_VERSION"), exporter)
             .with_runtime_reader(),
     )
     .expect("in-memory metrics client");
@@ -367,7 +367,7 @@ fn skill_message(text: &str) -> ResponseItem {
 
 #[tokio::test]
 async fn regular_turn_emits_turn_started_with_trace_id_without_waiting_for_startup_prewarm() {
-    let _trace_test_context = install_test_tracing("codex-core-tests");
+    let _trace_test_context = install_test_tracing("ditfa-core-tests");
     let request_parent = W3cTraceContext {
         traceparent: Some("00-00000000000000000000000000000011-0000000000000022-01".into()),
         tracestate: Some("vendor=value".into()),
@@ -592,10 +592,10 @@ fn user_input_texts(items: &[ResponseItem]) -> Vec<&str> {
         .collect()
 }
 
-fn write_project_hooks(dot_codex: &Path) -> std::io::Result<()> {
-    std::fs::create_dir_all(dot_codex)?;
+fn write_project_hooks(dot_ditfa: &Path) -> std::io::Result<()> {
+    std::fs::create_dir_all(dot_ditfa)?;
     std::fs::write(
-        dot_codex.join("hooks.json"),
+        dot_ditfa.join("hooks.json"),
         r#"{
   "hooks": {
     "SessionStart": [
@@ -1359,7 +1359,7 @@ async fn get_base_instructions_no_user_content() {
 async fn reload_user_config_layer_updates_effective_apps_config() {
     let (session, _turn_context) = make_session_and_context().await;
     let ditfa_home = session.ditfa_home().await;
-    std::fs::create_dir_all(&ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&ditfa_home).expect("create ditfa home");
     let config_toml_path = ditfa_home.join(CONFIG_TOML_FILE);
     std::fs::write(
         &config_toml_path,
@@ -1392,7 +1392,7 @@ async fn reload_user_config_layer_updates_effective_apps_config() {
 async fn reload_user_config_layer_keeps_previous_config_for_malformed_shell_policy() {
     let (session, _turn_context) = make_session_and_context().await;
     let ditfa_home = session.ditfa_home().await;
-    std::fs::create_dir_all(&ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&ditfa_home).expect("create ditfa home");
     let config_toml_path = ditfa_home.join(CONFIG_TOML_FILE);
     std::fs::write(&config_toml_path, "[apps.calendar]\nenabled = false\n")
         .expect("write valid user config");
@@ -1431,7 +1431,7 @@ exclude = ["SECRET_*", 17]
 async fn reload_user_config_layer_updates_base_and_selected_profile_layers() {
     let (session, _turn_context) = make_session_and_context().await;
     let ditfa_home = session.ditfa_home().await;
-    std::fs::create_dir_all(&ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&ditfa_home).expect("create ditfa home");
     let base_config_path = ditfa_home.join(CONFIG_TOML_FILE);
     let profile_config_path = ditfa_home.join("work.config.toml");
     std::fs::write(
@@ -1496,8 +1496,8 @@ async fn reload_user_config_layer_refreshes_hooks() -> anyhow::Result<()> {
     let session = make_session_with_config(|config| {
         config
             .features
-            .enable(Feature::CodexHooks)
-            .expect("enable Codex hooks");
+            .enable(Feature::DitfaHooks)
+            .expect("enable Ditfa hooks");
     })
     .await?;
     let ditfa_home = session.ditfa_home().await;
@@ -1574,8 +1574,8 @@ async fn refresh_runtime_config_refreshes_hooks() -> anyhow::Result<()> {
         let mut config = (*state.session_configuration.original_config_do_not_use).clone();
         config
             .features
-            .enable(Feature::CodexHooks)
-            .expect("enable Codex hooks");
+            .enable(Feature::DitfaHooks)
+            .expect("enable Ditfa hooks");
         state.session_configuration.original_config_do_not_use = Arc::new(config);
     }
     let ditfa_home = session.ditfa_home().await;
@@ -1646,7 +1646,7 @@ async fn refresh_runtime_config_refreshes_hooks() -> anyhow::Result<()> {
 async fn reload_user_config_layer_updates_effective_tool_suggest_config() {
     let (session, _turn_context) = make_session_and_context().await;
     let ditfa_home = session.ditfa_home().await;
-    std::fs::create_dir_all(&ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&ditfa_home).expect("create ditfa home");
     let config_toml_path = ditfa_home.join(CONFIG_TOML_FILE);
     std::fs::write(
         &config_toml_path,
@@ -1676,7 +1676,7 @@ async fn refresh_runtime_config_updates_runtime_refreshable_fields_and_keeps_ses
  {
     let (session, _turn_context) = make_session_and_context().await;
     let ditfa_home = session.ditfa_home().await;
-    std::fs::create_dir_all(&ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&ditfa_home).expect("create ditfa home");
     std::fs::write(
         ditfa_home.join(CONFIG_TOML_FILE),
         r#"[apps.calendar]
@@ -1983,7 +1983,7 @@ async fn record_inter_agent_communication_sets_turn_id_in_rollout_and_resume() {
 #[tokio::test]
 async fn record_inter_agent_communication_preserves_item_id_in_rollout_and_resume() {
     let (mut session, turn_context, _rx) = make_session_and_context_with_auth_and_config_and_rx(
-        CodexAuth::from_api_key("Test API Key"),
+        DitfaAuth::from_api_key("Test API Key"),
         Vec::new(),
         |_| {},
     )
@@ -2030,7 +2030,7 @@ async fn record_inter_agent_communication_preserves_item_id_in_rollout_and_resum
 
     let (resumed_session, _resumed_turn_context, _rx) =
         make_session_and_context_with_auth_and_config_and_rx(
-            CodexAuth::from_api_key("Test API Key"),
+            DitfaAuth::from_api_key("Test API Key"),
             Vec::new(),
             |_| {},
         )
@@ -2051,7 +2051,7 @@ async fn record_inter_agent_communication_preserves_item_id_in_rollout_and_resum
 #[tokio::test]
 async fn prepares_image_failures_before_history_insertion() {
     let (session, turn_context, _rx) = make_session_and_context_with_auth_and_config_and_rx(
-        CodexAuth::from_api_key("Test API Key"),
+        DitfaAuth::from_api_key("Test API Key"),
         Vec::new(),
         |_| {},
     )
@@ -2682,7 +2682,7 @@ async fn turn_error_lifecycle_exposes_error_and_stores() {
         thread_level_id: String,
         turn_level_id: String,
         turn_id: String,
-        error: CodexErrorInfo,
+        error: DitfaErrorInfo,
         saw_session_store: bool,
         saw_thread_store: bool,
     }
@@ -2740,13 +2740,13 @@ async fn turn_error_lifecycle_exposes_error_and_stores() {
         thread_level_id: session.thread_id.to_string(),
         turn_level_id: turn_context.sub_id.clone(),
         turn_id: turn_context.sub_id.clone(),
-        error: CodexErrorInfo::UsageLimitExceeded,
+        error: DitfaErrorInfo::UsageLimitExceeded,
         saw_session_store: true,
         saw_thread_store: true,
     };
 
     session
-        .emit_turn_error_lifecycle(&turn_context, CodexErrorInfo::UsageLimitExceeded)
+        .emit_turn_error_lifecycle(&turn_context, DitfaErrorInfo::UsageLimitExceeded)
         .await;
 
     let actual = records
@@ -2840,7 +2840,7 @@ async fn config_change_contributor_observes_effective_config_changes() {
         .expect("update settings");
 
     let ditfa_home = session.ditfa_home().await;
-    std::fs::create_dir_all(&ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&ditfa_home).expect("create ditfa home");
     std::fs::write(
         ditfa_home.join(CONFIG_TOML_FILE),
         r#"[tool_suggest]
@@ -2903,7 +2903,7 @@ async fn record_initial_history_reconstructs_forked_transcript() {
 #[tokio::test]
 async fn start_new_context_window_assigns_and_persists_item_ids() {
     let (mut session, turn_context, _rx) = make_session_and_context_with_auth_and_config_and_rx(
-        CodexAuth::from_api_key("Test API Key"),
+        DitfaAuth::from_api_key("Test API Key"),
         Vec::new(),
         |_| {},
     )
@@ -2955,7 +2955,7 @@ async fn start_new_context_window_assigns_and_persists_item_ids() {
 #[tokio::test]
 async fn record_initial_history_assigns_and_persists_id_for_forked_response_item() {
     let (mut session, _turn_context, _rx) = make_session_and_context_with_auth_and_config_and_rx(
-        CodexAuth::from_api_key("Test API Key"),
+        DitfaAuth::from_api_key("Test API Key"),
         Vec::new(),
         |_| {},
     )
@@ -3020,7 +3020,7 @@ async fn session_configured_reports_permission_profile_for_external_sandbox() ->
         network: NetworkSandboxPolicy::Restricted,
     };
     let expected_permission_profile = permission_profile.clone();
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config
             .permissions
             .set_permission_profile(permission_profile.clone())
@@ -3053,7 +3053,7 @@ async fn fork_startup_context_then_first_turn_diff_snapshot() -> anyhow::Result<
     )
     .await;
 
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.permissions.approval_policy =
             ditfa_config::Constrained::allow_any(AskForApproval::OnRequest);
     });
@@ -3143,7 +3143,7 @@ async fn fork_startup_context_then_first_turn_diff_snapshot() -> anyhow::Result<
     settings.set_prepend_module_to_snapshot(false);
     settings.bind(|| {
         insta::assert_snapshot!(
-            "ditfa_core__codex_tests__fork_startup_context_then_first_turn_diff",
+            "ditfa_core__ditfa_tests__fork_startup_context_then_first_turn_diff",
             snapshot
         );
     });
@@ -3354,7 +3354,7 @@ async fn thread_rollback_fails_without_persisted_thread_history() {
     );
     assert_eq!(
         error_event.ditfa_error_info,
-        Some(CodexErrorInfo::ThreadRollbackFailed)
+        Some(DitfaErrorInfo::ThreadRollbackFailed)
     );
     assert_eq!(
         sess.clone_history().await.raw_items(),
@@ -3781,7 +3781,7 @@ async fn thread_rollback_fails_when_turn_in_progress() {
     let error_event = wait_for_thread_rollback_failed(&rx).await;
     assert_eq!(
         error_event.ditfa_error_info,
-        Some(CodexErrorInfo::ThreadRollbackFailed)
+        Some(DitfaErrorInfo::ThreadRollbackFailed)
     );
 
     let history = sess.clone_history().await;
@@ -3803,7 +3803,7 @@ async fn thread_rollback_fails_when_num_turns_is_zero() {
     assert_eq!(error_event.message, "num_turns must be >= 1");
     assert_eq!(
         error_event.ditfa_error_info,
-        Some(CodexErrorInfo::ThreadRollbackFailed)
+        Some(DitfaErrorInfo::ThreadRollbackFailed)
     );
 
     let history = sess.clone_history().await;
@@ -4015,7 +4015,7 @@ async fn set_rate_limits_updates_plan_type_when_present() {
     assert_eq!(
         state.latest_rate_limits,
         Some(RateLimitSnapshot {
-            limit_id: Some("codex".to_string()),
+            limit_id: Some("ditfa".to_string()),
             limit_name: None,
             primary: update.primary,
             secondary: update.secondary,
@@ -4196,7 +4196,7 @@ async fn wait_for_thread_rollback_failed(rx: &async_channel::Receiver<Event>) ->
             .expect("event");
         match evt.msg {
             EventMsg::Error(payload)
-                if payload.ditfa_error_info == Some(CodexErrorInfo::ThreadRollbackFailed) =>
+                if payload.ditfa_error_info == Some(DitfaErrorInfo::ThreadRollbackFailed) =>
             {
                 return payload;
             }
@@ -4520,13 +4520,13 @@ async fn emit_subagent_session_started_includes_fork_lineage_and_originator() {
 
     let server = MockServer::start().await;
     Mock::given(method("POST"))
-        .and(path("/codex/analytics-events/events"))
+        .and(path("/ditfa/analytics-events/events"))
         .respond_with(ResponseTemplate::new(200))
         .mount(&server)
         .await;
 
     let auth_manager =
-        AuthManager::from_auth_for_testing(CodexAuth::create_dummy_chatgpt_auth_for_testing());
+        AuthManager::from_auth_for_testing(DitfaAuth::create_dummy_chatgpt_auth_for_testing());
     let analytics_events_client = AnalyticsEventsClient::new(
         auth_manager,
         server.uri(),
@@ -4542,7 +4542,7 @@ async fn emit_subagent_session_started_includes_fork_lineage_and_originator() {
     emit_subagent_session_started(
         &analytics_events_client,
         AppServerClientMetadata {
-            client_name: Some("codex-tui".to_string()),
+            client_name: Some("ditfa-tui".to_string()),
             client_version: Some("1.0.0".to_string()),
         },
         SessionId::from(child_thread_id),
@@ -4778,7 +4778,7 @@ async fn session_configuration_apply_permission_profile_accepts_direct_write_roo
 
 #[tokio::test]
 async fn active_profile_update_rebuilds_network_proxy_config() -> std::io::Result<()> {
-    let ditfa_home = tempfile::tempdir().expect("create codex home");
+    let ditfa_home = tempfile::tempdir().expect("create ditfa home");
     let cwd = tempfile::tempdir().expect("create cwd");
     let permissions = PermissionsToml {
         entries: std::collections::BTreeMap::from([
@@ -5197,7 +5197,7 @@ async fn session_new_fails_when_zsh_fork_enabled_without_packaged_zsh() {
     config.zsh_path = None;
     let config = Arc::new(config);
 
-    let auth_manager = AuthManager::from_auth_for_testing(CodexAuth::from_api_key("Test API Key"));
+    let auth_manager = AuthManager::from_auth_for_testing(DitfaAuth::from_api_key("Test API Key"));
     let models_manager = models_manager_with_provider(
         config.ditfa_home.to_path_buf(),
         auth_manager.clone(),
@@ -5324,7 +5324,7 @@ pub(crate) async fn make_session_and_context() -> (Session, TurnContext) {
     let config = build_test_config(ditfa_home.path()).await;
     let config = Arc::new(config);
     let thread_id = ThreadId::default();
-    let auth_manager = AuthManager::from_auth_for_testing(CodexAuth::from_api_key("Test API Key"));
+    let auth_manager = AuthManager::from_auth_for_testing(DitfaAuth::from_api_key("Test API Key"));
     let models_manager = models_manager_with_provider(
         config.ditfa_home.to_path_buf(),
         auth_manager.clone(),
@@ -5580,7 +5580,7 @@ async fn make_session_with_config_and_rx(
     let mut config = build_test_config(ditfa_home.path()).await;
     mutator(&mut config);
     let config = Arc::new(config);
-    let auth_manager = AuthManager::from_auth_for_testing(CodexAuth::from_api_key("Test API Key"));
+    let auth_manager = AuthManager::from_auth_for_testing(DitfaAuth::from_api_key("Test API Key"));
     let models_manager = models_manager_with_provider(
         config.ditfa_home.to_path_buf(),
         auth_manager.clone(),
@@ -5688,7 +5688,7 @@ async fn make_session_with_history_source_and_agent_control_and_rx(
     let mut config = build_test_config(ditfa_home.path()).await;
     config.ephemeral = true;
     let config = Arc::new(config);
-    let auth_manager = AuthManager::from_auth_for_testing(CodexAuth::from_api_key("Test API Key"));
+    let auth_manager = AuthManager::from_auth_for_testing(DitfaAuth::from_api_key("Test API Key"));
     let models_manager = models_manager_with_provider(
         config.ditfa_home.to_path_buf(),
         auth_manager.clone(),
@@ -6485,7 +6485,7 @@ async fn submit_with_id_captures_current_span_trace_context() {
         session_loop_termination: completed_session_loop_termination(),
     };
 
-    let _trace_test_context = install_test_tracing("codex-core-tests");
+    let _trace_test_context = install_test_tracing("ditfa-core-tests");
 
     let request_parent = W3cTraceContext {
         traceparent: Some("00-00000000000000000000000000000011-0000000000000022-01".into()),
@@ -6521,7 +6521,7 @@ async fn submit_with_id_captures_current_span_trace_context() {
 async fn new_default_turn_captures_current_span_trace_id() {
     let (session, _turn_context) = make_session_and_context().await;
 
-    let _trace_test_context = install_test_tracing("codex-core-tests");
+    let _trace_test_context = install_test_tracing("ditfa-core-tests");
 
     let request_parent = W3cTraceContext {
         traceparent: Some("00-00000000000000000000000000000011-0000000000000022-01".into()),
@@ -6555,7 +6555,7 @@ async fn new_default_turn_captures_current_span_trace_id() {
 
 #[test]
 fn submission_dispatch_span_prefers_submission_trace_context() {
-    let _trace_test_context = install_test_tracing("codex-core-tests");
+    let _trace_test_context = install_test_tracing("ditfa-core-tests");
 
     let ambient_parent = W3cTraceContext {
         traceparent: Some("00-00000000000000000000000000000033-0000000000000044-01".into()),
@@ -6589,7 +6589,7 @@ fn submission_dispatch_span_prefers_submission_trace_context() {
 
 #[test]
 fn submission_dispatch_span_uses_debug_for_realtime_audio() {
-    let _trace_test_context = install_test_tracing("codex-core-tests");
+    let _trace_test_context = install_test_tracing("ditfa-core-tests");
 
     let dispatch_span = submission_dispatch_span(&Submission {
         id: "sub-1".into(),
@@ -6933,7 +6933,7 @@ async fn spawn_task_turn_span_inherits_dispatch_trace_context() {
         }
     }
 
-    let _trace_test_context = install_test_tracing("codex-core-tests");
+    let _trace_test_context = install_test_tracing("ditfa-core-tests");
 
     let request_parent = W3cTraceContext {
         traceparent: Some("00-00000000000000000000000000000011-0000000000000022-01".into()),
@@ -7448,7 +7448,7 @@ async fn shutdown_and_wait_shuts_down_tracked_ephemeral_guardian_review() {
 }
 
 async fn make_session_and_context_with_auth_and_config_and_rx<F>(
-    auth: CodexAuth,
+    auth: DitfaAuth,
     dynamic_tools: Vec<DynamicToolSpec>,
     configure_config: F,
 ) -> (
@@ -7470,7 +7470,7 @@ where
 }
 
 async fn make_session_and_context_with_auth_config_home_and_rx<F>(
-    auth: CodexAuth,
+    auth: DitfaAuth,
     dynamic_tools: Vec<DynamicToolSpec>,
     ditfa_home: &Path,
     configure_config: F,
@@ -7727,7 +7727,7 @@ pub(crate) async fn make_session_and_context_with_dynamic_tools_and_rx(
     async_channel::Receiver<Event>,
 ) {
     make_session_and_context_with_auth_and_config_and_rx(
-        CodexAuth::from_api_key("Test API Key"),
+        DitfaAuth::from_api_key("Test API Key"),
         dynamic_tools,
         |_config| {},
     )
@@ -8339,7 +8339,7 @@ async fn make_multi_agent_v2_usage_hint_test_session(
     enable_multi_agent_v2: bool,
 ) -> (Arc<Session>, Arc<TurnContext>) {
     let (session, turn_context, _rx_event) = make_session_and_context_with_auth_and_config_and_rx(
-        CodexAuth::from_api_key("Test API Key"),
+        DitfaAuth::from_api_key("Test API Key"),
         Vec::new(),
         |config| {
             if enable_multi_agent_v2 {
@@ -8605,7 +8605,7 @@ async fn build_initial_context_omits_multi_agent_v2_usage_hints_when_feature_dis
 #[tokio::test]
 async fn build_initial_context_omits_multi_agent_v2_usage_hints_when_hint_is_empty() {
     let (session, turn_context, _rx_event) = make_session_and_context_with_auth_and_config_and_rx(
-        CodexAuth::from_api_key("Test API Key"),
+        DitfaAuth::from_api_key("Test API Key"),
         Vec::new(),
         |config| {
             let _ = config.features.enable(Feature::MultiAgentV2);
@@ -10998,14 +10998,14 @@ async fn session_start_hooks_only_load_from_trusted_project_layers() -> std::io:
     let ditfa_home = temp.path().join("home");
     let project_root = temp.path().join("project");
     let nested = project_root.join("nested");
-    let root_dot_codex = project_root.join(".ditfa");
-    let nested_dot_codex = nested.join(".ditfa");
+    let root_dot_ditfa = project_root.join(".ditfa");
+    let nested_dot_ditfa = nested.join(".ditfa");
 
     std::fs::create_dir_all(&ditfa_home)?;
-    std::fs::create_dir_all(&nested_dot_codex)?;
+    std::fs::create_dir_all(&nested_dot_ditfa)?;
     std::fs::write(project_root.join(".git"), "gitdir: here")?;
-    write_project_hooks(&root_dot_codex)?;
-    write_project_hooks(&nested_dot_codex)?;
+    write_project_hooks(&root_dot_ditfa)?;
+    write_project_hooks(&nested_dot_ditfa)?;
     write_project_trust_config(&ditfa_home, &[(&nested, TrustLevel::Trusted)]).await?;
 
     let config = ConfigBuilder::default()
@@ -11020,7 +11020,7 @@ async fn session_start_hooks_only_load_from_trusted_project_layers() -> std::io:
         ..ditfa_hooks::HooksConfig::default()
     });
     let expected_source_path = ditfa_utils_absolute_path::AbsolutePathBuf::from_absolute_path(
-        nested_dot_codex.join("hooks.json"),
+        nested_dot_ditfa.join("hooks.json"),
     )?;
     assert_eq!(
         hook_list
@@ -11044,10 +11044,10 @@ async fn session_start_hooks_require_project_trust_without_config_toml() -> std:
     let temp = tempfile::tempdir()?;
     let project_root = temp.path().join("project");
     let nested = project_root.join("nested");
-    let dot_codex = project_root.join(".ditfa");
+    let dot_ditfa = project_root.join(".ditfa");
     std::fs::create_dir_all(&nested)?;
     std::fs::write(project_root.join(".git"), "gitdir: here")?;
-    write_project_hooks(&dot_codex)?;
+    write_project_hooks(&dot_ditfa)?;
 
     let cases = [
         ("unknown", Vec::<(&Path, TrustLevel)>::new(), 0_usize),

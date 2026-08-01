@@ -229,7 +229,7 @@ fn install_details(parsed: &[ParsedDetail], options: HumanOutputOptions) -> Vec<
         expected: None,
     });
 
-    let path_entries = numbered_values(parsed, "PATH codex #");
+    let path_entries = numbered_values(parsed, "PATH ditfa #");
     if !path_entries.is_empty() {
         let total = path_entries.len();
         let shown = if options.show_all {
@@ -267,9 +267,9 @@ fn install_details(parsed: &[ParsedDetail], options: HumanOutputOptions) -> Vec<
             "managed by bun",
             "managed by pnpm",
             "managed package root",
-            "PATH codex entries",
+            "PATH ditfa entries",
         ],
-        &["PATH codex #"],
+        &["PATH ditfa #"],
     );
     out
 }
@@ -747,7 +747,7 @@ fn value<'a>(parsed: &'a [ParsedDetail], label: &str) -> Option<&'a str> {
 
 fn display_label(label: &str) -> String {
     match label {
-        "codex-linux-sandbox helper" => "linux helper",
+        "ditfa-linux-sandbox helper" => "linux helper",
         "optional reachability failed" => "optional reachability",
         "check for update on startup" => "startup update check",
         other => other,

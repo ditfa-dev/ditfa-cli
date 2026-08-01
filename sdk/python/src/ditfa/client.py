@@ -16,7 +16,7 @@ from pydantic import BaseModel
 from ._goal import _GoalOperationState
 from ._message_router import MessageRouter
 from ._version import __version__ as SDK_VERSION
-from .errors import CodexError, InvalidRequestError, TransportClosedError
+from .errors import DitfaError, InvalidRequestError, TransportClosedError
 from .generated.notification_registry import NOTIFICATION_MODELS
 from .generated.v2_all import (
     AccountLoginCompletedNotification,
@@ -64,7 +64,7 @@ from .retry import retry_on_overload
 
 ModelT = TypeVar("ModelT", bound=BaseModel)
 ApprovalHandler = Callable[[str, JsonObject | None], JsonObject]
-RUNTIME_PKG_NAME = "openai-codex-cli-bin"
+RUNTIME_PKG_NAME = "openai-ditfa-cli-bin"
 _GOAL_START_TIMEOUT_S = 30.0
 
 
@@ -108,22 +108,22 @@ def _params_dict(
     raise TypeError(f"Expected generated params model or dict, got {type(params).__name__}")
 
 
-def _installed_codex_path() -> Path:
+def _installed_ditfa_path() -> Path:
     try:
-        from codex_cli_bin import bundled_codex_path
+        from ditfa_cli_bin import bundled_ditfa_path
     except ImportError as exc:
         raise FileNotFoundError(
-            "Unable to locate the pinned Codex runtime. Install the published SDK build "
-            f"with its {RUNTIME_PKG_NAME} dependency, or set CodexConfig.codex_bin "
+            "Unable to locate the pinned Ditfa runtime. Install the published SDK build "
+            f"with its {RUNTIME_PKG_NAME} dependency, or set DitfaConfig.ditfa_bin "
             "explicitly."
         ) from exc
 
-    return bundled_codex_path()
+    return bundled_ditfa_path()
 
 
-def _installed_codex_path_dirs() -> tuple[Path, ...]:
+def _installed_ditfa_path_dirs() -> tuple[Path, ...]:
     try:
-        from codex_cli_bin import bundled_path_dir
+        from ditfa_cli_bin import bundled_path_dir
     except (ImportError, AttributeError):
         return ()
 
@@ -161,63 +161,63 @@ def _path_env_key(env: dict[str, str]) -> str:
 
 
 @dataclass(frozen=True)
-class CodexBinResolverOps:
-    installed_codex_path: Callable[[], Path]
+class DitfaBinResolverOps:
+    installed_ditfa_path: Callable[[], Path]
     path_exists: Callable[[Path], bool]
 
 
-def _default_codex_bin_resolver_ops() -> CodexBinResolverOps:
-    return CodexBinResolverOps(
-        installed_codex_path=_installed_codex_path,
+def _default_ditfa_bin_resolver_ops() -> DitfaBinResolverOps:
+    return DitfaBinResolverOps(
+        installed_ditfa_path=_installed_ditfa_path,
         path_exists=lambda path: path.exists(),
     )
 
 
-def resolve_codex_bin(config: "CodexConfig", ops: CodexBinResolverOps) -> Path:
-    if config.codex_bin is not None:
-        codex_bin = Path(config.codex_bin)
-        if not ops.path_exists(codex_bin):
+def resolve_ditfa_bin(config: "DitfaConfig", ops: DitfaBinResolverOps) -> Path:
+    if config.ditfa_bin is not None:
+        ditfa_bin = Path(config.ditfa_bin)
+        if not ops.path_exists(ditfa_bin):
             raise FileNotFoundError(
-                f"Codex binary not found at {codex_bin}. Set CodexConfig.codex_bin "
+                f"Ditfa binary not found at {ditfa_bin}. Set DitfaConfig.ditfa_bin "
                 "to a valid binary path."
             )
-        return codex_bin
+        return ditfa_bin
 
-    return ops.installed_codex_path()
+    return ops.installed_ditfa_path()
 
 
-def _resolve_codex_bin(config: "CodexConfig") -> Path:
-    return resolve_codex_bin(config, _default_codex_bin_resolver_ops())
+def _resolve_ditfa_bin(config: "DitfaConfig") -> Path:
+    return resolve_ditfa_bin(config, _default_ditfa_bin_resolver_ops())
 
 
 @dataclass(slots=True)
-class CodexConfig:
-    """Configuration for launching and identifying the local Codex runtime.
+class DitfaConfig:
+    """Configuration for launching and identifying the local Ditfa runtime.
 
-    Most callers can use ``Codex()`` without configuration. Set ``codex_bin``
-    only when intentionally using a specific local Codex executable.
+    Most callers can use ``Ditfa()`` without configuration. Set ``ditfa_bin``
+    only when intentionally using a specific local Ditfa executable.
     """
 
-    codex_bin: str | None = None
+    ditfa_bin: str | None = None
     launch_args_override: tuple[str, ...] | None = None
     config_overrides: tuple[str, ...] = ()
     cwd: str | None = None
     env: dict[str, str] | None = None
-    client_name: str = "codex_python_sdk"
-    client_title: str = "Codex Python SDK"
+    client_name: str = "ditfa_python_sdk"
+    client_title: str = "Ditfa Python SDK"
     client_version: str = SDK_VERSION
     experimental_api: bool = True
 
 
-class CodexClient:
-    """Synchronous typed JSON-RPC client for `codex app-server` over stdio."""
+class DitfaClient:
+    """Synchronous typed JSON-RPC client for `ditfa app-server` over stdio."""
 
     def __init__(
         self,
-        config: CodexConfig | None = None,
+        config: DitfaConfig | None = None,
         approval_handler: ApprovalHandler | None = None,
     ) -> None:
-        self.config = config or CodexConfig()
+        self.config = config or DitfaConfig()
         self._approval_handler = approval_handler or self._default_approval_handler
         self._proc: subprocess.Popen[str] | None = None
         self._lock = threading.Lock()
@@ -228,7 +228,7 @@ class CodexClient:
         self._stderr_thread: threading.Thread | None = None
         self._reader_thread: threading.Thread | None = None
 
-    def __enter__(self) -> "CodexClient":
+    def __enter__(self) -> "DitfaClient":
         self.start()
         return self
 
@@ -243,10 +243,10 @@ class CodexClient:
         if self.config.launch_args_override is not None:
             args = list(self.config.launch_args_override)
         else:
-            codex_bin = _resolve_codex_bin(self.config)
-            if self.config.codex_bin is None:
-                path_dirs = _installed_codex_path_dirs()
-            args = [str(codex_bin)]
+            ditfa_bin = _resolve_ditfa_bin(self.config)
+            if self.config.ditfa_bin is None:
+                path_dirs = _installed_ditfa_path_dirs()
+            args = [str(ditfa_bin)]
             for kv in self.config.config_overrides:
                 args.extend(["--config", kv])
             args.extend(["app-server", "--listen", "stdio://"])
@@ -317,7 +317,7 @@ class CodexClient:
     ) -> ModelT:
         result = self._request_raw(method, params)
         if not isinstance(result, dict):
-            raise CodexError(f"{method} response must be a JSON object")
+            raise DitfaError(f"{method} response must be a JSON object")
         return response_model.model_validate(result)
 
     def _request_raw(self, method: str, params: JsonObject | None = None) -> JsonValue:
@@ -587,7 +587,7 @@ class CodexClient:
             activated = True
             turn_id = state.wait_for_start(_GOAL_START_TIMEOUT_S)
             if turn_id is None:
-                raise CodexError(
+                raise DitfaError(
                     "timed out waiting for goal turn to start after "
                     f"{int(_GOAL_START_TIMEOUT_S)} seconds"
                 )
@@ -835,30 +835,30 @@ class CodexClient:
 
     def _write_message(self, payload: JsonObject) -> None:
         if self._proc is None or self._proc.stdin is None:
-            raise TransportClosedError("Codex process is not running")
+            raise TransportClosedError("Ditfa process is not running")
         with self._lock:
             self._proc.stdin.write(json.dumps(payload) + "\n")
             self._proc.stdin.flush()
 
     def _read_message(self) -> dict[str, JsonValue]:
         if self._proc is None or self._proc.stdout is None:
-            raise TransportClosedError("Codex process is not running")
+            raise TransportClosedError("Ditfa process is not running")
 
         line = self._proc.stdout.readline()
         if not line:
             raise TransportClosedError(
-                f"Codex process closed stdout. stderr_tail={self._stderr_tail()[:2000]}"
+                f"Ditfa process closed stdout. stderr_tail={self._stderr_tail()[:2000]}"
             )
 
         try:
             message = json.loads(line)
         except json.JSONDecodeError as exc:
-            raise CodexError(f"Invalid JSON-RPC line: {line!r}") from exc
+            raise DitfaError(f"Invalid JSON-RPC line: {line!r}") from exc
 
         if not isinstance(message, dict):
-            raise CodexError(f"Invalid JSON-RPC payload: {message!r}")
+            raise DitfaError(f"Invalid JSON-RPC payload: {message!r}")
         return message
 
 
-def default_codex_home() -> str:
-    return str(Path.home() / ".codex")
+def default_ditfa_home() -> str:
+    return str(Path.home() / ".ditfa")

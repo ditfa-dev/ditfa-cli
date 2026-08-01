@@ -1235,7 +1235,7 @@ async fn submit_user_message_queues_while_compaction_turn_is_running() {
     handle_error(
         &mut chat,
         "cannot steer a compact turn",
-        Some(CodexErrorInfo::ActiveTurnNotSteerable {
+        Some(DitfaErrorInfo::ActiveTurnNotSteerable {
             turn_kind: NonSteerableTurnKind::Compact,
         }),
     );
@@ -1568,9 +1568,9 @@ async fn make_startup_chat_with_cli_overrides(
         initial_user_message: None,
         enhanced_keys_supported: false,
         has_chatgpt_account: false,
-        has_codex_backend_auth: false,
+        has_ditfa_backend_auth: false,
         model_catalog: test_model_catalog(&cfg),
-        feedback: ditfa_feedback::CodexFeedback::new(),
+        feedback: ditfa_feedback::DitfaFeedback::new(),
         is_first_run: true,
         status_account_display: None,
         runtime_model_provider_base_url: None,

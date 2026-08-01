@@ -1,4 +1,4 @@
 interface:
-  display_name: "Codex Issue Digest"
-  short_description: "Summarize Codex issues by labels or all areas"
-  default_prompt: "Use $codex-issue-digest to run the Codex issue digest for labels tui and exec over the previous 24 hours."
+  display_name: "Ditfa Code Issue Digest"
+  short_description: "Summarize Ditfa Code issues by labels or all areas"
+  default_prompt: "Use $ditfa-issue-digest to run the Ditfa Code issue digest for labels tui and exec over the previous 24 hours."

@@ -70,7 +70,7 @@ async fn out_of_band_resource_read_reconciles_the_published_mcp_runtime() -> Res
     extensions.thread_lifecycle_contributor(Arc::new(McpResourceClientCapture {
         client: Arc::clone(&captured_client),
     }));
-    let test = core_test_support::test_codex::test_codex()
+    let test = core_test_support::test_ditfa::test_ditfa()
         .with_extensions(Arc::new(extensions.build()))
         .build(&server)
         .await?;
@@ -174,7 +174,7 @@ async fn code_mode_only_exposes_direct_model_only_mcp_namespaces() -> Result<()>
     });
     assert!(
         exec_description.is_some_and(|description| {
-            !description.contains("mcp__codex_apps__calendar_create_event(args:")
+            !description.contains("mcp__ditfa_apps__calendar_create_event(args:")
         }),
         "direct-model-only MCP namespace should not be available through exec: {body}"
     );

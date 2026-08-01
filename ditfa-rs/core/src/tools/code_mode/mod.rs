@@ -464,7 +464,7 @@ mod tests {
     async fn missing_process_host_falls_back_to_in_process_session() {
         let service = CodeModeService::new(
             Arc::new(ProcessOwnedCodeModeSessionProvider::with_host_program(
-                "codex-code-mode-host-does-not-exist".into(),
+                "ditfa-code-mode-host-does-not-exist".into(),
             )),
             &Features::with_defaults(),
         );

@@ -25,8 +25,8 @@ use ditfa_analytics::CompactionImplementation;
 use ditfa_analytics::CompactionPhase;
 use ditfa_analytics::CompactionReason;
 use ditfa_analytics::CompactionTrigger;
-use ditfa_protocol::error::CodexErr;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::DitfaErr;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::items::ContextCompactionItem;
 use ditfa_protocol::items::TurnItem;
 use ditfa_protocol::models::BaseInstructions;
@@ -55,7 +55,7 @@ pub(crate) async fn run_inline_remote_auto_compact_task(
     initial_context_injection: InitialContextInjection,
     reason: CompactionReason,
     phase: CompactionPhase,
-) -> CodexResult<()> {
+) -> DitfaResult<()> {
     let compaction_metadata = CompactionTurnMetadata::new(
         CompactionTrigger::Auto,
         reason,
@@ -77,7 +77,7 @@ pub(crate) async fn run_inline_remote_auto_compact_task(
 pub(crate) async fn run_remote_compact_task(
     sess: Arc<Session>,
     turn_context: Arc<TurnContext>,
-) -> CodexResult<()> {
+) -> DitfaResult<()> {
     // Standalone compaction is its own request boundary, so it captures a fresh step.
     let step_context = sess
         .capture_step_context(Arc::clone(&turn_context), &CancellationToken::new())
@@ -116,7 +116,7 @@ async fn run_remote_compact_task_inner(
     turn_state: Option<Arc<OnceLock<String>>>,
     initial_context_injection: InitialContextInjection,
     compaction_metadata: CompactionTurnMetadata,
-) -> CodexResult<()> {
+) -> DitfaResult<()> {
     let turn_context = &step_context.turn;
     let trigger = compaction_metadata.trigger();
     let reason = compaction_metadata.reason();
@@ -139,7 +139,7 @@ async fn run_remote_compact_task_inner(
     match pre_compact_outcome {
         PreCompactHookOutcome::Continue => {}
         PreCompactHookOutcome::Stopped => {
-            let error = CodexErr::TurnAborted;
+            let error = DitfaErr::TurnAborted;
             attempt
                 .track(
                     sess.as_ref(),
@@ -169,14 +169,14 @@ async fn run_remote_compact_task_inner(
             attempt
                 .track(sess.as_ref(), status, ditfa_error, analytics_details)
                 .await;
-            return Err(CodexErr::TurnAborted);
+            return Err(DitfaErr::TurnAborted);
         }
     }
     attempt
         .track(sess.as_ref(), status, ditfa_error, analytics_details)
         .await;
     if let Err(err) = result {
-        sess.track_turn_codex_error(turn_context, &err);
+        sess.track_turn_ditfa_error(turn_context, &err);
         let event = EventMsg::Error(
             err.to_error_event(Some("Error running remote compact task".to_string())),
         );
@@ -194,7 +194,7 @@ async fn run_remote_compact_task_inner_impl(
     initial_context_injection: InitialContextInjection,
     compaction_metadata: CompactionTurnMetadata,
     analytics_details: &mut CompactionAnalyticsDetails,
-) -> CodexResult<()> {
+) -> DitfaResult<()> {
     let turn_context = &step_context.turn;
     let context_compaction_item = ContextCompactionItem::new();
     let compaction_id = context_compaction_item.id.clone();

@@ -89,7 +89,7 @@ stream_max_retries = 0
     )?;
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build()
         .await?;
     timeout(READ_TIMEOUT, app_server.initialize()).await??;

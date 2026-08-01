@@ -9,7 +9,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 
-OPENAI_REPOSITORY = "openai/codex"
+OPENAI_REPOSITORY = "Teamtem-dev/ditfa-code"
 # Remote configurations select cache/BES/download endpoints. Their -rbe forms
 # also select the matching remote executor endpoint.
 GENERIC_REMOTE_CONFIG = "buildbuddy-generic"
@@ -74,7 +74,7 @@ def is_trusted_upstream_run(env: Mapping[str, str]) -> bool:
         or env.get("GITHUB_REPOSITORY") != OPENAI_REPOSITORY
     ):
         return False
-    # Non-PR workflow runs in `openai/codex` execute upstream refs, so they are
+    # Non-PR workflow runs in `Teamtem-dev/ditfa-code` execute upstream refs, so they are
     # trusted. Fork code reaches these workflows only through pull requests.
     if env.get("GITHUB_EVENT_NAME") != "pull_request":
         return True
@@ -183,7 +183,7 @@ def bazel_args_with_remote_config(
 
 def bazel_command(*args: str, env: Mapping[str, str] | None = None) -> list[str]:
     env = os.environ if env is None else env
-    bazel = env.get("CODEX_BAZEL_BIN", "bazel")
+    bazel = env.get("DITFA_BAZEL_BIN", "bazel")
     return [bazel, *startup_args(args, env), *bazel_args_with_remote_config(args, env)]
 
 

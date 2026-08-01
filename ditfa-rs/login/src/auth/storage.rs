@@ -228,7 +228,7 @@ static DITFA_AUTH_SECRET_NAME: Lazy<SecretName> =
         Ok(name) => name,
         Err(err) => unreachable!("DITFA_AUTH should be a valid secret name: {err}"),
     });
-const KEYRING_SERVICE: &str = "Codex Auth";
+const KEYRING_SERVICE: &str = "Ditfa Auth";
 
 // turns ditfa_home path into a stable, short key string
 fn compute_store_key(ditfa_home: &Path) -> std::io::Result<String> {
@@ -341,7 +341,7 @@ impl SecretsKeyringAuthStorage {
             ditfa_home.clone(),
             SecretsBackendKind::Local,
             keyring_store,
-            LocalSecretsNamespace::CodexAuth,
+            LocalSecretsNamespace::DitfaAuth,
         );
         Self {
             ditfa_home,

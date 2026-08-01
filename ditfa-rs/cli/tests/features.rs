@@ -6,7 +6,7 @@ use pretty_assertions::assert_eq;
 use tempfile::TempDir;
 
 fn ditfa_command(ditfa_home: &Path) -> Result<assert_cmd::Command> {
-    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("codex")?);
+    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa")?);
     cmd.env("DITFA_HOME", ditfa_home);
     Ok(cmd)
 }
@@ -33,7 +33,7 @@ fn strict_config_is_not_supported_for_cloud_command() -> Result<()> {
         .assert()
         .failure()
         .stderr(contains(
-            "`--strict-config` is not supported for `codex cloud`",
+            "`--strict-config` is not supported for `ditfa cloud`",
         ));
 
     Ok(())

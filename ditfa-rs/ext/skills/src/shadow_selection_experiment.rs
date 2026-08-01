@@ -24,13 +24,13 @@ use crate::dynamic_skill_selector::WeightedLexicalSkillSelector;
 const MAX_SHADOW_QUERY_BYTES: usize = 16 * 1024;
 const MAX_SHADOW_RESULTS: usize = 20;
 
-const RUN_METRIC: &str = "codex.skills.shadow_selection";
-const DURATION_METRIC: &str = "codex.skills.shadow_selection.duration_ms";
-const CATALOG_ENTRY_COUNT_METRIC: &str = "codex.skills.shadow_selection.catalog_entries";
-const SELECTED_ENTRY_COUNT_METRIC: &str = "codex.skills.shadow_selection.selected_entries";
-const QUERY_TERM_COUNT_METRIC: &str = "codex.skills.shadow_selection.query_terms";
-const REDUCTION_BPS_METRIC: &str = "codex.skills.shadow_selection.reduction_bps";
-const INVOCATION_METRIC: &str = "codex.skills.shadow_selection.invocation";
+const RUN_METRIC: &str = "ditfa.skills.shadow_selection";
+const DURATION_METRIC: &str = "ditfa.skills.shadow_selection.duration_ms";
+const CATALOG_ENTRY_COUNT_METRIC: &str = "ditfa.skills.shadow_selection.catalog_entries";
+const SELECTED_ENTRY_COUNT_METRIC: &str = "ditfa.skills.shadow_selection.selected_entries";
+const QUERY_TERM_COUNT_METRIC: &str = "ditfa.skills.shadow_selection.query_terms";
+const REDUCTION_BPS_METRIC: &str = "ditfa.skills.shadow_selection.reduction_bps";
+const INVOCATION_METRIC: &str = "ditfa.skills.shadow_selection.invocation";
 
 pub(crate) struct ShadowSelectionExperiment {
     selectors: Vec<Box<dyn CheapSkillSelector>>,

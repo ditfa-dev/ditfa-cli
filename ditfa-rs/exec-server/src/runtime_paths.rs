@@ -5,10 +5,10 @@ use ditfa_utils_absolute_path::AbsolutePathBuf;
 /// Runtime paths needed by exec-server child processes.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ExecServerRuntimePaths {
-    /// Stable path to the Codex executable used to launch hidden helper modes.
+    /// Stable path to the Ditfa executable used to launch hidden helper modes.
     pub ditfa_self_exe: AbsolutePathBuf,
     /// Path to the Linux sandbox helper alias used when the platform sandbox
-    /// needs to re-enter Codex by argv0.
+    /// needs to re-enter Ditfa by argv0.
     pub ditfa_linux_sandbox_exe: Option<AbsolutePathBuf>,
 }
 
@@ -20,7 +20,7 @@ impl ExecServerRuntimePaths {
         let ditfa_self_exe = ditfa_self_exe.ok_or_else(|| {
             std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
-                "Codex executable path is not configured",
+                "Ditfa executable path is not configured",
             )
         })?;
         Self::new(ditfa_self_exe, ditfa_linux_sandbox_exe)

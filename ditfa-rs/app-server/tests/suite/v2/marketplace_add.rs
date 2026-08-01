@@ -26,7 +26,7 @@ async fn marketplace_add_local_directory_source() -> Result<()> {
     )?;
     std::fs::write(source.join("plugins/sample/marker.txt"), "local ref")?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;

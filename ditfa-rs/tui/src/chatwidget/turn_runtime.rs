@@ -297,11 +297,11 @@ impl ChatWidget {
 
     pub(super) fn handle_app_server_steer_rejected_error(
         &mut self,
-        ditfa_error_info: &AppServerCodexErrorInfo,
+        ditfa_error_info: &AppServerDitfaErrorInfo,
     ) -> bool {
         matches!(
             ditfa_error_info,
-            AppServerCodexErrorInfo::ActiveTurnNotSteerable { .. }
+            AppServerDitfaErrorInfo::ActiveTurnNotSteerable { .. }
         ) && self.enqueue_rejected_steer()
     }
 
@@ -345,7 +345,7 @@ impl ChatWidget {
         self.finalize_turn();
 
         let message = if message.trim().is_empty() {
-            "Codex is currently experiencing high load.".to_string()
+            "Ditfa is currently experiencing high load.".to_string()
         } else {
             message
         };
@@ -415,7 +415,7 @@ impl ChatWidget {
             }
             Some(RateLimitReachedType::WorkspaceOwnerUsageLimitReached) => {
                 self.on_error(
-                    "Usage limit reached. You've reached your usage limit. Increase your limits to continue using codex."
+                    "Usage limit reached. You've reached your usage limit. Increase your limits to continue using ditfa."
                         .to_string(),
                 );
             }
@@ -436,7 +436,7 @@ impl ChatWidget {
     pub(super) fn handle_non_retry_error(
         &mut self,
         message: String,
-        ditfa_error_info: Option<AppServerCodexErrorInfo>,
+        ditfa_error_info: Option<AppServerDitfaErrorInfo>,
     ) {
         if ditfa_error_info
             .as_ref()

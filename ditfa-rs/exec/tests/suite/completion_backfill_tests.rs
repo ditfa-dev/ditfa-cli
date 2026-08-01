@@ -1,6 +1,6 @@
 use core_test_support::responses;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex_exec::test_codex_exec;
+use core_test_support::test_ditfa_exec::test_ditfa_exec;
 use pretty_assertions::assert_eq;
 use serde_json::json;
 
@@ -79,7 +79,7 @@ async fn ignores_unrelated_turn_completion_before_backfilling_primary_turn() -> 
     )
     .await;
 
-    let test = test_codex_exec();
+    let test = test_ditfa_exec();
     let mock_provider = format!(
         "model_providers.mock_provider={{name=\"Mock provider for test\",base_url=\"{}/v1\",wire_api=\"responses\",supports_websockets=false}}",
         server.uri()

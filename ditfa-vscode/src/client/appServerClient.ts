@@ -241,7 +241,7 @@ export class AppServerClient implements vscode.Disposable {
 
     this.notify("initialized");
     this.options.logger.info(
-      `app-server ready — ${response.userAgent} (${response.platformOs}), home ${response.codexHome}`,
+      `app-server ready — ${response.userAgent} (${response.platformOs}), home ${response.ditfaHome}`,
     );
   }
 

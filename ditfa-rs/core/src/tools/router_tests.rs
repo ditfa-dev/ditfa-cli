@@ -155,7 +155,7 @@ async fn build_tool_call_uses_namespace_for_registry_name() -> anyhow::Result<()
     let call = ToolRouter::build_tool_call(ResponseItem::FunctionCall {
         id: None,
         name: tool_name.clone(),
-        namespace: Some("mcp__codex_apps__calendar".to_string()),
+        namespace: Some("mcp__ditfa_apps__calendar".to_string()),
         arguments: "{}".to_string(),
         call_id: "call-namespace".to_string(),
         internal_chat_message_metadata_passthrough: None,
@@ -164,7 +164,7 @@ async fn build_tool_call_uses_namespace_for_registry_name() -> anyhow::Result<()
 
     assert_eq!(
         call.tool_name,
-        ToolName::namespaced("mcp__codex_apps__calendar", tool_name)
+        ToolName::namespaced("mcp__ditfa_apps__calendar", tool_name)
     );
     assert_eq!(call.call_id, "call-namespace");
     match call.payload {
@@ -296,7 +296,7 @@ async fn specs_filter_deferred_dynamic_tools() -> anyhow::Result<()> {
     let visible_tool = "visible_dynamic_tool";
     let dynamic_tools = vec![DynamicToolSpec::Namespace(DynamicToolNamespaceSpec {
         name: "ditfa_app".to_string(),
-        description: "Codex app tools.".to_string(),
+        description: "Ditfa app tools.".to_string(),
         tools: vec![
             DynamicToolNamespaceTool::Function(DynamicToolFunctionSpec {
                 name: hidden_tool.to_string(),

@@ -11,21 +11,21 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from codex_package.targets import TARGET_SPECS
-from codex_package.zsh import resolve_zsh_bin
+from ditfa_package.targets import TARGET_SPECS
+from ditfa_package.zsh import resolve_zsh_bin
 
 
 class ResolveZshBinTest(unittest.TestCase):
     def test_uses_manifest_override(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            archive = root / "codex-zsh.tar.gz"
+            archive = root / "ditfa-zsh.tar.gz"
             source = root / "zsh"
             source.write_bytes(b"standalone zsh")
             with tarfile.open(archive, "w:gz") as tar:
-                tar.add(source, arcname="codex-zsh/bin/zsh")
+                tar.add(source, arcname="ditfa-zsh/bin/zsh")
 
-            manifest = root / "codex-zsh"
+            manifest = root / "ditfa-zsh"
             manifest.write_text(
                 json.dumps(
                     {
@@ -37,7 +37,7 @@ class ResolveZshBinTest(unittest.TestCase):
                                     archive.read_bytes()
                                 ).hexdigest(),
                                 "format": "tar.gz",
-                                "path": "codex-zsh/bin/zsh",
+                                "path": "ditfa-zsh/bin/zsh",
                                 "providers": [{"url": archive.as_uri()}],
                             }
                         }
@@ -47,7 +47,7 @@ class ResolveZshBinTest(unittest.TestCase):
             )
 
             with patch(
-                "codex_package.dotslash.default_cache_root",
+                "ditfa_package.dotslash.default_cache_root",
                 return_value=root / "cache",
             ):
                 zsh_bin = resolve_zsh_bin(

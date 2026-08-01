@@ -43,7 +43,7 @@ use ditfa_config::types::McpServerTransportConfig;
 use ditfa_core_skills::PluginSkillSnapshots;
 use ditfa_core_skills::SkillsLoadInput;
 use ditfa_core_skills::SkillsService;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_plugin::AppDeclaration;
 use ditfa_plugin::PluginId;
 use ditfa_protocol::auth::AuthMode;
@@ -132,7 +132,7 @@ fn plugins_manager_tracks_auth_mode() {
 
     let manager_with_auth = PluginsManager::new_with_options(
         tmp.path().join("auth"),
-        Some(Product::Codex),
+        Some(Product::Ditfa),
         Some(AuthMode::Chatgpt),
     );
     assert_eq!(manager_with_auth.auth_mode(), Some(AuthMode::Chatgpt));
@@ -140,7 +140,7 @@ fn plugins_manager_tracks_auth_mode() {
 
 #[tokio::test]
 async fn marketplace_policy_projection_disables_installed_plugin_and_invalidates_cache() {
-    let ditfa_home = TempDir::new().expect("create Codex home");
+    let ditfa_home = TempDir::new().expect("create Ditfa home");
     write_plugin(
         &ditfa_home.path().join("plugins/cache/company"),
         "sample/local",
@@ -190,7 +190,7 @@ url = "https://github.com/example/other.git"
 
 #[tokio::test]
 async fn plugin_read_rejects_marketplace_blocked_by_requirements() {
-    let ditfa_home = TempDir::new().expect("create Codex home");
+    let ditfa_home = TempDir::new().expect("create Ditfa home");
     let marketplace_root = ditfa_home.path().join("marketplace");
     write_plugin(&marketplace_root, "sample", "sample");
     write_file(
@@ -235,7 +235,7 @@ restrict_to_allowed_sources = true
 
 #[test]
 fn marketplace_policy_filters_discovered_marketplaces_by_configured_name() {
-    let ditfa_home = TempDir::new().expect("create Codex home");
+    let ditfa_home = TempDir::new().expect("create Ditfa home");
     let repo_root = ditfa_home.path().join("repo");
     let subdirectory = repo_root.join("worktree/subdirectory");
     fs::create_dir_all(&subdirectory).expect("create input subdirectory");
@@ -397,7 +397,7 @@ async fn plugin_auth_projection_hides_apps_without_chatgpt_auth() {
     let config = auth_projection_config(ditfa_home.path()).await;
     let manager = PluginsManager::new_with_options(
         ditfa_home.path().to_path_buf(),
-        Some(Product::Codex),
+        Some(Product::Ditfa),
         Some(AuthMode::ApiKey),
     );
 
@@ -425,7 +425,7 @@ async fn plugin_auth_projection_hides_matching_mcp_with_chatgpt_apps_route() {
     let config = auth_projection_config(ditfa_home.path()).await;
     let manager = PluginsManager::new_with_options(
         ditfa_home.path().to_path_buf(),
-        Some(Product::Codex),
+        Some(Product::Ditfa),
         Some(AuthMode::Chatgpt),
     );
 
@@ -466,7 +466,7 @@ async fn plugin_auth_projection_hides_dual_surface_mcp_with_agent_identity_apps_
     let config = auth_projection_config(ditfa_home.path()).await;
     let manager = PluginsManager::new_with_options(
         ditfa_home.path().to_path_buf(),
-        Some(Product::Codex),
+        Some(Product::Ditfa),
         Some(AuthMode::AgentIdentity),
     );
 
@@ -491,7 +491,7 @@ async fn plugin_auth_projection_keeps_non_conflicting_mcp_with_chatgpt_apps_rout
     let config = auth_projection_config(ditfa_home.path()).await;
     let manager = PluginsManager::new_with_options(
         ditfa_home.path().to_path_buf(),
-        Some(Product::Codex),
+        Some(Product::Ditfa),
         Some(AuthMode::Chatgpt),
     );
 
@@ -574,7 +574,7 @@ enabled = true
     let config = load_config(ditfa_home.path(), ditfa_home.path()).await;
     let manager = PluginsManager::new_with_options(
         ditfa_home.path().to_path_buf(),
-        Some(Product::Codex),
+        Some(Product::Ditfa),
         Some(AuthMode::Chatgpt),
     );
 
@@ -608,7 +608,7 @@ async fn plugin_auth_projection_reprojects_cached_plugins_when_auth_changes() {
     let config = auth_projection_config(ditfa_home.path()).await;
     let manager = PluginsManager::new_with_options(
         ditfa_home.path().to_path_buf(),
-        Some(Product::Codex),
+        Some(Product::Ditfa),
         Some(AuthMode::Chatgpt),
     );
 
@@ -706,8 +706,8 @@ fn write_plugin(root: &Path, dir_name: &str, manifest_name: &str) {
 
 fn init_git_repo(repo: &Path) {
     run_git(repo, &["init"]);
-    run_git(repo, &["config", "user.email", "codex-test@example.com"]);
-    run_git(repo, &["config", "user.name", "Codex Test"]);
+    run_git(repo, &["config", "user.email", "ditfa-test@example.com"]);
+    run_git(repo, &["config", "user.name", "Ditfa Test"]);
     run_git(repo, &["add", "."]);
     run_git(repo, &["commit", "-m", "initial"]);
 }
@@ -756,7 +756,7 @@ async fn load_plugins_from_config(
 ) -> PluginLoadOutcome {
     write_file(&ditfa_home.join(CONFIG_TOML_FILE), config_toml);
     let config = load_config(ditfa_home, ditfa_home).await;
-    PluginsManager::new_with_options(ditfa_home.to_path_buf(), Some(Product::Codex), auth_mode)
+    PluginsManager::new_with_options(ditfa_home.to_path_buf(), Some(Product::Ditfa), auth_mode)
         .plugins_for_config(&config)
         .await
 }
@@ -1321,7 +1321,7 @@ enabled = true
     let config = load_config(ditfa_home.path(), ditfa_home.path()).await;
     let manager = PluginsManager::new_with_options(
         ditfa_home.path().to_path_buf(),
-        Some(Product::Codex),
+        Some(Product::Ditfa),
         Some(AuthMode::Chatgpt),
     );
     manager.write_remote_installed_plugins_cache(vec![
@@ -1345,7 +1345,7 @@ enabled = true
 }
 
 #[tokio::test]
-async fn remote_plugin_feature_keeps_local_curated_without_codex_backend() {
+async fn remote_plugin_feature_keeps_local_curated_without_ditfa_backend() {
     let ditfa_home = TempDir::new().unwrap();
     write_file(
         &ditfa_home.path().join(CONFIG_TOML_FILE),
@@ -1365,7 +1365,7 @@ enabled = true
     let config = load_config(ditfa_home.path(), ditfa_home.path()).await;
     let manager = PluginsManager::new_with_options(
         ditfa_home.path().to_path_buf(),
-        Some(Product::Codex),
+        Some(Product::Ditfa),
         Some(AuthMode::ApiKey),
     );
 
@@ -2818,7 +2818,7 @@ async fn install_plugin_updates_config_with_relative_path_and_plugin_key() {
 
 #[tokio::test]
 async fn strict_install_requires_allowed_local_marketplace_to_be_added_first() {
-    let ditfa_home = TempDir::new().expect("create Codex home");
+    let ditfa_home = TempDir::new().expect("create Ditfa home");
     let marketplace_root = ditfa_home.path().join("company-marketplace");
     write_plugin(&marketplace_root, "sample", "sample");
     write_file(
@@ -3555,7 +3555,7 @@ enabled = true
 }
 
 #[tokio::test]
-async fn read_plugin_for_config_filters_mcp_servers_for_codex_backend_auth() {
+async fn read_plugin_for_config_filters_mcp_servers_for_ditfa_backend_auth() {
     let tmp = tempfile::tempdir().unwrap();
     let repo_root = tmp.path().join("repo");
     fs::create_dir_all(repo_root.join(".git")).unwrap();
@@ -3605,7 +3605,7 @@ plugins = true
 
     let chatgpt_outcome = PluginsManager::new_with_options(
         tmp.path().to_path_buf(),
-        Some(Product::Codex),
+        Some(Product::Ditfa),
         Some(AuthMode::Chatgpt),
     )
     .read_plugin_for_config(&config, &request)
@@ -3622,7 +3622,7 @@ plugins = true
 
     let api_key_outcome = PluginsManager::new_with_options(
         tmp.path().to_path_buf(),
-        Some(Product::Codex),
+        Some(Product::Ditfa),
         Some(AuthMode::ApiKey),
     )
     .read_plugin_for_config(&config, &request)
@@ -5041,7 +5041,7 @@ plugins = true
     let featured_plugin_ids = manager
         .featured_plugin_ids_for_config(
             &config,
-            Some(&CodexAuth::create_dummy_chatgpt_auth_for_testing()),
+            Some(&DitfaAuth::create_dummy_chatgpt_auth_for_testing()),
         )
         .await
         .unwrap();
@@ -5050,7 +5050,7 @@ plugins = true
 }
 
 #[tokio::test]
-async fn featured_plugin_ids_for_config_defaults_query_param_to_codex() {
+async fn featured_plugin_ids_for_config_defaults_query_param_to_ditfa() {
     let tmp = tempfile::tempdir().unwrap();
     write_file(
         &tmp.path().join(CONFIG_TOML_FILE),
@@ -5062,8 +5062,8 @@ plugins = true
     let server = MockServer::start().await;
     Mock::given(method("GET"))
         .and(path("/backend-api/plugins/featured"))
-        .and(query_param("platform", "codex"))
-        .respond_with(ResponseTemplate::new(200).set_body_string(r#"["codex-plugin"]"#))
+        .and(query_param("platform", "ditfa"))
+        .respond_with(ResponseTemplate::new(200).set_body_string(r#"["ditfa-plugin"]"#))
         .mount(&server)
         .await;
 
@@ -5080,7 +5080,7 @@ plugins = true
         .await
         .unwrap();
 
-    assert_eq!(featured_plugin_ids, vec!["codex-plugin".to_string()]);
+    assert_eq!(featured_plugin_ids, vec!["ditfa-plugin".to_string()]);
 }
 
 #[tokio::test]
@@ -5108,7 +5108,7 @@ plugins = true
     let mut config = load_config(tmp.path(), tmp.path()).await;
     config.chatgpt_base_url = server.uri();
     let manager = std::sync::Arc::new(PluginsManager::new(tmp.path().to_path_buf()));
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let cache_key = recommended_plugins_cache_key(&config);
 
     manager.maybe_start_remote_plugin_caches_refresh(
@@ -5159,7 +5159,7 @@ plugins = true
         .and(query_param("scope", "GLOBAL"))
         .and(header("authorization", "Bearer Access Token"))
         .and(header("chatgpt-account-id", "account_id"))
-        .and(header("OAI-Product-Sku", "codex"))
+        .and(header("OAI-Product-Sku", "ditfa"))
         .respond_with(
             ResponseTemplate::new(200)
                 .set_body_json(serde_json::json!({
@@ -5189,7 +5189,7 @@ plugins = true
     let mut config = load_config(tmp.path(), tmp.path()).await;
     config.chatgpt_base_url = server.uri();
     let manager = PluginsManager::new(tmp.path().to_path_buf());
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let expected = RecommendedPluginsMode::Endpoint {
         plugins: vec![
             RecommendedPlugin {
@@ -5262,7 +5262,7 @@ plugins = true
     let mut installed_linear = remote_installed_plugin("linear");
     installed_linear.id = "plugin_linear".to_string();
     manager.write_remote_installed_plugins_cache(vec![installed_linear]);
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let disabled_tools = [ToolSuggestDisabledTool::plugin(
         "github@openai-curated-remote",
     )];
@@ -5316,7 +5316,7 @@ plugins = true
     let mut config = load_config(tmp.path(), tmp.path()).await;
     config.chatgpt_base_url = server.uri();
     let manager = PluginsManager::new(tmp.path().to_path_buf());
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     assert_eq!(
         manager
             .recommended_plugins_mode_for_config(&config, Some(&auth))
@@ -5352,7 +5352,7 @@ plugins = true
     let mut config = load_config(tmp.path(), tmp.path()).await;
     config.chatgpt_base_url = server.uri();
     let manager = PluginsManager::new(tmp.path().to_path_buf());
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     assert_eq!(
         manager
             .recommended_plugins_mode_for_config(&config, Some(&auth))
@@ -5521,7 +5521,7 @@ fn refresh_curated_plugin_cache_removes_cache_for_plugin_removed_from_marketplac
 }
 
 #[test]
-fn curated_plugin_ids_from_config_keys_reads_latest_codex_home_user_config() {
+fn curated_plugin_ids_from_config_keys_reads_latest_ditfa_home_user_config() {
     let tmp = tempfile::tempdir().unwrap();
     write_file(
         &tmp.path().join(CONFIG_TOML_FILE),
@@ -5540,7 +5540,7 @@ enabled = true
     );
 
     assert_eq!(
-        configured_curated_plugin_ids_from_codex_home(tmp.path())
+        configured_curated_plugin_ids_from_ditfa_home(tmp.path())
             .into_iter()
             .map(|plugin_id| plugin_id.as_key())
             .collect::<Vec<_>>(),
@@ -5558,7 +5558,7 @@ plugins = true
     );
 
     assert_eq!(
-        configured_curated_plugin_ids_from_codex_home(tmp.path()),
+        configured_curated_plugin_ids_from_ditfa_home(tmp.path()),
         Vec::<PluginId>::new()
     );
 }
@@ -6016,7 +6016,7 @@ async fn load_plugins_ignores_project_config_files() {
     let stack = ConfigLayerStack::new(
         vec![ConfigLayerEntry::new(
             ConfigLayerSource::Project {
-                dot_codex_folder: AbsolutePathBuf::try_from(project_root.join(".ditfa")).unwrap(),
+                dot_ditfa_folder: AbsolutePathBuf::try_from(project_root.join(".ditfa")).unwrap(),
             },
             toml::from_str(&plugin_config_toml(
                 /*enabled*/ true, /*plugins_feature_enabled*/ true,
@@ -6033,7 +6033,7 @@ async fn load_plugins_ignores_project_config_files() {
         std::collections::HashMap::new(),
         &PluginStore::new(ditfa_home.path().to_path_buf()),
         /*plugin_skill_snapshots*/ None,
-        Some(Product::Codex),
+        Some(Product::Ditfa),
         /*remote_global_catalog_active*/ false,
         Arc::new(Semaphore::new(MAX_CONCURRENT_ROOT_SCANS)),
     )

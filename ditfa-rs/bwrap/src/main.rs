@@ -35,7 +35,7 @@ fn main() {
 Notes:
 - ensure the target OS is Linux
 - libcap headers must be available via pkg-config
-- bubblewrap sources expected at codex-rs/vendor/bubblewrap (default)"#
+- bubblewrap sources expected at ditfa-rs/vendor/bubblewrap (default)"#
     );
 }
 

@@ -203,7 +203,7 @@ impl Session {
     }
 
     /// Refreshes the future Apps catalog without making an exact step a refresh owner.
-    pub(crate) async fn hard_refresh_latest_codex_apps_tools(
+    pub(crate) async fn hard_refresh_latest_ditfa_apps_tools(
         self: &Arc<Self>,
     ) -> anyhow::Result<Vec<ditfa_mcp::ToolInfo>> {
         self.refresh_mcp_if_dirty().await;
@@ -214,7 +214,7 @@ impl Session {
             .map_err(|_| anyhow::anyhow!("MCP runtime refresh semaphore closed"))?;
         self.services
             .mcp_runtime
-            .latest_hard_refresh_codex_apps_tools_cache()
+            .latest_hard_refresh_ditfa_apps_tools_cache()
             .await
     }
 

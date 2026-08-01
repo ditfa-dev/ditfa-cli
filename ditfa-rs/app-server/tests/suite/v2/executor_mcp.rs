@@ -118,7 +118,7 @@ async fn selected_executor_plugin_exposes_its_mcps_only_to_that_thread() -> Resu
         .with_provider_config("supports_websockets = false")
         .write(ditfa_home.path())?;
     let ditfa_bin = toml::Value::String(
-        ditfa_utils_cargo_bin::cargo_bin("codex")?
+        ditfa_utils_cargo_bin::cargo_bin("ditfa")?
             .to_string_lossy()
             .into_owned(),
     );
@@ -171,7 +171,7 @@ HTTP_PROXY = {http_proxy}
     )?;
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         // This suite owns environments.toml to exercise explicit executor selection.
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)

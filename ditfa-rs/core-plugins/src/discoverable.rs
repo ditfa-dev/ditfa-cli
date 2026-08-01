@@ -2,7 +2,7 @@ use anyhow::Context;
 use ditfa_app_server_protocol::PluginAvailability;
 use ditfa_app_server_protocol::PluginInstallPolicy;
 use ditfa_core_skills::config_rules::skill_config_rules_from_stack;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_plugin::PluginId;
 use std::collections::HashSet;
 use tracing::warn;
@@ -70,14 +70,14 @@ impl PluginsManager {
     pub async fn list_tool_suggest_discoverable_plugins(
         &self,
         input: &ToolSuggestPluginDiscoveryInput,
-        auth: Option<&CodexAuth>,
+        auth: Option<&DitfaAuth>,
     ) -> anyhow::Result<Vec<ToolSuggestDiscoverablePlugin>> {
         if !input.plugins.plugins_enabled {
             return Ok(Vec::new());
         }
 
         let use_remote_global_catalog =
-            input.plugins.remote_plugin_enabled && auth.is_some_and(CodexAuth::uses_codex_backend);
+            input.plugins.remote_plugin_enabled && auth.is_some_and(DitfaAuth::uses_ditfa_backend);
         let marketplaces = self
             .list_marketplaces_for_config(
                 &input.plugins,

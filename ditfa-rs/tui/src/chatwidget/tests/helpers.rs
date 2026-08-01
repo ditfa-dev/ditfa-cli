@@ -11,7 +11,7 @@ pub(super) async fn test_config() -> Config {
         .expect("tempdir")
         .keep();
     let mut config =
-        Config::load_default_with_cli_overrides_for_codex_home(ditfa_home.clone(), Vec::new())
+        Config::load_default_with_cli_overrides_for_ditfa_home(ditfa_home.clone(), Vec::new())
             .await
             .expect("config");
     config.ditfa_home = ditfa_home.abs();
@@ -153,7 +153,7 @@ pub(super) async fn make_chatwidget_manual(
     make_chatwidget_manual_with_auth(
         model_override,
         /*has_chatgpt_account*/ false,
-        /*has_codex_backend_auth*/ false,
+        /*has_ditfa_backend_auth*/ false,
         FrameRequester::test_dummy(),
     )
     .await
@@ -162,7 +162,7 @@ pub(super) async fn make_chatwidget_manual(
 pub(super) async fn make_chatwidget_manual_with_auth(
     model_override: Option<&str>,
     has_chatgpt_account: bool,
-    has_codex_backend_auth: bool,
+    has_ditfa_backend_auth: bool,
     frame_requester: FrameRequester,
 ) -> (
     ChatWidget,
@@ -189,9 +189,9 @@ pub(super) async fn make_chatwidget_manual_with_auth(
         initial_user_message: None,
         enhanced_keys_supported: false,
         has_chatgpt_account,
-        has_codex_backend_auth,
+        has_ditfa_backend_auth,
         model_catalog,
-        feedback: ditfa_feedback::CodexFeedback::new(),
+        feedback: ditfa_feedback::DitfaFeedback::new(),
         is_first_run: true,
         status_account_display: None,
         runtime_model_provider_base_url: None,
@@ -202,10 +202,10 @@ pub(super) async fn make_chatwidget_manual_with_auth(
         terminal_title_invalid_items_warned: Arc::new(AtomicBool::new(false)),
         session_telemetry,
     };
-    let mut widget = ChatWidget::new_with_op_target(common, super::CodexOpTarget::Direct(op_tx));
+    let mut widget = ChatWidget::new_with_op_target(common, super::DitfaOpTarget::Direct(op_tx));
     widget.transcript.active_cell = None;
     widget.transcript.active_cell_revision = 0;
-    widget.normal_placeholder_text = "Ask Codex to do anything".to_string();
+    widget.normal_placeholder_text = "Ask Ditfa to do anything".to_string();
     widget.side_placeholder_text =
         "Check recently modified functions for compatibility".to_string();
     widget
@@ -254,7 +254,7 @@ pub(super) fn assert_no_submit_op(op_rx: &mut tokio::sync::mpsc::UnboundedReceiv
 
 pub(crate) fn set_chatgpt_auth(chat: &mut ChatWidget) {
     chat.has_chatgpt_account = true;
-    chat.has_codex_backend_auth = true;
+    chat.has_ditfa_backend_auth = true;
     chat.model_catalog = test_model_catalog(&chat.config);
 }
 
@@ -416,7 +416,7 @@ pub(super) fn handle_token_count(chat: &mut ChatWidget, info: Option<TokenUsageI
 pub(super) fn handle_error(
     chat: &mut ChatWidget,
     message: impl Into<String>,
-    ditfa_error_info: Option<CodexErrorInfo>,
+    ditfa_error_info: Option<DitfaErrorInfo>,
 ) {
     chat.handle_server_notification(
         ServerNotification::Error(ErrorNotification {
@@ -1285,7 +1285,7 @@ pub(super) fn strip_osc8_for_snapshot(text: &str) -> String {
 
 pub(super) fn plugins_test_absolute_path(path: &str) -> AbsolutePathBuf {
     std::env::temp_dir()
-        .join("codex-plugin-menu-tests")
+        .join("ditfa-plugin-menu-tests")
         .join(path)
         .abs()
 }

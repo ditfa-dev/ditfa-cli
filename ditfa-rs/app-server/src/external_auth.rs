@@ -5,7 +5,7 @@ use ditfa_app_server_protocol::ChatgptAuthTokensRefreshParams;
 use ditfa_app_server_protocol::ChatgptAuthTokensRefreshReason;
 use ditfa_app_server_protocol::ChatgptAuthTokensRefreshResponse;
 use ditfa_app_server_protocol::ServerRequestPayload;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::ExternalAuthFuture;
 use ditfa_login::auth::ExternalAuth;
 use ditfa_login::auth::ExternalAuthRefreshContext;
@@ -19,18 +19,18 @@ const EXTERNAL_AUTH_REFRESH_TIMEOUT: Duration = Duration::from_secs(10);
 
 pub(crate) struct ExternalAuthBridge {
     outgoing: Arc<OutgoingMessageSender>,
-    auth: RwLock<CodexAuth>,
+    auth: RwLock<DitfaAuth>,
 }
 
 impl ExternalAuthBridge {
-    pub(crate) fn new(outgoing: Arc<OutgoingMessageSender>, auth: CodexAuth) -> Self {
+    pub(crate) fn new(outgoing: Arc<OutgoingMessageSender>, auth: DitfaAuth) -> Self {
         Self {
             outgoing,
             auth: RwLock::new(auth),
         }
     }
 
-    async fn refresh(&self, context: ExternalAuthRefreshContext) -> std::io::Result<CodexAuth> {
+    async fn refresh(&self, context: ExternalAuthRefreshContext) -> std::io::Result<DitfaAuth> {
         let reason = match context.reason {
             ExternalAuthRefreshReason::Unauthorized => ChatgptAuthTokensRefreshReason::Unauthorized,
         };
@@ -66,7 +66,7 @@ impl ExternalAuthBridge {
 
         let response: ChatgptAuthTokensRefreshResponse =
             serde_json::from_value(result).map_err(std::io::Error::other)?;
-        let auth = CodexAuth::from_external_chatgpt_tokens(
+        let auth = DitfaAuth::from_external_chatgpt_tokens(
             response.access_token.as_str(),
             response.chatgpt_account_id.as_str(),
             response.chatgpt_plan_type.as_deref(),
@@ -80,7 +80,7 @@ impl ExternalAuthBridge {
 }
 
 impl ExternalAuth for ExternalAuthBridge {
-    fn resolve(&self) -> ExternalAuthFuture<'_, CodexAuth> {
+    fn resolve(&self) -> ExternalAuthFuture<'_, DitfaAuth> {
         Box::pin(async {
             self.auth
                 .read()
@@ -89,7 +89,7 @@ impl ExternalAuth for ExternalAuthBridge {
         })
     }
 
-    fn refresh(&self, context: ExternalAuthRefreshContext) -> ExternalAuthFuture<'_, CodexAuth> {
+    fn refresh(&self, context: ExternalAuthRefreshContext) -> ExternalAuthFuture<'_, DitfaAuth> {
         Box::pin(ExternalAuthBridge::refresh(self, context))
     }
 }

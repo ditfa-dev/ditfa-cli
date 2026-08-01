@@ -609,7 +609,7 @@ mod tests {
         let ditfa_home = unique_temp_dir();
         tokio::fs::create_dir_all(&ditfa_home)
             .await
-            .expect("create codex home");
+            .expect("create ditfa home");
         let logs_path =
             crate::SqliteConfig::new_for_testing(ditfa_home.as_path().abs()).logs_db_path();
         let old_logs_migrator = Migrator {

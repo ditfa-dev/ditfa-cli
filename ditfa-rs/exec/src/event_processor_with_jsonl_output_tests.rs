@@ -25,7 +25,7 @@ fn failed_turn_does_not_overwrite_output_last_message_file() {
         },
     ));
 
-    assert_eq!(collected.status, CodexStatus::Running);
+    assert_eq!(collected.status, DitfaStatus::Running);
     assert_eq!(processor.final_message(), Some("partial answer"));
 
     let status = processor.process_server_notification(ServerNotification::TurnCompleted(
@@ -48,7 +48,7 @@ fn failed_turn_does_not_overwrite_output_last_message_file() {
         },
     ));
 
-    assert_eq!(status, CodexStatus::InitiateShutdown);
+    assert_eq!(status, DitfaStatus::InitiateShutdown);
     assert_eq!(processor.final_message(), None);
 
     EventProcessor::print_final_output(&mut processor);
@@ -81,7 +81,7 @@ fn runtime_warning_emits_a_non_fatal_error_item() {
                     }),
                 },
             })],
-            status: CodexStatus::Running,
+            status: DitfaStatus::Running,
         }
     );
 }
@@ -115,7 +115,7 @@ fn mcp_tool_call_result_preserves_meta_in_jsonl_event() {
         },
     ));
 
-    assert_eq!(collected.status, CodexStatus::Running);
+    assert_eq!(collected.status, DitfaStatus::Running);
     assert_eq!(collected.events.len(), 1);
 
     let ThreadEvent::ItemCompleted(ItemCompletedEvent { item }) = &collected.events[0] else {

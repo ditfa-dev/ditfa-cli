@@ -6,9 +6,9 @@ use ditfa_arg0::arg0_dispatch;
 use tempfile::TempDir;
 
 pub struct TestBinaryDispatchGuard {
-    _codex_home: TempDir,
+    _ditfa_home: TempDir,
     arg0: Arg0PathEntryGuard,
-    _previous_codex_home: Option<std::ffi::OsString>,
+    _previous_ditfa_home: Option<std::ffi::OsString>,
 }
 
 impl TestBinaryDispatchGuard {
@@ -48,7 +48,7 @@ where
                 Ok(ditfa_home) => ditfa_home,
                 Err(error) => panic!("failed to create test DITFA_HOME: {error}"),
             };
-            let previous_codex_home = std::env::var_os("DITFA_HOME");
+            let previous_ditfa_home = std::env::var_os("DITFA_HOME");
             // Safety: this runs from a test ctor before test threads begin.
             unsafe {
                 std::env::set_var("DITFA_HOME", ditfa_home.path());
@@ -58,7 +58,7 @@ where
                 Some(arg0) => arg0,
                 None => panic!("failed to configure arg0 dispatch aliases for test binary"),
             };
-            match previous_codex_home.as_ref() {
+            match previous_ditfa_home.as_ref() {
                 Some(value) => unsafe {
                     std::env::set_var("DITFA_HOME", value);
                 },
@@ -68,9 +68,9 @@ where
             }
 
             Some(TestBinaryDispatchGuard {
-                _codex_home: ditfa_home,
+                _ditfa_home: ditfa_home,
                 arg0,
-                _previous_codex_home: previous_codex_home,
+                _previous_ditfa_home: previous_ditfa_home,
             })
         }
     }

@@ -11,7 +11,7 @@ fn agent_status_uses_bounded_buffered_activity() {
         ItemCompletedNotification {
             item: ThreadItem::CommandExecution {
                 id: "command-1".to_string(),
-                command: "cargo test -p codex-tui".to_string(),
+                command: "cargo test -p ditfa-tui".to_string(),
                 cwd: AbsolutePathBuf::try_from("/workspace")
                     .expect("absolute path")
                     .into(),
@@ -56,7 +56,7 @@ fn agent_status_uses_bounded_buffered_activity() {
     Sub-agents running
 
       • `/root/reviewer`
-        $ cargo test -p codex-tui
+        $ cargo test -p ditfa-tui
         Finished checking the focused TUI tests.
     "###);
     assert!(!rendered.contains("unbounded output"));

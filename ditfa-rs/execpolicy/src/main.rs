@@ -4,7 +4,7 @@ use ditfa_execpolicy::ExecPolicyCheckCommand;
 
 /// CLI for evaluating exec policies
 #[derive(Parser)]
-#[command(name = "codex-execpolicy")]
+#[command(name = "ditfa-execpolicy")]
 enum Cli {
     /// Evaluate a command against a policy.
     Check(ExecPolicyCheckCommand),

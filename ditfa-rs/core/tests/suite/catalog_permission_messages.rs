@@ -1,6 +1,6 @@
 use anyhow::Result;
 use ditfa_core::config::Constrained;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_models_manager::manager::RefreshStrategy;
 use ditfa_models_manager::model_info::model_info_from_slug;
 use ditfa_protocol::models::PermissionProfile;
@@ -18,7 +18,7 @@ use core_test_support::responses::mount_models_once;
 use core_test_support::responses::mount_sse_once;
 use core_test_support::responses::sse;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use wiremock::MockServer;
@@ -53,8 +53,8 @@ async fn catalog_permission_message_loaded_from_remote_models_is_sent() -> Resul
         sse(vec![ev_response_created("resp-1"), ev_completed("resp-1")]),
     )
     .await;
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(|config| {
             config.permissions.approval_policy = Constrained::allow_any(AskForApproval::Never);
             config

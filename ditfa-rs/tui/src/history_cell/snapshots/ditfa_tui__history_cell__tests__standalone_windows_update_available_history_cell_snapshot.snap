@@ -4,7 +4,7 @@ expression: rendered
 ---
 ╭────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ ✨ Update available! 0.0.0 -> 9.9.9                                                                        │
-│ Run powershell -ExecutionPolicy Bypass -c '$env:CODEX_NON_INTERACTIVE=1; irm                               │
+│ Run powershell -ExecutionPolicy Bypass -c '$env:DITFA_NON_INTERACTIVE=1; irm                               │
 │ http://localhost:3000/ditfa/install.ps1 | iex' to update.                                                    │
 │                                                                                                            │
 │ See full release notes:                                                                                    │

@@ -552,18 +552,18 @@ impl AuthModeWidget {
             "".into(),
             "  Before you start:".into(),
             "".into(),
-            "  Decide how much autonomy you want to grant Codex".into(),
+            "  Decide how much autonomy you want to grant Ditfa".into(),
             Line::from(vec![
                 "  For more details see the ".into(),
                 crate::terminal_hyperlinks::osc8_hyperlink(
                     "https://developers.openai.com/codex/security",
-                    "Codex docs",
+                    "Ditfa docs",
                 )
                 .underlined(),
             ])
             .dim(),
             "".into(),
-            "  Codex can make mistakes".into(),
+            "  Ditfa can make mistakes".into(),
             "  Review the code it writes and commands it runs"
                 .dim()
                 .into(),
@@ -607,7 +607,7 @@ impl AuthModeWidget {
         let lines = vec![
             "✓ API key configured".fg(Color::Green).into(),
             "".into(),
-            "  Codex will use usage-based billing with your API key.".into(),
+            "  Ditfa will use usage-based billing with your API key.".into(),
         ];
 
         Paragraph::new(lines)
@@ -1065,14 +1065,14 @@ mod tests {
             strict_config: false,
             cloud_config_bundle: cloud_config_bundle_loader_for_storage(
                 ditfa_home_path.clone(),
-                /*enable_codex_api_key_env*/ false,
+                /*enable_ditfa_api_key_env*/ false,
                 AuthCredentialsStoreMode::File,
                 AuthKeyringBackendKind::default(),
                 "http://localhost:3000/api/".to_string(),
                 auth_route_config,
             )
             .await,
-            feedback: ditfa_feedback::CodexFeedback::new(),
+            feedback: ditfa_feedback::DitfaFeedback::new(),
             log_db: None,
             state_db: None,
             environment_manager: Arc::new(
@@ -1081,7 +1081,7 @@ mod tests {
             config_warnings: Vec::new(),
             session_source: serde_json::from_value(serde_json::json!("cli"))
                 .expect("cli session source should deserialize"),
-            enable_codex_api_key_env: false,
+            enable_ditfa_api_key_env: false,
             client_name: "test".to_string(),
             client_version: "test".to_string(),
             experimental_api: true,

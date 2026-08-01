@@ -1,7 +1,7 @@
 use anyhow::Result;
 use ditfa_config::types::Personality;
 use ditfa_features::Feature;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_models_manager::manager::RefreshStrategy;
 use ditfa_protocol::config_types::ReasoningSummary;
 use ditfa_protocol::config_types::SERVICE_TIER_DEFAULT_REQUEST_VALUE;
@@ -31,15 +31,15 @@ use core_test_support::responses::sse;
 use core_test_support::responses::sse_completed;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use wiremock::MockServer;
 
-fn read_only_user_turn(test: &TestCodex, items: Vec<UserInput>, model: String) -> Op {
+fn read_only_user_turn(test: &TestDitfa, items: Vec<UserInput>, model: String) -> Op {
     let (sandbox_policy, permission_profile) =
         turn_permission_fields(PermissionProfile::read_only(), test.cwd_path());
     Op::UserInput {
@@ -128,7 +128,7 @@ async fn model_change_appends_model_instructions_developer_message() -> Result<(
     )
     .await;
 
-    let mut builder = test_codex().with_model("gpt-5.2");
+    let mut builder = test_ditfa().with_model("gpt-5.2");
     let test = builder.build(&server).await?;
     let next_model = "gpt-5.4";
 
@@ -193,14 +193,14 @@ async fn model_and_personality_change_only_appends_model_instructions() -> Resul
     )
     .await;
 
-    let mut builder = test_codex().with_model("gpt-5.4").with_config(|config| {
+    let mut builder = test_ditfa().with_model("gpt-5.4").with_config(|config| {
         config
             .features
             .enable(Feature::Personality)
             .expect("test config should allow feature update");
     });
     let test = builder.build(&server).await?;
-    let next_model = "exp-codex-personality";
+    let next_model = "exp-ditfa-personality";
 
     test.ditfa
         .submit(read_only_user_turn(
@@ -268,7 +268,7 @@ async fn service_tier_change_is_applied_on_next_http_turn() -> Result<()> {
     )
     .await;
 
-    let test = test_codex().build(&server).await?;
+    let test = test_ditfa().build(&server).await?;
 
     test.submit_turn_with_service_tier("fast turn", Some(ServiceTier::Fast.request_value()))
         .await?;
@@ -306,7 +306,7 @@ async fn flex_service_tier_is_applied_to_http_turn() -> Result<()> {
     }];
     let resp_mock = mount_sse_once(&server, sse_completed("resp-1")).await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model(model_slug)
         .with_config(move |config| {
             config.model_catalog = Some(ModelsResponse {
@@ -339,7 +339,7 @@ async fn unsupported_service_tier_is_omitted_from_http_turn() -> Result<()> {
     );
     let resp_mock = mount_sse_once(&server, sse_completed("resp-1")).await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model(model_slug)
         .with_config(move |config| {
             config.model_catalog = Some(ModelsResponse {
@@ -370,7 +370,7 @@ async fn unsupported_configured_service_tier_warns_at_session_start() -> Result<
         "no service tiers",
         default_input_modalities(),
     );
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model(model_slug)
         .with_config(move |config| {
             config.service_tier = Some(ServiceTier::Flex.request_value().to_string());
@@ -418,7 +418,7 @@ async fn default_service_tier_override_is_omitted_from_http_turn() -> Result<()>
     model.default_service_tier = Some(ServiceTier::Fast.request_value().to_string());
     let resp_mock = mount_sse_once(&server, sse_completed("resp-1")).await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model(model_slug)
         .with_config(move |config| {
             config.model_catalog = Some(ModelsResponse {
@@ -457,7 +457,7 @@ async fn null_service_tier_override_is_omitted_from_http_turn_with_catalog_defau
     model.default_service_tier = Some(ServiceTier::Fast.request_value().to_string());
     let resp_mock = mount_sse_once(&server, sse_completed("resp-1")).await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model(model_slug)
         .with_config(move |config| {
             config.model_catalog = Some(ModelsResponse {
@@ -513,8 +513,8 @@ async fn model_change_from_multimodal_to_text_strips_prior_media_content() -> Re
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(move |config| {
             config.model = Some(multimodal_model_slug.to_string());
         });
@@ -633,8 +633,8 @@ async fn generated_image_is_replayed_for_image_capable_models() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(move |config| {
             config.model = Some(image_model_slug.to_string());
         });
@@ -730,8 +730,8 @@ async fn model_change_from_generated_image_to_text_preserves_prior_generated_ima
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(move |config| {
             config.model = Some(image_model_slug.to_string());
         });
@@ -829,8 +829,8 @@ async fn thread_rollback_after_generated_image_drops_entire_image_turn_history()
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(move |config| {
             config.model = Some(image_model_slug.to_string());
         });
@@ -983,8 +983,8 @@ async fn model_switch_to_smaller_model_updates_token_context_window() -> Result<
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(|config| {
             config.model = Some(large_model_slug.to_string());
         });

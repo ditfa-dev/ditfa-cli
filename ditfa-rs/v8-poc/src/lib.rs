@@ -3,7 +3,7 @@
 /// Returns the Bazel label for this proof-of-concept crate.
 #[must_use]
 pub fn bazel_target() -> &'static str {
-    "//codex-rs/v8-poc:v8-poc"
+    "//ditfa-rs/v8-poc:v8-poc"
 }
 
 /// Returns the embedded V8 version.
@@ -56,7 +56,7 @@ mod tests {
 
     #[test]
     fn exposes_expected_bazel_target() {
-        assert_eq!(bazel_target(), "//codex-rs/v8-poc:v8-poc");
+        assert_eq!(bazel_target(), "//ditfa-rs/v8-poc:v8-poc");
     }
 
     #[test]

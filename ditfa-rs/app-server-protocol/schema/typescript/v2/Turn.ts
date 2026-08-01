@@ -8,7 +8,7 @@ import type { TurnStatus } from "./TurnStatus";
 
 export type Turn = {
 /**
- * Identifier for this turn. Codex-generated turn IDs are UUIDv7.
+ * Identifier for this turn. Ditfa-generated turn IDs are UUIDv7.
  */
 id: string,
 /**

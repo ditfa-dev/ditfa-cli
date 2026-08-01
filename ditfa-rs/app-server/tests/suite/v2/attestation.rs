@@ -68,7 +68,7 @@ async fn attestation_generate_round_trip_adds_header_to_responses_websocket_hand
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build()
         .await?;
@@ -77,7 +77,7 @@ async fn attestation_generate_round_trip_adds_header_to_responses_websocket_hand
         mcp.initialize_with_capabilities(
             ClientInfo {
                 name: "ditfa_desktop".to_string(),
-                title: Some("Codex Desktop".to_string()),
+                title: Some("Ditfa Desktop".to_string()),
                 version: "0.1.0".to_string(),
             },
             Some(InitializeCapabilities {

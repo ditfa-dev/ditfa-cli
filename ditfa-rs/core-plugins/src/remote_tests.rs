@@ -25,7 +25,7 @@ async fn remote_plugin_list_routes_the_complete_query_url() {
         .await;
     let (config, selected_urls) =
         recording_remote_plugin_service_config(format!("{}/backend-api", server.uri()));
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
 
     get_remote_plugin_list_page(
         &config,
@@ -48,12 +48,12 @@ async fn remote_plugin_list_routes_the_complete_query_url() {
 
 #[test]
 fn cached_remote_plugin_catalog_scopes_returns_existing_scopes() {
-    let ditfa_home = tempfile::tempdir().expect("create codex home");
+    let ditfa_home = tempfile::tempdir().expect("create ditfa home");
     let config = RemotePluginServiceConfig::new(
         "http://localhost:3000/api".to_string(),
         crate::test_support::test_http_client_factory(),
     );
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     for scope in [RemotePluginScope::Global, RemotePluginScope::Workspace] {
         catalog_cache::write_cached_directory_plugins(
             ditfa_home.path(),

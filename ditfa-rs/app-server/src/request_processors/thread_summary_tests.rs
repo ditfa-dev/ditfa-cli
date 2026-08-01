@@ -18,7 +18,7 @@ fn extract_conversation_summary_prefers_plain_user_messages() -> Result<()> {
             "id": conversation_id.to_string(),
             "timestamp": timestamp,
             "cwd": "/",
-            "originator": "codex",
+            "originator": "ditfa",
             "cli_version": "0.0.0",
             "model_provider": "test-provider"
         }),

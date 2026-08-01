@@ -116,7 +116,7 @@ fn disabled_thread_context_accepts_trace_calls_without_writing() -> anyhow::Resu
 
     thread_trace.record_ended(RolloutStatus::Completed);
     thread_trace.record_protocol_event(&EventMsg::ShutdownComplete);
-    thread_trace.record_codex_turn_event("turn-1", &EventMsg::ShutdownComplete);
+    thread_trace.record_ditfa_turn_event("turn-1", &EventMsg::ShutdownComplete);
     thread_trace.record_tool_call_event("turn-1", &EventMsg::ShutdownComplete);
     thread_trace.record_agent_result_interaction(
         "turn-1",
@@ -171,7 +171,7 @@ fn compaction_contexts_share_identity_across_models() -> anyhow::Result<()> {
     let thread_id = ThreadId::new();
     let thread_trace =
         ThreadTraceContext::start_root_in_root_for_test(temp.path(), minimal_metadata(thread_id))?;
-    thread_trace.record_codex_turn_started("turn-1");
+    thread_trace.record_ditfa_turn_started("turn-1");
 
     for model in ["gpt-previous", "gpt-selected"] {
         let compaction_trace =

@@ -146,7 +146,7 @@ async fn handle_resume_agent(
         return Err(err);
     }
     turn.session_telemetry
-        .counter("codex.multi_agent.resume", /*inc*/ 1, &[]);
+        .counter("ditfa.multi_agent.resume", /*inc*/ 1, &[]);
 
     Ok(ResumeAgentResult { status })
 }

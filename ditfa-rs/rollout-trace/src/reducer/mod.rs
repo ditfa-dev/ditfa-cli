@@ -182,22 +182,22 @@ impl TraceReducer {
             RawTraceEventPayload::ThreadEnded { thread_id, status } => {
                 self.end_thread(event.seq, event.wall_time_unix_ms, thread_id, status)?;
             }
-            RawTraceEventPayload::CodexTurnStarted {
+            RawTraceEventPayload::DitfaTurnStarted {
                 ditfa_turn_id,
                 thread_id,
             } => {
-                self.start_codex_turn(
+                self.start_ditfa_turn(
                     event.seq,
                     event.wall_time_unix_ms,
                     ditfa_turn_id,
                     thread_id,
                 )?;
             }
-            RawTraceEventPayload::CodexTurnEnded {
+            RawTraceEventPayload::DitfaTurnEnded {
                 ditfa_turn_id,
                 status,
             } => {
-                self.end_codex_turn(
+                self.end_ditfa_turn(
                     event.seq,
                     event.wall_time_unix_ms,
                     event.thread_id,
@@ -442,7 +442,7 @@ impl TraceReducer {
                 };
                 let Some(ditfa_turn_id) = event.ditfa_turn_id else {
                     bail!(
-                        "compaction installed event {compaction_id} did not include a codex turn id"
+                        "compaction installed event {compaction_id} did not include a ditfa turn id"
                     );
                 };
                 self.reduce_compaction_installed_event(
@@ -456,7 +456,7 @@ impl TraceReducer {
             RawTraceEventPayload::AgentResultObserved {
                 edge_id,
                 child_thread_id,
-                child_codex_turn_id,
+                child_ditfa_turn_id,
                 parent_thread_id,
                 message,
                 carried_payload,
@@ -465,7 +465,7 @@ impl TraceReducer {
                     wall_time_unix_ms: event.wall_time_unix_ms,
                     edge_id,
                     child_thread_id,
-                    child_codex_turn_id,
+                    child_ditfa_turn_id,
                     parent_thread_id,
                     message,
                     carried_payload,

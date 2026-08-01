@@ -5,8 +5,8 @@ use ditfa_exec_server::ExecServerRuntimePaths;
 use ditfa_extension_api::ExtensionRegistry;
 use ditfa_extension_api::UserInstructionsProvider;
 use ditfa_login::AuthManager;
-use ditfa_protocol::error::CodexErr;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::DitfaErr;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::models::ResponseItem;
 use ditfa_protocol::protocol::SessionSource;
 use ditfa_protocol::user_input::UserInput;
@@ -29,11 +29,11 @@ pub async fn build_prompt_input(
     state_db: Option<StateDbHandle>,
     extensions: Arc<ExtensionRegistry<Config>>,
     user_instructions_provider: Arc<dyn UserInstructionsProvider>,
-) -> CodexResult<Vec<ResponseItem>> {
+) -> DitfaResult<Vec<ResponseItem>> {
     config.ephemeral = true;
 
     let auth_manager =
-        AuthManager::shared_from_config(&config, /*enable_codex_api_key_env*/ false).await;
+        AuthManager::shared_from_config(&config, /*enable_ditfa_api_key_env*/ false).await;
 
     let local_runtime_paths = ExecServerRuntimePaths::from_optional_paths(
         config.ditfa_self_exe.clone(),
@@ -46,15 +46,15 @@ pub async fn build_prompt_input(
         &config,
         Arc::clone(&auth_manager),
         crate::thread_manager::build_models_manager(&config, Arc::clone(&auth_manager)),
-        crate::CodexAppsToolsCache::default(),
+        crate::DitfaAppsToolsCache::default(),
         SessionSource::Exec,
         Arc::new(
-            EnvironmentManager::from_codex_home(
+            EnvironmentManager::from_ditfa_home(
                 config.ditfa_home.clone(),
                 Some(local_runtime_paths),
             )
             .await
-            .map_err(|err| CodexErr::Fatal(err.to_string()))?,
+            .map_err(|err| DitfaErr::Fatal(err.to_string()))?,
         ),
         extensions,
         user_instructions_provider,
@@ -80,7 +80,7 @@ pub async fn build_prompt_input(
 pub(crate) async fn build_prompt_input_from_session(
     sess: &Arc<Session>,
     input: Vec<UserInput>,
-) -> CodexResult<Vec<ResponseItem>> {
+) -> DitfaResult<Vec<ResponseItem>> {
     let turn_context = sess.new_default_turn().await;
     // Prompt debugging builds a standalone request without entering run_turn.
     let step_context = sess

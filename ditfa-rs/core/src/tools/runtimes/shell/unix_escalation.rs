@@ -30,7 +30,7 @@ use ditfa_execpolicy::RuleMatch;
 use ditfa_features::Feature;
 use ditfa_hooks::PermissionRequestDecision;
 use ditfa_protocol::config_types::WindowsSandboxLevel;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::SandboxErr;
 use ditfa_protocol::exec_output::ExecToolCallOutput;
 use ditfa_protocol::exec_output::StreamOutput;
@@ -144,7 +144,7 @@ pub(super) async fn try_run_zsh_fork(
             managed_network_for_sandbox_permissions(req.network.as_ref(), req.sandbox_permissions),
             Some(&req.turn_environment.environment_id),
         )
-        .map_err(ToolError::Codex)?;
+        .map_err(ToolError::Ditfa)?;
     let crate::sandboxing::ExecRequest {
         command,
         cwd: sandbox_cwd,
@@ -1011,7 +1011,7 @@ impl CoreShellCommandExecutor {
                 .map_err(|err| {
                     let environment_id =
                         self.network_environment_id.as_deref().unwrap_or("default");
-                    CodexErr::Io(io::Error::other(format!(
+                    DitfaErr::Io(io::Error::other(format!(
                         "failed to prepare network proxy for environment `{environment_id}`: {err}"
                     )))
                 })?;
@@ -1073,13 +1073,13 @@ fn map_exec_result(
     };
 
     if result.timed_out {
-        return Err(ToolError::Codex(CodexErr::Sandbox(SandboxErr::Timeout {
+        return Err(ToolError::Ditfa(DitfaErr::Sandbox(SandboxErr::Timeout {
             output: Box::new(output),
         })));
     }
 
     if is_likely_sandbox_denied(sandbox, &output) {
-        return Err(ToolError::Codex(CodexErr::Sandbox(SandboxErr::Denied {
+        return Err(ToolError::Ditfa(DitfaErr::Sandbox(SandboxErr::Denied {
             output: Box::new(output),
             network_policy_decision: None,
         })));

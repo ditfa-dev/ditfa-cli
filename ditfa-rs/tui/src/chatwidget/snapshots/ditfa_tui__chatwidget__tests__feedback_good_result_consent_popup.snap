@@ -5,14 +5,14 @@ expression: popup
   Upload logs?
 
   The following files will be sent:
-    • codex-logs.log
-    • codex-doctor-report.json
-    • codex-apps-tools-cache.json (if available)
-    • codex-app-directory-cache.json (if available)
+    • ditfa-logs.log
+    • ditfa-doctor-report.json
+    • ditfa-apps-tools-cache.json (if available)
+    • ditfa-app-directory-cache.json (if available)
     • auto-review-rollout-thread-1.jsonl
-    • codex-connectivity-diagnostics.txt
+    • ditfa-connectivity-diagnostics.txt
 
-› 1. Yes  Share the current Codex session logs and diagnostics with the team
+› 1. Yes  Share the current Ditfa session logs and diagnostics with the team
           for troubleshooting.
   2. No
 

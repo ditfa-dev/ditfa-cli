@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use ditfa_core::CodexThread;
+use ditfa_core::DitfaThread;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::parse_command::ParsedCommand;
 use ditfa_protocol::protocol::Op;
@@ -26,7 +26,7 @@ pub struct ExecApprovalElicitRequestParams {
     pub requested_schema: Value,
 
     // These are additional fields the client can use to
-    // correlate the request with the codex tool call.
+    // correlate the request with the ditfa tool call.
     #[serde(rename = "threadId")]
     pub thread_id: ThreadId,
     pub ditfa_elicitation: String,
@@ -52,7 +52,7 @@ pub(crate) async fn handle_exec_approval_request(
     command: Vec<String>,
     cwd: PathBuf,
     outgoing: Arc<crate::outgoing_message::OutgoingMessageSender>,
-    codex: Arc<CodexThread>,
+    ditfa: Arc<DitfaThread>,
     request_id: RequestId,
     tool_call_id: String,
     event_id: String,
@@ -64,7 +64,7 @@ pub(crate) async fn handle_exec_approval_request(
     let escaped_command =
         shlex::try_join(command.iter().map(String::as_str)).unwrap_or_else(|_| command.join(" "));
     let message = format!(
-        "Allow Codex to run `{escaped_command}` in `{cwd}`?",
+        "Allow Ditfa to run `{escaped_command}` in `{cwd}`?",
         cwd = cwd.to_string_lossy()
     );
 
@@ -100,11 +100,11 @@ pub(crate) async fn handle_exec_approval_request(
 
     // Listen for the response on a separate task so we don't block the main agent loop.
     {
-        let codex = codex.clone();
+        let ditfa = ditfa.clone();
         let approval_id = approval_id.clone();
         let event_id = event_id.clone();
         tokio::spawn(async move {
-            on_exec_approval_response(approval_id, event_id, on_response, codex).await;
+            on_exec_approval_response(approval_id, event_id, on_response, ditfa).await;
         });
     }
 }
@@ -113,7 +113,7 @@ async fn on_exec_approval_response(
     approval_id: String,
     event_id: String,
     receiver: tokio::sync::oneshot::Receiver<serde_json::Value>,
-    codex: Arc<CodexThread>,
+    ditfa: Arc<DitfaThread>,
 ) {
     let response = receiver.await;
     let value = match response {
@@ -124,7 +124,7 @@ async fn on_exec_approval_response(
         }
     };
 
-    // Try to deserialize `value` and then make the appropriate call to `codex`.
+    // Try to deserialize `value` and then make the appropriate call to `ditfa`.
     let response = serde_json::from_value::<ExecApprovalResponse>(value).unwrap_or_else(|err| {
         error!("failed to deserialize ExecApprovalResponse: {err}");
         // If we cannot deserialize the response, we deny the request to be
@@ -134,7 +134,7 @@ async fn on_exec_approval_response(
         }
     });
 
-    if let Err(err) = codex
+    if let Err(err) = ditfa
         .submit(Op::ExecApproval {
             id: approval_id,
             turn_id: Some(event_id),

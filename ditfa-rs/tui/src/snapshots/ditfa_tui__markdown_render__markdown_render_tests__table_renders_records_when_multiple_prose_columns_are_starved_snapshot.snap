@@ -10,12 +10,12 @@ expression: "plain_lines(&text).join(\"\\n\")"
              path.
 ────────────────────────────────────────────────────────────────────────────
  Issue       #23926: Vim composer e stalls at word end (https://github.com/
-             openai/codex/issues/23926)
+             openai/ditfa/issues/23926)
  Activity    +1 0, comments 0
  Complexity  Low
  Why start   Standing best quick win; deterministic motion bug.
 ────────────────────────────────────────────────────────────────────────────
- Issue       #23651: Zellij scrollback misses Codex transcript over SSH
+ Issue       #23651: Zellij scrollback misses Ditfa transcript over SSH
              (https://github.com/openai/codex/issues/23651)
  Activity    +1 3, human comments 2
  Complexity  Medium

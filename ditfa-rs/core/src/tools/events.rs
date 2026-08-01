@@ -4,7 +4,7 @@ use crate::session::turn_context::TurnContext;
 use crate::tools::context::SharedTurnDiffTracker;
 use crate::tools::sandboxing::ToolError;
 use ditfa_apply_patch::AppliedPatchDelta;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::SandboxErr;
 use ditfa_protocol::exec_output::ExecToolCallOutput;
 use ditfa_protocol::items::CommandExecutionItem;
@@ -382,13 +382,13 @@ impl ToolEmitter {
                 };
                 (event, result)
             }
-            Err(ToolError::Codex(CodexErr::Sandbox(SandboxErr::Timeout { output }))) => {
+            Err(ToolError::Ditfa(DitfaErr::Sandbox(SandboxErr::Timeout { output }))) => {
                 let response = self.format_exec_output_for_model(&output, ctx);
                 let event = ToolEventStage::Failure(ToolEventFailure::Output(*output));
                 let result = Err(FunctionCallError::RespondToModel(response));
                 (event, result)
             }
-            Err(ToolError::Codex(CodexErr::Sandbox(SandboxErr::Denied { output, .. }))) => {
+            Err(ToolError::Ditfa(DitfaErr::Sandbox(SandboxErr::Denied { output, .. }))) => {
                 let response = self.format_exec_output_for_model(&output, ctx);
                 // apply_patch can be denied after it has already committed a
                 // known prefix. Reuse the output-bearing path so the visible
@@ -403,7 +403,7 @@ impl ToolEmitter {
                 let result = Err(FunctionCallError::RespondToModel(response));
                 (event, result)
             }
-            Err(ToolError::Codex(err)) => {
+            Err(ToolError::Ditfa(err)) => {
                 let message = format!("execution error: {err:?}");
                 let event = ToolEventStage::Failure(ToolEventFailure::Message(message.clone()));
                 let result = Err(FunctionCallError::RespondToModel(message));
@@ -637,7 +637,7 @@ mod tests {
     use crate::session::tests::make_session_and_context_with_dynamic_tools_and_rx;
     use crate::turn_diff_tracker::TurnDiffTracker;
     use ditfa_exec_server::LOCAL_FS;
-    use ditfa_protocol::error::CodexErr;
+    use ditfa_protocol::error::DitfaErr;
     use ditfa_protocol::error::SandboxErr;
     use ditfa_protocol::exec_output::ExecToolCallOutput;
     use ditfa_protocol::items::TurnItem;
@@ -715,7 +715,7 @@ mod tests {
             ..Default::default()
         };
         assert_failed_apply_patch_tracks_committed_delta(
-            Err(ToolError::Codex(CodexErr::Sandbox(SandboxErr::Denied {
+            Err(ToolError::Ditfa(DitfaErr::Sandbox(SandboxErr::Denied {
                 output: Box::new(output),
                 network_policy_decision: None,
             }))),

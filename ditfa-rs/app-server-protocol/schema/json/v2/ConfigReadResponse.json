@@ -556,7 +556,7 @@
           "type": "object"
         },
         {
-          "description": "User config layer from $CODEX_HOME/config.toml. This layer is special in that it is expected to be: - writable by the user - generally outside the workspace directory",
+          "description": "User config layer from $DITFA_HOME/config.toml. This layer is special in that it is expected to be: - writable by the user - generally outside the workspace directory",
           "properties": {
             "file": {
               "allOf": [
@@ -589,9 +589,9 @@
           "type": "object"
         },
         {
-          "description": "Path to a .codex/ folder within a project. There could be multiple of these between `cwd` and the project/repo root.",
+          "description": "Path to a .ditfa/ folder within a project. There could be multiple of these between `cwd` and the project/repo root.",
           "properties": {
-            "dotCodexFolder": {
+            "dotDitfaFolder": {
               "$ref": "#/definitions/AbsolutePathBuf"
             },
             "type": {
@@ -603,7 +603,7 @@
             }
           },
           "required": [
-            "dotCodexFolder",
+            "dotDitfaFolder",
             "type"
           ],
           "title": "ProjectConfigLayerSource",

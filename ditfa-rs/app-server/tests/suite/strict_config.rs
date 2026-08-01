@@ -13,7 +13,7 @@ foo = "bar"
 "#,
     )?;
 
-    let output = Command::new(ditfa_utils_cargo_bin::cargo_bin("codex-app-server")?)
+    let output = Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa-app-server")?)
         .env("DITFA_HOME", ditfa_home.path())
         .env(
             "DITFA_APP_SERVER_MANAGED_CONFIG_PATH",

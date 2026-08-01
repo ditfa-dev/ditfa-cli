@@ -9,11 +9,11 @@ from _bootstrap import ensure_local_sdk_src, runtime_config
 
 ensure_local_sdk_src()
 
-from openai_codex import (
-    Codex,
+from ditfa import (
+    Ditfa,
     Sandbox,
 )
-from openai_codex.types import (
+from ditfa.types import (
     Personality,
     ReasoningEffort,
     ReasoningSummary,
@@ -65,15 +65,15 @@ OUTPUT_SCHEMA = {
     "additionalProperties": False,
 }
 
-with Codex(config=runtime_config()) as codex:
-    models = codex.models(include_hidden=True)
+with Ditfa(config=runtime_config()) as ditfa:
+    models = ditfa.models(include_hidden=True)
     selected_model = _pick_highest_model(models.data)
     selected_effort = _pick_highest_turn_effort(selected_model)
 
     print("selected.model:", selected_model.model)
     print("selected.effort:", selected_effort.value)
 
-    thread = codex.thread_start(
+    thread = ditfa.thread_start(
         model=selected_model.model,
         config={"model_reasoning_effort": selected_effort.value},
     )

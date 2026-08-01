@@ -23,7 +23,7 @@ pub type AgentThreadId = String;
 /// Stable multi-agent routing path such as `/root` or `/root/search_docs`.
 pub type AgentPath = String;
 /// Runtime submission/activation UUID. This is not a chat turn.
-pub type CodexTurnId = String;
+pub type DitfaTurnId = String;
 /// Reduced transcript item ID assigned by the trace reducer.
 pub type ConversationItemId = String;
 /// Local ID for one outbound upstream inference request.
@@ -51,13 +51,13 @@ pub type EdgeId = String;
 /// Reducer-owned ID for request/log correlation metadata.
 pub type CorrelationId = String;
 
-/// Canonical reduced graph for one Codex rollout.
+/// Canonical reduced graph for one Ditfa rollout.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RolloutTrace {
     pub schema_version: u32,
     /// Unique identity for this trace capture.
     ///
-    /// `rollout_id` names the Codex rollout/session being observed. `trace_id`
+    /// `rollout_id` names the Ditfa rollout/session being observed. `trace_id`
     /// names the diagnostic artifact produced for that rollout, which keeps
     /// storage/replay identity separate from the product-level session identity.
     pub trace_id: String,
@@ -69,7 +69,7 @@ pub struct RolloutTrace {
     pub status: RolloutStatus,
     pub root_thread_id: AgentThreadId,
     pub threads: BTreeMap<AgentThreadId, AgentThread>,
-    pub ditfa_turns: BTreeMap<CodexTurnId, CodexTurn>,
+    pub ditfa_turns: BTreeMap<DitfaTurnId, DitfaTurn>,
     pub conversation_items: BTreeMap<ConversationItemId, ConversationItem>,
     pub inference_calls: BTreeMap<InferenceCallId, InferenceCall>,
     /// Model-authored `exec` JavaScript cells keyed by reducer-owned cell ID.

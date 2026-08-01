@@ -6,7 +6,7 @@ use super::super::RemotePluginServiceConfig;
 use super::local_paths;
 use ditfa_app_server_protocol::PluginAuthPolicy;
 use ditfa_app_server_protocol::PluginInstallPolicy;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_plugin::PluginId;
 use ditfa_plugin::validate_plugin_segment;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
@@ -19,7 +19,7 @@ use std::io::Write;
 use std::path::Component;
 use std::path::Path;
 
-const PERSONAL_MARKETPLACE_NAME: &str = "codex-curated";
+const PERSONAL_MARKETPLACE_NAME: &str = "ditfa-curated";
 const PERSONAL_MARKETPLACE_DISPLAY_NAME: &str = "Personal";
 const PERSONAL_MARKETPLACE_RELATIVE_PATH: &str = ".agents/plugins/marketplace.json";
 
@@ -36,7 +36,7 @@ pub struct RemotePluginShareCheckoutResult {
 
 pub async fn checkout_remote_plugin_share(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     ditfa_home: &Path,
     remote_plugin_id: &str,
 ) -> Result<RemotePluginShareCheckoutResult, RemotePluginCatalogError> {

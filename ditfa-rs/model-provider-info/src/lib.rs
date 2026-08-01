@@ -1,7 +1,7 @@
 //! Registry of model providers supported by Ditfa.
 //!
 //! Providers can be defined in two places:
-//!   1. Built-in defaults compiled into the binary so Codex works out-of-the-box.
+//!   1. Built-in defaults compiled into the binary so Ditfa works out-of-the-box.
 //!   2. User-defined entries inside `~/.ditfa/config.toml` under the `model_providers`
 //!      key. These override or extend the defaults at runtime.
 
@@ -10,9 +10,9 @@ use ditfa_api::RetryConfig as ApiRetryConfig;
 use ditfa_api::is_azure_responses_provider;
 use ditfa_protocol::auth::AuthMode;
 use ditfa_protocol::config_types::ModelProviderAuthInfo;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::EnvVarError;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::Result as DitfaResult;
 use http::HeaderMap;
 use http::header::HeaderName;
 use http::header::HeaderValue;
@@ -46,7 +46,7 @@ pub const AMAZON_BEDROCK_GPT_5_6_LUNA_MODEL_ID: &str = "openai.gpt-5.6-luna";
 pub const AMAZON_BEDROCK_DEFAULT_BASE_URL: &str =
     "https://bedrock-mantle.us-east-1.api.aws/openai/v1";
 const AMAZON_BEDROCK_MANTLE_CLIENT_AGENT_HEADER: &str = "x-amzn-mantle-client-agent";
-const AMAZON_BEDROCK_MANTLE_CLIENT_AGENT_VALUE: &str = "codex";
+const AMAZON_BEDROCK_MANTLE_CLIENT_AGENT_VALUE: &str = "ditfa";
 const CHAT_WIRE_API_REMOVED_ERROR: &str = "`wire_api = \"chat\"` is no longer supported.\nHow to fix: set `wire_api = \"responses\"` in your provider config.\nMore info: https://github.com/openai/codex/discussions/7782";
 pub const LEGACY_OLLAMA_CHAT_PROVIDER_ID: &str = "ollama-chat";
 pub const OLLAMA_CHAT_PROVIDER_REMOVED_ERROR: &str = "`ollama-chat` is no longer supported.\nHow to fix: replace `ollama-chat` with `ollama` in `model_provider`, `oss_provider`, or `--local-provider`.\nMore info: https://github.com/openai/codex/discussions/7782";
@@ -214,7 +214,7 @@ impl ModelProviderInfo {
         }
     }
 
-    fn build_header_map(&self) -> CodexResult<HeaderMap> {
+    fn build_header_map(&self) -> DitfaResult<HeaderMap> {
         let capacity = self.http_headers.as_ref().map_or(0, HashMap::len)
             + self.env_http_headers.as_ref().map_or(0, HashMap::len);
         let mut headers = HeaderMap::with_capacity(capacity);
@@ -241,7 +241,7 @@ impl ModelProviderInfo {
         Ok(headers)
     }
 
-    pub fn to_api_provider(&self, auth_mode: Option<AuthMode>) -> CodexResult<ApiProvider> {
+    pub fn to_api_provider(&self, auth_mode: Option<AuthMode>) -> DitfaResult<ApiProvider> {
         let default_base_url = if matches!(
             auth_mode,
             Some(
@@ -283,14 +283,14 @@ impl ModelProviderInfo {
     /// If `env_key` is Some, returns the API key for this provider if present
     /// (and non-empty) in the environment. If `env_key` is required but
     /// cannot be found, returns an error.
-    pub fn api_key(&self) -> CodexResult<Option<String>> {
+    pub fn api_key(&self) -> DitfaResult<Option<String>> {
         match &self.env_key {
             Some(env_key) => {
                 let api_key = std::env::var(env_key)
                     .ok()
                     .filter(|v| !v.trim().is_empty())
                     .ok_or_else(|| {
-                        CodexErr::EnvVar(EnvVarError {
+                        DitfaErr::EnvVar(EnvVarError {
                             var: env_key.clone(),
                             instructions: self.env_key_instructions.clone(),
                         })
@@ -510,7 +510,7 @@ provider fields are not supported"
 pub fn create_oss_provider(default_provider_port: u16, wire_api: WireApi) -> ModelProviderInfo {
     // These DITFA_OSS_ environment variables are experimental: we may
     // switch to reading values from config.toml instead.
-    let default_codex_oss_base_url = format!(
+    let default_ditfa_oss_base_url = format!(
         "http://localhost:{ditfa_oss_port}/v1",
         ditfa_oss_port = std::env::var("DITFA_OSS_PORT")
             .ok()
@@ -522,7 +522,7 @@ pub fn create_oss_provider(default_provider_port: u16, wire_api: WireApi) -> Mod
     let ditfa_oss_base_url = std::env::var("DITFA_OSS_BASE_URL")
         .ok()
         .filter(|v| !v.trim().is_empty())
-        .unwrap_or(default_codex_oss_base_url);
+        .unwrap_or(default_ditfa_oss_base_url);
     create_oss_provider_with_base_url(&ditfa_oss_base_url, wire_api)
 }
 

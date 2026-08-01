@@ -12,7 +12,7 @@ use ditfa_extension_api::empty_extension_registry;
 use ditfa_features::Feature;
 use ditfa_login::AuthKeyringBackendKind;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::auth::AgentIdentityAuthPolicy;
 use ditfa_login::default_client::originator;
 use ditfa_model_provider_info::AMAZON_BEDROCK_PROVIDER_ID;
@@ -30,7 +30,7 @@ use ditfa_protocol::config_types::ModelProviderAuthInfo;
 use ditfa_protocol::config_types::ReasoningSummary;
 use ditfa_protocol::config_types::Settings;
 use ditfa_protocol::config_types::Verbosity;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::models::ContentItem;
 use ditfa_protocol::models::DEFAULT_IMAGE_DETAIL;
 use ditfa_protocol::models::FunctionCallOutputContentItem;
@@ -55,7 +55,7 @@ use ditfa_protocol::protocol::SessionMetaLine;
 use ditfa_protocol::protocol::SessionSource;
 use ditfa_protocol::user_input::UserInput;
 use core_test_support::PathBufExt;
-use core_test_support::TestCodexResponsesRequestKind;
+use core_test_support::TestDitfaResponsesRequestKind;
 use core_test_support::apps_test_server::AppsTestServer;
 use core_test_support::load_default_config_for_test;
 use core_test_support::responses::ResponsesRequest;
@@ -75,9 +75,9 @@ use core_test_support::responses::strip_metadata_from_json;
 use core_test_support::responses::strip_response_item_ids_from_json;
 use core_test_support::responses_metadata as test_responses_metadata;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use dunce::canonicalize as normalize_path;
 use futures::StreamExt;
@@ -106,7 +106,7 @@ const TEST_INSTALLATION_ID: &str = "11111111-1111-4111-8111-111111111111";
 fn test_turn_responses_metadata(
     _client: &ModelClient,
     thread_id: ThreadId,
-) -> ditfa_core::CodexResponsesMetadata {
+) -> ditfa_core::DitfaResponsesMetadata {
     let thread_id = thread_id.to_string();
     test_responses_metadata(
         TEST_INSTALLATION_ID,
@@ -116,7 +116,7 @@ fn test_turn_responses_metadata(
         TEST_WINDOW_ID.to_string(),
         &SessionSource::Exec,
         /*parent_thread_id*/ None,
-        TestCodexResponsesRequestKind::Turn,
+        TestDitfaResponsesRequestKind::Turn,
     )
 }
 
@@ -158,7 +158,7 @@ fn response_message_item_id(request: &ResponsesRequest, role: &str, text: &str) 
         .unwrap_or_else(|| panic!("missing item ID for {role} message {text:?}"))
 }
 
-fn assert_codex_client_metadata(
+fn assert_ditfa_client_metadata(
     request_body: &serde_json::Value,
     installation_id: &str,
     session_id: &str,
@@ -166,7 +166,7 @@ fn assert_codex_client_metadata(
 ) {
     let client_metadata = &request_body["client_metadata"];
     assert_eq!(
-        client_metadata["x-codex-installation-id"].as_str(),
+        client_metadata["x-ditfa-installation-id"].as_str(),
         Some(installation_id)
     );
     assert_eq!(client_metadata["session_id"].as_str(), Some(session_id));
@@ -207,7 +207,7 @@ async fn openai_stateless_responses_requests_preserve_item_turn_metadata_across_
         ],
     )
     .await;
-    let test = test_codex().build(&server).await.unwrap();
+    let test = test_ditfa().build(&server).await.unwrap();
 
     test.submit_turn("turn one").await.unwrap();
     test.submit_turn("turn two").await.unwrap();
@@ -264,7 +264,7 @@ async fn non_openai_responses_requests_include_item_ids_without_passthrough_meta
     provider.name = "Test Responses".to_string();
     provider.base_url = Some(format!("{}/v1", server.uri()));
     provider.supports_websockets = false;
-    let codex = test_codex()
+    let ditfa = test_ditfa()
         .with_config(move |config| {
             config.model_provider_id = provider.name.clone();
             config.model_provider = provider;
@@ -274,7 +274,7 @@ async fn non_openai_responses_requests_include_item_ids_without_passthrough_meta
         .unwrap()
         .ditfa;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -287,7 +287,7 @@ async fn non_openai_responses_requests_include_item_ids_without_passthrough_meta
         })
         .await
         .unwrap();
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
     let body = response_mock.single_request().body_json();
     let input = body["input"]
@@ -317,7 +317,7 @@ async fn sends_audio_urls_to_responses() {
         sse(vec![ev_response_created("resp1"), ev_completed("resp1")]),
     )
     .await;
-    let codex = test_codex()
+    let ditfa = test_ditfa()
         .with_model_info_override("gpt-5.5", |model_info| {
             model_info.input_modalities.push(InputModality::Audio);
         })
@@ -327,7 +327,7 @@ async fn sends_audio_urls_to_responses() {
         .ditfa;
     let audio_url = "data:audio/wav;base64,AAAA";
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Audio {
                 audio_url: audio_url.to_string(),
@@ -339,7 +339,7 @@ async fn sends_audio_urls_to_responses() {
         })
         .await
         .unwrap();
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
     let user_message = response_mock
         .single_request()
@@ -367,7 +367,7 @@ async fn sends_local_audio_to_responses() -> anyhow::Result<()> {
         sse(vec![ev_response_created("resp1"), ev_completed("resp1")]),
     )
     .await;
-    let codex = test_codex()
+    let ditfa = test_ditfa()
         .with_model_info_override("gpt-5.5", |model_info| {
             model_info.input_modalities.push(InputModality::Audio);
         })
@@ -378,7 +378,7 @@ async fn sends_local_audio_to_responses() -> anyhow::Result<()> {
     let audio_path = temp_dir.path().join("recording.wav");
     std::fs::write(&audio_path, b"audio")?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::LocalAudio {
                 path: audio_path.clone(),
@@ -389,7 +389,7 @@ async fn sends_local_audio_to_responses() -> anyhow::Result<()> {
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
     let user_message = response_mock
         .single_request()
@@ -435,7 +435,7 @@ async fn response_item_ids_persist_across_resume_and_preserve_server_ids() -> an
         ],
     )
     .await;
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let initial = builder.build(&server).await?;
     let home = Arc::clone(&initial.home);
     let rollout_path = initial
@@ -529,7 +529,7 @@ async fn synthetic_call_output_id_is_stable_across_resumes() -> anyhow::Result<(
     )
     .await;
     let ditfa_home = Arc::new(TempDir::new()?);
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let first = builder
         .resume(&server, Arc::clone(&ditfa_home), session_path.clone())
         .await?;
@@ -595,8 +595,8 @@ async fn response_item_ids_are_sent_for_all_remote_v2_compaction_requests() -> a
         ],
     )
     .await;
-    let test = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let test = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(|config| {
             let _ = config.features.enable(Feature::RemoteCompactionV2);
         })
@@ -876,9 +876,9 @@ async fn resume_includes_initial_messages_and_sends_prior_items() {
     )
     .await;
 
-    // Configure Codex to resume from our file
+    // Configure Ditfa to resume from our file
     let ditfa_home = Arc::new(TempDir::new().unwrap());
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_home(ditfa_home.clone())
         .with_pre_build_hook(|home| {
             std::fs::write(home.join("AGENTS.md"), "be nice").expect("write global instructions");
@@ -887,7 +887,7 @@ async fn resume_includes_initial_messages_and_sends_prior_items() {
         .resume(&server, ditfa_home, session_path.clone())
         .await
         .expect("resume conversation");
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
     let session_configured = test.session_configured;
 
     // 1) Assert initial_messages only includes existing EventMsg entries; response items are not converted
@@ -900,7 +900,7 @@ async fn resume_includes_initial_messages_and_sends_prior_items() {
     assert_eq!(initial_json, expected_initial_json);
 
     // 2) Submit new input; the request body must include the prior items, then initial context, then new user input.
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -913,7 +913,7 @@ async fn resume_includes_initial_messages_and_sends_prior_items() {
         })
         .await
         .unwrap();
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let request_body = request.body_json();
@@ -1069,7 +1069,7 @@ async fn resume_replays_legacy_js_repl_image_rollout_shapes() {
     .await;
 
     let ditfa_home = Arc::new(TempDir::new().unwrap());
-    let mut builder = test_codex().with_model("gpt-5.4");
+    let mut builder = test_ditfa().with_model("gpt-5.4");
     let test = builder
         .resume(&server, ditfa_home, session_path.clone())
         .await
@@ -1235,7 +1235,7 @@ async fn resume_replays_image_tool_outputs_with_detail() {
     .await;
 
     let ditfa_home = Arc::new(TempDir::new().unwrap());
-    let mut builder = test_codex().with_model("gpt-5.4");
+    let mut builder = test_ditfa().with_model("gpt-5.4");
     let test = builder
         .resume(&server, ditfa_home, session_path.clone())
         .await
@@ -1284,16 +1284,16 @@ async fn includes_session_id_thread_id_and_model_headers_in_request() {
     )
     .await;
 
-    let mut builder = test_codex().with_auth(CodexAuth::from_api_key("Test API Key"));
+    let mut builder = test_ditfa().with_auth(DitfaAuth::from_api_key("Test API Key"));
     let test = builder
         .build(&server)
         .await
         .expect("create new conversation");
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
     let expected_session_id = test.session_configured.session_id;
     let expected_thread_id = test.session_configured.thread_id;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -1307,7 +1307,7 @@ async fn includes_session_id_thread_id_and_model_headers_in_request() {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     assert_eq!(request.path(), "/v1/responses");
@@ -1332,7 +1332,7 @@ async fn includes_session_id_thread_id_and_model_headers_in_request() {
         request_body["prompt_cache_key"].as_str(),
         Some(session_id_string.as_str())
     );
-    assert_codex_client_metadata(
+    assert_ditfa_client_metadata(
         &request_body,
         installation_id.as_str(),
         session_id_string.as_str(),
@@ -1422,7 +1422,7 @@ async fn amazon_bedrock_proxy_uses_command_auth_and_custom_headers() {
     assert_eq!(request.header("x-some-header"), Some("foo".to_string()));
     assert_eq!(
         request.header("x-amzn-mantle-client-agent"),
-        Some("codex".to_string())
+        Some("ditfa".to_string())
     );
     assert_eq!(request.body_json()["store"], false);
 }
@@ -1483,7 +1483,7 @@ async fn send_request_with_provider(provider: ModelProviderInfo) {
         SessionSource::Exec,
     );
     let client = ModelClient::new(
-        Some(AuthManager::from_auth_for_testing(CodexAuth::from_api_key(
+        Some(AuthManager::from_auth_for_testing(DitfaAuth::from_api_key(
             "unused-api-key",
         ))),
         AgentIdentityAuthPolicy::JwtOnly,
@@ -1547,18 +1547,18 @@ async fn includes_base_instructions_override_in_request() {
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::from_api_key("Test API Key"))
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::from_api_key("Test API Key"))
         .with_config(|config| {
             config.base_instructions = Some("test instructions".to_string());
         });
-    let codex = builder
+    let ditfa = builder
         .build(&server)
         .await
         .expect("create new conversation")
         .ditfa;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -1572,7 +1572,7 @@ async fn includes_base_instructions_override_in_request() {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let request_body = request.body_json();
@@ -1602,8 +1602,8 @@ async fn chatgpt_auth_sends_correct_request() {
         built_in_model_providers(/* openai_base_url */ /*openai_base_url*/ None)["openai"].clone();
     model_provider.base_url = Some(format!("{}/api/codex", server.uri()));
     model_provider.supports_websockets = false;
-    let mut builder = test_codex()
-        .with_auth(create_dummy_codex_auth())
+    let mut builder = test_ditfa()
+        .with_auth(create_dummy_ditfa_auth())
         .with_config(move |config| {
             config.model_provider = model_provider;
         });
@@ -1611,11 +1611,11 @@ async fn chatgpt_auth_sends_correct_request() {
         .build(&server)
         .await
         .expect("create new conversation");
-    let codex = test.ditfa.clone();
+    let ditfa = test.ditfa.clone();
     let expected_session_id = test.session_configured.session_id;
     let expected_thread_id = test.session_configured.thread_id;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -1629,7 +1629,7 @@ async fn chatgpt_auth_sends_correct_request() {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     assert_eq!(request.path(), "/api/codex/responses");
@@ -1655,7 +1655,7 @@ async fn chatgpt_auth_sends_correct_request() {
     assert_eq!(request_originator, originator().value);
     assert_eq!(request_authorization, "Bearer Access Token");
     assert_eq!(request_chatgpt_account_id, "account_id");
-    assert_codex_client_metadata(
+    assert_ditfa_client_metadata(
         &request_body,
         installation_id.as_str(),
         session_id_string.as_str(),
@@ -1712,7 +1712,7 @@ async fn prefers_apikey_when_config_prefers_apikey_even_with_chatgpt_tokens() {
     let mut config = load_default_config_for_test(&ditfa_home).await;
     config.model_provider = model_provider;
 
-    let auth = CodexAuth::from_auth_storage(
+    let auth = DitfaAuth::from_auth_storage(
         ditfa_home.path(),
         AuthCredentialsStoreMode::File,
         /*chatgpt_base_url*/ None,
@@ -1720,8 +1720,8 @@ async fn prefers_apikey_when_config_prefers_apikey_even_with_chatgpt_tokens() {
         &ditfa_login::test_support::transport_default_auth_route_config(),
     )
     .await
-    .expect("Failed to load CodexAuth")
-    .expect("No CodexAuth found in ditfa_home");
+    .expect("Failed to load DitfaAuth")
+    .expect("No DitfaAuth found in ditfa_home");
     let auth_manager = ditfa_core::test_support::auth_manager_from_auth(auth);
     let installation_id = resolve_installation_id(&config.ditfa_home)
         .await
@@ -1730,7 +1730,7 @@ async fn prefers_apikey_when_config_prefers_apikey_even_with_chatgpt_tokens() {
         &config,
         auth_manager.clone(),
         ditfa_core::build_models_manager(&config, auth_manager),
-        ditfa_core::CodexAppsToolsCache::default(),
+        ditfa_core::DitfaAppsToolsCache::default(),
         SessionSource::Exec,
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
         empty_extension_registry(),
@@ -1742,12 +1742,12 @@ async fn prefers_apikey_when_config_prefers_apikey_even_with_chatgpt_tokens() {
         /*attestation_provider*/ None,
         /*external_time_provider*/ None,
     );
-    let NewThread { thread: codex, .. } = thread_manager
+    let NewThread { thread: ditfa, .. } = thread_manager
         .start_thread(StartThreadOptions::new(config.clone()))
         .await
         .expect("create new conversation");
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -1761,7 +1761,7 @@ async fn prefers_apikey_when_config_prefers_apikey_even_with_chatgpt_tokens() {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -1775,18 +1775,18 @@ async fn includes_user_instructions_message_in_request() {
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::from_api_key("Test API Key"))
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::from_api_key("Test API Key"))
         .with_pre_build_hook(|home| {
             std::fs::write(home.join("AGENTS.md"), "be nice").expect("write global instructions");
         });
-    let codex = builder
+    let ditfa = builder
         .build(&server)
         .await
         .expect("create new conversation")
         .ditfa;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -1800,7 +1800,7 @@ async fn includes_user_instructions_message_in_request() {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let request_body = request.body_json();
@@ -1865,8 +1865,8 @@ async fn includes_apps_guidance_as_developer_message_for_chatgpt_auth() {
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(create_dummy_codex_auth())
+    let mut builder = test_ditfa()
+        .with_auth(create_dummy_ditfa_auth())
         .with_config(move |config| {
             config
                 .features
@@ -1874,13 +1874,13 @@ async fn includes_apps_guidance_as_developer_message_for_chatgpt_auth() {
                 .expect("test config should allow feature update");
             config.chatgpt_base_url = apps_base_url;
         });
-    let codex = builder
+    let ditfa = builder
         .build(&server)
         .await
         .expect("create new conversation")
         .ditfa;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -1894,7 +1894,7 @@ async fn includes_apps_guidance_as_developer_message_for_chatgpt_auth() {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let apps_snippet =
@@ -1928,8 +1928,8 @@ async fn omits_apps_guidance_for_api_key_auth_even_when_feature_enabled() {
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::from_api_key("Test API Key"))
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::from_api_key("Test API Key"))
         .with_config(move |config| {
             config
                 .features
@@ -1937,13 +1937,13 @@ async fn omits_apps_guidance_for_api_key_auth_even_when_feature_enabled() {
                 .expect("test config should allow feature update");
             config.chatgpt_base_url = apps_base_url;
         });
-    let codex = builder
+    let ditfa = builder
         .build(&server)
         .await
         .expect("create new conversation")
         .ditfa;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -1957,7 +1957,7 @@ async fn omits_apps_guidance_for_api_key_auth_even_when_feature_enabled() {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let apps_snippet =
@@ -1986,8 +1986,8 @@ async fn omits_apps_guidance_when_configured_off() {
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(create_dummy_codex_auth())
+    let mut builder = test_ditfa()
+        .with_auth(create_dummy_ditfa_auth())
         .with_config(move |config| {
             config
                 .features
@@ -1996,13 +1996,13 @@ async fn omits_apps_guidance_when_configured_off() {
             config.chatgpt_base_url = apps_base_url;
             config.include_apps_instructions = false;
         });
-    let codex = builder
+    let ditfa = builder
         .build(&server)
         .await
         .expect("create new conversation")
         .ditfa;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2016,7 +2016,7 @@ async fn omits_apps_guidance_when_configured_off() {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     assert!(
@@ -2063,8 +2063,8 @@ async fn omits_apps_guidance_when_orchestrator_mcp_is_disabled() {
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(create_dummy_codex_auth())
+    let mut builder = test_ditfa()
+        .with_auth(create_dummy_ditfa_auth())
         .with_config(move |config| {
             config
                 .features
@@ -2073,13 +2073,13 @@ async fn omits_apps_guidance_when_orchestrator_mcp_is_disabled() {
             config.chatgpt_base_url = apps_base_url;
             config.orchestrator_mcp_enabled = false;
         });
-    let codex = builder
+    let ditfa = builder
         .build(&server)
         .await
         .expect("create new conversation")
         .ditfa;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2093,7 +2093,7 @@ async fn omits_apps_guidance_when_orchestrator_mcp_is_disabled() {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let requests = resp_mock.requests();
     assert_eq!(requests.len(), 3);
@@ -2104,7 +2104,7 @@ async fn omits_apps_guidance_when_orchestrator_mcp_is_disabled() {
         request.body_json()["input"]
     );
     assert!(
-        !request.body_contains_text("mcp__codex_apps"),
+        !request.body_contains_text("mcp__ditfa_apps"),
         "did not expect ditfa_apps MCP tools when orchestrator MCP is disabled, got {:?}",
         request.body_json()["tools"]
     );
@@ -2152,16 +2152,16 @@ async fn omits_environment_context_when_configured_off() {
     )
     .await;
 
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.include_environment_context = false;
     });
-    let codex = builder
+    let ditfa = builder
         .build(&server)
         .await
         .expect("create new conversation")
         .ditfa;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2175,7 +2175,7 @@ async fn omits_environment_context_when_configured_off() {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     assert!(
@@ -2206,19 +2206,19 @@ async fn skills_append_to_developer_message() {
     .expect("write skill");
 
     let ditfa_home_path = ditfa_home.path().to_path_buf();
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_home(ditfa_home.clone())
-        .with_auth(CodexAuth::from_api_key("Test API Key"))
+        .with_auth(DitfaAuth::from_api_key("Test API Key"))
         .with_config(move |config| {
             config.cwd = ditfa_home_path.abs();
         });
-    let codex = builder
+    let ditfa = builder
         .build(&server)
         .await
         .expect("create new conversation")
         .ditfa;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2232,7 +2232,7 @@ async fn skills_append_to_developer_message() {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let developer_messages = request.message_input_texts("developer");
@@ -2251,7 +2251,7 @@ async fn skills_append_to_developer_message() {
         developer_text.contains(&expected_path_str),
         "expected path {expected_path_str} in developer message: {developer_messages:?}"
     );
-    let _codex_home_guard = ditfa_home;
+    let _ditfa_home_guard = ditfa_home;
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -2268,7 +2268,7 @@ async fn skills_use_aliases_in_developer_message_under_budget_pressure() {
     let ditfa_home_parent = TempDir::new().unwrap();
     let long_home_parent = ditfa_home_parent
         .path()
-        .join("codex-home-with-long-shared-prefix-for-skill-alias-budget-test");
+        .join("ditfa-home-with-long-shared-prefix-for-skill-alias-budget-test");
     std::fs::create_dir_all(&long_home_parent).expect("create long home parent");
     let ditfa_home = Arc::new(TempDir::new_in(long_home_parent).unwrap());
     let skill_root = ditfa_home.path().join("skills");
@@ -2283,9 +2283,9 @@ async fn skills_use_aliases_in_developer_message_under_budget_pressure() {
     }
 
     let ditfa_home_path = ditfa_home.path().to_path_buf();
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_home(ditfa_home.clone())
-        .with_auth(CodexAuth::from_api_key("Test API Key"))
+        .with_auth(DitfaAuth::from_api_key("Test API Key"))
         .with_config(move |config| {
             config.cwd = ditfa_home_path.abs();
             let user_config_path = ditfa_home_path.join("config.toml").abs();
@@ -2297,13 +2297,13 @@ async fn skills_use_aliases_in_developer_message_under_budget_pressure() {
                 .expect("skills user config should be valid");
             config.model_context_window = Some(12_000);
         });
-    let codex = builder
+    let ditfa = builder
         .build(&server)
         .await
         .expect("create new conversation")
         .ditfa;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2317,7 +2317,7 @@ async fn skills_use_aliases_in_developer_message_under_budget_pressure() {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let developer_messages = request.message_input_texts("developer");
@@ -2342,8 +2342,8 @@ async fn skills_use_aliases_in_developer_message_under_budget_pressure() {
         ),
         "expected alias-specific skill instructions: {developer_messages:?}"
     );
-    let _codex_home_guard = ditfa_home;
-    let _codex_home_parent_guard = ditfa_home_parent;
+    let _ditfa_home_guard = ditfa_home;
+    let _ditfa_home_parent_guard = ditfa_home_parent;
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -2356,7 +2356,7 @@ async fn includes_configured_max_effort_in_request() -> anyhow::Result<()> {
         sse(vec![ev_response_created("resp1"), ev_completed("resp1")]),
     )
     .await;
-    let TestCodex { codex, .. } = test_codex()
+    let TestDitfa { ditfa, .. } = test_ditfa()
         .with_model("gpt-5.4")
         .with_config(|config| {
             config.model_reasoning_effort = Some(ReasoningEffort::Max);
@@ -2364,7 +2364,7 @@ async fn includes_configured_max_effort_in_request() -> anyhow::Result<()> {
         .build(&server)
         .await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2378,7 +2378,7 @@ async fn includes_configured_max_effort_in_request() -> anyhow::Result<()> {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let request_body = request.body_json();
@@ -2404,9 +2404,9 @@ async fn includes_no_effort_in_request() -> anyhow::Result<()> {
         sse(vec![ev_response_created("resp1"), ev_completed("resp1")]),
     )
     .await;
-    let TestCodex { codex, .. } = test_codex().with_model("gpt-5.4").build(&server).await?;
+    let TestDitfa { ditfa, .. } = test_ditfa().with_model("gpt-5.4").build(&server).await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2420,7 +2420,7 @@ async fn includes_no_effort_in_request() -> anyhow::Result<()> {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let request_body = request.body_json();
@@ -2447,9 +2447,9 @@ async fn includes_default_reasoning_effort_in_request_when_defined_by_model_info
         sse(vec![ev_response_created("resp1"), ev_completed("resp1")]),
     )
     .await;
-    let TestCodex { codex, .. } = test_codex().with_model("gpt-5.4").build(&server).await?;
+    let TestDitfa { ditfa, .. } = test_ditfa().with_model("gpt-5.4").build(&server).await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2463,7 +2463,7 @@ async fn includes_default_reasoning_effort_in_request_when_defined_by_model_info
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let request_body = request.body_json();
@@ -2489,7 +2489,7 @@ async fn user_turn_collaboration_mode_overrides_model_and_effort() -> anyhow::Re
         sse(vec![ev_response_created("resp1"), ev_completed("resp1")]),
     )
     .await;
-    let TestCodex { codex, config, .. } = test_codex().with_model("gpt-5.4").build(&server).await?;
+    let TestDitfa { ditfa, config, .. } = test_ditfa().with_model("gpt-5.4").build(&server).await?;
 
     let collaboration_mode = CollaborationMode {
         mode: ModeKind::Default,
@@ -2500,7 +2500,7 @@ async fn user_turn_collaboration_mode_overrides_model_and_effort() -> anyhow::Re
         },
     };
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2524,7 +2524,7 @@ async fn user_turn_collaboration_mode_overrides_model_and_effort() -> anyhow::Re
         })
         .await?;
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request_body = resp_mock.single_request().body_json();
     assert_eq!(request_body["model"].as_str(), Some("gpt-5.4"));
@@ -2549,7 +2549,7 @@ async fn configured_reasoning_summary_is_sent() -> anyhow::Result<()> {
         sse(vec![ev_response_created("resp1"), ev_completed("resp1")]),
     )
     .await;
-    let TestCodex { codex, .. } = test_codex()
+    let TestDitfa { ditfa, .. } = test_ditfa()
         .with_config(|config| {
             config.model_reasoning_summary = Some(ReasoningSummary::Concise);
             let _ = config
@@ -2559,7 +2559,7 @@ async fn configured_reasoning_summary_is_sent() -> anyhow::Result<()> {
         .build(&server)
         .await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2573,7 +2573,7 @@ async fn configured_reasoning_summary_is_sent() -> anyhow::Result<()> {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let request_body = request.body_json();
@@ -2620,7 +2620,7 @@ async fn model_without_summary_parameter_support_omits_configured_summary() -> a
         .expect("gpt-5.4 exists in bundled models.json");
     model.supports_reasoning_summary_parameter = false;
 
-    let TestCodex { codex, .. } = test_codex()
+    let TestDitfa { ditfa, .. } = test_ditfa()
         .with_model("gpt-5.4")
         .with_config(move |config| {
             config.model_catalog = Some(model_catalog);
@@ -2634,7 +2634,7 @@ async fn model_without_summary_parameter_support_omits_configured_summary() -> a
         .build_with_auto_env(&server)
         .await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2647,7 +2647,7 @@ async fn model_without_summary_parameter_support_omits_configured_summary() -> a
         })
         .await?;
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request_body = resp_mock.single_request().body_json();
     pretty_assertions::assert_eq!(request_body["reasoning"], json!({"effort": "high"}));
@@ -2670,7 +2670,7 @@ async fn sequential_cutoff_is_omitted_for_non_openai_provider() -> anyhow::Resul
         sse(vec![ev_response_created("resp1"), ev_completed("resp1")]),
     )
     .await;
-    let TestCodex { codex, .. } = test_codex()
+    let TestDitfa { ditfa, .. } = test_ditfa()
         .with_config(|config| {
             config.model_provider.name = "mock".to_string();
             let _ = config
@@ -2680,7 +2680,7 @@ async fn sequential_cutoff_is_omitted_for_non_openai_provider() -> anyhow::Resul
         .build(&server)
         .await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2694,7 +2694,7 @@ async fn sequential_cutoff_is_omitted_for_non_openai_provider() -> anyhow::Resul
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request_body = resp_mock.single_request().body_json();
     pretty_assertions::assert_eq!(request_body.get("stream_options"), None);
@@ -2714,7 +2714,7 @@ async fn responses_lite_sets_all_turns_context_and_disables_parallel_tool_calls(
     )
     .await;
 
-    let TestCodex { codex, .. } = test_codex()
+    let TestDitfa { ditfa, .. } = test_ditfa()
         .with_model_info_override("gpt-5.4", |model_info| {
             model_info.use_responses_lite = true;
             model_info.supports_parallel_tool_calls = true;
@@ -2722,7 +2722,7 @@ async fn responses_lite_sets_all_turns_context_and_disables_parallel_tool_calls(
         .build(&server)
         .await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2735,7 +2735,7 @@ async fn responses_lite_sets_all_turns_context_and_disables_parallel_tool_calls(
         })
         .await?;
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request_body = resp_mock.single_request().body_json();
     pretty_assertions::assert_eq!(
@@ -2770,12 +2770,12 @@ async fn user_turn_explicit_reasoning_summary_overrides_model_catalog_default() 
         .expect("gpt-5.4 exists in bundled models.json");
     model.default_reasoning_summary = ReasoningSummary::Detailed;
 
-    let TestCodex {
-        codex,
+    let TestDitfa {
+        ditfa,
         config,
         session_configured,
         ..
-    } = test_codex()
+    } = test_ditfa()
         .with_model("gpt-5.4")
         .with_config(move |config| {
             config.model_catalog = Some(model_catalog);
@@ -2783,7 +2783,7 @@ async fn user_turn_explicit_reasoning_summary_overrides_model_catalog_default() 
         .build(&server)
         .await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2811,7 +2811,7 @@ async fn user_turn_explicit_reasoning_summary_overrides_model_catalog_default() 
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request_body = resp_mock.single_request().body_json();
 
@@ -2836,14 +2836,14 @@ async fn reasoning_summary_is_omitted_when_disabled() -> anyhow::Result<()> {
         sse(vec![ev_response_created("resp1"), ev_completed("resp1")]),
     )
     .await;
-    let TestCodex { codex, .. } = test_codex()
+    let TestDitfa { ditfa, .. } = test_ditfa()
         .with_config(|config| {
             config.model_reasoning_summary = Some(ReasoningSummary::None);
         })
         .build(&server)
         .await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2857,7 +2857,7 @@ async fn reasoning_summary_is_omitted_when_disabled() -> anyhow::Result<()> {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let request_body = request.body_json();
@@ -2892,7 +2892,7 @@ async fn reasoning_summary_none_overrides_model_catalog_default() -> anyhow::Res
         .expect("gpt-5.4 exists in bundled models.json");
     model.default_reasoning_summary = ReasoningSummary::Detailed;
 
-    let TestCodex { codex, .. } = test_codex()
+    let TestDitfa { ditfa, .. } = test_ditfa()
         .with_model("gpt-5.4")
         .with_config(move |config| {
             config.model_reasoning_summary = Some(ReasoningSummary::None);
@@ -2901,7 +2901,7 @@ async fn reasoning_summary_none_overrides_model_catalog_default() -> anyhow::Res
         .build(&server)
         .await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2915,7 +2915,7 @@ async fn reasoning_summary_none_overrides_model_catalog_default() -> anyhow::Res
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request_body = resp_mock.single_request().body_json();
     pretty_assertions::assert_eq!(
@@ -2938,9 +2938,9 @@ async fn includes_default_verbosity_in_request() -> anyhow::Result<()> {
         sse(vec![ev_response_created("resp1"), ev_completed("resp1")]),
     )
     .await;
-    let TestCodex { codex, .. } = test_codex().with_model("gpt-5.4").build(&server).await?;
+    let TestDitfa { ditfa, .. } = test_ditfa().with_model("gpt-5.4").build(&server).await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -2954,7 +2954,7 @@ async fn includes_default_verbosity_in_request() -> anyhow::Result<()> {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let request_body = request.body_json();
@@ -2980,7 +2980,7 @@ async fn configured_verbosity_not_sent_for_models_without_support() -> anyhow::R
         sse(vec![ev_response_created("resp1"), ev_completed("resp1")]),
     )
     .await;
-    let TestCodex { codex, .. } = test_codex()
+    let TestDitfa { ditfa, .. } = test_ditfa()
         .with_model("test-no-verbosity")
         .with_config(|config| {
             config.model_verbosity = Some(Verbosity::High);
@@ -2988,7 +2988,7 @@ async fn configured_verbosity_not_sent_for_models_without_support() -> anyhow::R
         .build(&server)
         .await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -3002,7 +3002,7 @@ async fn configured_verbosity_not_sent_for_models_without_support() -> anyhow::R
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let request_body = request.body_json();
@@ -3027,7 +3027,7 @@ async fn configured_verbosity_is_sent() -> anyhow::Result<()> {
         sse(vec![ev_response_created("resp1"), ev_completed("resp1")]),
     )
     .await;
-    let TestCodex { codex, .. } = test_codex()
+    let TestDitfa { ditfa, .. } = test_ditfa()
         .with_model("gpt-5.4")
         .with_config(|config| {
             config.model_verbosity = Some(Verbosity::High);
@@ -3035,7 +3035,7 @@ async fn configured_verbosity_is_sent() -> anyhow::Result<()> {
         .build(&server)
         .await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -3049,7 +3049,7 @@ async fn configured_verbosity_is_sent() -> anyhow::Result<()> {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let request_body = request.body_json();
@@ -3075,21 +3075,21 @@ async fn includes_developer_instructions_message_in_request() {
         sse(vec![ev_response_created("resp1"), ev_completed("resp1")]),
     )
     .await;
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::from_api_key("Test API Key"))
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::from_api_key("Test API Key"))
         .with_pre_build_hook(|home| {
             std::fs::write(home.join("AGENTS.md"), "be nice").expect("write global instructions");
         })
         .with_config(|config| {
             config.developer_instructions = Some("be useful".to_string());
         });
-    let codex = builder
+    let ditfa = builder
         .build(&server)
         .await
         .expect("create new conversation")
         .ditfa;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -3103,7 +3103,7 @@ async fn includes_developer_instructions_message_in_request() {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let request_body = request.body_json();
@@ -3203,7 +3203,7 @@ async fn azure_responses_request_includes_store_and_prefixed_item_ids() {
         ditfa_core::test_support::construct_model_info_offline(model.as_str(), &config);
     let thread_id = ThreadId::new();
     let auth_manager =
-        ditfa_core::test_support::auth_manager_from_auth(CodexAuth::from_api_key("Test API Key"));
+        ditfa_core::test_support::auth_manager_from_auth(DitfaAuth::from_api_key("Test API Key"));
     let session_telemetry = SessionTelemetry::new(
         thread_id,
         model.as_str(),
@@ -3384,12 +3384,12 @@ async fn token_count_includes_rate_limits_snapshot() {
 
     let response = ResponseTemplate::new(200)
         .insert_header("content-type", "text/event-stream")
-        .insert_header("x-codex-primary-used-percent", "12.5")
-        .insert_header("x-codex-secondary-used-percent", "40.0")
-        .insert_header("x-codex-primary-window-minutes", "10")
-        .insert_header("x-codex-secondary-window-minutes", "60")
-        .insert_header("x-codex-primary-reset-at", "1704069000")
-        .insert_header("x-codex-secondary-reset-at", "1704074400")
+        .insert_header("x-ditfa-primary-used-percent", "12.5")
+        .insert_header("x-ditfa-secondary-used-percent", "40.0")
+        .insert_header("x-ditfa-primary-window-minutes", "10")
+        .insert_header("x-ditfa-secondary-window-minutes", "60")
+        .insert_header("x-ditfa-primary-reset-at", "1704069000")
+        .insert_header("x-ditfa-secondary-reset-at", "1704074400")
         .set_body_raw(sse_body, "text/event-stream");
 
     Mock::given(method("POST"))
@@ -3404,18 +3404,18 @@ async fn token_count_includes_rate_limits_snapshot() {
     provider.base_url = Some(format!("{}/v1", server.uri()));
     provider.supports_websockets = false;
 
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::from_api_key("test"))
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::from_api_key("test"))
         .with_config(move |config| {
             config.model_provider = provider;
         });
-    let codex = builder
+    let ditfa = builder
         .build(&server)
         .await
         .expect("create conversation")
         .ditfa;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -3430,7 +3430,7 @@ async fn token_count_includes_rate_limits_snapshot() {
         .unwrap();
 
     let token_event = wait_for_event(
-        &codex,
+        &ditfa,
         |msg| matches!(msg, EventMsg::TokenCount(ev) if ev.info.is_some()),
     )
     .await;
@@ -3464,7 +3464,7 @@ async fn token_count_includes_rate_limits_snapshot() {
                 "model_context_window": 258400
             },
             "rate_limits": {
-                "limit_id": "codex",
+                "limit_id": "ditfa",
                 "limit_name": null,
                 "primary": {
                     "used_percent": 12.5,
@@ -3506,7 +3506,7 @@ async fn token_count_includes_rate_limits_snapshot() {
         Some(1704069000)
     );
 
-    wait_for_event(&codex, |msg| matches!(msg, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |msg| matches!(msg, EventMsg::TurnComplete(_))).await;
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -3515,16 +3515,16 @@ async fn usage_limit_error_emits_rate_limit_event() -> anyhow::Result<()> {
     let server = MockServer::start().await;
 
     let response = ResponseTemplate::new(429)
-        .insert_header("x-codex-primary-used-percent", "100.0")
-        .insert_header("x-codex-secondary-used-percent", "87.5")
-        .insert_header("x-codex-primary-over-secondary-limit-percent", "95.0")
-        .insert_header("x-codex-primary-window-minutes", "15")
-        .insert_header("x-codex-secondary-window-minutes", "60")
-        .insert_header("x-codex-credits-has-credits", "true")
-        .insert_header("x-codex-credits-unlimited", "false")
-        .insert_header("x-codex-credits-balance", "")
+        .insert_header("x-ditfa-primary-used-percent", "100.0")
+        .insert_header("x-ditfa-secondary-used-percent", "87.5")
+        .insert_header("x-ditfa-primary-over-secondary-limit-percent", "95.0")
+        .insert_header("x-ditfa-primary-window-minutes", "15")
+        .insert_header("x-ditfa-secondary-window-minutes", "60")
+        .insert_header("x-ditfa-credits-has-credits", "true")
+        .insert_header("x-ditfa-credits-unlimited", "false")
+        .insert_header("x-ditfa-credits-balance", "")
         .insert_header(
-            "x-codex-rate-limit-reached-type",
+            "x-ditfa-rate-limit-reached-type",
             "workspace_member_usage_limit_reached",
         )
         .set_body_json(json!({
@@ -3543,12 +3543,12 @@ async fn usage_limit_error_emits_rate_limit_event() -> anyhow::Result<()> {
         .mount(&server)
         .await;
 
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let ditfa_fixture = builder.build(&server).await?;
-    let codex = ditfa_fixture.ditfa.clone();
+    let ditfa = ditfa_fixture.ditfa.clone();
 
     let expected_limits = json!({
-        "limit_id": "codex",
+        "limit_id": "ditfa",
         "limit_name": null,
         "primary": {
             "used_percent": 100.0,
@@ -3571,7 +3571,7 @@ async fn usage_limit_error_emits_rate_limit_event() -> anyhow::Result<()> {
         "rate_limit_reached_type": "workspace_member_usage_limit_reached"
     });
 
-    let submission_id = codex
+    let submission_id = ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -3585,7 +3585,7 @@ async fn usage_limit_error_emits_rate_limit_event() -> anyhow::Result<()> {
         .await
         .expect("submission should succeed while emitting usage limit error events");
 
-    let token_event = wait_for_event(&codex, |msg| matches!(msg, EventMsg::TokenCount(_))).await;
+    let token_event = wait_for_event(&ditfa, |msg| matches!(msg, EventMsg::TokenCount(_))).await;
     let EventMsg::TokenCount(event) = token_event else {
         unreachable!();
     };
@@ -3599,7 +3599,7 @@ async fn usage_limit_error_emits_rate_limit_event() -> anyhow::Result<()> {
         })
     );
 
-    let error_event = wait_for_event(&codex, |msg| matches!(msg, EventMsg::Error(_))).await;
+    let error_event = wait_for_event(&ditfa, |msg| matches!(msg, EventMsg::Error(_))).await;
     let EventMsg::Error(error_event) = error_event else {
         unreachable!();
     };
@@ -3640,7 +3640,7 @@ async fn context_window_error_sets_total_tokens_to_model_window() -> anyhow::Res
     )
     .await;
 
-    let TestCodex { codex, .. } = test_codex()
+    let TestDitfa { ditfa, .. } = test_ditfa()
         .with_config(|config| {
             config.model = Some("gpt-5.4".to_string());
             config.model_context_window = Some(272_000);
@@ -3648,7 +3648,7 @@ async fn context_window_error_sets_total_tokens_to_model_window() -> anyhow::Res
         .build(&server)
         .await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "seed turn".into(),
@@ -3661,9 +3661,9 @@ async fn context_window_error_sets_total_tokens_to_model_window() -> anyhow::Res
         })
         .await?;
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "trigger context window".into(),
@@ -3676,7 +3676,7 @@ async fn context_window_error_sets_total_tokens_to_model_window() -> anyhow::Res
         })
         .await?;
 
-    let token_event = wait_for_event(&codex, |event| {
+    let token_event = wait_for_event(&ditfa, |event| {
         matches!(
             event,
             EventMsg::TokenCount(payload)
@@ -3702,8 +3702,8 @@ async fn context_window_error_sets_total_tokens_to_model_window() -> anyhow::Res
         EFFECTIVE_CONTEXT_WINDOW
     );
 
-    let error_event = wait_for_event(&codex, |ev| matches!(ev, EventMsg::Error(_))).await;
-    let expected_context_window_message = CodexErr::ContextWindowExceeded.to_string();
+    let error_event = wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::Error(_))).await;
+    let expected_context_window_message = DitfaErr::ContextWindowExceeded.to_string();
     assert!(
         matches!(
             error_event,
@@ -3712,7 +3712,7 @@ async fn context_window_error_sets_total_tokens_to_model_window() -> anyhow::Res
         "expected context window error; got {error_event:?}"
     );
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     Ok(())
 }
@@ -3742,13 +3742,13 @@ async fn incomplete_response_emits_content_filter_error_message() -> anyhow::Res
 
     let responses_mock = mount_sse_once(&server, incomplete_response).await;
 
-    let TestCodex { codex, .. } = test_codex()
+    let TestDitfa { ditfa, .. } = test_ditfa()
         .with_config(|config| {
             config.model_provider.stream_max_retries = Some(0);
         })
         .build(&server)
         .await?;
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "trigger incomplete".into(),
@@ -3761,7 +3761,7 @@ async fn incomplete_response_emits_content_filter_error_message() -> anyhow::Res
         })
         .await?;
 
-    let error_event = wait_for_event(&codex, |ev| matches!(ev, EventMsg::Error(_))).await;
+    let error_event = wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::Error(_))).await;
     assert!(
         matches!(
             error_event,
@@ -3774,7 +3774,7 @@ async fn incomplete_response_emits_content_filter_error_message() -> anyhow::Res
 
     assert_eq!(responses_mock.requests().len(), 1);
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
     Ok(())
 }
 
@@ -3849,18 +3849,18 @@ async fn azure_overrides_assign_properties_used_for_responses_url() {
     };
 
     // Init session
-    let mut builder = test_codex()
-        .with_auth(create_dummy_codex_auth())
+    let mut builder = test_ditfa()
+        .with_auth(create_dummy_ditfa_auth())
         .with_config(move |config| {
             config.model_provider = provider;
         });
-    let codex = builder
+    let ditfa = builder
         .build(&server)
         .await
         .expect("create new conversation")
         .ditfa;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -3874,7 +3874,7 @@ async fn azure_overrides_assign_properties_used_for_responses_url() {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -3939,18 +3939,18 @@ async fn env_var_overrides_loaded_auth() {
     };
 
     // Init session
-    let mut builder = test_codex()
-        .with_auth(create_dummy_codex_auth())
+    let mut builder = test_ditfa()
+        .with_auth(create_dummy_ditfa_auth())
         .with_config(move |config| {
             config.model_provider = provider;
         });
-    let codex = builder
+    let ditfa = builder
         .build(&server)
         .await
         .expect("create new conversation")
         .ditfa;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "hello".into(),
@@ -3964,11 +3964,11 @@ async fn env_var_overrides_loaded_auth() {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 }
 
-fn create_dummy_codex_auth() -> CodexAuth {
-    CodexAuth::create_dummy_chatgpt_auth_for_testing()
+fn create_dummy_ditfa_auth() -> DitfaAuth {
+    DitfaAuth::create_dummy_chatgpt_auth_for_testing()
 }
 
 /// Scenario:
@@ -3979,7 +3979,7 @@ fn create_dummy_codex_auth() -> CodexAuth {
 /// We assert that the `input` sent on each turn contains the expected conversation history
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn history_dedupes_streamed_and_final_messages_across_turns() {
-    // Skip under Codex sandbox network restrictions (mirrors other tests).
+    // Skip under Ditfa sandbox network restrictions (mirrors other tests).
     skip_if_no_network!();
 
     // Mock server that will receive three sequential requests and return the same SSE stream
@@ -3999,15 +3999,15 @@ async fn history_dedupes_streamed_and_final_messages_across_turns() {
 
     let request_log = mount_sse_sequence(&server, vec![sse1.clone(), sse1.clone(), sse1]).await;
 
-    let mut builder = test_codex().with_auth(CodexAuth::from_api_key("Test API Key"));
-    let codex = builder
+    let mut builder = test_ditfa().with_auth(DitfaAuth::from_api_key("Test API Key"));
+    let ditfa = builder
         .build(&server)
         .await
         .expect("create new conversation")
         .ditfa;
 
     // Turn 1: user sends U1; wait for completion.
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "U1".into(),
@@ -4020,10 +4020,10 @@ async fn history_dedupes_streamed_and_final_messages_across_turns() {
         })
         .await
         .unwrap();
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     // Turn 2: user sends U2; wait for completion.
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "U2".into(),
@@ -4036,10 +4036,10 @@ async fn history_dedupes_streamed_and_final_messages_across_turns() {
         })
         .await
         .unwrap();
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     // Turn 3: user sends U3; wait for completion.
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "U3".into(),
@@ -4052,7 +4052,7 @@ async fn history_dedupes_streamed_and_final_messages_across_turns() {
         })
         .await
         .unwrap();
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     // Inspect the three captured requests.
     let requests = request_log.requests();

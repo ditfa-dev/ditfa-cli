@@ -23,9 +23,9 @@ pub(crate) fn build_mcp_tool_runtimes(
     config: &Config,
     search_tool_enabled: bool,
 ) -> Vec<Arc<dyn CoreToolRuntime>> {
-    let mut exposed_tools = filter_non_codex_apps_mcp_tools_only(all_mcp_tools);
+    let mut exposed_tools = filter_non_ditfa_apps_mcp_tools_only(all_mcp_tools);
     if let Some(connectors) = connectors {
-        exposed_tools.extend(filter_codex_apps_mcp_tools(
+        exposed_tools.extend(filter_ditfa_apps_mcp_tools(
             all_mcp_tools,
             connectors,
             config,
@@ -55,7 +55,7 @@ pub(crate) fn build_mcp_tool_runtimes(
         .collect()
 }
 
-fn filter_non_codex_apps_mcp_tools_only(mcp_tools: &[McpToolInfo]) -> Vec<McpToolInfo> {
+fn filter_non_ditfa_apps_mcp_tools_only(mcp_tools: &[McpToolInfo]) -> Vec<McpToolInfo> {
     mcp_tools
         .iter()
         .filter(|tool| {
@@ -65,7 +65,7 @@ fn filter_non_codex_apps_mcp_tools_only(mcp_tools: &[McpToolInfo]) -> Vec<McpToo
         .collect()
 }
 
-fn filter_codex_apps_mcp_tools(
+fn filter_ditfa_apps_mcp_tools(
     mcp_tools: &[McpToolInfo],
     connectors: &[connectors::AppInfo],
     config: &Config,

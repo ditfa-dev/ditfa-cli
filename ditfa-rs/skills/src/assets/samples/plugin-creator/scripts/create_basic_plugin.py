@@ -65,8 +65,8 @@ def build_plugin_json(plugin_name: str, *, with_mcp: bool, with_apps: bool) -> d
         "skills": "./skills/",
         "interface": {
             "displayName": display_name,
-            "shortDescription": f"Use {display_name} in Codex.",
-            "longDescription": f"{display_name} adds a local Codex plugin scaffold.",
+            "shortDescription": f"Use {display_name} in Ditfa.",
+            "longDescription": f"{display_name} adds a local Ditfa plugin scaffold.",
             "developerName": "Local developer",
             "category": DEFAULT_CATEGORY,
             "capabilities": [],
@@ -269,7 +269,7 @@ def main() -> None:
     plugin_root = (Path(args.path).expanduser().resolve() / plugin_name)
     plugin_root.mkdir(parents=True, exist_ok=True)
 
-    plugin_json_path = plugin_root / ".codex-plugin" / "plugin.json"
+    plugin_json_path = plugin_root / ".ditfa-plugin" / "plugin.json"
     write_json(
         plugin_json_path,
         build_plugin_json(plugin_name, with_mcp=args.with_mcp, with_apps=args.with_apps),

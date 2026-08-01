@@ -21,13 +21,13 @@ async fn list_discoverable_plugins(
 
 async fn list_discoverable_plugins_with_auth(
     config: &crate::config::Config,
-    auth: Option<&ditfa_login::CodexAuth>,
+    auth: Option<&ditfa_login::DitfaAuth>,
     loaded_plugin_app_connector_ids: &[String],
 ) -> anyhow::Result<Vec<DiscoverablePluginInfo>> {
     let plugins_manager = PluginsManager::new_with_options(
         config.ditfa_home.to_path_buf(),
-        Some(Product::Codex),
-        auth.map(ditfa_login::CodexAuth::api_auth_mode),
+        Some(Product::Ditfa),
+        auth.map(ditfa_login::DitfaAuth::api_auth_mode),
     );
     list_discoverable_plugins_with_manager_and_auth(
         config,
@@ -41,7 +41,7 @@ async fn list_discoverable_plugins_with_auth(
 async fn list_discoverable_plugins_with_manager_and_auth(
     config: &crate::config::Config,
     plugins_manager: &PluginsManager,
-    auth: Option<&ditfa_login::CodexAuth>,
+    auth: Option<&ditfa_login::DitfaAuth>,
     loaded_plugin_app_connector_ids: &[String],
 ) -> anyhow::Result<Vec<DiscoverablePluginInfo>> {
     super::list_tool_suggest_discoverable_plugins(
@@ -55,7 +55,7 @@ async fn list_discoverable_plugins_with_manager_and_auth(
 
 #[tokio::test]
 async fn list_tool_suggest_discoverable_plugins_includes_cached_remote_global_plugins() {
-    use ditfa_login::CodexAuth;
+    use ditfa_login::DitfaAuth;
     use serde_json::json;
     use wiremock::Mock;
     use wiremock::MockServer;
@@ -215,7 +215,7 @@ plugins = true
         .mount(&server)
         .await;
 
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let mut config = load_plugins_config(ditfa_home.path()).await;
     config.chatgpt_base_url = format!("{}/backend-api", server.uri());
     let plugins_manager = PluginsManager::new(config.ditfa_home.to_path_buf());

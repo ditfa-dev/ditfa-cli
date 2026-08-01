@@ -1,6 +1,6 @@
 use ditfa_protocol::AgentPath;
 use ditfa_protocol::ThreadId;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::Result;
 use ditfa_protocol::protocol::SessionSource;
 use ditfa_protocol::protocol::SubAgentSource;
@@ -82,7 +82,7 @@ impl AgentRegistry {
     ) -> Result<SpawnReservation> {
         if let Some(max_threads) = max_threads {
             if !self.try_increment_spawned(max_threads) {
-                return Err(CodexErr::AgentLimitReached { max_threads });
+                return Err(DitfaErr::AgentLimitReached { max_threads });
             }
         } else {
             self.total_count.fetch_add(1, Ordering::AcqRel);
@@ -207,7 +207,7 @@ impl AgentRegistry {
                 active_agents.nickname_reset_count += 1;
                 if let Some(metrics) = ditfa_otel::global() {
                     let _ = metrics.counter(
-                        "codex.multi_agent.nickname_pool_reset",
+                        "ditfa.multi_agent.nickname_pool_reset",
                         /*inc*/ 1,
                         &[],
                     );
@@ -230,7 +230,7 @@ impl AgentRegistry {
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
         match active_agents.agent_tree.entry(agent_path.to_string()) {
-            Entry::Occupied(_) => Err(CodexErr::UnsupportedOperation(format!(
+            Entry::Occupied(_) => Err(DitfaErr::UnsupportedOperation(format!(
                 "agent path `{agent_path}` already exists"
             ))),
             Entry::Vacant(entry) => {
@@ -293,7 +293,7 @@ impl SpawnReservation {
             .state
             .reserve_agent_nickname(names, preferred)
             .ok_or_else(|| {
-                CodexErr::UnsupportedOperation("no available agent nicknames".to_string())
+                DitfaErr::UnsupportedOperation("no available agent nicknames".to_string())
             })?;
         self.reserved_agent_nickname = Some(agent_nickname.clone());
         Ok(agent_nickname)

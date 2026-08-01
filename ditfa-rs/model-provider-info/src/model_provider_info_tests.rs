@@ -144,7 +144,7 @@ fn test_supports_remote_compaction_for_openai() {
 }
 
 #[test]
-fn test_personal_access_token_uses_chatgpt_codex_base_url() {
+fn test_personal_access_token_uses_chatgpt_ditfa_base_url() {
     let api_provider = ModelProviderInfo::create_openai_provider(/*base_url*/ None)
         .to_api_provider(Some(AuthMode::PersonalAccessToken))
         .expect("OpenAI provider should build API provider");
@@ -153,7 +153,7 @@ fn test_personal_access_token_uses_chatgpt_codex_base_url() {
 }
 
 #[test]
-fn test_header_auth_uses_chatgpt_codex_base_url() {
+fn test_header_auth_uses_chatgpt_ditfa_base_url() {
     let api_provider = ModelProviderInfo::create_openai_provider(/*base_url*/ None)
         .to_api_provider(Some(AuthMode::Headers))
         .expect("OpenAI provider should build API provider");
@@ -273,7 +273,7 @@ name = "Amazon Bedrock"
 base_url = "https://bedrock.example.com/v1"
 
 [aws]
-profile = "codex-bedrock"
+profile = "ditfa-bedrock"
 region = "us-west-2"
         "#;
 
@@ -282,7 +282,7 @@ region = "us-west-2"
     assert_eq!(
         provider.aws,
         Some(ModelProviderAwsAuthInfo {
-            profile: Some("codex-bedrock".to_string()),
+            profile: Some("ditfa-bedrock".to_string()),
             region: Some("us-west-2".to_string()),
         })
     );
@@ -389,7 +389,7 @@ fn test_merge_configured_model_providers_applies_amazon_bedrock_profile_override
         AMAZON_BEDROCK_PROVIDER_ID.to_string(),
         ModelProviderInfo {
             aws: Some(ModelProviderAwsAuthInfo {
-                profile: Some("codex-bedrock".to_string()),
+                profile: Some("ditfa-bedrock".to_string()),
                 region: Some("us-west-2".to_string()),
             }),
             ..ModelProviderInfo::default()
@@ -401,7 +401,7 @@ fn test_merge_configured_model_providers_applies_amazon_bedrock_profile_override
         .get_mut(AMAZON_BEDROCK_PROVIDER_ID)
         .expect("Amazon Bedrock provider should be built in")
         .aws = Some(ModelProviderAwsAuthInfo {
-        profile: Some("codex-bedrock".to_string()),
+        profile: Some("ditfa-bedrock".to_string()),
         region: Some("us-west-2".to_string()),
     });
 
@@ -423,7 +423,7 @@ fn test_merge_configured_model_providers_applies_amazon_bedrock_transport_overri
             base_url: Some("https://proxy.example.com/v1".to_string()),
             auth: Some(auth.clone()),
             aws: Some(ModelProviderAwsAuthInfo {
-                profile: Some("codex-bedrock".to_string()),
+                profile: Some("ditfa-bedrock".to_string()),
                 region: Some("us-west-2".to_string()),
             }),
             http_headers: Some(maplit::hashmap! {
@@ -440,7 +440,7 @@ fn test_merge_configured_model_providers_applies_amazon_bedrock_transport_overri
     expected_provider.base_url = Some("https://proxy.example.com/v1".to_string());
     expected_provider.auth = Some(auth);
     expected_provider.aws = Some(ModelProviderAwsAuthInfo {
-        profile: Some("codex-bedrock".to_string()),
+        profile: Some("ditfa-bedrock".to_string()),
         region: Some("us-west-2".to_string()),
     });
     expected_provider
@@ -464,7 +464,7 @@ fn test_merge_configured_model_providers_rejects_amazon_bedrock_non_default_fiel
         ModelProviderInfo {
             name: "Custom Bedrock".to_string(),
             aws: Some(ModelProviderAwsAuthInfo {
-                profile: Some("codex-bedrock".to_string()),
+                profile: Some("ditfa-bedrock".to_string()),
                 region: None,
             }),
             ..ModelProviderInfo::default()

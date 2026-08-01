@@ -4,7 +4,7 @@ use std::path::Path;
 use tempfile::TempDir;
 
 fn ditfa_command(ditfa_home: &Path) -> Result<assert_cmd::Command> {
-    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("codex")?);
+    let mut cmd = assert_cmd::Command::new(ditfa_utils_cargo_bin::cargo_bin("ditfa")?);
     cmd.env("DITFA_HOME", ditfa_home);
     Ok(cmd)
 }
@@ -18,7 +18,7 @@ async fn update_does_not_start_interactive_prompt() -> Result<()> {
         .arg("update")
         .assert()
         .failure()
-        .stderr(contains("`codex update` is not available in debug builds"));
+        .stderr(contains("`ditfa update` is not available in debug builds"));
 
     Ok(())
 }

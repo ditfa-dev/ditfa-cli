@@ -11,7 +11,7 @@ use crate::context::RealtimeDelegationSource;
 use async_channel::bounded;
 use ditfa_api::RealtimeEventParser;
 use ditfa_protocol::models::MessagePhase;
-use ditfa_protocol::protocol::CodexResponseHandoffMode;
+use ditfa_protocol::protocol::DitfaResponseHandoffMode;
 use ditfa_protocol::protocol::RealtimeHandoffRequested;
 use ditfa_protocol::protocol::RealtimeTranscriptEntry;
 use pretty_assertions::assert_eq;
@@ -157,7 +157,7 @@ async fn clears_active_handoff_explicitly() {
         client_managed_handoffs: false,
         ditfa_responses_as_items: false,
         ditfa_response_item_prefix: None,
-        ditfa_response_handoff_mode: CodexResponseHandoffMode::Thinking,
+        ditfa_response_handoff_mode: DitfaResponseHandoffMode::Thinking,
         ditfa_response_handoff_channel_prefixes: Arc::new(BTreeMap::new()),
         session_kind: RealtimeSessionKind::V1,
         event_parser: RealtimeEventParser::V1,

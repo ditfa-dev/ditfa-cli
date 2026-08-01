@@ -325,7 +325,7 @@ impl ThreadHistoryBuilder {
     /// tracking used by running thread resume/rejoin.
     ///
     /// This function should handle all EventMsg variants that can be persisted in a rollout file.
-    /// See `should_persist_event_msg` in `codex-rs/core/rollout/policy.rs`.
+    /// See `should_persist_event_msg` in `ditfa-rs/core/rollout/policy.rs`.
     pub fn handle_event(&mut self, event: &EventMsg) {
         match event {
             EventMsg::UserMessage(payload) => self.handle_user_message(payload),
@@ -1626,7 +1626,7 @@ mod tests {
     use ditfa_protocol::protocol::AgentReasoningEvent;
     use ditfa_protocol::protocol::AgentReasoningRawContentEvent;
     use ditfa_protocol::protocol::ApplyPatchApprovalRequestEvent;
-    use ditfa_protocol::protocol::CodexErrorInfo;
+    use ditfa_protocol::protocol::DitfaErrorInfo;
     use ditfa_protocol::protocol::CompactedItem;
     use ditfa_protocol::protocol::DynamicToolCallResponseEvent;
     use ditfa_protocol::protocol::EnteredReviewModeEvent;
@@ -2688,15 +2688,15 @@ mod tests {
             }),
             EventMsg::WebSearchEnd(WebSearchEndEvent {
                 call_id: "search-1".into(),
-                query: "codex".into(),
+                query: "ditfa".into(),
                 action: CoreWebSearchAction::Search {
-                    query: Some("codex".into()),
+                    query: Some("ditfa".into()),
                     queries: None,
                 },
                 results: Some(vec![serde_json::json!({
                     "type": "text_result",
                     "ref_id": "turn0search0",
-                    "url": "https://example.com/codex",
+                    "url": "https://example.com/ditfa",
                 })]),
             }),
             EventMsg::ExecCommandEnd(ExecCommandEndEvent {
@@ -2748,15 +2748,15 @@ mod tests {
             turns[0].items[1],
             ThreadItem::WebSearch(WebSearchItem {
                 id: "search-1".into(),
-                query: "codex".into(),
+                query: "ditfa".into(),
                 action: Some(WebSearchAction::Search {
-                    query: Some("codex".into()),
+                    query: Some("ditfa".into()),
                     queries: None,
                 }),
                 results: Some(vec![serde_json::json!({
                     "type": "text_result",
                     "ref_id": "turn0search0",
-                    "url": "https://example.com/codex",
+                    "url": "https://example.com/ditfa",
                 })]),
             })
         );
@@ -3934,7 +3934,7 @@ mod tests {
             }),
             EventMsg::Error(ErrorEvent {
                 message: "rollback failed".into(),
-                ditfa_error_info: Some(CodexErrorInfo::ThreadRollbackFailed),
+                ditfa_error_info: Some(DitfaErrorInfo::ThreadRollbackFailed),
             }),
         ];
 
@@ -3977,7 +3977,7 @@ mod tests {
             }),
             EventMsg::Error(ErrorEvent {
                 message: "request-level failure".into(),
-                ditfa_error_info: Some(CodexErrorInfo::BadRequest),
+                ditfa_error_info: Some(DitfaErrorInfo::BadRequest),
             }),
         ];
 
@@ -4029,7 +4029,7 @@ mod tests {
             }),
             EventMsg::Error(ErrorEvent {
                 message: "stream failure".into(),
-                ditfa_error_info: Some(CodexErrorInfo::ResponseStreamDisconnected {
+                ditfa_error_info: Some(DitfaErrorInfo::ResponseStreamDisconnected {
                     http_status_code: Some(502),
                 }),
             }),
@@ -4057,7 +4057,7 @@ mod tests {
             Some(TurnError {
                 message: "stream failure".into(),
                 ditfa_error_info: Some(
-                    crate::protocol::v2::CodexErrorInfo::ResponseStreamDisconnected {
+                    crate::protocol::v2::DitfaErrorInfo::ResponseStreamDisconnected {
                         http_status_code: Some(502),
                     }
                 ),
@@ -4242,9 +4242,9 @@ mod tests {
         let changes = builder.handle_rollout_item_with_changes(&RolloutItem::EventMsg(
             EventMsg::WebSearchEnd(WebSearchEndEvent {
                 call_id: "search-1".into(),
-                query: "codex".into(),
+                query: "ditfa".into(),
                 action: CoreWebSearchAction::Search {
-                    query: Some("codex".into()),
+                    query: Some("ditfa".into()),
                     queries: None,
                 },
                 results: None,
@@ -4257,9 +4257,9 @@ mod tests {
                     turn_id: "rollout-0".into(),
                     item: ThreadItem::WebSearch(WebSearchItem {
                         id: "search-1".into(),
-                        query: "codex".into(),
+                        query: "ditfa".into(),
                         action: Some(WebSearchAction::Search {
-                            query: Some("codex".into()),
+                            query: Some("ditfa".into()),
                             queries: None,
                         }),
                         results: None,
@@ -4379,9 +4379,9 @@ mod tests {
             })),
             RolloutItem::EventMsg(EventMsg::WebSearchEnd(WebSearchEndEvent {
                 call_id: "search-1".into(),
-                query: "codex".into(),
+                query: "ditfa".into(),
                 action: CoreWebSearchAction::Search {
-                    query: Some("codex".into()),
+                    query: Some("ditfa".into()),
                     queries: None,
                 },
                 results: None,
@@ -4394,9 +4394,9 @@ mod tests {
                     turn_id: "rollout-0".into(),
                     item: ThreadItem::WebSearch(WebSearchItem {
                         id: "search-1".into(),
-                        query: "codex".into(),
+                        query: "ditfa".into(),
                         action: Some(WebSearchAction::Search {
-                            query: Some("codex".into()),
+                            query: Some("ditfa".into()),
                             queries: None,
                         }),
                         results: None,

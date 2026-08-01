@@ -133,7 +133,7 @@ impl TraceReducer {
                 model_visible_call_id,
                 code_mode_runtime_tool_id: started.code_mode_runtime_tool_id,
                 thread_id,
-                started_by_codex_turn_id: ditfa_turn_id,
+                started_by_ditfa_turn_id: ditfa_turn_id,
                 execution: ExecutionWindow {
                     started_at_unix_ms: wall_time_unix_ms,
                     started_seq: seq,
@@ -378,14 +378,14 @@ impl TraceReducer {
             return Ok(thread_id);
         }
         let Some(ditfa_turn_id) = ditfa_turn_id else {
-            bail!("tool call start did not include thread or Codex turn context");
+            bail!("tool call start did not include thread or Ditfa turn context");
         };
         self.rollout
             .ditfa_turns
             .get(ditfa_turn_id)
             .map(|turn| turn.thread_id.clone())
             .with_context(|| {
-                format!("tool call start referenced unknown Codex turn {ditfa_turn_id}")
+                format!("tool call start referenced unknown Ditfa turn {ditfa_turn_id}")
             })
     }
 
@@ -395,11 +395,11 @@ impl TraceReducer {
         }
         if let Some(ditfa_turn_id) = ditfa_turn_id {
             let Some(turn) = self.rollout.ditfa_turns.get(ditfa_turn_id) else {
-                bail!("tool call start referenced unknown Codex turn {ditfa_turn_id}");
+                bail!("tool call start referenced unknown Ditfa turn {ditfa_turn_id}");
             };
             if turn.thread_id != thread_id {
                 bail!(
-                    "tool call start used thread {thread_id}, but Codex turn {ditfa_turn_id} \
+                    "tool call start used thread {thread_id}, but Ditfa turn {ditfa_turn_id} \
                      belongs to {}",
                     turn.thread_id
                 );

@@ -10,7 +10,7 @@ use ditfa_api::ApiError;
 use ditfa_api::Provider;
 use ditfa_api::SharedAuthProvider;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::auth::BedrockApiKeyAuth;
 use ditfa_model_provider_info::AMAZON_BEDROCK_GPT_5_4_MODEL_ID;
 use ditfa_model_provider_info::ModelProviderAwsAuthInfo;
@@ -18,7 +18,7 @@ use ditfa_model_provider_info::ModelProviderInfo;
 use ditfa_models_manager::manager::SharedModelsManager;
 use ditfa_models_manager::manager::StaticModelsManager;
 use ditfa_protocol::account::ProviderAccount;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::Result;
 use ditfa_protocol::openai_models::ModelsResponse;
 
@@ -68,24 +68,24 @@ impl AmazonBedrockModelProvider {
             .as_ref()
             .and_then(|auth_manager| auth_manager.auth_cached())
             .and_then(|auth| match auth {
-                CodexAuth::BedrockApiKey(auth) => Some(auth),
-                CodexAuth::ApiKey(_)
-                | CodexAuth::Chatgpt(_)
-                | CodexAuth::ChatgptAuthTokens(_)
-                | CodexAuth::Headers(_)
-                | CodexAuth::AgentIdentity(_)
-                | CodexAuth::PersonalAccessToken(_) => None,
+                DitfaAuth::BedrockApiKey(auth) => Some(auth),
+                DitfaAuth::ApiKey(_)
+                | DitfaAuth::Chatgpt(_)
+                | DitfaAuth::ChatgptAuthTokens(_)
+                | DitfaAuth::Headers(_)
+                | DitfaAuth::AgentIdentity(_)
+                | DitfaAuth::PersonalAccessToken(_) => None,
             })
     }
 
-    async fn auth(&self) -> Option<CodexAuth> {
+    async fn auth(&self) -> Option<DitfaAuth> {
         if self.info.has_command_auth() {
             match self.auth_manager.as_ref() {
                 Some(auth_manager) => auth_manager.auth().await,
                 None => None,
             }
         } else {
-            self.managed_auth().map(CodexAuth::BedrockApiKey)
+            self.managed_auth().map(DitfaAuth::BedrockApiKey)
         }
     }
 
@@ -148,20 +148,20 @@ impl ModelProvider for AmazonBedrockModelProvider {
         }
     }
 
-    fn auth(&self) -> ModelProviderFuture<'_, Option<CodexAuth>> {
+    fn auth(&self) -> ModelProviderFuture<'_, Option<DitfaAuth>> {
         Box::pin(AmazonBedrockModelProvider::auth(self))
     }
 
     fn account_state(&self) -> ProviderAccountResult {
         Ok(ProviderAccountState {
             account: Some(ProviderAccount::AmazonBedrock {
-                uses_codex_managed_credentials: self.managed_auth().is_some(),
+                uses_ditfa_managed_credentials: self.managed_auth().is_some(),
             }),
             requires_openai_auth: false,
         })
     }
 
-    fn map_api_error(&self, error: ApiError) -> CodexErr {
+    fn map_api_error(&self, error: ApiError) -> DitfaErr {
         error::map_api_error(error)
     }
 
@@ -179,7 +179,7 @@ impl ModelProvider for AmazonBedrockModelProvider {
 
     fn models_manager(
         &self,
-        _codex_home: PathBuf,
+        _ditfa_home: PathBuf,
         config_model_catalog: Option<ModelsResponse>,
     ) -> SharedModelsManager {
         Arc::new(StaticModelsManager::new(
@@ -271,7 +271,7 @@ mod tests {
             provider.account_state(),
             Ok(ProviderAccountState {
                 account: Some(ProviderAccount::AmazonBedrock {
-                    uses_codex_managed_credentials: false,
+                    uses_ditfa_managed_credentials: false,
                 }),
                 requires_openai_auth: false,
             })
@@ -285,7 +285,7 @@ mod tests {
             region: "us-east-1".to_string(),
         };
         let auth_manager =
-            AuthManager::from_auth_for_testing(CodexAuth::BedrockApiKey(managed_auth.clone()));
+            AuthManager::from_auth_for_testing(DitfaAuth::BedrockApiKey(managed_auth.clone()));
         let provider = AmazonBedrockModelProvider::new(
             ModelProviderInfo::create_amazon_bedrock_provider(Some(ModelProviderAwsAuthInfo {
                 profile: Some("aws-profile-that-should-not-be-loaded".to_string()),
@@ -302,13 +302,13 @@ mod tests {
         ));
         assert_eq!(
             provider.auth().await,
-            Some(CodexAuth::BedrockApiKey(managed_auth))
+            Some(DitfaAuth::BedrockApiKey(managed_auth))
         );
         assert_eq!(
             provider.account_state(),
             Ok(ProviderAccountState {
                 account: Some(ProviderAccount::AmazonBedrock {
-                    uses_codex_managed_credentials: true,
+                    uses_ditfa_managed_credentials: true,
                 }),
                 requires_openai_auth: false,
             })
@@ -335,7 +335,7 @@ mod tests {
     async fn openai_auth_is_not_exposed_to_bedrock() {
         let provider = AmazonBedrockModelProvider::new(
             ModelProviderInfo::create_amazon_bedrock_provider(/*aws*/ None),
-            Some(AuthManager::from_auth_for_testing(CodexAuth::from_api_key(
+            Some(AuthManager::from_auth_for_testing(DitfaAuth::from_api_key(
                 "openai-api-key",
             ))),
         );
@@ -346,7 +346,7 @@ mod tests {
             provider.account_state(),
             Ok(ProviderAccountState {
                 account: Some(ProviderAccount::AmazonBedrock {
-                    uses_codex_managed_credentials: false,
+                    uses_ditfa_managed_credentials: false,
                 }),
                 requires_openai_auth: false,
             })

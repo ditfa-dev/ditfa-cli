@@ -18,10 +18,10 @@ import { inspect, promisify } from "node:util";
 
 const DEFAULT_MANUAL_URL = "https://developers.openai.com/codex/codex-manual.md";
 const DEFAULT_CACHE_DIR_NAME = "openai-docs-cache";
-const CACHE_FILE_NAME = "codex-manual.md";
-const OUTLINE_FILE_NAME = "codex-manual.outline.md";
+const CACHE_FILE_NAME = "ditfa-manual.md";
+const OUTLINE_FILE_NAME = "ditfa-manual.outline.md";
 const HASH_HEADER = "x-content-sha256";
-const USER_AGENT = "codex-openai-docs";
+const USER_AGENT = "ditfa-openai-docs";
 const execFileAsync = promisify(execFile);
 
 class ManualFetchError extends Error {
@@ -101,7 +101,7 @@ const parseCurlHeaders = (rawHeaders) => {
 const tempFilePath = (cacheDir, suffix) =>
   path.join(
     cacheDir,
-    `.fetch-codex-manual-${process.pid}-${Date.now()}-${Math.random()
+    `.fetch-ditfa-manual-${process.pid}-${Date.now()}-${Math.random()
       .toString(16)
       .slice(2)}${suffix}`
   );
@@ -366,7 +366,7 @@ const buildOutline = (manual) => {
   };
 };
 
-const outlineMarkdown = (outline) => `# Codex Manual Outline\n\n${outline.text}\n`;
+const outlineMarkdown = (outline) => `# Ditfa Manual Outline\n\n${outline.text}\n`;
 
 const manualStatusLine = (status) =>
   status.cacheStatus === "hit"
@@ -405,7 +405,7 @@ const writeOutline = async (cacheDir, outlineText) => {
   await rename(tmpPath, outlineFilePath(cacheDir));
 };
 
-const fetchCodexManual = async ({
+const fetchDitfaManual = async ({
   manualUrl = DEFAULT_MANUAL_URL,
   cacheDir,
   timeoutMs = 30000,
@@ -531,7 +531,7 @@ const parseArgs = (argv) => {
 
 const main = async () => {
   const args = parseArgs(process.argv.slice(2));
-  const { outlineText, status } = await fetchCodexManual(args);
+  const { outlineText, status } = await fetchDitfaManual(args);
 
   process.stdout.write(formatResult({ status, outlineText }));
 
@@ -595,4 +595,4 @@ if (isCliEntrypoint()) {
   });
 }
 
-export { DEFAULT_MANUAL_URL, fetchCodexManual };
+export { DEFAULT_MANUAL_URL, fetchDitfaManual };

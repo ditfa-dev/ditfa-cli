@@ -670,7 +670,7 @@ async fn start_authorization(
         let mut oauth_state =
             OAuthState::new_with_oauth_http_client(server_url, http_client).await?;
         oauth_state
-            .start_authorization(scopes, redirect_uri, Some("Codex"))
+            .start_authorization(scopes, redirect_uri, Some("Ditfa"))
             .await?;
         return Ok(oauth_state);
     };
@@ -779,7 +779,7 @@ mod tests {
             )),
             &[],
             "http://127.0.0.1/callback",
-            Some("eci-prd-pub-codex-123"),
+            Some("eci-prd-pub-ditfa-123"),
         )
         .await
         .expect("start oauth authorization");
@@ -794,7 +794,7 @@ mod tests {
             .find(|(key, _)| key == "client_id")
             .map(|(_, value)| value.into_owned());
 
-        assert_eq!(client_id.as_deref(), Some("eci-prd-pub-codex-123"));
+        assert_eq!(client_id.as_deref(), Some("eci-prd-pub-ditfa-123"));
     }
 
     #[test]

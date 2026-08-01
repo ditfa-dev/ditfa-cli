@@ -1,9 +1,9 @@
 use ditfa_protocol::models::PermissionProfile;
 use std::path::Path;
 
-/// Basename used when the Codex executable self-invokes as the Linux sandbox
+/// Basename used when the Ditfa executable self-invokes as the Linux sandbox
 /// helper.
-pub const DITFA_LINUX_SANDBOX_ARG0: &str = "codex-linux-sandbox";
+pub const DITFA_LINUX_SANDBOX_ARG0: &str = "ditfa-linux-sandbox";
 
 pub fn allow_network_for_proxy(enforce_managed_network: bool) -> bool {
     // When managed network requirements are active, request proxy-only
@@ -13,7 +13,7 @@ pub fn allow_network_for_proxy(enforce_managed_network: bool) -> bool {
 }
 
 /// Converts the permission profile into the CLI invocation for
-/// `codex-linux-sandbox`.
+/// `ditfa-linux-sandbox`.
 ///
 /// The helper performs the actual sandboxing (bubblewrap by default + seccomp)
 /// after parsing these arguments. The profile JSON flag is emitted before
@@ -60,7 +60,7 @@ pub fn create_linux_sandbox_command_args_for_permission_profile(
 }
 
 /// Converts the sandbox cwd and execution options into the CLI invocation for
-/// `codex-linux-sandbox`.
+/// `ditfa-linux-sandbox`.
 #[cfg_attr(not(test), allow(dead_code))]
 fn create_linux_sandbox_command_args(
     command: Vec<String>,

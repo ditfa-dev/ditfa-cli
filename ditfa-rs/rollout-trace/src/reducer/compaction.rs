@@ -37,14 +37,14 @@ impl TraceReducer {
         self.thread_mut(&started.thread_id)?;
         let Some(turn) = self.rollout.ditfa_turns.get(&started.ditfa_turn_id) else {
             bail!(
-                "compaction request {} referenced unknown codex turn {}",
+                "compaction request {} referenced unknown ditfa turn {}",
                 started.compaction_request_id,
                 started.ditfa_turn_id
             );
         };
         if turn.thread_id != started.thread_id {
             bail!(
-                "compaction request {} used thread {}, but codex turn {} belongs to {}",
+                "compaction request {} used thread {}, but ditfa turn {} belongs to {}",
                 started.compaction_request_id,
                 started.thread_id,
                 started.ditfa_turn_id,
@@ -128,12 +128,12 @@ impl TraceReducer {
         self.thread_mut(&thread_id)?;
         let Some(turn) = self.rollout.ditfa_turns.get(&ditfa_turn_id) else {
             bail!(
-                "compaction install {compaction_id} referenced unknown codex turn {ditfa_turn_id}"
+                "compaction install {compaction_id} referenced unknown ditfa turn {ditfa_turn_id}"
             );
         };
         if turn.thread_id != thread_id {
             bail!(
-                "compaction install {compaction_id} used thread {thread_id}, but codex turn {ditfa_turn_id} belongs to {}",
+                "compaction install {compaction_id} used thread {thread_id}, but ditfa turn {ditfa_turn_id} belongs to {}",
                 turn.thread_id
             );
         }

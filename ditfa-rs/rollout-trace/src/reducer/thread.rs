@@ -14,8 +14,8 @@ use super::TraceReducer;
 use super::tool::spawn_edge_id;
 use crate::model::AgentOrigin;
 use crate::model::AgentThread;
-use crate::model::CodexTurn;
-use crate::model::CodexTurnId;
+use crate::model::DitfaTurn;
+use crate::model::DitfaTurnId;
 use crate::model::ExecutionStatus;
 use crate::model::ExecutionWindow;
 use crate::model::RolloutStatus;
@@ -123,23 +123,23 @@ impl TraceReducer {
         Ok(())
     }
 
-    /// Starts a Codex turn inside an existing thread.
-    pub(super) fn start_codex_turn(
+    /// Starts a Ditfa turn inside an existing thread.
+    pub(super) fn start_ditfa_turn(
         &mut self,
         seq: RawEventSeq,
         wall_time_unix_ms: i64,
-        ditfa_turn_id: CodexTurnId,
+        ditfa_turn_id: DitfaTurnId,
         thread_id: String,
     ) -> Result<()> {
         if self.rollout.ditfa_turns.contains_key(&ditfa_turn_id) {
-            bail!("duplicate codex turn start for {ditfa_turn_id}");
+            bail!("duplicate ditfa turn start for {ditfa_turn_id}");
         }
 
         self.thread_mut(&thread_id)?;
 
         self.rollout.ditfa_turns.insert(
             ditfa_turn_id.clone(),
-            CodexTurn {
+            DitfaTurn {
                 ditfa_turn_id,
                 thread_id,
                 execution: ExecutionWindow {
@@ -155,13 +155,13 @@ impl TraceReducer {
         Ok(())
     }
 
-    /// Marks a Codex turn terminal and validates any thread id carried by the raw event.
-    pub(super) fn end_codex_turn(
+    /// Marks a Ditfa turn terminal and validates any thread id carried by the raw event.
+    pub(super) fn end_ditfa_turn(
         &mut self,
         seq: RawEventSeq,
         wall_time_unix_ms: i64,
         thread_id: Option<String>,
-        ditfa_turn_id: CodexTurnId,
+        ditfa_turn_id: DitfaTurnId,
         status: ExecutionStatus,
     ) -> Result<()> {
         if let Some(event_thread_id) = thread_id.as_deref()
@@ -169,14 +169,14 @@ impl TraceReducer {
             && turn.thread_id != event_thread_id
         {
             bail!(
-                "codex turn end for {ditfa_turn_id} used thread {event_thread_id}, \
+                "ditfa turn end for {ditfa_turn_id} used thread {event_thread_id}, \
                  but the turn belongs to {}",
                 turn.thread_id
             );
         }
 
         let Some(turn) = self.rollout.ditfa_turns.get_mut(&ditfa_turn_id) else {
-            bail!("codex turn end referenced unknown turn {ditfa_turn_id}");
+            bail!("ditfa turn end referenced unknown turn {ditfa_turn_id}");
         };
         turn.execution.ended_at_unix_ms = Some(wall_time_unix_ms);
         turn.execution.ended_seq = Some(seq);

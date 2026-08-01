@@ -319,7 +319,7 @@ fn attach_test_trace(session: &mut Session, turn: &TurnContext, root: &Path) -> 
                 sandbox_policy: "danger-full-access".to_string(),
             },
         )?;
-    rollout_thread_trace.record_codex_turn_started(turn.sub_id.as_str());
+    rollout_thread_trace.record_ditfa_turn_started(turn.sub_id.as_str());
     session.services.rollout_thread_trace = rollout_thread_trace;
     Ok(())
 }

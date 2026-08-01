@@ -213,7 +213,7 @@ impl App {
         self.sync_active_thread_permission_settings_to_cached_session()
             .await;
         self.app_event_tx
-            .send(AppEvent::CodexOp(AppCommand::override_turn_context(
+            .send(AppEvent::DitfaOp(AppCommand::override_turn_context(
                 /*cwd*/ None,
                 approval_policy,
                 approvals_reviewer,
@@ -271,7 +271,7 @@ impl App {
                     "failed to refresh effective config after an overridden write"
                 );
                 self.chat_widget.add_error_message(format!(
-                    "{setting} were saved, but Codex could not refresh the effective config: {err}"
+                    "{setting} were saved, but Ditfa could not refresh the effective config: {err}"
                 ));
                 None
             }
@@ -757,7 +757,7 @@ impl App {
         model: &str,
         reasoning_effort: Option<&ReasoningEffortConfig>,
     ) -> Option<String> {
-        (!model.starts_with("codex-auto-")).then(|| Self::reasoning_label(reasoning_effort))
+        (!model.starts_with("ditfa-auto-")).then(|| Self::reasoning_label(reasoning_effort))
     }
 
     pub(crate) fn token_usage(&self) -> crate::token_usage::TokenUsage {
@@ -1076,7 +1076,7 @@ impl App {
         {
             let windows_sandbox_level = crate::windows_sandbox::level_from_config(&self.config);
             self.app_event_tx
-                .send(AppEvent::CodexOp(AppCommand::override_turn_context(
+                .send(AppEvent::DitfaOp(AppCommand::override_turn_context(
                     /*cwd*/ None,
                     /*approval_policy*/ None,
                     /*approvals_reviewer*/ None,

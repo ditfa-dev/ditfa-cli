@@ -2378,7 +2378,7 @@ mod tests {
             git: Some(GitInfo {
                 commit_hash: Some(ditfa_git_utils::GitSha::new("rollout-sha")),
                 branch: Some("rollout-branch".to_string()),
-                repository_url: Some("git@example.com:openai/codex.git".to_string()),
+                repository_url: Some("git@example.com:openai/ditfa.git".to_string()),
             }),
         })];
 
@@ -2399,7 +2399,7 @@ mod tests {
         assert_eq!(persisted.git_branch.as_deref(), Some("sqlite-branch"));
         assert_eq!(
             persisted.git_origin_url.as_deref(),
-            Some("git@example.com:openai/codex.git")
+            Some("git@example.com:openai/ditfa.git")
         );
     }
 
@@ -2414,7 +2414,7 @@ mod tests {
         let mut metadata = test_thread_metadata(&ditfa_home, thread_id, ditfa_home.clone());
         metadata.git_sha = Some("sqlite-sha".to_string());
         metadata.git_branch = Some("sqlite-branch".to_string());
-        metadata.git_origin_url = Some("git@example.com:openai/codex.git".to_string());
+        metadata.git_origin_url = Some("git@example.com:openai/ditfa.git".to_string());
 
         runtime
             .upsert_thread(&metadata)
@@ -2440,7 +2440,7 @@ mod tests {
         assert_eq!(persisted.git_branch.as_deref(), Some("sqlite-branch"));
         assert_eq!(
             persisted.git_origin_url.as_deref(),
-            Some("git@example.com:openai/codex.git")
+            Some("git@example.com:openai/ditfa.git")
         );
     }
 
@@ -2554,7 +2554,7 @@ mod tests {
                 thread_id,
                 Some(Some("abc123")),
                 Some(Some("feature/branch")),
-                Some(Some("git@example.com:openai/codex.git")),
+                Some(Some("git@example.com:openai/ditfa.git")),
             )
             .await
             .expect("git info update should succeed");
@@ -2576,7 +2576,7 @@ mod tests {
         assert_eq!(persisted.git_branch.as_deref(), Some("feature/branch"));
         assert_eq!(
             persisted.git_origin_url.as_deref(),
-            Some("git@example.com:openai/codex.git")
+            Some("git@example.com:openai/ditfa.git")
         );
     }
 
@@ -2639,7 +2639,7 @@ mod tests {
         let mut metadata = test_thread_metadata(&ditfa_home, thread_id, ditfa_home.clone());
         metadata.git_sha = Some("abc123".to_string());
         metadata.git_branch = Some("feature/branch".to_string());
-        metadata.git_origin_url = Some("git@example.com:openai/codex.git".to_string());
+        metadata.git_origin_url = Some("git@example.com:openai/ditfa.git".to_string());
 
         runtime
             .upsert_thread(&metadata)

@@ -28,7 +28,7 @@ async fn thread_memory_mode_set_updates_loaded_thread_state() -> Result<()> {
     let state_db = init_state_db(ditfa_home.path()).await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -76,7 +76,7 @@ async fn thread_memory_mode_set_updates_stored_thread_state() -> Result<()> {
     let thread_uuid = ThreadId::from_string(&thread_id)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;

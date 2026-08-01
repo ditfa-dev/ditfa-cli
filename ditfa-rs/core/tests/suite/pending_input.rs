@@ -1,7 +1,7 @@
-use core_test_support::test_codex::local_selections;
+use core_test_support::test_ditfa::local_selections;
 use std::sync::Arc;
 
-use ditfa_core::CodexThread;
+use ditfa_core::DitfaThread;
 use ditfa_core::config::CurrentTimeReminderConfig;
 use ditfa_extension_items::ExtensionItem;
 use ditfa_extension_items::sleep::SleepItem;
@@ -31,9 +31,9 @@ use core_test_support::responses::ev_response_created;
 use core_test_support::streaming_sse::StreamingSseChunk;
 use core_test_support::streaming_sse::StreamingSseServer;
 use core_test_support::streaming_sse::start_streaming_sse_server;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
@@ -120,17 +120,17 @@ fn response_completed_chunks(response_id: &str) -> Vec<StreamingSseChunk> {
     ]
 }
 
-async fn build_codex(server: &StreamingSseServer) -> Arc<CodexThread> {
-    test_codex()
+async fn build_ditfa(server: &StreamingSseServer) -> Arc<DitfaThread> {
+    test_ditfa()
         .with_model("gpt-5.4")
         .build_with_streaming_server(server)
         .await
-        .expect("build streaming Codex test session")
+        .expect("build streaming Ditfa test session")
         .ditfa
 }
 
-async fn submit_user_input(codex: &CodexThread, text: &str) {
-    codex
+async fn submit_user_input(ditfa: &DitfaThread, text: &str) {
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: text.to_string(),
@@ -145,7 +145,7 @@ async fn submit_user_input(codex: &CodexThread, text: &str) {
         .expect("submit user input");
 }
 
-async fn submit_danger_full_access_user_turn(test: &TestCodex, text: &str) {
+async fn submit_danger_full_access_user_turn(test: &TestDitfa, text: &str) {
     let (sandbox_policy, permission_profile) =
         turn_permission_fields(PermissionProfile::Disabled, test.config.cwd.as_path());
     test.ditfa
@@ -177,8 +177,8 @@ async fn submit_danger_full_access_user_turn(test: &TestCodex, text: &str) {
         .expect("submit user turn");
 }
 
-async fn steer_user_input(codex: &CodexThread, text: &str) {
-    codex
+async fn steer_user_input(ditfa: &DitfaThread, text: &str) {
+    ditfa
         .steer_input(
             vec![UserInput::Text {
                 text: text.to_string(),
@@ -193,8 +193,8 @@ async fn steer_user_input(codex: &CodexThread, text: &str) {
         .expect("steer user input");
 }
 
-async fn enqueue_queue_only_agent_mail(codex: &CodexThread, text: &str) {
-    codex
+async fn enqueue_queue_only_agent_mail(ditfa: &DitfaThread, text: &str) {
+    ditfa
         .submit(Op::InterAgentCommunication {
             communication: InterAgentCommunication::new(
                 AgentPath::try_from("/root/worker").expect("worker path should parse"),
@@ -208,20 +208,20 @@ async fn enqueue_queue_only_agent_mail(codex: &CodexThread, text: &str) {
         .expect("submit queue-only agent mail");
 }
 
-async fn submit_queue_only_agent_mail(codex: &CodexThread, text: &str) {
-    enqueue_queue_only_agent_mail(codex, text).await;
-    codex
+async fn submit_queue_only_agent_mail(ditfa: &DitfaThread, text: &str) {
+    enqueue_queue_only_agent_mail(ditfa, text).await;
+    ditfa
         .submit(Op::RealtimeConversationListVoices)
         .await
         .expect("submit list-voices barrier");
-    wait_for_event(codex, |event| {
+    wait_for_event(ditfa, |event| {
         matches!(event, EventMsg::RealtimeConversationListVoicesResponse(_))
     })
     .await;
 }
 
-async fn wait_for_reasoning_item_started(codex: &CodexThread) {
-    wait_for_event(codex, |event| {
+async fn wait_for_reasoning_item_started(ditfa: &DitfaThread) {
+    wait_for_event(ditfa, |event| {
         matches!(
             event,
             EventMsg::ItemStarted(item_started)
@@ -231,21 +231,21 @@ async fn wait_for_reasoning_item_started(codex: &CodexThread) {
     .await;
 }
 
-async fn wait_for_agent_message(codex: &CodexThread, text: &str) {
+async fn wait_for_agent_message(ditfa: &DitfaThread, text: &str) {
     let final_message = wait_for_event(
-        codex,
+        ditfa,
         |event| matches!(event, EventMsg::AgentMessage(message) if message.message == text),
     )
     .await;
     assert!(matches!(final_message, EventMsg::AgentMessage(_)));
 }
 
-async fn wait_for_turn_complete(codex: &CodexThread) {
-    wait_for_event(codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+async fn wait_for_turn_complete(ditfa: &DitfaThread) {
+    wait_for_event(ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 }
 
-async fn wait_for_sleep_item_started(codex: &CodexThread, call_id: &str, duration_ms: u64) {
-    let event = wait_for_event(codex, |event| {
+async fn wait_for_sleep_item_started(ditfa: &DitfaThread, call_id: &str, duration_ms: u64) {
+    let event = wait_for_event(ditfa, |event| {
         matches!(
             event,
             EventMsg::ItemStarted(started)
@@ -271,8 +271,8 @@ async fn wait_for_sleep_item_started(codex: &CodexThread, call_id: &str, duratio
     );
 }
 
-async fn wait_for_sleep_item_completed(codex: &CodexThread, call_id: &str, duration_ms: u64) {
-    let event = wait_for_event(codex, |event| {
+async fn wait_for_sleep_item_completed(ditfa: &DitfaThread, call_id: &str, duration_ms: u64) {
+    let event = wait_for_event(ditfa, |event| {
         matches!(
             event,
             EventMsg::ItemCompleted(completed)
@@ -325,19 +325,19 @@ async fn queue_only_agent_mail_wakes_sleeping_root_and_persists_message() {
     let mut extensions =
         ditfa_extension_api::ExtensionRegistryBuilder::<ditfa_core::config::Config>::new();
     extensions.thread_lifecycle_contributor(Arc::new(SleepingRootExtension));
-    let codex = test_codex()
+    let ditfa = test_ditfa()
         .with_model("gpt-5.4")
         .with_extensions(Arc::new(extensions.build()))
         .build_with_streaming_server(&server)
         .await
-        .expect("build Codex test session")
+        .expect("build Ditfa test session")
         .ditfa;
 
-    enqueue_queue_only_agent_mail(&codex, CHILD_MESSAGE).await;
-    wait_for_turn_complete(&codex).await;
+    enqueue_queue_only_agent_mail(&ditfa, CHILD_MESSAGE).await;
+    wait_for_turn_complete(&ditfa).await;
 
     assert_eq!(server.requests().await.len(), 1);
-    let history = codex
+    let history = ditfa
         .load_history(/*include_archived*/ true)
         .await
         .expect("load persisted thread history");
@@ -375,7 +375,7 @@ async fn steer_interrupts_wait_agent_and_is_sent_in_follow_up_request() {
     ];
     let (server, _completions) =
         start_streaming_sse_server(vec![first_chunks, response_completed_chunks("resp-2")]).await;
-    let codex = test_codex()
+    let ditfa = test_ditfa()
         .with_model("gpt-5.4")
         .with_config(|config| {
             config
@@ -385,17 +385,17 @@ async fn steer_interrupts_wait_agent_and_is_sent_in_follow_up_request() {
         })
         .build_with_streaming_server(&server)
         .await
-        .expect("build Codex test session")
+        .expect("build Ditfa test session")
         .ditfa;
 
-    submit_user_input(&codex, INITIAL_PROMPT).await;
-    wait_for_event(&codex, |event| {
+    submit_user_input(&ditfa, INITIAL_PROMPT).await;
+    wait_for_event(&ditfa, |event| {
         matches!(event, EventMsg::CollabWaitingBegin(_))
     })
     .await;
 
-    steer_user_input(&codex, STEER_PROMPT).await;
-    wait_for_turn_complete(&codex).await;
+    steer_user_input(&ditfa, STEER_PROMPT).await;
+    wait_for_turn_complete(&ditfa).await;
 
     let requests = server.requests().await;
     assert_eq!(requests.len(), 2);
@@ -455,7 +455,7 @@ async fn any_new_input_interrupts_sleep() {
         response_completed_chunks("resp-3"),
     ])
     .await;
-    let codex = test_codex()
+    let ditfa = test_ditfa()
         .with_model("gpt-5.4")
         .with_config(|config| {
             config
@@ -469,19 +469,19 @@ async fn any_new_input_interrupts_sleep() {
         })
         .build_with_streaming_server(&server)
         .await
-        .expect("build Codex test session")
+        .expect("build Ditfa test session")
         .ditfa;
 
-    submit_user_input(&codex, INITIAL_PROMPT).await;
-    wait_for_sleep_item_started(&codex, FIRST_SLEEP_CALL_ID, SLEEP_DURATION_MS).await;
+    submit_user_input(&ditfa, INITIAL_PROMPT).await;
+    wait_for_sleep_item_started(&ditfa, FIRST_SLEEP_CALL_ID, SLEEP_DURATION_MS).await;
 
-    steer_user_input(&codex, STEER_PROMPT).await;
-    wait_for_sleep_item_completed(&codex, FIRST_SLEEP_CALL_ID, SLEEP_DURATION_MS).await;
-    wait_for_sleep_item_started(&codex, SECOND_SLEEP_CALL_ID, SLEEP_DURATION_MS).await;
+    steer_user_input(&ditfa, STEER_PROMPT).await;
+    wait_for_sleep_item_completed(&ditfa, FIRST_SLEEP_CALL_ID, SLEEP_DURATION_MS).await;
+    wait_for_sleep_item_started(&ditfa, SECOND_SLEEP_CALL_ID, SLEEP_DURATION_MS).await;
 
-    submit_queue_only_agent_mail(&codex, "new mailbox input").await;
-    wait_for_sleep_item_completed(&codex, SECOND_SLEEP_CALL_ID, SLEEP_DURATION_MS).await;
-    wait_for_turn_complete(&codex).await;
+    submit_queue_only_agent_mail(&ditfa, "new mailbox input").await;
+    wait_for_sleep_item_completed(&ditfa, SECOND_SLEEP_CALL_ID, SLEEP_DURATION_MS).await;
+    wait_for_turn_complete(&ditfa).await;
 
     let requests = server.requests().await;
     assert_eq!(requests.len(), 3);
@@ -499,10 +499,10 @@ async fn any_new_input_interrupts_sleep() {
     let third: Value = from_slice(&requests[2]).expect("parse third request");
     assert_interrupted_sleep_output(function_call_output_text(&third, SECOND_SLEEP_CALL_ID));
 
-    codex.submit(Op::Shutdown).await.expect("shutdown session");
-    wait_for_event(&codex, |event| matches!(event, EventMsg::ShutdownComplete)).await;
+    ditfa.submit(Op::Shutdown).await.expect("shutdown session");
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::ShutdownComplete)).await;
 
-    let rollout_path = codex.rollout_path().expect("rollout path");
+    let rollout_path = ditfa.rollout_path().expect("rollout path");
     let rollout = tokio::fs::read_to_string(rollout_path)
         .await
         .expect("read rollout");
@@ -604,14 +604,14 @@ async fn injected_user_input_triggers_follow_up_request_with_deltas() {
     let (server, _completions) =
         start_streaming_sse_server(vec![first_chunks, second_chunks]).await;
 
-    let codex = test_codex()
+    let ditfa = test_ditfa()
         .with_model("gpt-5.4")
         .build_with_streaming_server(&server)
         .await
         .unwrap()
         .ditfa;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "first prompt".into(),
@@ -625,12 +625,12 @@ async fn injected_user_input_triggers_follow_up_request_with_deltas() {
         .await
         .unwrap();
 
-    wait_for_event(&codex, |event| {
+    wait_for_event(&ditfa, |event| {
         matches!(event, EventMsg::AgentMessageContentDelta(_))
     })
     .await;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "second prompt".into(),
@@ -646,7 +646,7 @@ async fn injected_user_input_triggers_follow_up_request_with_deltas() {
 
     let _ = gate_completed_tx.send(());
 
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
 
     let requests = server.requests().await;
     assert_eq!(requests.len(), 2);
@@ -692,17 +692,17 @@ async fn queued_inter_agent_mail_triggers_follow_up_after_reasoning_item() {
     let (server, _completions) =
         start_streaming_sse_server(vec![first_chunks, response_completed_chunks("resp-2")]).await;
 
-    let codex = build_codex(&server).await;
+    let ditfa = build_ditfa(&server).await;
 
-    submit_user_input(&codex, "first prompt").await;
+    submit_user_input(&ditfa, "first prompt").await;
 
-    wait_for_reasoning_item_started(&codex).await;
+    wait_for_reasoning_item_started(&ditfa).await;
 
-    submit_queue_only_agent_mail(&codex, "queued child update").await;
+    submit_queue_only_agent_mail(&ditfa, "queued child update").await;
 
     let _ = gate_reasoning_done_tx.send(());
 
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
     let requests = server.requests().await;
     assert_two_responses_input_snapshot("pending_input_queued_mail_after_reasoning", &requests);
@@ -747,11 +747,11 @@ async fn queued_inter_agent_mail_triggers_follow_up_after_commentary_message_ite
     let (server, _completions) =
         start_streaming_sse_server(vec![first_chunks, response_completed_chunks("resp-2")]).await;
 
-    let codex = build_codex(&server).await;
+    let ditfa = build_ditfa(&server).await;
 
-    submit_user_input(&codex, "first prompt").await;
+    submit_user_input(&ditfa, "first prompt").await;
 
-    wait_for_event(&codex, |event| {
+    wait_for_event(&ditfa, |event| {
         matches!(
             event,
             EventMsg::ItemStarted(item_started)
@@ -760,13 +760,13 @@ async fn queued_inter_agent_mail_triggers_follow_up_after_commentary_message_ite
     })
     .await;
 
-    submit_queue_only_agent_mail(&codex, "queued child update").await;
+    submit_queue_only_agent_mail(&ditfa, "queued child update").await;
 
     let _ = gate_message_done_tx.send(());
 
-    wait_for_agent_message(&codex, "first answer").await;
+    wait_for_agent_message(&ditfa, "first answer").await;
 
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
     let requests = server.requests().await;
     assert_two_responses_input_snapshot("pending_input_queued_mail_after_commentary", &requests);
@@ -798,11 +798,11 @@ async fn queued_inter_agent_mail_does_not_restart_after_final_answer() {
         response_completed_chunks("unexpected-resp-2"),
     ])
     .await;
-    let codex = build_codex(&server).await;
+    let ditfa = build_ditfa(&server).await;
 
-    submit_queue_only_agent_mail(&codex, "queued child update").await;
-    submit_user_input(&codex, "first prompt").await;
-    wait_for_turn_complete(&codex).await;
+    submit_queue_only_agent_mail(&ditfa, "queued child update").await;
+    submit_user_input(&ditfa, "first prompt").await;
+    wait_for_turn_complete(&ditfa).await;
 
     let mut requests = server.requests().await;
     assert_eq!(requests.len(), 1);
@@ -815,8 +815,8 @@ async fn queued_inter_agent_mail_does_not_restart_after_final_answer() {
             .all(|item| item.get("type").and_then(Value::as_str) != Some("agent_message"))
     );
 
-    submit_user_input(&codex, "second prompt").await;
-    wait_for_turn_complete(&codex).await;
+    submit_user_input(&ditfa, "second prompt").await;
+    wait_for_turn_complete(&ditfa).await;
 
     requests = server.requests().await;
     assert_eq!(requests.len(), 2);
@@ -872,20 +872,20 @@ async fn injected_response_item_reopens_turn_after_final_answer() {
     ];
     let (server, _completions) =
         start_streaming_sse_server(vec![first_chunks, response_completed_chunks("resp-2")]).await;
-    let codex = build_codex(&server).await;
+    let ditfa = build_ditfa(&server).await;
 
-    submit_user_input(&codex, INITIAL_PROMPT).await;
-    wait_for_reasoning_item_started(&codex).await;
+    submit_user_input(&ditfa, INITIAL_PROMPT).await;
+    wait_for_reasoning_item_started(&ditfa).await;
 
     assert!(
-        codex
+        ditfa
             .inject_if_running(vec![responses::user_message_item(INJECTED_CONTEXT)])
             .await
             .is_ok()
     );
     let _ = gate_completed_tx.send(());
 
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
     let requests = server.requests().await;
     assert_eq!(requests.len(), 2);
@@ -926,19 +926,19 @@ async fn user_input_does_not_preempt_after_reasoning_item() {
     let (server, _completions) =
         start_streaming_sse_server(vec![first_chunks, response_completed_chunks("resp-2")]).await;
 
-    let codex = build_codex(&server).await;
+    let ditfa = build_ditfa(&server).await;
 
-    submit_user_input(&codex, "first prompt").await;
+    submit_user_input(&ditfa, "first prompt").await;
 
-    wait_for_reasoning_item_started(&codex).await;
+    wait_for_reasoning_item_started(&ditfa).await;
 
-    steer_user_input(&codex, "second prompt").await;
+    steer_user_input(&ditfa, "second prompt").await;
 
     let _ = gate_reasoning_done_tx.send(());
 
-    wait_for_agent_message(&codex, "first answer").await;
+    wait_for_agent_message(&ditfa, "first answer").await;
 
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
     let requests = server.requests().await;
     assert_two_responses_input_snapshot(
@@ -999,7 +999,7 @@ async fn steered_user_input_waits_for_model_continuation_after_mid_turn_compact(
     ])
     .await;
 
-    let codex = test_codex()
+    let ditfa = test_ditfa()
         .with_model("gpt-5.4")
         .with_config(|config| {
             config.model_provider.name = "OpenAI (test)".to_string();
@@ -1008,14 +1008,14 @@ async fn steered_user_input_waits_for_model_continuation_after_mid_turn_compact(
         })
         .build_with_streaming_server(&server)
         .await
-        .expect("build streaming Codex test session")
+        .expect("build streaming Ditfa test session")
         .ditfa;
 
-    submit_user_input(&codex, "first prompt").await;
-    submit_user_input(&codex, "second prompt").await;
+    submit_user_input(&ditfa, "first prompt").await;
+    submit_user_input(&ditfa, "second prompt").await;
 
-    wait_for_agent_message(&codex, "resumed old task").await;
-    wait_for_turn_complete(&codex).await;
+    wait_for_agent_message(&ditfa, "resumed old task").await;
+    wait_for_turn_complete(&ditfa).await;
 
     let requests = server.requests().await;
     assert_eq!(requests.len(), 4);
@@ -1084,7 +1084,7 @@ async fn steered_user_input_follows_compact_when_only_the_steer_needs_follow_up(
         start_streaming_sse_server(vec![first_chunks, compact_chunks, steered_follow_up_chunks])
             .await;
 
-    let codex = test_codex()
+    let ditfa = test_ditfa()
         .with_model("gpt-5.4")
         .with_config(|config| {
             config.model_provider.name = "OpenAI (test)".to_string();
@@ -1093,16 +1093,16 @@ async fn steered_user_input_follows_compact_when_only_the_steer_needs_follow_up(
         })
         .build_with_streaming_server(&server)
         .await
-        .expect("build streaming Codex test session")
+        .expect("build streaming Ditfa test session")
         .ditfa;
 
-    submit_user_input(&codex, "first prompt").await;
-    wait_for_agent_message(&codex, "first answer").await;
-    steer_user_input(&codex, "second prompt").await;
+    submit_user_input(&ditfa, "first prompt").await;
+    wait_for_agent_message(&ditfa, "first answer").await;
+    steer_user_input(&ditfa, "second prompt").await;
     let _ = gate_first_completed_tx.send(());
 
-    wait_for_agent_message(&codex, "processed steered prompt").await;
-    wait_for_turn_complete(&codex).await;
+    wait_for_agent_message(&ditfa, "processed steered prompt").await;
+    wait_for_turn_complete(&ditfa).await;
 
     let requests = server.requests().await;
     assert_eq!(requests.len(), 3);
@@ -1201,7 +1201,7 @@ async fn steered_user_input_waits_when_tool_output_triggers_compact_before_next_
     ])
     .await;
 
-    let test = test_codex()
+    let test = test_ditfa()
         .with_model("gpt-5.4")
         .with_config(|config| {
             config.model_provider.name = "OpenAI (test)".to_string();
@@ -1210,15 +1210,15 @@ async fn steered_user_input_waits_when_tool_output_triggers_compact_before_next_
         })
         .build_with_streaming_server(&server)
         .await
-        .expect("build streaming Codex test session");
-    let codex = test.ditfa.clone();
+        .expect("build streaming Ditfa test session");
+    let ditfa = test.ditfa.clone();
 
     submit_danger_full_access_user_turn(&test, "first prompt").await;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnStarted(_))).await;
-    steer_user_input(&codex, "second prompt").await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnStarted(_))).await;
+    steer_user_input(&ditfa, "second prompt").await;
     let _ = gate_first_completed_tx.send(());
 
-    wait_for_turn_complete(&codex).await;
+    wait_for_turn_complete(&ditfa).await;
 
     let requests = server.requests().await;
     assert_eq!(requests.len(), 4);

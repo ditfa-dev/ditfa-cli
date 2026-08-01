@@ -14,15 +14,15 @@ pub struct Cli {
 
 #[derive(Debug, clap::Subcommand)]
 pub enum Command {
-    /// Submit a new Codex Cloud task without launching the TUI.
+    /// Submit a new Ditfa Cloud task without launching the TUI.
     Exec(ExecCommand),
-    /// Show the status of a Codex Cloud task.
+    /// Show the status of a Ditfa Cloud task.
     Status(StatusCommand),
-    /// List Codex Cloud tasks.
+    /// List Ditfa Cloud tasks.
     List(ListCommand),
-    /// Apply the diff for a Codex Cloud task locally.
+    /// Apply the diff for a Ditfa Cloud task locally.
     Apply(ApplyCommand),
-    /// Show the unified diff for a Codex Cloud task.
+    /// Show the unified diff for a Ditfa Cloud task.
     Diff(DiffCommand),
 }
 
@@ -32,7 +32,7 @@ pub struct ExecCommand {
     #[arg(value_name = "QUERY")]
     pub query: Option<String>,
 
-    /// Target environment identifier (see `codex cloud` to browse).
+    /// Target environment identifier (see `ditfa cloud` to browse).
     #[arg(long = "env", value_name = "ENV_ID")]
     pub environment: String,
 

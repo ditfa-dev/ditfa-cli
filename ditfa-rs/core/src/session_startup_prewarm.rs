@@ -13,18 +13,18 @@ use tracing::warn;
 
 use crate::client::ModelClientSession;
 use crate::guardian::routes_approval_to_guardian;
-use crate::responses_metadata::CodexResponsesRequestKind;
+use crate::responses_metadata::DitfaResponsesRequestKind;
 use crate::session::INITIAL_SUBMIT_ID;
 use crate::session::session::Session;
 use crate::session::turn::build_prompt;
 use ditfa_otel::STARTUP_PREWARM_AGE_AT_FIRST_TURN_METRIC;
 use ditfa_otel::STARTUP_PREWARM_DURATION_METRIC;
 use ditfa_otel::SessionTelemetry;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::models::BaseInstructions;
 
 pub(crate) struct SessionStartupPrewarmHandle {
-    task: AbortOnDropHandle<CodexResult<ModelClientSession>>,
+    task: AbortOnDropHandle<DitfaResult<ModelClientSession>>,
     started_at: Instant,
     timeout: Duration,
 }
@@ -40,7 +40,7 @@ pub(crate) enum SessionStartupPrewarmResolution {
 
 impl SessionStartupPrewarmHandle {
     pub(crate) fn new(
-        task: JoinHandle<CodexResult<ModelClientSession>>,
+        task: JoinHandle<DitfaResult<ModelClientSession>>,
         started_at: Instant,
         timeout: Duration,
     ) -> Self {
@@ -156,7 +156,7 @@ impl SessionStartupPrewarmHandle {
     }
 
     fn resolution_from_join_result(
-        result: std::result::Result<CodexResult<ModelClientSession>, tokio::task::JoinError>,
+        result: std::result::Result<DitfaResult<ModelClientSession>, tokio::task::JoinError>,
         started_at: Instant,
     ) -> SessionStartupPrewarmResolution {
         match result {
@@ -250,7 +250,7 @@ impl Session {
 async fn schedule_startup_prewarm_inner(
     session: Arc<Session>,
     base_instructions: String,
-) -> CodexResult<ModelClientSession> {
+) -> DitfaResult<ModelClientSession> {
     let prewarm_started_at = Instant::now();
     let startup_turn_context = session
         .new_startup_prewarm_turn_with_sub_id(INITIAL_SUBMIT_ID.to_owned())
@@ -308,7 +308,7 @@ async fn schedule_startup_prewarm_inner(
         .to_responses_metadata(
             session.installation_id.clone(),
             window_id,
-            CodexResponsesRequestKind::Prewarm,
+            DitfaResponsesRequestKind::Prewarm,
         );
     let mut client_session = session.services.model_client.new_session();
     let websocket_warmup_started_at = Instant::now();

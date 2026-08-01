@@ -1,6 +1,6 @@
-# codex-http-client
+# ditfa-http-client
 
-`codex-http-client` is the low-level HTTP transport shared by Ditfa crates. It is the intended
+`ditfa-http-client` is the low-level HTTP transport shared by Ditfa crates. It is the intended
 owner of the workspace's direct `reqwest` integration; product crates should use the types in this
 crate instead of constructing `reqwest::Client` values themselves.
 
@@ -8,18 +8,18 @@ Centralizing client construction keeps outbound requests on the same policies an
 short-lived clients that fragment reqwest's connection pool. In particular, this crate owns:
 
 - the request, response, streaming, and transport types used for outbound HTTP calls;
-- custom CA handling through `CODEX_CA_CERTIFICATE` and `SSL_CERT_FILE`;
+- custom CA handling through `DITFA_CA_CERTIFICATE` and `SSL_CERT_FILE`;
 - explicit outbound proxy policy, including system, PAC/WPAD, environment, and direct routes;
 - route-aware client pooling and redirect handling;
 - tracing-header injection and optional request diagnostics; and
 - the opt-in ChatGPT Cloudflare cookie store.
 
 Another important motivation is consistent support for the `respect_system_proxy` feature. That
-feature requires more than enabling reqwest's default proxy behavior: Codex must resolve platform
+feature requires more than enabling reqwest's default proxy behavior: Ditfa must resolve platform
 system settings and PAC/WPAD for each destination, pool connections without mixing routes, and
 resolve redirect targets independently.
 
-Higher-level retry, SSE, and request-attempt telemetry policy remains in `codex-client`.
+Higher-level retry, SSE, and request-attempt telemetry policy remains in `ditfa-client`.
 
 ## Outbound proxy policy
 
@@ -44,7 +44,7 @@ different route, and exceptional direct-routing requirements must remain explici
 For a client that talks to one known destination, build it once and retain it:
 
 ```rust
-use codex_http_client::ClientRouteClass;
+use ditfa_http_client::ClientRouteClass;
 
 let client = http_client_factory.build_client(api_url, ClientRouteClass::Api)?;
 let response = client.get(api_url).send().await?;
@@ -53,8 +53,8 @@ let response = client.get(api_url).send().await?;
 Use `HttpClientBuilder` when the client needs additional shared configuration:
 
 ```rust
-use codex_http_client::ClientRouteClass;
-use codex_http_client::HttpClientBuilder;
+use ditfa_http_client::ClientRouteClass;
+use ditfa_http_client::HttpClientBuilder;
 
 let client = HttpClientBuilder::new()
     .default_headers(default_headers)
@@ -78,8 +78,8 @@ Use a long-lived `RouteAwareClientPool` when a component can send requests to mo
 follow redirects:
 
 ```rust
-use codex_http_client::ClientRouteClass;
-use codex_http_client::RouteAwareClientPool;
+use ditfa_http_client::ClientRouteClass;
+use ditfa_http_client::RouteAwareClientPool;
 
 let client_pool =
     RouteAwareClientPool::new(http_client_factory.clone(), ClientRouteClass::Api);
@@ -92,7 +92,7 @@ route. This preserves connection reuse without accidentally sending a URL over a
 the wrong route.
 
 Redirects need the same treatment. Reqwest normally follows them inside one client execution, which
-would skip Codex's route selection for the redirect target. In `RespectSystemProxy` mode the pool
+would skip Ditfa's route selection for the redirect target. In `RespectSystemProxy` mode the pool
 follows redirects itself, resolves every hop, and removes sensitive headers when an origin changes.
 
 Do not create a new `HttpClient`, `HttpClientFactory`, or `RouteAwareClientPool` for every request.
@@ -115,12 +115,12 @@ Code using the transport abstraction should convert a configured wrapper rather 
 a raw reqwest client:
 
 ```rust
-use codex_http_client::ClientRouteClass;
-use codex_http_client::ReqwestTransport;
+use ditfa_http_client::ClientRouteClass;
+use ditfa_http_client::ReqwestTransport;
 
 let client = http_client_factory.build_client(api_url, ClientRouteClass::Api)?;
 let transport = ReqwestTransport::from_http_client(client);
 ```
 
-If the existing wrapper surface cannot support a use case, extend `codex-http-client` rather than
+If the existing wrapper surface cannot support a use case, extend `ditfa-http-client` rather than
 adding a direct `reqwest` dependency to another first-party crate.

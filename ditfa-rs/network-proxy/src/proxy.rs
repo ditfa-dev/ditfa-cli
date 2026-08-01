@@ -35,7 +35,7 @@ use tracing::warn;
 use self::execution_scope::ExecutionScope;
 
 #[derive(Debug, Clone, Parser)]
-#[command(name = "codex-network-proxy", about = "Codex network sandbox proxy")]
+#[command(name = "ditfa-network-proxy", about = "Ditfa network sandbox proxy")]
 pub struct Args {}
 
 #[derive(Debug)]
@@ -118,7 +118,7 @@ pub struct NetworkProxyBuilder {
     state: Option<Arc<NetworkProxyState>>,
     http_addr: Option<SocketAddr>,
     socks_addr: Option<SocketAddr>,
-    managed_by_codex: bool,
+    managed_by_ditfa: bool,
     policy_decider: Option<Arc<dyn NetworkPolicyDecider>>,
     blocked_request_observer: Option<Arc<dyn BlockedRequestObserver>>,
 }
@@ -129,7 +129,7 @@ impl Default for NetworkProxyBuilder {
             state: None,
             http_addr: None,
             socks_addr: None,
-            managed_by_codex: true,
+            managed_by_ditfa: true,
             policy_decider: None,
             blocked_request_observer: None,
         }
@@ -152,8 +152,8 @@ impl NetworkProxyBuilder {
         self
     }
 
-    pub fn managed_by_codex(mut self, managed_by_codex: bool) -> Self {
-        self.managed_by_codex = managed_by_codex;
+    pub fn managed_by_ditfa(mut self, managed_by_ditfa: bool) -> Self {
+        self.managed_by_ditfa = managed_by_ditfa;
         self
     }
 
@@ -201,7 +201,7 @@ impl NetworkProxyBuilder {
         #[cfg(target_os = "windows")]
         let mut windows_ingress = None;
         let (requested_http_addr, requested_socks_addr, reserved_listeners) = if self
-            .managed_by_codex
+            .managed_by_ditfa
         {
             let runtime = config::resolve_runtime(&current_cfg)?;
             #[cfg(target_os = "windows")]
@@ -650,7 +650,7 @@ fn ditfa_proxy_git_ssh_command(socks_addr: SocketAddr) -> String {
 }
 
 #[cfg(target_os = "macos")]
-fn is_codex_proxy_git_ssh_command(command: &str) -> bool {
+fn is_ditfa_proxy_git_ssh_command(command: &str) -> bool {
     command.starts_with(DITFA_PROXY_GIT_SSH_COMMAND_PREFIX)
         && command.ends_with(DITFA_PROXY_GIT_SSH_COMMAND_SUFFIX)
 }
@@ -733,10 +733,10 @@ fn apply_proxy_env_overrides(
     #[cfg(target_os = "macos")]
     if socks_enabled {
         // Preserve existing SSH wrappers (for example: Secretive/Teleport setups)
-        // but refresh a previously injected Codex fallback so it cannot point
+        // but refresh a previously injected Ditfa fallback so it cannot point
         // at a stale proxy port after the proxy is restarted.
         match env.get(GIT_SSH_COMMAND_ENV_KEY) {
-            Some(command) if !is_codex_proxy_git_ssh_command(command) => {}
+            Some(command) if !is_ditfa_proxy_git_ssh_command(command) => {}
             _ => {
                 env.insert(
                     GIT_SSH_COMMAND_ENV_KEY.to_string(),
@@ -1595,7 +1595,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn non_codex_managed_proxy_builder_uses_configured_ports() {
+    async fn non_ditfa_managed_proxy_builder_uses_configured_ports() {
         let settings = NetworkProxyConfig {
             proxy_url: "http://127.0.0.1:43128".to_string(),
             socks_url: "http://127.0.0.1:48081".to_string(),
@@ -1604,7 +1604,7 @@ mod tests {
         let state = Arc::new(network_proxy_state_for_policy(settings));
         let proxy = NetworkProxy::builder()
             .state(state)
-            .managed_by_codex(/*managed_by_codex*/ false)
+            .managed_by_ditfa(/*managed_by_ditfa*/ false)
             .build()
             .await
             .unwrap();
@@ -2077,7 +2077,7 @@ mod tests {
     #[test]
     fn apply_proxy_env_overrides_sets_mitm_ca_trust_bundle_vars() {
         let mut env = HashMap::new();
-        let mitm_ca_trust_bundle_path = Path::new("/tmp/codex-proxy/ca-bundle.pem");
+        let mitm_ca_trust_bundle_path = Path::new("/tmp/ditfa-proxy/ca-bundle.pem");
         let mitm_ca_trust_bundle = crate::certs::ManagedMitmCaTrustBundle {
             path: mitm_ca_trust_bundle_path.to_path_buf(),
             startup_env_values: HashMap::new(),
@@ -2106,7 +2106,7 @@ mod tests {
             "REQUESTS_CA_BUNDLE".to_string(),
             command_ca_bundle_path.clone(),
         )]);
-        let mitm_ca_trust_bundle_path = Path::new("/tmp/codex-proxy/ca-bundle.pem");
+        let mitm_ca_trust_bundle_path = Path::new("/tmp/ditfa-proxy/ca-bundle.pem");
         let mitm_ca_trust_bundle = crate::certs::ManagedMitmCaTrustBundle {
             path: mitm_ca_trust_bundle_path.to_path_buf(),
             startup_env_values: HashMap::new(),
@@ -2239,7 +2239,7 @@ mod tests {
 
     #[cfg(target_os = "macos")]
     #[test]
-    fn apply_proxy_env_overrides_refreshes_previous_codex_proxy_git_ssh_command() {
+    fn apply_proxy_env_overrides_refreshes_previous_ditfa_proxy_git_ssh_command() {
         let mut env = HashMap::new();
         env.insert(
             GIT_SSH_COMMAND_ENV_KEY.to_string(),

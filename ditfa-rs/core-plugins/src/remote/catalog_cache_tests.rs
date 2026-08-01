@@ -19,7 +19,7 @@ fn catalog_cache_freshness_honors_ttl() {
 
 #[test]
 fn catalog_cache_paths_are_isolated_by_scope() {
-    let ditfa_home = Path::new("/tmp/codex-home");
+    let ditfa_home = Path::new("/tmp/ditfa-home");
     let cache_key_for_scope = |scope| RemotePluginCatalogCacheKey {
         chatgpt_base_url: "http://localhost:3000/api".to_string(),
         account_id: Some("account-id".to_string()),
@@ -42,12 +42,12 @@ fn catalog_cache_paths_are_isolated_by_scope() {
 
 #[test]
 fn global_catalog_cache_reuses_legacy_cache_file() {
-    let ditfa_home = tempfile::tempdir().expect("create codex home");
+    let ditfa_home = tempfile::tempdir().expect("create ditfa home");
     let config = RemotePluginServiceConfig::new(
         "http://localhost:3000/api".to_string(),
         crate::test_support::test_http_client_factory(),
     );
-    let auth = CodexAuth::Headers(AuthHeaders::new(http::HeaderMap::new()));
+    let auth = DitfaAuth::Headers(AuthHeaders::new(http::HeaderMap::new()));
     let legacy_cache_path = ditfa_home
         .path()
         .join(REMOTE_PLUGIN_CATALOG_DISK_CACHE_DIR)
@@ -81,12 +81,12 @@ fn global_catalog_cache_reuses_legacy_cache_file() {
 
 #[test]
 fn header_auth_does_not_cache_private_catalogs_without_a_stable_identity() {
-    let ditfa_home = tempfile::tempdir().expect("create codex home");
+    let ditfa_home = tempfile::tempdir().expect("create ditfa home");
     let config = RemotePluginServiceConfig::new(
         "http://localhost:3000/api".to_string(),
         crate::test_support::test_http_client_factory(),
     );
-    let auth = CodexAuth::Headers(AuthHeaders::new(http::HeaderMap::new()));
+    let auth = DitfaAuth::Headers(AuthHeaders::new(http::HeaderMap::new()));
 
     write_cached_directory_plugins(
         ditfa_home.path(),

@@ -16,7 +16,7 @@ use ditfa_model_provider::create_model_provider;
 use ditfa_model_provider_info::ModelProviderInfo;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
 
-use crate::backend::CodexImagesBackend;
+use crate::backend::DitfaImagesBackend;
 use crate::tool::ImageGenerationTool;
 
 #[derive(Clone)]
@@ -95,7 +95,7 @@ impl ToolContributor for ImageGenerationExtension {
         }
 
         vec![Arc::new(ImageGenerationTool::new(
-            CodexImagesBackend::new(
+            DitfaImagesBackend::new(
                 create_model_provider(config.provider.clone(), Some(self.auth_manager.clone())),
                 thread_store
                     .get::<ThreadOriginator>()

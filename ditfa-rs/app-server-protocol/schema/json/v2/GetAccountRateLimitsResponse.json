@@ -130,7 +130,7 @@
     },
     "RateLimitResetType": {
       "enum": [
-        "codexRateLimits",
+        "ditfaRateLimits",
         "unknown"
       ],
       "type": "string"
@@ -294,7 +294,7 @@
       "additionalProperties": {
         "$ref": "#/definitions/RateLimitSnapshot"
       },
-      "description": "Multi-bucket view keyed by metered `limit_id` (for example, `codex`).",
+      "description": "Multi-bucket view keyed by metered `limit_id` (for example, `ditfa`).",
       "type": [
         "object",
         "null"

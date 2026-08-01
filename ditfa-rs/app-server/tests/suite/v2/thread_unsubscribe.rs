@@ -44,7 +44,7 @@ async fn thread_unsubscribe_keeps_thread_loaded_until_idle_timeout() -> Result<(
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -124,7 +124,7 @@ async fn thread_unsubscribe_during_turn_keeps_turn_running() -> Result<()> {
         .write(&ditfa_home)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .build_initialized()
         .await?;
 
@@ -247,7 +247,7 @@ async fn thread_unsubscribe_preserves_cached_status_before_idle_unload() -> Resu
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 
@@ -332,7 +332,7 @@ async fn thread_unsubscribe_reports_not_subscribed_before_idle_unload() -> Resul
         .write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 

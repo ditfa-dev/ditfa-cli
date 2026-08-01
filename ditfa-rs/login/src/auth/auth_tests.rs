@@ -176,7 +176,7 @@ async fn stored_agent_identity_jwt_keeps_auth_json_unchanged() -> anyhow::Result
 
     let auth = super::load_auth(
         ditfa_home.path(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         Some(&chatgpt_base_url),
@@ -187,7 +187,7 @@ async fn stored_agent_identity_jwt_keeps_auth_json_unchanged() -> anyhow::Result
     .await?
     .expect("auth should load");
 
-    let CodexAuth::AgentIdentity(agent_identity_auth) = auth else {
+    let DitfaAuth::AgentIdentity(agent_identity_auth) = auth else {
         panic!("stored JWT should load as agent identity auth");
     };
     assert_eq!(agent_identity_auth.run_task_id(), "task-id");
@@ -364,7 +364,7 @@ async fn chatgpt_auth_registers_agent_identity_when_enabled() -> anyhow::Result<
     )?;
     let auth = super::load_auth(
         ditfa_home.path(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -393,7 +393,7 @@ async fn chatgpt_auth_registers_agent_identity_when_enabled() -> anyhow::Result<
         .and(header("authorization", "Bearer test-access-token"))
         .and(body_partial_json(json!({
             "abom": {
-                "agent_harness_id": "codex-cli",
+                "agent_harness_id": "ditfa-cli",
             },
             "capabilities": ["responsesapi"],
             "ttl": null,
@@ -446,7 +446,7 @@ async fn chatgpt_auth_registers_agent_identity_when_enabled() -> anyhow::Result<
 
     let reloaded = super::load_auth(
         ditfa_home.path(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -488,7 +488,7 @@ async fn chatgpt_auth_retries_transient_agent_identity_registration() -> anyhow:
     )?;
     let auth = super::load_auth(
         ditfa_home.path(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -554,7 +554,7 @@ async fn chatgpt_auth_registration_retry_exhaustion_is_fallback_eligible() -> an
     )?;
     let auth = super::load_auth(
         ditfa_home.path(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -615,7 +615,7 @@ async fn chatgpt_auth_task_registration_retry_exhaustion_is_fallback_eligible() 
     storage.save(&auth_json)?;
     let auth = super::load_auth(
         ditfa_home.path(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -671,7 +671,7 @@ async fn chatgpt_auth_non_retryable_registration_error_is_hard_failure() -> anyh
     )?;
     let auth = super::load_auth(
         ditfa_home.path(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -733,7 +733,7 @@ async fn agent_identity_jwt_task_registration_retry_exhaustion_is_strict() -> an
     let authapi_base_url = server.uri();
     let chatgpt_base_url = format!("{authapi_base_url}/backend-api");
 
-    let err = CodexAuth::from_agent_identity_jwt_with_authapi_base_url(
+    let err = DitfaAuth::from_agent_identity_jwt_with_authapi_base_url(
         &agent_identity,
         Some(&chatgpt_base_url),
         &authapi_base_url,
@@ -785,7 +785,7 @@ async fn login_with_access_token_rejects_unsigned_jwt() {
 async fn missing_auth_json_returns_none() {
     let dir = tempdir().unwrap();
     let _access_token_guard = remove_access_token_env_var();
-    let auth = CodexAuth::from_auth_storage(
+    let auth = DitfaAuth::from_auth_storage(
         dir.path(),
         AuthCredentialsStoreMode::File,
         /*chatgpt_base_url*/ None,
@@ -814,7 +814,7 @@ async fn pro_account_with_no_api_key_uses_chatgpt_auth() {
 
     let auth = super::load_auth(
         ditfa_home.path(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -876,7 +876,7 @@ async fn loads_api_key_from_auth_json() {
 
     let auth = super::load_auth(
         dir.path(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -928,7 +928,7 @@ async fn unauthorized_recovery_reports_mode_and_step_names() {
     let dir = tempdir().unwrap();
     let manager = AuthManager::shared(
         dir.path().to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -972,7 +972,7 @@ async fn refresh_failure_is_scoped_to_the_matching_auth_snapshot() {
 
     let auth = super::load_auth(
         ditfa_home.path(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -992,7 +992,7 @@ async fn refresh_failure_is_scoped_to_the_matching_auth_snapshot() {
         .expect("tokens should exist");
     updated_tokens.access_token = "new-access-token".to_string();
     updated_tokens.refresh_token = "new-refresh-token".to_string();
-    let updated_auth = CodexAuth::from_auth_dot_json(
+    let updated_auth = DitfaAuth::from_auth_dot_json(
         ditfa_home.path(),
         updated_auth_dot_json,
         AuthCredentialsStoreMode::File,
@@ -1094,14 +1094,14 @@ async fn unauthorized_recovery_uses_external_refresh_for_bearer_manager() {
 }
 
 #[derive(Clone)]
-struct StaticExternalAuth(CodexAuth);
+struct StaticExternalAuth(DitfaAuth);
 
 impl ExternalAuth for StaticExternalAuth {
-    fn resolve(&self) -> ExternalAuthFuture<'_, CodexAuth> {
+    fn resolve(&self) -> ExternalAuthFuture<'_, DitfaAuth> {
         Box::pin(async { Ok(self.0.clone()) })
     }
 
-    fn refresh(&self, _context: ExternalAuthRefreshContext) -> ExternalAuthFuture<'_, CodexAuth> {
+    fn refresh(&self, _context: ExternalAuthRefreshContext) -> ExternalAuthFuture<'_, DitfaAuth> {
         Box::pin(async { Ok(self.0.clone()) })
     }
 }
@@ -1114,11 +1114,11 @@ async fn external_auth_provider_can_install_headers() {
         http::HeaderValue::from_static("Bearer external"),
     );
     headers.insert("x-external-auth", http::HeaderValue::from_static("enabled"));
-    let auth = CodexAuth::Headers(AuthHeaders::new(headers));
+    let auth = DitfaAuth::Headers(AuthHeaders::new(headers));
     let ditfa_home = tempdir().expect("tempdir");
     let manager = AuthManager::new(
         ditfa_home.path().to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::Ephemeral,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -1136,7 +1136,7 @@ async fn external_auth_provider_can_install_headers() {
     assert!(
         manager
             .auth_cached()
-            .is_some_and(|auth| auth.uses_codex_backend())
+            .is_some_and(|auth| auth.uses_ditfa_backend())
     );
     assert!(
         !manager
@@ -1421,7 +1421,7 @@ async fn load_auth_reads_access_token_from_env() {
     let chatgpt_base_url = format!("{authapi_base_url}/backend-api");
     let auth = super::load_auth(
         ditfa_home.path(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         Some(&chatgpt_base_url),
@@ -1433,7 +1433,7 @@ async fn load_auth_reads_access_token_from_env() {
     .expect("env auth should load")
     .expect("env auth should be present");
 
-    let CodexAuth::AgentIdentity(agent_identity) = auth else {
+    let DitfaAuth::AgentIdentity(agent_identity) = auth else {
         panic!("env auth should load as agent identity");
     };
     assert_eq!(agent_identity.record(), &expected_record);
@@ -1469,7 +1469,7 @@ async fn load_auth_reads_personal_access_token_from_env() {
     ] {
         let auth = super::load_auth(
             ditfa_home.path(),
-            /*enable_codex_api_key_env*/ false,
+            /*enable_ditfa_api_key_env*/ false,
             auth_credentials_store_mode,
             /*forced_chatgpt_workspace_id*/ None,
             /*chatgpt_base_url*/ None,
@@ -1524,7 +1524,7 @@ async fn auth_manager_rejects_env_personal_access_token_workspace_mismatch() {
 
     let manager = AuthManager::new(
         ditfa_home.path().to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         Some(vec![WORKSPACE_ID_ALLOWED.to_string()]),
         /*chatgpt_base_url*/ None,
@@ -1576,7 +1576,7 @@ async fn auth_manager_rejects_stored_personal_access_token_workspace_mismatch() 
 
         let manager = AuthManager::new(
             ditfa_home.path().to_path_buf(),
-            /*enable_codex_api_key_env*/ false,
+            /*enable_ditfa_api_key_env*/ false,
             auth_credentials_store_mode,
             Some(vec![WORKSPACE_ID_ALLOWED.to_string()]),
             /*chatgpt_base_url*/ None,
@@ -1610,7 +1610,7 @@ async fn personal_access_token_does_not_offer_unauthorized_recovery() {
     let manager = Arc::new(
         AuthManager::new(
             ditfa_home.path().to_path_buf(),
-            /*enable_codex_api_key_env*/ false,
+            /*enable_ditfa_api_key_env*/ false,
             AuthCredentialsStoreMode::File,
             /*forced_chatgpt_workspace_id*/ None,
             /*chatgpt_base_url*/ None,
@@ -1633,7 +1633,7 @@ async fn personal_access_token_does_not_offer_unauthorized_recovery() {
 
 #[tokio::test]
 #[serial(ditfa_auth_env)]
-async fn load_auth_keeps_codex_api_key_env_precedence() {
+async fn load_auth_keeps_ditfa_api_key_env_precedence() {
     let ditfa_home = tempdir().unwrap();
     let record = agent_identity_record(WORKSPACE_ID_ALLOWED);
     let agent_identity = fake_agent_identity_jwt(&record).expect("fake agent identity");
@@ -1642,7 +1642,7 @@ async fn load_auth_keeps_codex_api_key_env_precedence() {
 
     let auth = super::load_auth(
         ditfa_home.path(),
-        /*enable_codex_api_key_env*/ true,
+        /*enable_ditfa_api_key_env*/ true,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -2002,7 +2002,7 @@ fn fake_agent_identity_jwt_with_plan_type(
     let header_b64 = encode(br#"{"alg":"EdDSA","typ":"JWT"}"#);
     let payload = json!({
         "iss": "http://localhost:3000/ditfa-backend/agent-identity",
-        "aud": "codex-app-server",
+        "aud": "ditfa-app-server",
         "iat": 1_700_000_000usize,
         "exp": 4_000_000_000usize,
         "agent_runtime_id": record.agent_runtime_id,
@@ -2028,7 +2028,7 @@ fn signed_agent_identity_jwt(
         &header,
         &json!({
             "iss": "http://localhost:3000/ditfa-backend/agent-identity",
-            "aud": "codex-app-server",
+            "aud": "ditfa-app-server",
             "iat": 1_700_000_000usize,
             "exp": 4_000_000_000usize,
             "agent_runtime_id": record.agent_runtime_id,
@@ -2130,7 +2130,7 @@ async fn assert_agent_identity_plan_alias(
         .await;
     let authapi_base_url = server.uri();
     let chatgpt_base_url = format!("{authapi_base_url}/backend-api");
-    let auth = CodexAuth::from_agent_identity_jwt_with_authapi_base_url(
+    let auth = DitfaAuth::from_agent_identity_jwt_with_authapi_base_url(
         &jwt,
         Some(&chatgpt_base_url),
         &authapi_base_url,
@@ -2160,7 +2160,7 @@ async fn plan_type_maps_known_plan() {
 
     let auth = super::load_auth(
         ditfa_home.path(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -2192,7 +2192,7 @@ async fn plan_type_maps_self_serve_business_usage_based_plan() {
 
     let auth = super::load_auth(
         ditfa_home.path(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -2227,7 +2227,7 @@ async fn plan_type_maps_enterprise_cbp_usage_based_plan() {
 
     let auth = super::load_auth(
         ditfa_home.path(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -2262,7 +2262,7 @@ async fn plan_type_maps_unknown_to_unknown() {
 
     let auth = super::load_auth(
         ditfa_home.path(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
@@ -2294,7 +2294,7 @@ async fn missing_plan_type_maps_to_unknown() {
 
     let auth = super::load_auth(
         ditfa_home.path(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         AuthCredentialsStoreMode::File,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,

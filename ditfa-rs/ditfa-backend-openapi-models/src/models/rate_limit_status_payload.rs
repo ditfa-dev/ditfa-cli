@@ -1,7 +1,7 @@
 /*
- * codex-backend
+ * ditfa-backend
  *
- * codex-backend
+ * ditfa-backend
  *
  * The version of the OpenAPI document: 0.0.1
  *

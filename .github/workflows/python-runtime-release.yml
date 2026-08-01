@@ -23,7 +23,7 @@ jobs:
 
   # PyPI must trust this top-level workflow for manual runtime publication.
   publish-python-runtime:
-    if: github.repository == 'openai/codex'
+    if: github.repository == 'Teamtem-dev/ditfa-code'
     name: publish-python-runtime
     needs: prepare-python-runtime
     runs-on: ubuntu-latest
@@ -69,13 +69,13 @@ jobs:
               "win_arm64",
           }
           expected = {
-              f"openai_codex_cli_bin-{version}-py3-none-{tag}.whl"
+              f"openai_ditfa_cli_bin-{version}-py3-none-{tag}.whl"
               for tag in tags
           }
 
           try:
               with urllib.request.urlopen(
-                  f"https://pypi.org/pypi/openai-codex-cli-bin/{version}/json",
+                  f"https://pypi.org/pypi/openai-ditfa-cli-bin/{version}/json",
                   timeout=30,
               ) as response:
                   payload = json.load(response)

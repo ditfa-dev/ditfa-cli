@@ -46,7 +46,7 @@ pub async fn spawn_process(request: SpawnRequest<'_>) -> Result<SpawnedProcess> 
             let windows = request
                 .windows_sandbox
                 .context("missing Windows sandbox spawn request")?;
-            let ditfa_home = ditfa_utils_home_dir::find_codex_home()
+            let ditfa_home = ditfa_utils_home_dir::find_ditfa_home()
                 .context("windows sandbox: failed to resolve ditfa_home")?;
             let empty_paths = &[];
             let overrides = windows.filesystem_overrides;

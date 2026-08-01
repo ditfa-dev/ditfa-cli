@@ -73,14 +73,14 @@ pub(super) fn emit_project_config_warnings(app_event_tx: &AppEventSender, config
         ConfigLayerStackOrdering::LowestPrecedenceFirst,
         /*include_disabled*/ true,
     ) {
-        let ConfigLayerSource::Project { dot_codex_folder } = &layer.name else {
+        let ConfigLayerSource::Project { dot_ditfa_folder } = &layer.name else {
             continue;
         };
         let Some(disabled_reason) = &layer.disabled_reason else {
             continue;
         };
         disabled_folders.push((
-            dot_codex_folder.as_path().display().to_string(),
+            dot_ditfa_folder.as_path().display().to_string(),
             disabled_reason.clone(),
         ));
     }
@@ -161,7 +161,7 @@ pub(super) fn migration_prompt_hidden(config: &Config, migration_config_key: &st
     match migration_config_key {
         HIDE_GPT_5_1_DITFA_MAX_MIGRATION_PROMPT_CONFIG => config
             .notices
-            .hide_gpt_5_1_codex_max_migration_prompt
+            .hide_gpt_5_1_ditfa_max_migration_prompt
             .unwrap_or(false),
         HIDE_GPT5_1_MIGRATION_PROMPT_CONFIG => {
             config.notices.hide_gpt5_1_migration_prompt.unwrap_or(false)

@@ -1,6 +1,6 @@
-import { CodexOptions } from "./codexOptions";
+import { DitfaOptions } from "./ditfaOptions";
 import { ThreadEvent, ThreadError, Usage } from "./events";
-import { CodexExec } from "./exec";
+import { DitfaExec } from "./exec";
 import { ThreadItem } from "./items";
 import { ThreadOptions } from "./threadOptions";
 import { TurnOptions } from "./turnOptions";
@@ -39,8 +39,8 @@ export type Input = string | UserInput[];
 
 /** Represent a thread of conversation with the agent. One thread can have multiple consecutive turns. */
 export class Thread {
-  private _exec: CodexExec;
-  private _options: CodexOptions;
+  private _exec: DitfaExec;
+  private _options: DitfaOptions;
   private _id: string | null;
   private _threadOptions: ThreadOptions;
 
@@ -51,8 +51,8 @@ export class Thread {
 
   /* @internal */
   constructor(
-    exec: CodexExec,
-    options: CodexOptions,
+    exec: DitfaExec,
+    options: DitfaOptions,
     threadOptions: ThreadOptions,
     id: string | null = null,
   ) {

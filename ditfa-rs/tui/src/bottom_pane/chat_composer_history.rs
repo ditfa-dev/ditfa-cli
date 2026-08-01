@@ -1152,7 +1152,7 @@ mod tests {
 
         let mut history = ChatComposerHistory::new();
         history.record_local_submission(HistoryEntry::new("git status".to_string()));
-        history.record_local_submission(HistoryEntry::new("cargo test -p codex-tui".to_string()));
+        history.record_local_submission(HistoryEntry::new("cargo test -p ditfa-tui".to_string()));
         history.record_local_submission(HistoryEntry::new("git diff".to_string()));
 
         assert_eq!(
@@ -1218,7 +1218,7 @@ mod tests {
 
         let mut history = ChatComposerHistory::new();
         history.record_local_submission(HistoryEntry::new("git status".to_string()));
-        history.record_local_submission(HistoryEntry::new("cargo test -p codex-tui".to_string()));
+        history.record_local_submission(HistoryEntry::new("cargo test -p ditfa-tui".to_string()));
         history.record_local_submission(HistoryEntry::new("git status".to_string()));
         history.record_local_submission(HistoryEntry::new("git diff".to_string()));
 

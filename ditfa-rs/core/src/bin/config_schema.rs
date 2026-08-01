@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 /// Generate the JSON Schema for `config.toml` and write it to `config.schema.json`.
 #[derive(Parser)]
-#[command(name = "codex-write-config-schema")]
+#[command(name = "ditfa-write-config-schema")]
 struct Args {
     #[arg(short, long, value_name = "PATH")]
     out: Option<PathBuf>,

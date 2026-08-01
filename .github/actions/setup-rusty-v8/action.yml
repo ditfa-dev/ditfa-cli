@@ -1,8 +1,8 @@
 name: setup-rusty-v8
-description: Download and verify Codex-built rusty_v8 artifacts for Cargo builds.
+description: Download and verify Ditfa Code-built rusty_v8 artifacts for Cargo builds.
 inputs:
   target:
-    description: Rust target triple with Codex-built V8 release artifacts.
+    description: Rust target triple with Ditfa Code-built V8 release artifacts.
     required: true
 
 runs:
@@ -17,7 +17,7 @@ runs:
 
         version="$(python3 "${GITHUB_WORKSPACE}/.github/scripts/rusty_v8_bazel.py" resolved-v8-crate-version)"
         release_tag="rusty-v8-v${version}"
-        base_url="https://github.com/openai/codex/releases/download/${release_tag}"
+        base_url="https://github.com/Teamtem-dev/ditfa-code/releases/download/${release_tag}"
         binding_dir="${RUNNER_TEMP}/rusty_v8"
         archive_path="${binding_dir}/librusty_v8_release_${TARGET}.a.gz"
         binding_path="${binding_dir}/src_binding_release_${TARGET}.rs"

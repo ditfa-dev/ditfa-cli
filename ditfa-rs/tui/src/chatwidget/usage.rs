@@ -507,7 +507,7 @@ impl ChatWidget {
         for snapshot in snapshots {
             self.on_rate_limit_snapshot(Some(snapshot));
         }
-        if !self.has_codex_backend_auth {
+        if !self.has_ditfa_backend_auth {
             return false;
         }
         if let Ok(response) = result {

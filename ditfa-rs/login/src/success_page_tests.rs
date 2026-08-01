@@ -102,7 +102,7 @@ fn compose_success_url_keeps_setup_on_local_page() {
         /*ditfa_streamlined_login*/ true,
         &LoginSuccessPage::Hosted {
             url: Url::parse(DITFA_OPEN_APP_URL).expect("open app URL should parse"),
-            app_brand: LoginSuccessPageBrand::Codex,
+            app_brand: LoginSuccessPageBrand::Ditfa,
         },
     ) else {
         panic!("expected local success redirect");

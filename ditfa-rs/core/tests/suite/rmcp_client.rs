@@ -26,7 +26,7 @@ use ditfa_exec_server::CreateDirectoryOptions;
 use ditfa_exec_server::Environment;
 use ditfa_exec_server::HttpRedirectPolicy;
 use ditfa_exec_server::HttpRequestParams;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_mcp::MCP_SANDBOX_STATE_META_CAPABILITY;
 use ditfa_mcp::SandboxState;
 use ditfa_models_manager::manager::RefreshStrategy;
@@ -63,9 +63,9 @@ use core_test_support::skip_if_no_network;
 use core_test_support::skip_if_no_remote_env;
 use core_test_support::skip_if_wine_exec;
 use core_test_support::stdio_server_bin;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::test_docker_container_name;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_mcp_server;
@@ -110,19 +110,19 @@ fn assert_wall_time_header(output: &str) {
     assert_eq!(marker, "Output:");
 }
 
-fn read_only_user_turn(fixture: &TestCodex, text: impl Into<String>) -> Op {
+fn read_only_user_turn(fixture: &TestDitfa, text: impl Into<String>) -> Op {
     read_only_user_turn_with_model(fixture, text, fixture.session_configured.model.clone())
 }
 
 fn read_only_user_turn_with_model(
-    fixture: &TestCodex,
+    fixture: &TestDitfa,
     text: impl Into<String>,
     model: String,
 ) -> Op {
     user_turn_with_permission_profile(fixture, text, model, PermissionProfile::read_only())
 }
 
-fn auto_approved_user_turn(fixture: &TestCodex, text: impl Into<String>) -> Op {
+fn auto_approved_user_turn(fixture: &TestDitfa, text: impl Into<String>) -> Op {
     user_turn_with_permission_profile(
         fixture,
         text,
@@ -132,7 +132,7 @@ fn auto_approved_user_turn(fixture: &TestCodex, text: impl Into<String>) -> Op {
 }
 
 fn user_turn_with_permission_profile(
-    fixture: &TestCodex,
+    fixture: &TestDitfa,
     text: impl Into<String>,
     model: String,
     permission_profile: PermissionProfile,
@@ -210,7 +210,7 @@ pub(super) fn remote_aware_stdio_server_bin() -> anyhow::Result<String> {
 fn unique_remote_path(binary_name: &str) -> anyhow::Result<String> {
     let unique_suffix = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
     Ok(format!(
-        "/tmp/codex-remote-env/{binary_name}-{}-{unique_suffix}",
+        "/tmp/ditfa-remote-env/{binary_name}-{}-{unique_suffix}",
         std::process::id()
     ))
 }
@@ -228,7 +228,7 @@ fn copy_binary_to_remote_env(
             container_name,
             "mkdir",
             "-p",
-            "/tmp/codex-remote-env",
+            "/tmp/ditfa-remote-env",
         ])
         .output()
         .context("create remote MCP test binary directory")?;
@@ -349,7 +349,7 @@ fn insert_mcp_server(
 
 async fn call_cwd_tool(
     server: &MockServer,
-    fixture: &TestCodex,
+    fixture: &TestDitfa,
     server_name: &str,
     call_id: &str,
 ) -> anyhow::Result<Value> {
@@ -358,7 +358,7 @@ async fn call_cwd_tool(
 
 async fn call_structured_tool(
     server: &MockServer,
-    fixture: &TestCodex,
+    fixture: &TestDitfa,
     server_name: &str,
     tool_name: &str,
     call_id: &str,
@@ -431,7 +431,7 @@ async fn openai_form_capability_updates_for_loaded_thread() -> anyhow::Result<()
     let server = start_mock_server().await;
     let server_name = "capabilities";
     let command = stdio_server_bin()?;
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_config(move |config| {
             insert_mcp_server(
                 config,
@@ -482,7 +482,7 @@ async fn assert_openai_form_capability_advertisement(expected: bool) -> anyhow::
     let server = start_mock_server().await;
     let server_name = "capabilities";
     let command = stdio_server_bin()?;
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         insert_mcp_server(
             config,
             server_name,
@@ -594,7 +594,7 @@ async fn stdio_server_round_trip() -> anyhow::Result<()> {
     let expected_env_value = "propagated-env";
     let rmcp_test_server_bin = remote_aware_stdio_server_bin()?;
 
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_config(move |config| {
             insert_mcp_server(
                 config,
@@ -707,7 +707,7 @@ async fn shutdown_cancels_startup_prewarm_waiting_for_mcp_startup() -> anyhow::R
     let pending_mcp_listener = tokio::net::TcpListener::bind("127.0.0.1:0").await?;
     let pending_mcp_url = format!("http://{}/mcp", pending_mcp_listener.local_addr()?);
 
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_config(move |config| {
             insert_mcp_server(
                 config,
@@ -761,7 +761,7 @@ async fn interrupt_during_mcp_startup_preserves_user_input_in_history(
     let pending_mcp_listener = tokio::net::TcpListener::bind("127.0.0.1:0").await?;
     let pending_mcp_url = format!("http://{}/mcp", pending_mcp_listener.local_addr()?);
 
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_config(move |config| {
             config.model_provider.supports_websockets =
                 matches!(startup_phase, InterruptedMcpStartupPhase::StartupPrewarm);
@@ -858,7 +858,7 @@ async fn stdio_server_uses_configured_cwd_before_runtime_fallback() -> anyhow::R
     let expected_cwd_for_config = Arc::clone(&expected_cwd);
     let rmcp_test_server_bin = remote_aware_stdio_server_bin()?;
 
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_workspace_setup(|cwd, fs| async move {
             let configured_cwd = cwd.join("mcp-configured-cwd");
             let configured_cwd_uri = PathUri::from_host_native_path(&configured_cwd)?;
@@ -928,7 +928,7 @@ async fn local_stdio_server_uses_runtime_fallback_cwd_when_config_omits_cwd() ->
     );
     let relative_command = relative_server_path.to_string_lossy().into_owned();
 
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_config(move |config| {
             *expected_cwd_for_config
                 .lock()
@@ -1007,7 +1007,7 @@ async fn stdio_mcp_tool_call_includes_sandbox_state_meta() -> anyhow::Result<()>
     .await;
 
     let rmcp_test_server_bin = remote_aware_stdio_server_bin()?;
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_config(move |config| {
             insert_mcp_server(
                 config,
@@ -1100,7 +1100,7 @@ async fn stdio_mcp_parallel_tool_calls_default_false_runs_serially() -> anyhow::
 
     let rmcp_test_server_bin = remote_aware_stdio_server_bin()?;
 
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_config(move |config| {
             insert_mcp_server(
                 config,
@@ -1241,7 +1241,7 @@ async fn stdio_mcp_read_only_tool_calls_run_concurrently_without_server_opt_in()
 
     let rmcp_test_server_bin = remote_aware_stdio_server_bin()?;
 
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_config(move |config| {
             insert_mcp_server(
                 config,
@@ -1330,7 +1330,7 @@ async fn stdio_mcp_parallel_tool_calls_opt_in_runs_concurrently() -> anyhow::Res
 
     let rmcp_test_server_bin = remote_aware_stdio_server_bin()?;
 
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_config(move |config| {
             insert_mcp_server(
                 config,
@@ -1415,7 +1415,7 @@ async fn stdio_encrypted_content_responses_round_trip() -> anyhow::Result<()> {
     .await;
 
     let rmcp_test_server_bin = remote_aware_stdio_server_bin()?;
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_config(move |config| {
             insert_mcp_server(
                 config,
@@ -1506,7 +1506,7 @@ async fn stdio_image_responses_round_trip() -> anyhow::Result<()> {
     // Build the stdio rmcp server and pass the image as data URL so it can construct ImageContent.
     let rmcp_test_server_bin = remote_aware_stdio_server_bin()?;
 
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_model("gpt-5.2")
         .with_config(move |config| {
             insert_mcp_server(
@@ -1670,7 +1670,7 @@ async fn stdio_image_responses_resize_large_image() -> anyhow::Result<()> {
     .await;
 
     let rmcp_test_server_bin = remote_aware_stdio_server_bin()?;
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_config(move |config| {
             insert_mcp_server(
                 config,
@@ -1757,7 +1757,7 @@ async fn stdio_image_responses_preserve_original_detail_metadata() -> anyhow::Re
 
     let rmcp_test_server_bin = remote_aware_stdio_server_bin()?;
 
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_model("gpt-5.4")
         .with_config(move |config| {
             insert_mcp_server(
@@ -1897,8 +1897,8 @@ async fn stdio_image_responses_are_sanitized_for_text_only_model() -> anyhow::Re
 
     let rmcp_test_server_bin = remote_aware_stdio_server_bin()?;
 
-    let fixture = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let fixture = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(move |config| {
             insert_mcp_server(
                 config,
@@ -2012,7 +2012,7 @@ async fn stdio_server_propagates_whitelisted_env_vars() -> anyhow::Result<()> {
     let _guard = EnvVarGuard::set("MCP_TEST_VALUE", OsStr::new(expected_env_value));
     let rmcp_test_server_bin = remote_aware_stdio_server_bin()?;
 
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_config(move |config| {
             insert_mcp_server(
                 config,
@@ -2134,7 +2134,7 @@ async fn stdio_server_propagates_explicit_local_env_var_source() -> anyhow::Resu
     let _guard = EnvVarGuard::set(env_name, OsStr::new(expected_env_value));
     let rmcp_test_server_bin = remote_aware_stdio_server_bin()?;
 
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_config(move |config| {
             insert_mcp_server(
                 config,
@@ -2230,7 +2230,7 @@ async fn remote_stdio_env_var_source_does_not_copy_local_env() -> anyhow::Result
     let _guard = EnvVarGuard::set(env_name, OsStr::new("local-value-should-not-cross"));
     let rmcp_test_server_bin = remote_aware_stdio_server_bin()?;
 
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_config(move |config| {
             insert_mcp_server(
                 config,
@@ -2331,7 +2331,7 @@ impl RemoteStreamableHttpServer {
 }
 
 impl StreamableHttpTestServer {
-    /// Returns the MCP endpoint URL that Codex should connect to.
+    /// Returns the MCP endpoint URL that Ditfa should connect to.
     fn url(&self) -> &str {
         &self.server_url
     }
@@ -2361,14 +2361,14 @@ impl StreamableHttpTestServer {
     }
 }
 
-/// What this tests: Codex can discover and call a Streamable HTTP MCP tool in
+/// What this tests: Ditfa can discover and call a Streamable HTTP MCP tool in
 /// both local and remote-aware placements, and the tool observes the expected
 /// environment value from the server process that actually handled the request.
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn streamable_http_tool_call_round_trip() -> anyhow::Result<()> {
     skip_if_no_network!(Ok(()));
 
-    // Phase 1: script the model responses so Codex will call the MCP echo tool
+    // Phase 1: script the model responses so Ditfa will call the MCP echo tool
     // and then complete the turn after the tool result is returned.
     let server = responses::start_mock_server().await;
 
@@ -2413,10 +2413,10 @@ async fn streamable_http_tool_call_round_trip() -> anyhow::Result<()> {
     };
     let server_url = http_server.url().to_string();
 
-    // Phase 3: configure Codex with the Streamable HTTP MCP server and build a
+    // Phase 3: configure Ditfa with the Streamable HTTP MCP server and build a
     // fixture that selects remote MCP placement only when the remote test
     // environment is active.
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_config(move |config| {
             insert_mcp_server(
                 config,
@@ -2446,7 +2446,7 @@ async fn streamable_http_tool_call_round_trip() -> anyhow::Result<()> {
         ))
         .await?;
 
-    // Phase 5: assert Codex begins the expected tool invocation.
+    // Phase 5: assert Ditfa begins the expected tool invocation.
     let begin_event = wait_for_event(&fixture.ditfa, |ev| {
         matches!(ev, EventMsg::McpToolCallBegin(_))
     })
@@ -2519,8 +2519,8 @@ async fn streamable_http_configured_auth_precedes_chatgpt_auth() -> anyhow::Resu
     };
     let configured_auth_url = configured_auth_server.url().to_string();
 
-    let configured_auth_fixture = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let configured_auth_fixture = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(move |config| {
             insert_mcp_server(
                 config,
@@ -2561,8 +2561,8 @@ async fn streamable_http_chatgpt_auth_is_not_sent_to_configured_origin() -> anyh
     let untrusted_mcp_url = format!("{}/api/codex/ps/mcp", untrusted_apps.chatgpt_base_url);
     let untrusted_chatgpt_base_url = untrusted_apps.chatgpt_base_url;
 
-    let fixture = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let fixture = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(move |config| {
             config.chatgpt_base_url = untrusted_chatgpt_base_url;
             insert_mcp_server(
@@ -2624,8 +2624,8 @@ async fn configured_chatgpt_base_url_does_not_grant_mcp_chatgpt_auth() -> anyhow
     let untrusted_mcp_url = format!("{}/api/codex/ps/mcp", untrusted_apps.chatgpt_base_url);
     let untrusted_chatgpt_base_url = untrusted_apps.chatgpt_base_url;
 
-    let fixture = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let fixture = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_pre_build_hook(move |ditfa_home| {
             fs::write(
                 ditfa_home.join("config.toml"),
@@ -2704,7 +2704,7 @@ fn streamable_http_with_oauth_round_trip() -> anyhow::Result<()> {
 async fn streamable_http_with_oauth_round_trip_impl() -> anyhow::Result<()> {
     skip_if_no_network!(Ok(()));
 
-    // Phase 1: script the model responses so Codex will call the OAuth-backed
+    // Phase 1: script the model responses so Ditfa will call the OAuth-backed
     // MCP echo tool and then finish the turn after receiving the result.
     let server = responses::start_mock_server().await;
 
@@ -2754,7 +2754,7 @@ async fn streamable_http_with_oauth_round_trip_impl() -> anyhow::Result<()> {
     // Phase 3: seed an isolated DITFA_HOME with fallback OAuth tokens for this
     // server so the test does not share credentials with other suite cases.
     let temp_home = Arc::new(tempdir()?);
-    let _codex_home_guard = EnvVarGuard::set("DITFA_HOME", temp_home.path().as_os_str());
+    let _ditfa_home_guard = EnvVarGuard::set("DITFA_HOME", temp_home.path().as_os_str());
     write_fallback_oauth_tokens(
         temp_home.path(),
         server_name,
@@ -2764,9 +2764,9 @@ async fn streamable_http_with_oauth_round_trip_impl() -> anyhow::Result<()> {
         refresh_token,
     )?;
 
-    // Phase 4: configure Codex with the OAuth-backed Streamable HTTP MCP
+    // Phase 4: configure Ditfa with the OAuth-backed Streamable HTTP MCP
     // server and build the fixture in the active local or remote-aware mode.
-    let fixture = test_codex()
+    let fixture = test_ditfa()
         .with_home(temp_home.clone())
         .with_config(move |config| {
             // Keep OAuth credentials isolated to this test home because Bazel
@@ -2803,7 +2803,7 @@ async fn streamable_http_with_oauth_round_trip_impl() -> anyhow::Result<()> {
         ))
         .await?;
 
-    // Phase 7: assert Codex begins the expected tool invocation.
+    // Phase 7: assert Ditfa begins the expected tool invocation.
     let begin_event = wait_for_event(&fixture.ditfa, |ev| {
         matches!(ev, EventMsg::McpToolCallBegin(_))
     })
@@ -2976,7 +2976,7 @@ async fn start_remote_streamable_http_test_server(
     let server_url = format!("http://{}:{}/mcp", container_ip, remote_bind_addr.port());
     // The orchestrator can see the Docker container IP, but the behavior under
     // test is whether the remote-side MCP client can reach it. Probe through
-    // remote HTTP before handing the URL to the Codex fixture.
+    // remote HTTP before handing the URL to the Ditfa fixture.
     wait_for_remote_streamable_http_server(&server_url, Duration::from_secs(5)).await?;
     if expected_token.is_some() {
         wait_for_streamable_http_metadata(&server_url, Duration::from_secs(5)).await?;

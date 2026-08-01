@@ -687,7 +687,7 @@ hide_gpt5_1_migration_prompt = true
 }
 
 #[test]
-fn blocking_set_hide_gpt_5_1_codex_max_migration_prompt_preserves_table() {
+fn blocking_set_hide_gpt_5_1_ditfa_max_migration_prompt_preserves_table() {
     let tmp = tempdir().expect("tmpdir");
     let ditfa_home = tmp.path();
     std::fs::write(
@@ -931,7 +931,7 @@ fn blocking_replace_mcp_servers_round_trips() {
             disabled_tools: Some(vec!["forbidden".to_string()]),
             scopes: None,
             oauth: Some(McpServerOAuthConfig {
-                client_id: Some("eci-prd-pub-codex-123".to_string()),
+                client_id: Some("eci-prd-pub-ditfa-123".to_string()),
             }),
             oauth_resource: Some("https://resource.example.com".to_string()),
             tools: HashMap::new(),
@@ -958,7 +958,7 @@ oauth_resource = \"https://resource.example.com\"
 Z-Header = \"z\"
 
 [mcp_servers.http.oauth]
-client_id = \"eci-prd-pub-codex-123\"
+client_id = \"eci-prd-pub-ditfa-123\"
 
 [mcp_servers.stdio]
 command = \"cmd\"

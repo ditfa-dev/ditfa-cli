@@ -3,7 +3,7 @@ use super::RemotePluginScope;
 use super::RemotePluginServiceConfig;
 use chrono::DateTime;
 use chrono::Utc;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use serde::Deserialize;
 use serde::Serialize;
 use std::path::Path;
@@ -31,7 +31,7 @@ struct RemotePluginCatalogCacheKey {
 impl RemotePluginCatalogCacheKey {
     fn new(
         config: &RemotePluginServiceConfig,
-        auth: &CodexAuth,
+        auth: &DitfaAuth,
         scope: RemotePluginScope,
     ) -> Option<Self> {
         let cache_key = Self {
@@ -77,7 +77,7 @@ pub(super) struct CachedDirectoryPlugins {
 pub(crate) fn load_cached_directory_plugins(
     ditfa_home: &Path,
     config: &RemotePluginServiceConfig,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     scope: RemotePluginScope,
 ) -> Option<CachedDirectoryPlugins> {
     let cache_key = RemotePluginCatalogCacheKey::new(config, auth, scope)?;
@@ -123,7 +123,7 @@ pub(crate) fn load_cached_directory_plugins(
 pub(crate) fn write_cached_directory_plugins(
     ditfa_home: &Path,
     config: &RemotePluginServiceConfig,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     scope: RemotePluginScope,
     plugins: &[RemotePluginDirectoryItem],
 ) {
@@ -144,7 +144,7 @@ pub(crate) fn write_cached_directory_plugins(
 pub(crate) fn remove_cached_directory_plugins(
     ditfa_home: &Path,
     config: &RemotePluginServiceConfig,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     scope: RemotePluginScope,
 ) {
     let Some(cache_key) = RemotePluginCatalogCacheKey::new(config, auth, scope) else {

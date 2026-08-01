@@ -627,7 +627,7 @@ async fn unified_exec_wait_after_final_agent_message_snapshot() {
     let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(/*model_override*/ None).await;
     handle_turn_started(&mut chat, "turn-1");
 
-    begin_unified_exec_startup(&mut chat, "call-wait", "proc-1", "cargo test -p codex-core");
+    begin_unified_exec_startup(&mut chat, "call-wait", "proc-1", "cargo test -p ditfa-core");
     terminal_interaction(&mut chat, "call-wait-stdin", "proc-1", "");
 
     complete_assistant_message(&mut chat, "msg-1", "Final response.", /*phase*/ None);
@@ -650,7 +650,7 @@ async fn unified_exec_wait_before_streamed_agent_message_snapshot() {
         &mut chat,
         "call-wait-stream",
         "proc-1",
-        "cargo test -p codex-core",
+        "cargo test -p ditfa-core",
     );
     terminal_interaction(&mut chat, "call-wait-stream-stdin", "proc-1", "");
 
@@ -777,7 +777,7 @@ async fn unified_exec_wait_status_renders_command_in_single_details_row_snapshot
         &mut chat,
         "call-wait-ui",
         "proc-ui",
-        "cargo test -p codex-core -- --exact some::very::long::test::name",
+        "cargo test -p ditfa-core -- --exact some::very::long::test::name",
     );
 
     terminal_interaction(&mut chat, "call-wait-ui-stdin", "proc-ui", "");
@@ -1634,7 +1634,7 @@ async fn apply_patch_full_flow_integration_like() {
     chat.submit_op(op);
     let forwarded = op_rx
         .try_recv()
-        .expect("expected op forwarded to codex channel");
+        .expect("expected op forwarded to ditfa channel");
     match forwarded {
         Op::PatchApproval { id, decision } => {
             assert_eq!(id, "call-1");

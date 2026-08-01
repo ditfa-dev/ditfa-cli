@@ -50,7 +50,7 @@ async fn experimental_feature_list_returns_feature_metadata_with_stage() -> Resu
         .build()
         .await?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -136,7 +136,7 @@ async fn experimental_feature_list_marks_apps_and_plugins_disabled_by_workspace_
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .without_managed_config()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -185,7 +185,7 @@ memories = true
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_managed_config()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -222,7 +222,7 @@ memories = true
 async fn experimental_feature_list_rejects_unknown_thread_id() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -260,7 +260,7 @@ async fn experimental_feature_enablement_set_applies_to_global_and_thread_config
     std::fs::create_dir_all(&project_cwd)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -300,7 +300,7 @@ async fn experimental_feature_enablement_set_does_not_override_user_config() -> 
         "[features]\nmemories = false\n",
     )?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -334,7 +334,7 @@ async fn experimental_feature_enablement_set_does_not_override_user_config() -> 
 async fn experimental_feature_enablement_set_only_updates_named_features() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -412,7 +412,7 @@ async fn experimental_feature_enablement_set_only_updates_named_features() -> Re
 async fn experimental_feature_enablement_set_allows_remote_control() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -433,7 +433,7 @@ async fn experimental_feature_enablement_set_allows_remote_control() -> Result<(
 async fn experimental_feature_enablement_set_empty_map_is_no_op() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
@@ -469,7 +469,7 @@ async fn experimental_feature_enablement_set_empty_map_is_no_op() -> Result<()> 
 async fn experimental_feature_enablement_set_ignores_invalid_features() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;

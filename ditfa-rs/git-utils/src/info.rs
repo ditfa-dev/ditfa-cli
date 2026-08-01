@@ -31,7 +31,7 @@ use crate::GitSha;
 ///
 /// Note that this does **not** detect *work‑trees* created with
 /// `git worktree add` where the checkout lives outside the main repository
-/// directory. If you need Codex to work from such a checkout simply pass the
+/// directory. If you need Ditfa to work from such a checkout simply pass the
 /// `--allow-no-git-exec` CLI flag that disables the repo requirement.
 pub fn get_git_repo_root(base_dir: &Path) -> Option<PathBuf> {
     let base = if base_dir.is_dir() {
@@ -961,13 +961,13 @@ mod tests {
     #[test]
     fn canonicalize_git_remote_url_normalizes_github_variants() {
         for remote in [
-            "git@github.com:OpenAI/Codex.git",
+            "git@github.com:OpenAI/Ditfa.git",
             "ssh://git@github.com/openai/codex.git",
-            "ssh://git@github.com:22/OpenAI/Codex.git",
+            "ssh://git@github.com:22/OpenAI/Ditfa.git",
             "https://github.com/openai/codex.git",
-            "https://github.com:443/openai/codex.git",
+            "https://github.com:443/openai/ditfa.git",
             "https://token@github.com/openai/codex/",
-            "github.com/OpenAI/Codex.git",
+            "github.com/OpenAI/Ditfa.git",
         ] {
             assert_eq!(
                 canonicalize_git_remote_url(remote),
@@ -1016,9 +1016,9 @@ mod tests {
         run_git(&["init", "-q", "--initial-branch=main"]);
         run_git(&[
             "-c",
-            "user.name=Codex Tests",
+            "user.name=Ditfa Tests",
             "-c",
-            "user.email=codex-tests@example.com",
+            "user.email=ditfa-tests@example.com",
             "commit",
             "--allow-empty",
             "-q",

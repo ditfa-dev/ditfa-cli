@@ -3,15 +3,15 @@
 version: 2
 updates:
   - package-ecosystem: bun
-    directory: .github/actions/codex
+    directory: .github/actions/ditfa
     schedule:
       interval: weekly
     cooldown:
       default-days: 7
   - package-ecosystem: cargo
     directories:
-      - codex-rs
-      - codex-rs/*
+      - ditfa-rs
+      - ditfa-rs/*
     schedule:
       interval: weekly
     cooldown:
@@ -23,7 +23,7 @@ updates:
     cooldown:
       default-days: 7
   - package-ecosystem: docker
-    directory: codex-cli
+    directory: ditfa-cli
     schedule:
       interval: weekly
     cooldown:
@@ -35,7 +35,7 @@ updates:
     cooldown:
       default-days: 7
   - package-ecosystem: rust-toolchain
-    directory: codex-rs
+    directory: ditfa-rs
     schedule:
       interval: weekly
     cooldown:

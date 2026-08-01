@@ -14,7 +14,7 @@ use anyhow::Context;
 use anyhow::Result;
 use anyhow::anyhow;
 use ditfa_config::CloudConfigBundleLoader;
-use ditfa_core::CodexThread;
+use ditfa_core::DitfaThread;
 use ditfa_core::StartThreadOptions;
 use ditfa_core::ThreadManager;
 use ditfa_core::TimeProvider;
@@ -31,8 +31,8 @@ use ditfa_extension_api::LoadUserInstructionsFuture;
 use ditfa_extension_api::UserInstructionsProvider;
 use ditfa_extension_api::empty_extension_registry;
 use ditfa_features::Feature;
-use ditfa_home::CodexHomeUserInstructionsProvider;
-use ditfa_login::CodexAuth;
+use ditfa_home::DitfaHomeUserInstructionsProvider;
+use ditfa_login::DitfaAuth;
 use ditfa_model_provider_info::ModelProviderInfo;
 use ditfa_model_provider_info::built_in_model_providers;
 use ditfa_models_manager::bundled_models_response;
@@ -289,9 +289,9 @@ pub fn turn_permission_fields(
     (sandbox_policy, Some(permission_profile))
 }
 
-pub struct TestCodexBuilder {
+pub struct TestDitfaBuilder {
     config_mutators: Vec<Box<ConfigMutator>>,
-    auth: CodexAuth,
+    auth: DitfaAuth,
     pre_build_hooks: Vec<Box<PreBuildHook>>,
     workspace_setups: Vec<Box<WorkspaceSetup>>,
     home: Option<Arc<TempDir>>,
@@ -306,7 +306,7 @@ pub struct TestCodexBuilder {
     history_mode: Option<ThreadHistoryMode>,
 }
 
-impl TestCodexBuilder {
+impl TestDitfaBuilder {
     pub fn with_config<T>(mut self, mutator: T) -> Self
     where
         T: FnOnce(&mut Config) + Send + 'static,
@@ -315,7 +315,7 @@ impl TestCodexBuilder {
         self
     }
 
-    pub fn with_auth(mut self, auth: CodexAuth) -> Self {
+    pub fn with_auth(mut self, auth: DitfaAuth) -> Self {
         self.auth = auth;
         self
     }
@@ -428,7 +428,7 @@ impl TestCodexBuilder {
         }
     }
 
-    pub async fn build(&mut self, server: &wiremock::MockServer) -> anyhow::Result<TestCodex> {
+    pub async fn build(&mut self, server: &wiremock::MockServer) -> anyhow::Result<TestDitfa> {
         let home = match self.home.clone() {
             Some(home) => home,
             None => Arc::new(TempDir::new()?),
@@ -454,7 +454,7 @@ impl TestCodexBuilder {
     pub async fn build_with_auto_env(
         &mut self,
         server: &wiremock::MockServer,
-    ) -> anyhow::Result<TestCodex> {
+    ) -> anyhow::Result<TestDitfa> {
         let home = match self.home.clone() {
             Some(home) => home,
             None => Arc::new(TempDir::new()?),
@@ -471,7 +471,7 @@ impl TestCodexBuilder {
     pub async fn build_with_remote_and_local_env(
         &mut self,
         server: &wiremock::MockServer,
-    ) -> anyhow::Result<TestCodex> {
+    ) -> anyhow::Result<TestDitfa> {
         let home = match self.home.clone() {
             Some(home) => home,
             None => Arc::new(TempDir::new()?),
@@ -488,7 +488,7 @@ impl TestCodexBuilder {
     pub async fn build_with_streaming_server(
         &mut self,
         server: &StreamingSseServer,
-    ) -> anyhow::Result<TestCodex> {
+    ) -> anyhow::Result<TestDitfa> {
         let base_url = server.uri();
         let home = match self.home.clone() {
             Some(home) => home,
@@ -508,7 +508,7 @@ impl TestCodexBuilder {
     pub async fn build_with_websocket_server(
         &mut self,
         server: &WebSocketTestServer,
-    ) -> anyhow::Result<TestCodex> {
+    ) -> anyhow::Result<TestDitfa> {
         let base_url = format!("{}/v1", server.uri());
         let home = match self.home.clone() {
             Some(home) => home,
@@ -534,7 +534,7 @@ impl TestCodexBuilder {
         server: &wiremock::MockServer,
         home: Arc<TempDir>,
         rollout_path: PathBuf,
-    ) -> anyhow::Result<TestCodex> {
+    ) -> anyhow::Result<TestDitfa> {
         let base_url = format!("{}/v1", server.uri());
         let test_env = TestEnv::local().await?;
         Box::pin(self.build_with_home_and_base_url(
@@ -554,7 +554,7 @@ impl TestCodexBuilder {
         resume_from: Option<PathBuf>,
         test_env: TestEnv,
         include_local_environment: bool,
-    ) -> anyhow::Result<TestCodex> {
+    ) -> anyhow::Result<TestDitfa> {
         let (config, fallback_cwd) = self
             .prepare_config(base_url, &home, test_env.cwd().clone())
             .await?;
@@ -564,8 +564,8 @@ impl TestCodexBuilder {
             .or_else(|| test_env.exec_server_url.clone());
         #[cfg(target_os = "linux")]
         let ditfa_linux_sandbox_exe = Some(
-            crate::find_codex_linux_sandbox_exe()
-                .context("should find binary for codex-linux-sandbox")?,
+            crate::find_ditfa_linux_sandbox_exe()
+                .context("should find binary for ditfa-linux-sandbox")?,
         );
         #[cfg(not(target_os = "linux"))]
         let ditfa_linux_sandbox_exe = None;
@@ -612,14 +612,14 @@ impl TestCodexBuilder {
         resume_from: Option<PathBuf>,
         test_env: TestEnv,
         environment_manager: Arc<ditfa_exec_server::EnvironmentManager>,
-    ) -> anyhow::Result<TestCodex> {
+    ) -> anyhow::Result<TestDitfa> {
         let auth = self.auth.clone();
         let state_db = ditfa_core::init_state_db(&config).await;
         let thread_store = thread_store_from_config(&config, state_db.clone());
         let installation_id = resolve_installation_id(&config.ditfa_home).await?;
         let user_instructions_provider =
             self.user_instructions_provider.clone().unwrap_or_else(|| {
-                Arc::new(CodexHomeUserInstructionsProvider::new(
+                Arc::new(DitfaHomeUserInstructionsProvider::new(
                     config.ditfa_home.clone(),
                 ))
             });
@@ -628,7 +628,7 @@ impl TestCodexBuilder {
             &config,
             auth_manager.clone(),
             ditfa_core::build_models_manager(&config, auth_manager),
-            ditfa_core::CodexAppsToolsCache::default(),
+            ditfa_core::DitfaAppsToolsCache::default(),
             SessionSource::Exec,
             Arc::clone(&environment_manager),
             Arc::clone(&self.extensions),
@@ -643,7 +643,7 @@ impl TestCodexBuilder {
         let code_mode_host_program = self
             .code_mode_host_program
             .take()
-            .or_else(|| ditfa_utils_cargo_bin::cargo_bin("codex-code-mode-host").ok());
+            .or_else(|| ditfa_utils_cargo_bin::cargo_bin("ditfa-code-mode-host").ok());
         let thread_manager = if config.features.enabled(Feature::CodeModeHost)
             && let Some(code_mode_host_program) = code_mode_host_program
         {
@@ -704,11 +704,11 @@ impl TestCodexBuilder {
             }
         };
 
-        Ok(TestCodex {
+        Ok(TestDitfa {
             home,
             cwd,
             config,
-            codex: new_conversation.thread,
+            ditfa: new_conversation.thread,
             session_configured: new_conversation.session_configured,
             thread_manager,
             _test_env: test_env,
@@ -742,19 +742,19 @@ impl TestCodexBuilder {
         config.model = Some("gpt-5.5".to_string());
         config.cwd = cwd_override;
         config.model_provider = model_provider;
-        if let Ok(path) = ditfa_utils_cargo_bin::cargo_bin("codex") {
+        if let Ok(path) = ditfa_utils_cargo_bin::cargo_bin("ditfa") {
             config.ditfa_self_exe = Some(path);
-        } else if let Ok(path) = ditfa_utils_cargo_bin::cargo_bin("codex-exec") {
-            // `codex-exec` also supports `--codex-run-as-apply-patch`, so use it
+        } else if let Ok(path) = ditfa_utils_cargo_bin::cargo_bin("ditfa-exec") {
+            // `ditfa-exec` also supports `--ditfa-run-as-apply-patch`, so use it
             // when the multitool binary is not available in test builds.
             config.ditfa_self_exe = Some(path);
         } else if let Ok(exe) = std::env::current_exe()
             && let Some(bin_dir) = exe.parent().and_then(|parent| parent.parent())
         {
-            let codex = bin_dir.join("codex");
-            let ditfa_exec = bin_dir.join("codex-exec");
-            if codex.is_file() {
-                config.ditfa_self_exe = Some(codex);
+            let ditfa = bin_dir.join("ditfa");
+            let ditfa_exec = bin_dir.join("ditfa-exec");
+            if ditfa.is_file() {
+                config.ditfa_self_exe = Some(ditfa);
             } else if ditfa_exec.is_file() {
                 config.ditfa_self_exe = Some(ditfa_exec);
             }
@@ -794,17 +794,17 @@ fn ensure_test_model_catalog(config: &mut Config) -> Result<()> {
     Ok(())
 }
 
-pub struct TestCodex {
+pub struct TestDitfa {
     pub home: Arc<TempDir>,
     pub cwd: Arc<TempDir>,
-    pub codex: Arc<CodexThread>,
+    pub ditfa: Arc<DitfaThread>,
     pub session_configured: SessionConfiguredEvent,
     pub config: Config,
     pub thread_manager: Arc<ThreadManager>,
     _test_env: TestEnv,
 }
 
-impl TestCodex {
+impl TestDitfa {
     pub fn cwd_path(&self) -> &Path {
         self.cwd.path()
     }
@@ -996,19 +996,19 @@ impl TestCodex {
     }
 }
 
-pub struct TestCodexHarness {
+pub struct TestDitfaHarness {
     server: MockServer,
-    test: TestCodex,
+    test: TestDitfa,
 }
 
-impl TestCodexHarness {
-    pub async fn with_builder(mut builder: TestCodexBuilder) -> Result<Self> {
+impl TestDitfaHarness {
+    pub async fn with_builder(mut builder: TestDitfaBuilder) -> Result<Self> {
         let server = start_mock_server().await;
         let test = builder.build(&server).await?;
         Ok(Self { server, test })
     }
 
-    pub async fn with_auto_env_builder(mut builder: TestCodexBuilder) -> Result<Self> {
+    pub async fn with_auto_env_builder(mut builder: TestDitfaBuilder) -> Result<Self> {
         let server = start_mock_server().await;
         let test = builder.build_with_auto_env(&server).await?;
         Ok(Self { server, test })
@@ -1018,7 +1018,7 @@ impl TestCodexHarness {
         &self.server
     }
 
-    pub fn test(&self) -> &TestCodex {
+    pub fn test(&self) -> &TestDitfa {
         &self.test
     }
 
@@ -1210,8 +1210,8 @@ fn function_call_output<'a>(bodies: &'a [Value], call_id: &str) -> &'a Value {
         .expect(&missing_output)
 }
 
-pub fn test_codex() -> TestCodexBuilder {
-    TestCodexBuilder {
+pub fn test_ditfa() -> TestDitfaBuilder {
+    TestDitfaBuilder {
         config_mutators: vec![Box::new(|config| {
             config
                 .features
@@ -1223,7 +1223,7 @@ pub fn test_codex() -> TestCodexBuilder {
                 .disable(Feature::ShellSnapshot)
                 .expect("test config should allow ShellSnapshot override");
         })],
-        auth: CodexAuth::from_api_key("dummy"),
+        auth: DitfaAuth::from_api_key("dummy"),
         pre_build_hooks: vec![],
         workspace_setups: vec![],
         home: None,

@@ -18,7 +18,7 @@ use ditfa_config::CloudConfigBundleLoader;
 use ditfa_config::LoaderOverrides;
 use ditfa_core::config::ConfigBuilder;
 use ditfa_exec_server::EnvironmentManager;
-use ditfa_feedback::CodexFeedback;
+use ditfa_feedback::DitfaFeedback;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::models::BaseInstructions;
 use ditfa_protocol::protocol::SessionSource;
@@ -91,7 +91,7 @@ async fn get_conversation_summary_by_thread_id_reads_rollout() -> Result<()> {
     );
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -157,16 +157,16 @@ async fn get_conversation_summary_by_thread_id_reads_pathless_store_thread() -> 
         strict_config: false,
         cloud_config_bundle: CloudConfigBundleLoader::default(),
         thread_config_loader: Arc::new(ditfa_config::NoopThreadConfigLoader),
-        feedback: CodexFeedback::new(),
+        feedback: DitfaFeedback::new(),
         log_db: None,
         state_db: None,
         environment_manager: Arc::new(EnvironmentManager::default_for_tests()),
         config_warnings: Vec::new(),
         session_source: SessionSource::Cli,
-        enable_codex_api_key_env: false,
+        enable_ditfa_api_key_env: false,
         initialize: InitializeParams {
             client_info: ClientInfo {
-                name: "codex-app-server-tests".to_string(),
+                name: "ditfa-app-server-tests".to_string(),
                 title: None,
                 version: "0.1.0".to_string(),
             },
@@ -200,7 +200,7 @@ async fn get_conversation_summary_by_thread_id_reads_pathless_store_thread() -> 
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn get_conversation_summary_by_relative_rollout_path_resolves_from_codex_home() -> Result<()>
+async fn get_conversation_summary_by_relative_rollout_path_resolves_from_ditfa_home() -> Result<()>
 {
     let ditfa_home = TempDir::new()?;
     let conversation_id = create_fake_rollout(
@@ -217,7 +217,7 @@ async fn get_conversation_summary_by_relative_rollout_path_resolves_from_codex_h
     let expected = expected_summary(thread_id, normalized_canonical_path(rollout_path)?);
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;

@@ -1,6 +1,6 @@
 ---
 name: plugin-creator
-description: Create and scaffold plugin directories for Ditfa with a required `.codex-plugin/plugin.json`, optional plugin folders/files, valid manifest defaults, and personal-marketplace entries by default. Use when Codex needs to create a new personal plugin, add optional plugin structure, generate or update marketplace entries for plugin ordering and availability metadata, or update an existing local plugin during development with the CLI-driven cachebuster and reinstall flow.
+description: Create and scaffold plugin directories for Ditfa with a required `.ditfa-plugin/plugin.json`, optional plugin folders/files, valid manifest defaults, and personal-marketplace entries by default. Use when Ditfa needs to create a new personal plugin, add optional plugin structure, generate or update marketplace entries for plugin ordering and availability metadata, or update an existing local plugin during development with the CLI-driven cachebuster and reinstall flow.
 ---
 
 # Plugin Creator
@@ -17,7 +17,7 @@ description: Create and scaffold plugin directories for Ditfa with a required `.
 python3 scripts/create_basic_plugin.py <plugin-name>
 ```
 
-2. Edit `<plugin-path>/.codex-plugin/plugin.json` when the request gives specific metadata.
+2. Edit `<plugin-path>/.ditfa-plugin/plugin.json` when the request gives specific metadata.
    The scaffold starts with valid defaults and must not contain `[TODO: ...]` placeholders.
 
 3. Generate or update the personal marketplace entry when the plugin should appear in Ditfa UI ordering:
@@ -84,7 +84,7 @@ See `references/installing-and-updating.md` for the expected cachebuster and rei
   `~/.agents/plugins/marketplace.json`, with plugins generally being stored in
   `~/plugins/<plugin-name>/`.
 - Creates plugin root at `/<parent-plugin-directory>/<plugin-name>/`.
-- Always creates `/<parent-plugin-directory>/<plugin-name>/.codex-plugin/plugin.json`.
+- Always creates `/<parent-plugin-directory>/<plugin-name>/.ditfa-plugin/plugin.json`.
 - Fills the manifest with the validated schema shape that the ingestion path accepts.
 - Creates or updates `~/.agents/plugins/marketplace.json` when `--with-marketplace` is set.
   - If the marketplace file does not exist yet, seed a personal marketplace root before adding the first plugin entry.
@@ -111,7 +111,7 @@ See `references/installing-and-updating.md` for the expected cachebuster and rei
   name is already taken and you need to seed a different new marketplace file.
 - Do not use `--marketplace-name` to rename an existing marketplace file in place. If the file
   already exists, its top-level `name` must already match.
-- If the user specifies a different marketplace path, treat that marketplace as needing explicit installation via `codex plugin marketplace add`.
+- If the user specifies a different marketplace path, treat that marketplace as needing explicit installation via `ditfa plugin marketplace add`.
 - Prefer `scripts/read_marketplace_name.py` when you need the marketplace name from any
   `marketplace.json` file. With no argument it reads the default personal marketplace; with an
   explicit path it works for repo/team marketplaces too.
@@ -183,7 +183,7 @@ See `references/installing-and-updating.md` for the expected cachebuster and rei
 ## Required behavior
 
 - Outer folder name and `plugin.json` `"name"` are always the same normalized plugin name.
-- Do not remove required structure; keep `.codex-plugin/plugin.json` present.
+- Do not remove required structure; keep `.ditfa-plugin/plugin.json` present.
 - Do not leave `[TODO: ...]` placeholders in plugin manifests.
 - Keep `apps` and `mcpServers` out of `plugin.json` unless their companion files are actually created.
 - Omit unsupported plugin manifest fields that validation rejects, including `hooks`.
@@ -194,28 +194,28 @@ See `references/installing-and-updating.md` for the expected cachebuster and rei
 - Keep marketplace `source.path` relative to the selected marketplace root as `./plugins/<plugin-name>`.
 - Only use `--marketplace-name` when creating a new marketplace file whose name should not be
   `personal` because that name is already taken or installed elsewhere.
-- If Codex would need approval to write the marketplace file, ask for that approval before
+- If Ditfa would need approval to write the marketplace file, ask for that approval before
   proceeding. If the user prefers to run the write themselves, provide the exact scaffold command
   and then continue from validation or subsequent plugin edits instead of leaving the workflow
   vague.
 - For updates to an existing local plugin during development, do not hand-edit marketplace config
   or `marketplace.json`. Use the update flow documented in
   `references/installing-and-updating.md` and `scripts/update_plugin_cachebuster.py`.
-- Do not tell the user to run `codex plugin marketplace add` for the default personal-marketplace
+- Do not tell the user to run `ditfa plugin marketplace add` for the default personal-marketplace
   flow. That command is for explicit non-default marketplace configuration, not for the standard
   `~/.agents/plugins/marketplace.json` path.
 - If the user provided a non-default `--marketplace-path`, make sure that marketplace is installed
-  before giving reinstall instructions. Use `codex plugin marketplace add <path-to-marketplace-root>`
+  before giving reinstall instructions. Use `ditfa plugin marketplace add <path-to-marketplace-root>`
   when that explicit marketplace has not been configured yet.
 - When the workflow created or updated a marketplace-backed plugin, end the final user-facing
-  response with a short Codex app handoff. Say `To view this in the Ditfa app:` and write
+  response with a short Ditfa app handoff. Say `To view this in the Ditfa app:` and write
   `View <normalized plugin name>` and `Share <normalized plugin name>` as Markdown links, not raw
   URLs or code spans.
-- The View deeplink uses `codex://plugins/<normalized plugin name>?marketplacePath=<absolute marketplace.json path>`.
+- The View deeplink uses `ditfa://plugins/<normalized plugin name>?marketplacePath=<absolute marketplace.json path>`.
   The Share deeplink uses the same URL with `&mode=share`.
 - Replace the placeholders with the real normalized plugin name and absolute `marketplace.json`
   path from the scaffolded plugin. URL-encode the path segment and query value when needed.
-- Do not add `pluginName` or `hostId` query parameters to these deeplinks. Codex derives both after
+- Do not add `pluginName` or `hostId` query parameters to these deeplinks. Ditfa derives both after
   the user clicks the link.
 - Do not emit the `View <normalized plugin name>` or `Share <normalized plugin name>` links when no marketplace entry was
   created or updated.

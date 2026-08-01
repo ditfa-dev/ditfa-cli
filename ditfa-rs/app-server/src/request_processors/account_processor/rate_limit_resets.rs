@@ -100,10 +100,10 @@ impl AccountRequestProcessor {
     async fn rate_limit_reset_backend_client(&self) -> Result<BackendClient, JSONRPCErrorError> {
         let Some(auth) = self.auth_manager.auth().await else {
             return Err(invalid_request(
-                "codex account authentication required for rate limit reset credits",
+                "ditfa account authentication required for rate limit reset credits",
             ));
         };
-        if !auth.uses_codex_backend() {
+        if !auth.uses_ditfa_backend() {
             return Err(invalid_request(
                 "chatgpt authentication required for rate limit reset credits",
             ));
@@ -135,7 +135,7 @@ fn rate_limit_reset_credit_from_backend(
     credit: BackendRateLimitResetCreditDetails,
 ) -> Result<RateLimitResetCredit, String> {
     let reset_type = match credit.reset_type.as_str() {
-        "ditfa_rate_limits" => RateLimitResetType::CodexRateLimits,
+        "ditfa_rate_limits" => RateLimitResetType::DitfaRateLimits,
         _ => RateLimitResetType::Unknown,
     };
     let status = match credit.status.as_str() {

@@ -36,7 +36,7 @@ pub struct WebSocketConnector {
 }
 
 impl WebSocketConnector {
-    /// Creates a connector using native roots and any configured Codex custom CA bundle.
+    /// Creates a connector using native roots and any configured Ditfa custom CA bundle.
     pub fn new(
         http_client_factory: &HttpClientFactory,
     ) -> Result<Self, BuildCustomCaTransportError> {

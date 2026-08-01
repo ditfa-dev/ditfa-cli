@@ -47,12 +47,12 @@ use wiremock::matchers::path;
 const DEFAULT_READ_TIMEOUT: Duration = Duration::from_secs(60);
 #[cfg(not(any(target_os = "macos", windows)))]
 const DEFAULT_READ_TIMEOUT: Duration = Duration::from_secs(10);
-const COMMIT_ATTRIBUTION: &str = "Co-authored-by: Codex <noreply@openai.com>";
+const COMMIT_ATTRIBUTION: &str = "Co-authored-by: Ditfa <noreply@openai.com>";
 const PR_ATTRIBUTION: &str = "Generated with Ditfa.";
 const ATTRIBUTION_DISABLED: &str = "attribution is disabled for the current workspace";
 const LEGACY_COMMIT_ATTRIBUTION_INSTRUCTIONS: &str = "\
 When you write or edit a git commit message, ensure the message ends with this trailer exactly once:
-Co-authored-by: Codex <noreply@openai.com>
+Co-authored-by: Ditfa <noreply@openai.com>
 
 Rules:
 - Keep existing trailers and append this trailer at the end if missing.
@@ -128,7 +128,7 @@ async fn git_attribution_follows_authenticated_workspace_policy() -> Result<()> 
     )?;
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .with_env_overrides(&[("OPENAI_API_KEY", None), ("DITFA_ACCESS_TOKEN", None)])
         .build()
         .await?;
@@ -256,7 +256,7 @@ async fn cold_resume_replaces_legacy_attribution_without_duplication() -> Result
     )?;
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .with_env_overrides(&[("OPENAI_API_KEY", None), ("DITFA_ACCESS_TOKEN", None)])
         .without_auto_env()
         .build()
@@ -278,7 +278,7 @@ async fn cold_resume_replaces_legacy_attribution_without_duplication() -> Result
     replace_attribution_fragment_with_legacy(&rollout_path)?;
 
     let mut app_server = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .with_env_overrides(&[("OPENAI_API_KEY", None), ("DITFA_ACCESS_TOKEN", None)])
         .without_auto_env()
         .build()

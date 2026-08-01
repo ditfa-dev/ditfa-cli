@@ -610,7 +610,7 @@ url = "ws://127.0.0.1:8765"
         let cwd = AbsolutePathBuf::current_dir().expect("cwd");
         let cwd_uri = PathUri::from_abs_path(&cwd);
         let manager =
-            EnvironmentManager::from_codex_home(temp_dir.path(), Some(test_runtime_paths()))
+            EnvironmentManager::from_ditfa_home(temp_dir.path(), Some(test_runtime_paths()))
                 .await
                 .expect("environment manager");
 

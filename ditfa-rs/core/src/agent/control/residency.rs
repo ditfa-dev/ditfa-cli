@@ -1,11 +1,11 @@
 use super::AgentControl;
 use crate::agent::AgentStatus;
-use crate::ditfa_thread::CodexThread;
+use crate::ditfa_thread::DitfaThread;
 use crate::config::Config;
 use crate::thread_manager::ThreadManagerState;
 use ditfa_protocol::ThreadId;
-use ditfa_protocol::error::CodexErr;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::DitfaErr;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::protocol::MultiAgentVersion;
 use ditfa_protocol::protocol::SessionSource;
 use std::collections::VecDeque;
@@ -50,7 +50,7 @@ impl AgentControl {
         state: &Arc<ThreadManagerState>,
         config: &Config,
         protected_thread_id: Option<ThreadId>,
-    ) -> CodexResult<V2ResidencySlot> {
+    ) -> DitfaResult<V2ResidencySlot> {
         let capacity = config
             .effective_agent_max_threads(MultiAgentVersion::V2)
             .unwrap_or(usize::MAX);
@@ -82,7 +82,7 @@ impl V2Residency {
         manager: &Arc<ThreadManagerState>,
         capacity: usize,
         protected_thread_id: Option<ThreadId>,
-    ) -> CodexResult<V2ResidencySlot> {
+    ) -> DitfaResult<V2ResidencySlot> {
         loop {
             if self.try_reserve_pending_slot(capacity) {
                 return Ok(V2ResidencySlot {
@@ -94,7 +94,7 @@ impl V2Residency {
                 .try_unload_one_resident(manager, protected_thread_id)
                 .await
             {
-                return Err(CodexErr::AgentLimitReached {
+                return Err(DitfaErr::AgentLimitReached {
                     max_threads: capacity,
                 });
             }
@@ -213,7 +213,7 @@ fn touch_resident(residents: &mut VecDeque<ThreadId>, thread_id: ThreadId) {
     residents.push_back(thread_id);
 }
 
-fn is_resident_candidate(thread: &CodexThread) -> bool {
+fn is_resident_candidate(thread: &DitfaThread) -> bool {
     thread.multi_agent_version() == Some(MultiAgentVersion::V2)
         && is_v2_resident_session_source(&thread.session_source)
 }
@@ -222,7 +222,7 @@ pub(super) fn is_v2_resident_session_source(session_source: &SessionSource) -> b
     matches!(session_source, SessionSource::SubAgent(_))
 }
 
-async fn is_unloadable(thread: &CodexThread) -> bool {
+async fn is_unloadable(thread: &DitfaThread) -> bool {
     matches!(
         thread.agent_status().await,
         AgentStatus::Completed(_) | AgentStatus::Errored(_) | AgentStatus::Interrupted

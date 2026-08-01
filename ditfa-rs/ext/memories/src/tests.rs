@@ -54,7 +54,7 @@ fn tools_are_not_contributed_when_disabled() {
     thread_store.insert(MemoriesExtensionConfig {
         enabled: false,
         dedicated_tools: true,
-        ditfa_home: test_path_buf("/tmp/codex-home").abs(),
+        ditfa_home: test_path_buf("/tmp/ditfa-home").abs(),
     });
 
     assert!(
@@ -71,7 +71,7 @@ fn tools_are_not_contributed_when_dedicated_tools_disabled() {
     thread_store.insert(MemoriesExtensionConfig {
         enabled: true,
         dedicated_tools: false,
-        ditfa_home: test_path_buf("/tmp/codex-home").abs(),
+        ditfa_home: test_path_buf("/tmp/ditfa-home").abs(),
     });
 
     assert!(
@@ -88,7 +88,7 @@ fn tools_are_contributed_when_enabled_with_dedicated_tools() {
     thread_store.insert(MemoriesExtensionConfig {
         enabled: true,
         dedicated_tools: true,
-        ditfa_home: test_path_buf("/tmp/codex-home").abs(),
+        ditfa_home: test_path_buf("/tmp/ditfa-home").abs(),
     });
 
     let tool_names = extension
@@ -117,7 +117,7 @@ fn install_registers_dedicated_tool_contributor() {
     thread_store.insert(MemoriesExtensionConfig {
         enabled: true,
         dedicated_tools: true,
-        ditfa_home: test_path_buf("/tmp/codex-home").abs(),
+        ditfa_home: test_path_buf("/tmp/ditfa-home").abs(),
     });
 
     let tool_names = registry
@@ -141,7 +141,7 @@ fn install_registers_dedicated_tool_contributor() {
 #[test]
 fn ad_hoc_tool_definition_includes_filename_contract() {
     let tool = memory_tool(
-        Path::new("/tmp/codex-home/memories"),
+        Path::new("/tmp/ditfa-home/memories"),
         crate::ADD_AD_HOC_NOTE_TOOL_NAME,
     );
     let spec = serde_json::to_value(tool.spec()).expect("serialize tool spec");

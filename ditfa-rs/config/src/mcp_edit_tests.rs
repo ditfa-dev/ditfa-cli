@@ -10,7 +10,7 @@ use std::time::UNIX_EPOCH;
 async fn replace_mcp_servers_serializes_per_tool_approval_overrides() -> anyhow::Result<()> {
     let unique_suffix = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
     let ditfa_home = std::env::temp_dir().join(format!(
-        "codex-config-mcp-edit-test-{}-{unique_suffix}",
+        "ditfa-config-mcp-edit-test-{}-{unique_suffix}",
         std::process::id()
     ));
     let servers = BTreeMap::from([(
@@ -90,7 +90,7 @@ approval_mode = "approve"
 async fn replace_mcp_servers_serializes_oauth_client_id() -> anyhow::Result<()> {
     let unique_suffix = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
     let ditfa_home = std::env::temp_dir().join(format!(
-        "codex-config-mcp-oauth-edit-test-{}-{unique_suffix}",
+        "ditfa-config-mcp-oauth-edit-test-{}-{unique_suffix}",
         std::process::id()
     ));
     let servers = BTreeMap::from([(
@@ -115,7 +115,7 @@ async fn replace_mcp_servers_serializes_oauth_client_id() -> anyhow::Result<()> 
             disabled_tools: None,
             scopes: None,
             oauth: Some(McpServerOAuthConfig {
-                client_id: Some("eci-prd-pub-codex-123".to_string()),
+                client_id: Some("eci-prd-pub-ditfa-123".to_string()),
             }),
             oauth_resource: None,
             tools: HashMap::new(),
@@ -135,7 +135,7 @@ async fn replace_mcp_servers_serializes_oauth_client_id() -> anyhow::Result<()> 
 url = "https://example.com/mcp"
 
 [mcp_servers.maas_outlook.oauth]
-client_id = "eci-prd-pub-codex-123"
+client_id = "eci-prd-pub-ditfa-123"
 "#
     );
 

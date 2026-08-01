@@ -44,7 +44,7 @@ mod extension_resources {
 }
 
 mod guard_limits {
-    pub(super) const DITFA_LIMIT_ID: &str = "codex";
+    pub(super) const DITFA_LIMIT_ID: &str = "ditfa";
 }
 
 mod prompt_blocks {

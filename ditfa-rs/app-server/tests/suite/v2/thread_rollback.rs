@@ -36,7 +36,7 @@ async fn thread_rollback_rejects_paginated_thread() -> Result<()> {
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build()
         .await?;
@@ -75,16 +75,16 @@ async fn thread_rollback_rejects_paginated_thread() -> Result<()> {
 }
 
 #[tokio::test]
-async fn thread_rollback_does_not_emit_deprecation_notice_to_codex_tui() -> Result<()> {
+async fn thread_rollback_does_not_emit_deprecation_notice_to_ditfa_tui() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build()
         .await?;
     let initialized = timeout(
         DEFAULT_READ_TIMEOUT,
         mcp.initialize_with_client_info(ClientInfo {
-            name: "codex-tui".to_string(),
+            name: "ditfa-tui".to_string(),
             title: None,
             version: "0.1.0".to_string(),
         }),
@@ -121,7 +121,7 @@ async fn thread_rollback_does_not_emit_deprecation_notice_to_codex_tui() -> Resu
 
 #[tokio::test]
 async fn thread_rollback_drops_last_turns_and_persists_to_rollout() -> Result<()> {
-    // Three Codex turns hit the mock model (session start + two turn/start calls).
+    // Three Ditfa turns hit the mock model (session start + two turn/start calls).
     let responses = vec![
         create_final_assistant_message_sse_response("Done")?,
         create_final_assistant_message_sse_response("Done")?,
@@ -133,7 +133,7 @@ async fn thread_rollback_drops_last_turns_and_persists_to_rollout() -> Result<()
     MockResponsesConfig::new(&server.uri()).write(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build()
         .await?;
     timeout(DEFAULT_READ_TIMEOUT, mcp.initialize()).await??;

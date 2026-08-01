@@ -1,4 +1,4 @@
-//! Defines the protocol for a Codex session between a client and an agent.
+//! Defines the protocol for a Ditfa session between a client and an agent.
 //!
 //! Uses a SQ (Submission Queue) / EQ (Event Queue) pattern to asynchronously communicate
 //! between user and agent.
@@ -202,25 +202,25 @@ pub struct McpServerRefreshConfig {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ConversationStartParams {
-    /// Whether Codex response handoffs are managed through explicit client append calls.
+    /// Whether Ditfa response handoffs are managed through explicit client append calls.
     pub client_managed_handoffs: bool,
-    /// Whether to route any remaining transcript tail through Codex when the session ends.
+    /// Whether to route any remaining transcript tail through Ditfa when the session ends.
     /// TODO: Remove this rollout knob once transcript-tail flushing is always enabled.
     pub flush_transcript_tail_on_session_end: bool,
-    /// Sends automatic Codex responses as realtime conversation items instead of handoff appends.
+    /// Sends automatic Ditfa responses as realtime conversation items instead of handoff appends.
     pub ditfa_responses_as_items: bool,
-    /// Optional prefix added to automatic Codex response items when `ditfa_responses_as_items` is set.
+    /// Optional prefix added to automatic Ditfa response items when `ditfa_responses_as_items` is set.
     pub ditfa_response_item_prefix: Option<String>,
-    /// Selects how automatic Codex handoffs are routed in Frameless Bidi sessions.
+    /// Selects how automatic Ditfa handoffs are routed in Frameless Bidi sessions.
     /// Realtime V1 and V2 ignore this setting.
-    pub ditfa_response_handoff_mode: CodexResponseHandoffMode,
+    pub ditfa_response_handoff_mode: DitfaResponseHandoffMode,
     /// Optional client-selected BEM prefixes keyed by `analysis`, `commentary`, and `final`.
     pub ditfa_response_handoff_channel_prefixes: Option<BTreeMap<String, Vec<String>>>,
     /// Overrides the configured realtime model for this session only.
     pub model: Option<String>,
     /// Selects whether the realtime session should produce text or audio output.
     pub output_modality: RealtimeOutputModality,
-    /// Whether to append Codex's startup context to the realtime backend prompt.
+    /// Whether to append Ditfa's startup context to the realtime backend prompt.
     pub include_startup_context: bool,
     /// Complete role-bearing text items to include in the initial realtime session history.
     pub initial_items: Vec<ConversationTextParams>,
@@ -661,7 +661,7 @@ pub enum Op {
     /// model.
     SetThreadMemoryMode { mode: ThreadMemoryMode },
 
-    /// Request Codex to drop the last N user turns from in-memory context.
+    /// Request Ditfa to drop the last N user turns from in-memory context.
     ///
     /// This does not attempt to revert local filesystem changes. Clients are
     /// responsible for undoing any edits on disk.
@@ -673,7 +673,7 @@ pub enum Op {
     /// Record that the user approved one retry of a concrete Guardian-denied action.
     ApproveGuardianDeniedAction { event: GuardianAssessmentEvent },
 
-    /// Request to shut down codex instance.
+    /// Request to shut down ditfa instance.
     Shutdown,
 
     /// Execute a user-initiated one-off shell command (triggered by "!cmd").
@@ -1248,13 +1248,13 @@ impl SandboxPolicy {
                 roots
                     .into_iter()
                     .map(|writable_root| {
-                        let protect_missing_dot_codex = cwd_root
+                        let protect_missing_dot_ditfa = cwd_root
                             .as_ref()
                             .is_some_and(|cwd_root| cwd_root == &writable_root);
                         WritableRoot {
                             read_only_subpaths: default_read_only_subpaths_for_writable_root(
                                 &writable_root,
-                                protect_missing_dot_codex,
+                                protect_missing_dot_ditfa,
                             ),
                             protected_metadata_names: Vec::new(),
                             root: writable_root,
@@ -1635,7 +1635,7 @@ pub enum RealtimeConversationVersion {
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(rename_all = "camelCase")]
-pub enum CodexResponseHandoffMode {
+pub enum DitfaResponseHandoffMode {
     #[default]
     Thinking,
     Commentary,
@@ -1765,7 +1765,7 @@ pub enum NonSteerableTurnKind {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(rename_all = "snake_case")]
-pub enum CodexErrorInfo {
+pub enum DitfaErrorInfo {
     ContextWindowExceeded,
     SessionBudgetExceeded,
     UsageLimitExceeded,
@@ -1799,7 +1799,7 @@ pub enum CodexErrorInfo {
     Other,
 }
 
-impl CodexErrorInfo {
+impl DitfaErrorInfo {
     /// Whether this error should mark the current turn as failed when replaying history.
     pub fn affects_turn_status(&self) -> bool {
         match self {
@@ -1929,7 +1929,7 @@ pub struct ExitedReviewModeEvent {
 pub struct ErrorEvent {
     pub message: String,
     #[serde(default)]
-    pub ditfa_error_info: Option<CodexErrorInfo>,
+    pub ditfa_error_info: Option<DitfaErrorInfo>,
 }
 
 impl ErrorEvent {
@@ -1937,7 +1937,7 @@ impl ErrorEvent {
     pub fn affects_turn_status(&self) -> bool {
         self.ditfa_error_info
             .as_ref()
-            .is_none_or(CodexErrorInfo::affects_turn_status)
+            .is_none_or(DitfaErrorInfo::affects_turn_status)
     }
 }
 
@@ -2921,7 +2921,7 @@ impl SessionSource {
             | SessionSource::VSCode
             | SessionSource::Exec
             | SessionSource::Mcp
-            | SessionSource::Unknown => Some(Product::Codex),
+            | SessionSource::Unknown => Some(Product::Ditfa),
             SessionSource::Internal(_) | SessionSource::SubAgent(_) => None,
         }
     }
@@ -3305,7 +3305,7 @@ pub struct TurnContextItem {
     pub realtime_active: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub effort: Option<ReasoningEffortConfig>,
-    // Compatibility-only field written with a default value so older Codex
+    // Compatibility-only field written with a default value so older Ditfa
     // versions can deserialize turn-context rollout items. It is no longer
     // read by context reconstruction and should be removed in a future schema
     // cleanup.
@@ -3643,7 +3643,7 @@ pub struct ThreadRolledBackEvent {
 pub struct StreamErrorEvent {
     pub message: String,
     #[serde(default)]
-    pub ditfa_error_info: Option<CodexErrorInfo>,
+    pub ditfa_error_info: Option<DitfaErrorInfo>,
     /// Optional details about the underlying stream failure (often the same
     /// human-readable message that is surfaced as the terminal error if retries
     /// are exhausted).
@@ -3788,8 +3788,8 @@ pub struct RealtimeConversationListVoicesResponseEvent {
 pub enum Product {
     #[serde(alias = "CHATGPT")]
     Chatgpt,
-    #[serde(alias = "CODEX")]
-    Codex,
+    #[serde(alias = "DITFA")]
+    Ditfa,
     #[serde(alias = "ATLAS")]
     Atlas,
 }
@@ -3797,7 +3797,7 @@ impl Product {
     pub fn to_app_platform(self) -> &'static str {
         match self {
             Self::Chatgpt => "chat",
-            Self::Codex => "codex",
+            Self::Ditfa => "ditfa",
             Self::Atlas => "atlas",
         }
     }
@@ -3806,7 +3806,7 @@ impl Product {
         let normalized = value.trim().to_ascii_lowercase();
         match normalized.as_str() {
             "chatgpt" => Some(Self::Chatgpt),
-            "codex" => Some(Self::Codex),
+            "ditfa" => Some(Self::Ditfa),
             "atlas" => Some(Self::Atlas),
             _ => None,
         }
@@ -4659,26 +4659,26 @@ mod tests {
     }
 
     #[test]
-    fn session_source_restriction_product_defaults_non_subagent_sources_to_codex() {
+    fn session_source_restriction_product_defaults_non_subagent_sources_to_ditfa() {
         assert_eq!(
             SessionSource::Cli.restriction_product(),
-            Some(Product::Codex)
+            Some(Product::Ditfa)
         );
         assert_eq!(
             SessionSource::VSCode.restriction_product(),
-            Some(Product::Codex)
+            Some(Product::Ditfa)
         );
         assert_eq!(
             SessionSource::Exec.restriction_product(),
-            Some(Product::Codex)
+            Some(Product::Ditfa)
         );
         assert_eq!(
             SessionSource::Mcp.restriction_product(),
-            Some(Product::Codex)
+            Some(Product::Ditfa)
         );
         assert_eq!(
             SessionSource::Unknown.restriction_product(),
-            Some(Product::Codex)
+            Some(Product::Ditfa)
         );
     }
 
@@ -4706,8 +4706,8 @@ mod tests {
             Some(Product::Atlas)
         );
         assert_eq!(
-            SessionSource::Custom("codex".to_string()).restriction_product(),
-            Some(Product::Codex)
+            SessionSource::Custom("ditfa".to_string()).restriction_product(),
+            Some(Product::Ditfa)
         );
         assert_eq!(
             SessionSource::Custom("atlas-dev".to_string()).restriction_product(),
@@ -4723,9 +4723,9 @@ mod tests {
         );
         assert!(
             !SessionSource::Custom("chatgpt".to_string())
-                .matches_product_restriction(&[Product::Codex])
+                .matches_product_restriction(&[Product::Ditfa])
         );
-        assert!(SessionSource::VSCode.matches_product_restriction(&[Product::Codex]));
+        assert!(SessionSource::VSCode.matches_product_restriction(&[Product::Ditfa]));
         assert!(
             !SessionSource::Custom("atlas-dev".to_string())
                 .matches_product_restriction(&[Product::Atlas])
@@ -4999,7 +4999,7 @@ mod tests {
             .expect("canonical secret");
         let expected_agents = AbsolutePathBuf::from_absolute_path(canonical_cwd.join(".agents"))
             .expect("canonical .agents");
-        let expected_codex = AbsolutePathBuf::from_absolute_path(canonical_cwd.join(".ditfa"))
+        let expected_ditfa = AbsolutePathBuf::from_absolute_path(canonical_cwd.join(".ditfa"))
             .expect("canonical .ditfa");
         let policy = FileSystemSandboxPolicy::restricted(vec![
             FileSystemSandboxEntry {
@@ -5054,7 +5054,7 @@ mod tests {
             writable_roots[0]
                 .read_only_subpaths
                 .iter()
-                .any(|path| path.as_path() == expected_codex.as_path())
+                .any(|path| path.as_path() == expected_ditfa.as_path())
         );
     }
 
@@ -5070,7 +5070,7 @@ mod tests {
         let expected_docs_public =
             AbsolutePathBuf::from_absolute_path(canonical_cwd.join("docs/public"))
                 .expect("canonical docs/public");
-        let expected_dot_codex = AbsolutePathBuf::from_absolute_path(canonical_cwd.join(".ditfa"))
+        let expected_dot_ditfa = AbsolutePathBuf::from_absolute_path(canonical_cwd.join(".ditfa"))
             .expect("canonical .ditfa");
         let policy = FileSystemSandboxPolicy::restricted(vec![
             FileSystemSandboxEntry {
@@ -5099,7 +5099,7 @@ mod tests {
                 (
                     canonical_cwd,
                     vec![
-                        expected_dot_codex.to_path_buf(),
+                        expected_dot_ditfa.to_path_buf(),
                         expected_docs.to_path_buf()
                     ],
                 ),
@@ -5689,7 +5689,7 @@ mod tests {
     fn rollback_failed_error_does_not_affect_turn_status() {
         let event = ErrorEvent {
             message: "rollback failed".into(),
-            ditfa_error_info: Some(CodexErrorInfo::ThreadRollbackFailed),
+            ditfa_error_info: Some(DitfaErrorInfo::ThreadRollbackFailed),
         };
         assert!(!event.affects_turn_status());
     }
@@ -5698,7 +5698,7 @@ mod tests {
     fn active_turn_not_steerable_error_does_not_affect_turn_status() {
         let event = ErrorEvent {
             message: "cannot steer a review turn".into(),
-            ditfa_error_info: Some(CodexErrorInfo::ActiveTurnNotSteerable {
+            ditfa_error_info: Some(DitfaErrorInfo::ActiveTurnNotSteerable {
                 turn_kind: NonSteerableTurnKind::Review,
             }),
         };
@@ -5709,7 +5709,7 @@ mod tests {
     fn generic_error_affects_turn_status() {
         let event = ErrorEvent {
             message: "generic".into(),
-            ditfa_error_info: Some(CodexErrorInfo::Other),
+            ditfa_error_info: Some(DitfaErrorInfo::Other),
         };
         assert!(event.affects_turn_status());
     }
@@ -5918,7 +5918,7 @@ mod tests {
             "id": "00000000-0000-0000-0000-000000000001",
             "timestamp": "2026-01-01T00:00:00Z",
             "cwd": "/tmp",
-            "originator": "codex",
+            "originator": "ditfa",
             "cli_version": "0.0.0",
             "model_provider": null,
             "base_instructions": null
@@ -6120,7 +6120,7 @@ mod tests {
                 parent_thread_id: None,
                 thread_source: None,
                 thread_name: None,
-                model: "codex-mini-latest".to_string(),
+                model: "ditfa-mini-latest".to_string(),
                 model_provider_id: "openai".to_string(),
                 service_tier: None,
                 approval_policy: AskForApproval::Never,
@@ -6141,7 +6141,7 @@ mod tests {
                 "type": "session_configured",
                 "session_id": "67e55044-10b1-426f-9247-bb680e5fe0c7",
                 "thread_id": "67e55044-10b1-426f-9247-bb680e5fe0c8",
-                "model": "codex-mini-latest",
+                "model": "ditfa-mini-latest",
                 "model_provider_id": "openai",
                 "approval_policy": "never",
                 "approvals_reviewer": "user",
@@ -6160,7 +6160,7 @@ mod tests {
         let cwd = test_path_buf("/home/user/project");
         let value = json!({
             "session_id": "67e55044-10b1-426f-9247-bb680e5fe0c8",
-            "model": "codex-mini-latest",
+            "model": "ditfa-mini-latest",
             "model_provider_id": "openai",
             "approval_policy": "never",
             "approvals_reviewer": "user",

@@ -11,24 +11,24 @@ use super::send_track_events_request;
 use super::track_event_request_batches;
 #[cfg(debug_assertions)]
 use crate::events::AppServerRpcTransport;
-use crate::events::CodexAcceptedLineFingerprintsEventParams;
-use crate::events::CodexAcceptedLineFingerprintsEventRequest;
+use crate::events::DitfaAcceptedLineFingerprintsEventParams;
+use crate::events::DitfaAcceptedLineFingerprintsEventRequest;
 #[cfg(debug_assertions)]
-use crate::events::CodexAppServerClientMetadata;
+use crate::events::DitfaAppServerClientMetadata;
 #[cfg(debug_assertions)]
-use crate::events::CodexMcpToolCallEventParams;
+use crate::events::DitfaMcpToolCallEventParams;
 #[cfg(debug_assertions)]
-use crate::events::CodexMcpToolCallEventRequest;
+use crate::events::DitfaMcpToolCallEventRequest;
 #[cfg(debug_assertions)]
-use crate::events::CodexPluginMetadata;
+use crate::events::DitfaPluginMetadata;
 #[cfg(debug_assertions)]
-use crate::events::CodexPluginUsedEventRequest;
+use crate::events::DitfaPluginUsedEventRequest;
 #[cfg(debug_assertions)]
-use crate::events::CodexPluginUsedMetadata;
+use crate::events::DitfaPluginUsedMetadata;
 #[cfg(debug_assertions)]
-use crate::events::CodexRuntimeMetadata;
+use crate::events::DitfaRuntimeMetadata;
 #[cfg(debug_assertions)]
-use crate::events::CodexToolItemEventBase;
+use crate::events::DitfaToolItemEventBase;
 #[cfg(debug_assertions)]
 use crate::events::FinalApprovalOutcome;
 use crate::events::SkillInvocationEventParams;
@@ -88,13 +88,13 @@ impl AnalyticsEventsClient {
 
 fn sample_accepted_line_fingerprint_event(thread_id: &str) -> TrackEventRequest {
     TrackEventRequest::AcceptedLineFingerprints(Box::new(
-        CodexAcceptedLineFingerprintsEventRequest {
+        DitfaAcceptedLineFingerprintsEventRequest {
             event_type: "ditfa_accepted_line_fingerprints",
-            event_params: CodexAcceptedLineFingerprintsEventParams {
-                event_type: "codex.accepted_line_fingerprints",
+            event_params: DitfaAcceptedLineFingerprintsEventParams {
+                event_type: "ditfa.accepted_line_fingerprints",
                 turn_id: "turn-1".to_string(),
                 thread_id: thread_id.to_string(),
-                product_surface: Some("codex".to_string()),
+                product_surface: Some("ditfa".to_string()),
                 model_slug: Some("gpt-5.1-codex".to_string()),
                 completed_at: 1,
                 repo_hash: None,
@@ -130,22 +130,22 @@ fn sample_regular_track_event(thread_id: &str) -> TrackEventRequest {
 
 #[cfg(debug_assertions)]
 fn sample_mcp_tool_call_event(thread_id: &str, plugin_id: Option<&str>) -> TrackEventRequest {
-    TrackEventRequest::McpToolCall(CodexMcpToolCallEventRequest {
+    TrackEventRequest::McpToolCall(DitfaMcpToolCallEventRequest {
         event_type: "ditfa_mcp_tool_call_event",
-        event_params: CodexMcpToolCallEventParams {
-            base: CodexToolItemEventBase {
+        event_params: DitfaMcpToolCallEventParams {
+            base: DitfaToolItemEventBase {
                 thread_id: thread_id.to_string(),
                 session_id: format!("session-{thread_id}"),
                 turn_id: "turn-1".to_string(),
                 item_id: format!("item-{thread_id}"),
-                app_server_client: CodexAppServerClientMetadata {
+                app_server_client: DitfaAppServerClientMetadata {
                     product_client_id: "ditfa_desktop".to_string(),
                     client_name: None,
                     client_version: None,
                     rpc_transport: AppServerRpcTransport::InProcess,
                     experimental_api_enabled: None,
                 },
-                runtime: CodexRuntimeMetadata {
+                runtime: DitfaRuntimeMetadata {
                     ditfa_rs_version: "0.0.0".to_string(),
                     runtime_os: "test".to_string(),
                     runtime_os_version: "test".to_string(),
@@ -179,10 +179,10 @@ fn sample_mcp_tool_call_event(thread_id: &str, plugin_id: Option<&str>) -> Track
 
 #[cfg(debug_assertions)]
 fn sample_plugin_used_track_event(thread_id: &str, plugin_id: Option<&str>) -> TrackEventRequest {
-    TrackEventRequest::PluginUsed(CodexPluginUsedEventRequest {
+    TrackEventRequest::PluginUsed(DitfaPluginUsedEventRequest {
         event_type: "ditfa_plugin_used",
-        event_params: CodexPluginUsedMetadata {
-            plugin: CodexPluginMetadata {
+        event_params: DitfaPluginUsedMetadata {
+            plugin: DitfaPluginMetadata {
                 plugin_id: plugin_id.map(str::to_string),
                 remote_plugin_id: None,
                 plugin_name: Some("sample".to_string()),
@@ -207,7 +207,7 @@ fn unique_capture_path(name: &str) -> PathBuf {
         .expect("system clock should be after Unix epoch")
         .as_nanos();
     std::env::temp_dir().join(format!(
-        "codex-analytics-{name}-{}-{nonce}.jsonl",
+        "ditfa-analytics-{name}-{}-{nonce}.jsonl",
         std::process::id()
     ))
 }
@@ -297,7 +297,7 @@ async fn capture_file_writes_exact_serialized_request() {
     };
     let event = sample_regular_track_event("thread-1");
     let expected_event = serde_json::to_value(&event).expect("serialize expected event");
-    let auth = ditfa_login::CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = ditfa_login::DitfaAuth::create_dummy_chatgpt_auth_for_testing();
 
     send_track_events_request(&auth, &destination, vec![event]).await;
 
@@ -318,7 +318,7 @@ async fn capture_file_writes_final_batches_as_separate_lines() {
     let destination = AnalyticsEventsDestination::CaptureFile {
         path: capture_path.clone(),
     };
-    let auth = ditfa_login::CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = ditfa_login::DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let events = vec![
         sample_regular_track_event("thread-1"),
         sample_accepted_line_fingerprint_event("thread-2"),
@@ -347,13 +347,13 @@ async fn capture_file_writes_final_batches_as_separate_lines() {
 
 #[tokio::test]
 #[cfg(debug_assertions)]
-async fn api_key_auth_sends_only_plugin_events_to_codex_backend() {
+async fn api_key_auth_sends_only_plugin_events_to_ditfa_backend() {
     let capture_path = unique_capture_path("api-key-plugin-events");
     let destination = AnalyticsEventsDestination::CaptureFile {
         path: capture_path.clone(),
     };
     let auth_manager = ditfa_login::AuthManager::from_auth_for_testing(
-        ditfa_login::CodexAuth::from_api_key("sk-test"),
+        ditfa_login::DitfaAuth::from_api_key("sk-test"),
     );
 
     send_track_events(

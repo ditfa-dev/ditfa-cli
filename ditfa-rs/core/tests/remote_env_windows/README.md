@@ -1,6 +1,6 @@
 # Windows remote-environment test
 
-This Bazel-only `test_codex` integration test runs a Windows exec-server fixture
+This Bazel-only `test_ditfa` integration test runs a Windows exec-server fixture
 under pinned Wine and exercises the normal model tool-call and remote-execution
 path.
 
@@ -8,7 +8,7 @@ path.
 
 ```sh
 bazel test \
-  //codex-rs/core/tests/remote_env_windows:smoke-test \
+  //ditfa-rs/core/tests/remote_env_windows:smoke-test \
   --test_output=errors
 ```
 

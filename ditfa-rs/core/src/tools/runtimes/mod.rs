@@ -225,7 +225,7 @@ pub(crate) fn disable_powershell_profile_for_elevated_windows_sandbox(
 /// runtime-only vars like `DITFA_THREAD_ID` without pretending they came from
 /// the explicit override policy.
 ///
-/// `runtime_path_prepends` contains Codex-owned PATH entries already applied to
+/// `runtime_path_prepends` contains Ditfa-owned PATH entries already applied to
 /// the live `env`; snapshot wrapping replays them after restoring the snapshot
 /// PATH unless the user explicitly overrides `PATH`.
 pub(crate) fn maybe_wrap_shell_lc_with_snapshot(
@@ -332,7 +332,7 @@ fn build_proxy_env_exports() -> (String, String) {
             "if [ -n \"$__DITFA_SNAPSHOT_PROXY_ENV_SET\" ] || [ -n \"${{{key}+x}}\" ]; then\n{restores}\nfi"
         ),
     );
-    let git_blocks = build_codex_proxy_git_ssh_command_exports();
+    let git_blocks = build_ditfa_proxy_git_ssh_command_exports();
     (
         join_shell_blocks([proxy_blocks.0, git_blocks.0]),
         join_shell_blocks([proxy_blocks.1, git_blocks.1]),
@@ -340,7 +340,7 @@ fn build_proxy_env_exports() -> (String, String) {
 }
 
 #[cfg(target_os = "macos")]
-fn build_codex_proxy_git_ssh_command_exports() -> (String, String) {
+fn build_ditfa_proxy_git_ssh_command_exports() -> (String, String) {
     let key = PROXY_GIT_SSH_COMMAND_ENV_KEY;
     let marker_pattern = format!("{}\\ *", DITFA_PROXY_GIT_SSH_COMMAND_MARKER.trim_end());
     (
@@ -354,7 +354,7 @@ fn build_codex_proxy_git_ssh_command_exports() -> (String, String) {
 }
 
 #[cfg(not(target_os = "macos"))]
-fn build_codex_proxy_git_ssh_command_exports() -> (String, String) {
+fn build_ditfa_proxy_git_ssh_command_exports() -> (String, String) {
     (String::new(), String::new())
 }
 

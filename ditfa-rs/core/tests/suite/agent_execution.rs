@@ -7,7 +7,7 @@ use core_test_support::responses::ev_response_created;
 use core_test_support::responses::mount_sse_once_match;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use pretty_assertions::assert_eq;
 use serde_json::json;
 use std::time::Duration;
@@ -100,7 +100,7 @@ async fn v2_nested_spawn_checks_shared_active_execution_capacity() -> Result<()>
     )
     .await;
 
-    let mut builder = test_codex().with_model("koffing").with_config(|config| {
+    let mut builder = test_ditfa().with_model("koffing").with_config(|config| {
         config
             .features
             .enable(Feature::Collab)

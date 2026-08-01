@@ -6,7 +6,7 @@ use std::time::Duration;
 use ditfa_http_client::HttpClientFactory;
 use ditfa_http_client::OutboundProxyPolicy;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::ExternalAuth;
 use ditfa_login::ExternalAuthFuture;
 use ditfa_login::ExternalAuthRefreshContext;
@@ -27,19 +27,19 @@ fn http_client_factory() -> HttpClientFactory {
     HttpClientFactory::new(OutboundProxyPolicy::ReqwestDefault)
 }
 
-fn enterprise_auth(account_id: &str) -> CodexAuth {
-    CodexAuth::from_external_chatgpt_tokens("e30.e30.c2ln", account_id, Some("enterprise"))
+fn enterprise_auth(account_id: &str) -> DitfaAuth {
+    DitfaAuth::from_external_chatgpt_tokens("e30.e30.c2ln", account_id, Some("enterprise"))
         .expect("fake ChatGPT auth should parse")
 }
 
-struct StaticExternalAuth(CodexAuth);
+struct StaticExternalAuth(DitfaAuth);
 
 impl ExternalAuth for StaticExternalAuth {
-    fn resolve(&self) -> ExternalAuthFuture<'_, CodexAuth> {
+    fn resolve(&self) -> ExternalAuthFuture<'_, DitfaAuth> {
         Box::pin(async { Ok(self.0.clone()) })
     }
 
-    fn refresh(&self, _context: ExternalAuthRefreshContext) -> ExternalAuthFuture<'_, CodexAuth> {
+    fn refresh(&self, _context: ExternalAuthRefreshContext) -> ExternalAuthFuture<'_, DitfaAuth> {
         self.resolve()
     }
 }

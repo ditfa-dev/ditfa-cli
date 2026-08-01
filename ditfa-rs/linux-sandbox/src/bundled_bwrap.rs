@@ -95,9 +95,9 @@ fn legacy_candidates_for_exe(exe: &Path) -> Vec<PathBuf> {
     };
 
     let mut candidates = Vec::new();
-    candidates.push(exe_dir.join("codex-resources").join("bwrap"));
+    candidates.push(exe_dir.join("ditfa-resources").join("bwrap"));
     if let Some(package_target_dir) = exe_dir.parent() {
-        candidates.push(package_target_dir.join("codex-resources").join("bwrap"));
+        candidates.push(package_target_dir.join("ditfa-resources").join("bwrap"));
     }
     candidates.push(exe_dir.join("bwrap"));
     if let Some(path) = bazel_bwrap::candidate() {
@@ -189,7 +189,7 @@ fn bytes_to_hex(bytes: &[u8; 32]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ditfa_install_context::CodexPackageLayout;
+    use ditfa_install_context::DitfaPackageLayout;
     use ditfa_install_context::InstallContext;
     use ditfa_install_context::InstallMethod;
     use pretty_assertions::assert_eq;
@@ -202,14 +202,14 @@ mod tests {
         let temp_dir = tempdir().expect("temp dir");
         let package_dir = temp_dir.path();
         let bin_dir = package_dir.join("bin");
-        let resources_dir = package_dir.join("codex-resources");
+        let resources_dir = package_dir.join("ditfa-resources");
         let expected_bwrap = resources_dir.join("bwrap");
         fs::create_dir_all(&bin_dir).expect("create bin dir");
         write_executable(&expected_bwrap);
 
         let context = InstallContext {
             method: InstallMethod::Other,
-            package_layout: Some(CodexPackageLayout {
+            package_layout: Some(DitfaPackageLayout {
                 package_dir: AbsolutePathBuf::from_absolute_path(package_dir).expect("absolute"),
                 bin_dir: AbsolutePathBuf::from_absolute_path(&bin_dir).expect("absolute"),
                 resources_dir: Some(
@@ -228,8 +228,8 @@ mod tests {
     #[test]
     fn finds_legacy_standalone_bundled_bwrap_next_to_exe_resources() {
         let temp_dir = tempdir().expect("temp dir");
-        let exe = temp_dir.path().join("codex");
-        let expected_bwrap = temp_dir.path().join("codex-resources").join("bwrap");
+        let exe = temp_dir.path().join("ditfa");
+        let expected_bwrap = temp_dir.path().join("ditfa-resources").join("bwrap");
         write_executable(&exe);
         write_executable(&expected_bwrap);
 
@@ -243,8 +243,8 @@ mod tests {
     fn finds_npm_bundled_bwrap_next_to_target_vendor_dir() {
         let temp_dir = tempdir().expect("temp dir");
         let target_dir = temp_dir.path().join("vendor/x86_64-unknown-linux-musl");
-        let exe = target_dir.join("codex").join("codex");
-        let expected_bwrap = target_dir.join("codex-resources").join("bwrap");
+        let exe = target_dir.join("ditfa").join("ditfa");
+        let expected_bwrap = target_dir.join("ditfa-resources").join("bwrap");
         write_executable(&exe);
         write_executable(&expected_bwrap);
 
@@ -257,7 +257,7 @@ mod tests {
     #[test]
     fn finds_adjacent_dev_bwrap() {
         let temp_dir = tempdir().expect("temp dir");
-        let exe = temp_dir.path().join("codex");
+        let exe = temp_dir.path().join("ditfa");
         let expected_bwrap = temp_dir.path().join("bwrap");
         write_executable(&exe);
         write_executable(&expected_bwrap);

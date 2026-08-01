@@ -1,4 +1,4 @@
-# Release workflow for codex-rs.
+# Release workflow for ditfa-rs.
 # To release, follow a workflow like:
 # ```
 # git tag -a rust-v0.1.0 -m "Release 0.1.0"
@@ -15,7 +15,7 @@ on:
       - "rust-v*.*.*"
 
 env:
-  CODEX_ZSH_RELEASE_TAG: codex-zsh-v0.1.0
+  DITFA_ZSH_RELEASE_TAG: ditfa-zsh-v0.1.0
 
 concurrency:
   group: ${{ github.workflow }}
@@ -44,7 +44,7 @@ jobs:
             || { echo "❌  Tag '${GITHUB_REF_NAME}' doesn't match expected format"; exit 1; }
 
           tag_ver="${GITHUB_REF_NAME#rust-v}"
-          cargo_ver="$(grep -m1 '^version' codex-rs/Cargo.toml \
+          cargo_ver="$(grep -m1 '^version' ditfa-rs/Cargo.toml \
                         | sed -E 's/version *= *"([^"]+)".*/\1/')"
 
           [[ "${tag_ver}" == "${cargo_ver}" ]] \
@@ -65,7 +65,7 @@ jobs:
       id-token: write
     defaults:
       run:
-        working-directory: codex-rs
+        working-directory: ditfa-rs
     env:
       # macOS release packages archive packed dSYM bundles before stripping.
       CARGO_PROFILE_RELEASE_SPLIT_DEBUGINFO: ${{ contains(matrix.target, 'apple-darwin') && 'packed' || 'off' }}
@@ -83,50 +83,50 @@ jobs:
             target: aarch64-apple-darwin
             bundle: primary
             artifact_name: aarch64-apple-darwin
-            binaries: "codex codex-code-mode-host codex-responses-api-proxy"
+            binaries: "ditfa ditfa-code-mode-host ditfa-responses-api-proxy"
             build_dmg: "true"
           - runner: macos-15-xlarge
             target: aarch64-apple-darwin
             bundle: app-server
             artifact_name: aarch64-apple-darwin-app-server
-            binaries: "codex-app-server codex-code-mode-host"
+            binaries: "ditfa-app-server ditfa-code-mode-host"
             build_dmg: "false"
           - runner: macos-15-xlarge
             target: x86_64-apple-darwin
             bundle: primary
             artifact_name: x86_64-apple-darwin
-            binaries: "codex codex-code-mode-host codex-responses-api-proxy"
+            binaries: "ditfa ditfa-code-mode-host ditfa-responses-api-proxy"
             build_dmg: "true"
           - runner: macos-15-xlarge
             target: x86_64-apple-darwin
             bundle: app-server
             artifact_name: x86_64-apple-darwin-app-server
-            binaries: "codex-app-server codex-code-mode-host"
+            binaries: "ditfa-app-server ditfa-code-mode-host"
             build_dmg: "false"
           # Release artifacts intentionally ship MUSL-linked Linux binaries.
           - runner: ${{ github.event.repository.name }}-linux-x64-xl
             target: x86_64-unknown-linux-musl
             bundle: primary
             artifact_name: x86_64-unknown-linux-musl
-            binaries: "codex codex-code-mode-host codex-responses-api-proxy bwrap"
+            binaries: "ditfa ditfa-code-mode-host ditfa-responses-api-proxy bwrap"
             build_dmg: "false"
           - runner: ${{ github.event.repository.name }}-linux-x64-xl
             target: x86_64-unknown-linux-musl
             bundle: app-server
             artifact_name: x86_64-unknown-linux-musl-app-server
-            binaries: "codex-app-server codex-code-mode-host"
+            binaries: "ditfa-app-server ditfa-code-mode-host"
             build_dmg: "false"
           - runner: ${{ github.event.repository.name }}-linux-arm64
             target: aarch64-unknown-linux-musl
             bundle: primary
             artifact_name: aarch64-unknown-linux-musl
-            binaries: "codex codex-code-mode-host codex-responses-api-proxy bwrap"
+            binaries: "ditfa ditfa-code-mode-host ditfa-responses-api-proxy bwrap"
             build_dmg: "false"
           - runner: ${{ github.event.repository.name }}-linux-arm64
             target: aarch64-unknown-linux-musl
             bundle: app-server
             artifact_name: aarch64-unknown-linux-musl-app-server
-            binaries: "codex-app-server codex-code-mode-host"
+            binaries: "ditfa-app-server ditfa-code-mode-host"
             build_dmg: "false"
 
     steps:
@@ -227,12 +227,12 @@ jobs:
             exit 1
           fi
 
-          # Codex embeds this digest at build time and verifies the bundled
+          # Ditfa Code embeds this digest at build time and verifies the bundled
           # bwrap resource before use. Strip bwrap before hashing so the digest
           # covers the exact bytes that the release packages.
           strip --strip-debug --strip-unneeded "$bwrap_path"
           digest="$(sha256sum "$bwrap_path" | awk '{print $1}')"
-          echo "CODEX_BWRAP_SHA256=${digest}" >> "$GITHUB_ENV"
+          echo "DITFA_BWRAP_SHA256=${digest}" >> "$GITHUB_ENV"
           echo "Built bwrap ${bwrap_path} with sha256:${digest}"
 
       - name: Cargo build
@@ -245,7 +245,7 @@ jobs:
           build_args=()
           for binary in ${{ matrix.binaries }}; do
             # bwrap was built, finalized, and hashed before this build so
-            # Codex can embed the digest of the bytes that will be packaged.
+            # Ditfa Code can embed the digest of the bytes that will be packaged.
             if [[ "$binary" == "bwrap" ]]; then
               continue
             fi
@@ -257,7 +257,7 @@ jobs:
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: cargo-timings-rust-release-${{ matrix.target }}-${{ matrix.bundle }}
-          path: codex-rs/target/**/cargo-timings/cargo-timing.html
+          path: ditfa-rs/target/**/cargo-timings/cargo-timing.html
           if-no-files-found: warn
 
       - name: Build symbols archive and strip binaries
@@ -266,7 +266,7 @@ jobs:
           binaries=()
           for binary in ${{ matrix.binaries }}; do
             # bwrap is already stripped before hashing. Its symbols are not
-            # useful enough to justify a separate pre-Codex symbols pass.
+            # useful enough to justify a separate pre-Ditfa Code symbols pass.
             if [[ "$binary" == "bwrap" ]]; then
               continue
             fi
@@ -283,7 +283,7 @@ jobs:
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: ${{ matrix.artifact_name }}-symbols
-          path: codex-rs/symbols-dist/${{ matrix.artifact_name }}/*
+          path: ditfa-rs/symbols-dist/${{ matrix.artifact_name }}/*
           if-no-files-found: error
 
       - if: ${{ runner.os == 'macOS' }}
@@ -316,7 +316,7 @@ jobs:
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: ${{ matrix.artifact_name }}-unsigned
-          path: codex-rs/unsigned-dist/${{ matrix.target }}/*
+          path: ditfa-rs/unsigned-dist/${{ matrix.target }}/*
           if-no-files-found: error
 
       - if: ${{ contains(matrix.target, 'linux') }}
@@ -324,7 +324,7 @@ jobs:
         uses: ./.github/actions/linux-code-sign
         with:
           target: ${{ matrix.target }}
-          artifacts-dir: ${{ github.workspace }}/codex-rs/target/${{ matrix.target }}/release
+          artifacts-dir: ${{ github.workspace }}/ditfa-rs/target/${{ matrix.target }}/release
           binaries: ${{ matrix.binaries }}
 
       - name: Stage artifacts
@@ -337,7 +337,7 @@ jobs:
           for binary in ${{ matrix.binaries }}; do
             # Both variants package the host, but only the primary bundle publishes
             # standalone binary archives to avoid duplicate release asset names.
-            if [[ "${{ matrix.bundle }}" == "app-server" && "$binary" == "codex-code-mode-host" ]]; then
+            if [[ "${{ matrix.bundle }}" == "app-server" && "$binary" == "ditfa-code-mode-host" ]]; then
               continue
             fi
             cp "target/${{ matrix.target }}/release/${binary}" "$dest/${binary}-${{ matrix.target }}"
@@ -348,22 +348,22 @@ jobs:
           done
 
           if [[ "${{ matrix.target }}" == *linux* && "${{ matrix.bundle }}" == "primary" ]]; then
-            bundle_root="${RUNNER_TEMP}/codex-${{ matrix.target }}-bundle"
+            bundle_root="${RUNNER_TEMP}/ditfa-${{ matrix.target }}-bundle"
             rm -rf "$bundle_root"
-            mkdir -p "$bundle_root/codex-resources"
-            cp "$dest/codex-${{ matrix.target }}" "$bundle_root/codex"
-            cp "$dest/codex-code-mode-host-${{ matrix.target }}" "$bundle_root/codex-code-mode-host"
-            cp "$dest/bwrap-${{ matrix.target }}" "$bundle_root/codex-resources/bwrap"
+            mkdir -p "$bundle_root/ditfa-resources"
+            cp "$dest/ditfa-${{ matrix.target }}" "$bundle_root/ditfa"
+            cp "$dest/ditfa-code-mode-host-${{ matrix.target }}" "$bundle_root/ditfa-code-mode-host"
+            cp "$dest/bwrap-${{ matrix.target }}" "$bundle_root/ditfa-resources/bwrap"
             chmod 0755 \
-              "$bundle_root/codex" \
-              "$bundle_root/codex-code-mode-host" \
-              "$bundle_root/codex-resources/bwrap"
-            tar -C "$bundle_root" -cf - codex codex-code-mode-host codex-resources/bwrap |
-              zstd -T0 -19 -o "$dest/codex-${{ matrix.target }}-bundle.tar.zst"
+              "$bundle_root/ditfa" \
+              "$bundle_root/ditfa-code-mode-host" \
+              "$bundle_root/ditfa-resources/bwrap"
+            tar -C "$bundle_root" -cf - ditfa ditfa-code-mode-host ditfa-resources/bwrap |
+              zstd -T0 -19 -o "$dest/ditfa-${{ matrix.target }}-bundle.tar.zst"
           fi
 
           if [[ "${{ matrix.build_dmg }}" == "true" ]]; then
-            cp target/${{ matrix.target }}/release/codex-${{ matrix.target }}.dmg "$dest/codex-${{ matrix.target }}.dmg"
+            cp target/${{ matrix.target }}/release/ditfa-${{ matrix.target }}.dmg "$dest/ditfa-${{ matrix.target }}.dmg"
           fi
 
       - name: Download packaged zsh manifest
@@ -372,10 +372,10 @@ jobs:
         run: |
           set -euo pipefail
           curl -fsSL \
-            "https://github.com/${GITHUB_REPOSITORY}/releases/download/${CODEX_ZSH_RELEASE_TAG}/codex-zsh" \
-            -o "${RUNNER_TEMP}/codex-zsh"
+            "https://github.com/${GITHUB_REPOSITORY}/releases/download/${DITFA_ZSH_RELEASE_TAG}/ditfa-zsh" \
+            -o "${RUNNER_TEMP}/ditfa-zsh"
 
-      - name: Build Codex package archive
+      - name: Build Ditfa Code package archive
         if: ${{ runner.os != 'macOS' }}
         shell: bash
         env:
@@ -383,12 +383,12 @@ jobs:
           BUNDLE: ${{ matrix.bundle }}
         run: |
           set -euo pipefail
-          bash "${GITHUB_WORKSPACE}/.github/scripts/build-codex-package-archive.sh" \
+          bash "${GITHUB_WORKSPACE}/.github/scripts/build-ditfa-package-archive.sh" \
             --target "$TARGET" \
             --bundle "$BUNDLE" \
             --entrypoint-dir "target/${TARGET}/release" \
             --archive-dir "dist/${TARGET}" \
-            --zsh-manifest "${RUNNER_TEMP}/codex-zsh"
+            --zsh-manifest "${RUNNER_TEMP}/ditfa-zsh"
 
       - name: Build Python runtime wheel
         if: ${{ matrix.bundle == 'primary' && runner.os != 'macOS' }}
@@ -420,14 +420,14 @@ jobs:
           # the Homebrew Python as externally managed under PEP 668.
           "${RUNNER_TEMP}/python-runtime-build-venv/bin/python" -m pip install build
 
-          stage_dir="${RUNNER_TEMP}/openai-codex-cli-bin-${{ matrix.target }}"
+          stage_dir="${RUNNER_TEMP}/openai-ditfa-cli-bin-${{ matrix.target }}"
           wheel_dir="${GITHUB_WORKSPACE}/python-runtime-dist/${{ matrix.target }}"
           stage_runtime_args=(
             "${GITHUB_WORKSPACE}/sdk/python/scripts/update_sdk_artifacts.py"
             stage-runtime
             "$stage_dir"
-            "dist/${{ matrix.target }}/codex-package-${{ matrix.target }}.tar.gz"
-            --codex-version "${GITHUB_REF_NAME}"
+            "dist/${{ matrix.target }}/ditfa-package-${{ matrix.target }}.tar.gz"
+            --ditfa-version "${GITHUB_REF_NAME}"
             --platform-tag "$platform_tag"
           )
           python3 "${stage_runtime_args[@]}"
@@ -452,8 +452,8 @@ jobs:
           # For compatibility with environments that lack the `zstd` tool we
           # additionally create a `.tar.gz` alongside every binary we publish.
           # The end result is:
-          #   codex-<target>.zst          (existing)
-          #   codex-<target>.tar.gz       (new)
+          #   ditfa-<target>.zst          (existing)
+          #   ditfa-<target>.tar.gz       (new)
 
           # 1. Produce a .tar.gz for every file in the directory *before* we
           #    run `zstd --rm`, because that flag deletes the original files.
@@ -485,7 +485,7 @@ jobs:
           # Upload the per-binary .zst files, .tar.gz equivalents, and any
           # prebuilt archives staged above.
           path: |
-            codex-rs/dist/${{ matrix.target }}/*
+            ditfa-rs/dist/${{ matrix.target }}/*
 
   sign-macos-binaries:
     needs: build
@@ -506,19 +506,19 @@ jobs:
           - target: aarch64-apple-darwin
             bundle: primary
             artifact_name: aarch64-apple-darwin
-            binaries: "codex codex-code-mode-host codex-responses-api-proxy"
+            binaries: "ditfa ditfa-code-mode-host ditfa-responses-api-proxy"
           - target: aarch64-apple-darwin
             bundle: app-server
             artifact_name: aarch64-apple-darwin-app-server
-            binaries: "codex-app-server codex-code-mode-host"
+            binaries: "ditfa-app-server ditfa-code-mode-host"
           - target: x86_64-apple-darwin
             bundle: primary
             artifact_name: x86_64-apple-darwin
-            binaries: "codex codex-code-mode-host codex-responses-api-proxy"
+            binaries: "ditfa ditfa-code-mode-host ditfa-responses-api-proxy"
           - target: x86_64-apple-darwin
             bundle: app-server
             artifact_name: x86_64-apple-darwin-app-server
-            binaries: "codex-app-server codex-code-mode-host"
+            binaries: "ditfa-app-server ditfa-code-mode-host"
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -621,7 +621,7 @@ jobs:
       contents: read
     defaults:
       run:
-        working-directory: codex-rs
+        working-directory: ditfa-rs
 
     strategy:
       fail-fast: false
@@ -630,22 +630,22 @@ jobs:
           - target: aarch64-apple-darwin
             bundle: primary
             artifact_name: aarch64-apple-darwin
-            binaries: "codex codex-code-mode-host codex-responses-api-proxy"
+            binaries: "ditfa ditfa-code-mode-host ditfa-responses-api-proxy"
             build_dmg: "true"
           - target: aarch64-apple-darwin
             bundle: app-server
             artifact_name: aarch64-apple-darwin-app-server
-            binaries: "codex-app-server codex-code-mode-host"
+            binaries: "ditfa-app-server ditfa-code-mode-host"
             build_dmg: "false"
           - target: x86_64-apple-darwin
             bundle: primary
             artifact_name: x86_64-apple-darwin
-            binaries: "codex codex-code-mode-host codex-responses-api-proxy"
+            binaries: "ditfa ditfa-code-mode-host ditfa-responses-api-proxy"
             build_dmg: "true"
           - target: x86_64-apple-darwin
             bundle: app-server
             artifact_name: x86_64-apple-darwin-app-server
-            binaries: "codex-app-server codex-code-mode-host"
+            binaries: "ditfa-app-server ditfa-code-mode-host"
             build_dmg: "false"
 
     steps:
@@ -657,7 +657,7 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ matrix.artifact_name }}-signed-binaries
-          path: codex-rs/target/${{ matrix.target }}/release
+          path: ditfa-rs/target/${{ matrix.target }}/release
 
       - name: Verify signed macOS binaries
         shell: bash
@@ -677,9 +677,9 @@ jobs:
 
           target="${{ matrix.target }}"
           release_dir="target/${target}/release"
-          dmg_root="${RUNNER_TEMP}/codex-dmg-root-${target}"
-          volname="Codex (${target})"
-          dmg_path="${release_dir}/codex-${target}.dmg"
+          dmg_root="${RUNNER_TEMP}/ditfa-dmg-root-${target}"
+          volname="Ditfa Code (${target})"
+          dmg_path="${release_dir}/ditfa-${target}.dmg"
 
           rm -rf "$dmg_root"
           mkdir -p "$dmg_root"
@@ -711,7 +711,7 @@ jobs:
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: ${{ matrix.artifact_name }}-unsigned-dmg
-          path: codex-rs/target/${{ matrix.target }}/release/codex-${{ matrix.target }}.dmg
+          path: ditfa-rs/target/${{ matrix.target }}/release/ditfa-${{ matrix.target }}.dmg
           if-no-files-found: error
 
       - name: Stage macOS artifacts
@@ -724,7 +724,7 @@ jobs:
           for binary in ${{ matrix.binaries }}; do
             # Both variants package the host, but only the primary bundle publishes
             # standalone binary archives to avoid duplicate release asset names.
-            if [[ "${{ matrix.bundle }}" == "app-server" && "$binary" == "codex-code-mode-host" ]]; then
+            if [[ "${{ matrix.bundle }}" == "app-server" && "$binary" == "ditfa-code-mode-host" ]]; then
               continue
             fi
             cp "target/${{ matrix.target }}/release/${binary}" "$dest/${binary}-${{ matrix.target }}"
@@ -735,22 +735,22 @@ jobs:
         run: |
           set -euo pipefail
           curl -fsSL \
-            "https://github.com/${GITHUB_REPOSITORY}/releases/download/${CODEX_ZSH_RELEASE_TAG}/codex-zsh" \
-            -o "${RUNNER_TEMP}/codex-zsh"
+            "https://github.com/${GITHUB_REPOSITORY}/releases/download/${DITFA_ZSH_RELEASE_TAG}/ditfa-zsh" \
+            -o "${RUNNER_TEMP}/ditfa-zsh"
 
-      - name: Build Codex package archive
+      - name: Build Ditfa Code package archive
         shell: bash
         env:
           TARGET: ${{ matrix.target }}
           BUNDLE: ${{ matrix.bundle }}
         run: |
           set -euo pipefail
-          bash "${GITHUB_WORKSPACE}/.github/scripts/build-codex-package-archive.sh" \
+          bash "${GITHUB_WORKSPACE}/.github/scripts/build-ditfa-package-archive.sh" \
             --target "$TARGET" \
             --bundle "$BUNDLE" \
             --entrypoint-dir "target/${TARGET}/release" \
             --archive-dir "dist/${TARGET}" \
-            --zsh-manifest "${RUNNER_TEMP}/codex-zsh"
+            --zsh-manifest "${RUNNER_TEMP}/ditfa-zsh"
 
       - name: Build Python runtime wheel
         if: ${{ matrix.bundle == 'primary' }}
@@ -774,14 +774,14 @@ jobs:
           python3 -m venv "${RUNNER_TEMP}/python-runtime-build-venv"
           "${RUNNER_TEMP}/python-runtime-build-venv/bin/python" -m pip install build
 
-          stage_dir="${RUNNER_TEMP}/openai-codex-cli-bin-${{ matrix.target }}"
+          stage_dir="${RUNNER_TEMP}/openai-ditfa-cli-bin-${{ matrix.target }}"
           wheel_dir="${GITHUB_WORKSPACE}/python-runtime-dist/${{ matrix.target }}"
           python3 \
             "${GITHUB_WORKSPACE}/sdk/python/scripts/update_sdk_artifacts.py" \
             stage-runtime \
             "$stage_dir" \
-            "dist/${{ matrix.target }}/codex-package-${{ matrix.target }}.tar.gz" \
-            --codex-version "${GITHUB_REF_NAME}" \
+            "dist/${{ matrix.target }}/ditfa-package-${{ matrix.target }}.tar.gz" \
+            --ditfa-version "${GITHUB_REF_NAME}" \
             --platform-tag "$platform_tag"
           "${RUNNER_TEMP}/python-runtime-build-venv/bin/python" -m build --wheel --outdir "$wheel_dir" "$stage_dir"
 
@@ -812,7 +812,7 @@ jobs:
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: ${{ matrix.artifact_name }}-packaged
-          path: codex-rs/dist/${{ matrix.target }}/*
+          path: ditfa-rs/dist/${{ matrix.target }}/*
           if-no-files-found: error
 
   sign-macos-dmg:
@@ -872,7 +872,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          dmg_path="${RUNNER_TEMP}/unsigned-dmg/codex-${TARGET}.dmg"
+          dmg_path="${RUNNER_TEMP}/unsigned-dmg/ditfa-${TARGET}.dmg"
           report_dir="${GITHUB_WORKSPACE}/macos-dmg-signing-verification/${TARGET}"
           if [[ ! -f "$dmg_path" ]]; then
             echo "Unsigned DMG $dmg_path not found"
@@ -900,7 +900,7 @@ jobs:
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: ${{ matrix.artifact_name }}-signed-dmg
-          path: ${{ runner.temp }}/unsigned-dmg/codex-${{ matrix.target }}.dmg
+          path: ${{ runner.temp }}/unsigned-dmg/ditfa-${{ matrix.target }}.dmg
           if-no-files-found: error
 
       - name: Upload DMG signing verification
@@ -922,7 +922,7 @@ jobs:
       contents: read
     defaults:
       run:
-        working-directory: codex-rs
+        working-directory: ditfa-rs
 
     strategy:
       fail-fast: false
@@ -931,22 +931,22 @@ jobs:
           - target: aarch64-apple-darwin
             bundle: primary
             artifact_name: aarch64-apple-darwin
-            binaries: "codex codex-code-mode-host codex-responses-api-proxy"
+            binaries: "ditfa ditfa-code-mode-host ditfa-responses-api-proxy"
             verify_dmg: "true"
           - target: aarch64-apple-darwin
             bundle: app-server
             artifact_name: aarch64-apple-darwin-app-server
-            binaries: "codex-app-server codex-code-mode-host"
+            binaries: "ditfa-app-server ditfa-code-mode-host"
             verify_dmg: "false"
           - target: x86_64-apple-darwin
             bundle: primary
             artifact_name: x86_64-apple-darwin
-            binaries: "codex codex-code-mode-host codex-responses-api-proxy"
+            binaries: "ditfa ditfa-code-mode-host ditfa-responses-api-proxy"
             verify_dmg: "true"
           - target: x86_64-apple-darwin
             bundle: app-server
             artifact_name: x86_64-apple-darwin-app-server
-            binaries: "codex-app-server codex-code-mode-host"
+            binaries: "ditfa-app-server ditfa-code-mode-host"
             verify_dmg: "false"
 
     steps:
@@ -958,7 +958,7 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ matrix.artifact_name }}-packaged
-          path: codex-rs/dist/${{ matrix.target }}
+          path: ditfa-rs/dist/${{ matrix.target }}
 
       - name: Download signed macOS binaries
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -1019,7 +1019,7 @@ jobs:
 
             # The app-server package contains the host, but its standalone archives
             # are omitted above to avoid duplicate release asset names.
-            if [[ "${{ matrix.bundle }}" == "app-server" && "$binary" == "codex-code-mode-host" ]]; then
+            if [[ "${{ matrix.bundle }}" == "app-server" && "$binary" == "ditfa-code-mode-host" ]]; then
               continue
             fi
 
@@ -1036,12 +1036,12 @@ jobs:
 
           case "${{ matrix.bundle }}" in
             primary)
-              package_stem="codex-package"
-              package_entrypoint="codex"
+              package_stem="ditfa-package"
+              package_entrypoint="ditfa"
               ;;
             app-server)
-              package_stem="codex-app-server-package"
-              package_entrypoint="codex-app-server"
+              package_stem="ditfa-app-server-package"
+              package_entrypoint="ditfa-app-server"
               ;;
             *)
               echo "Unexpected macOS bundle: ${{ matrix.bundle }}"
@@ -1054,14 +1054,14 @@ jobs:
           mkdir -p "$package_dir"
           tar -xzf "${packaged_dir}/${package_stem}-${target}.tar.gz" -C "$package_dir"
           verify_signed_binary "${package_dir}/bin/${package_entrypoint}" "$package_entrypoint"
-          verify_signed_binary "${package_dir}/bin/codex-code-mode-host" "codex-code-mode-host"
+          verify_signed_binary "${package_dir}/bin/ditfa-code-mode-host" "ditfa-code-mode-host"
 
           if [[ "${{ matrix.verify_dmg }}" != "true" ]]; then
             exit 0
           fi
 
-          dmg_path="${RUNNER_TEMP}/signed-dmg/codex-${target}.dmg"
-          mount_dir="${RUNNER_TEMP}/codex-dmg-mount-${target}"
+          dmg_path="${RUNNER_TEMP}/signed-dmg/ditfa-${target}.dmg"
+          mount_dir="${RUNNER_TEMP}/ditfa-dmg-mount-${target}"
           if [[ ! -f "$dmg_path" ]]; then
             echo "Signed DMG $dmg_path not found"
             exit 1
@@ -1085,13 +1085,13 @@ jobs:
 
           cleanup_mount
           trap - EXIT
-          cp "$dmg_path" "dist/${target}/codex-${target}.dmg"
+          cp "$dmg_path" "dist/${target}/ditfa-${target}.dmg"
 
       - name: Upload verified macOS artifacts
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: ${{ matrix.artifact_name }}
-          path: codex-rs/dist/${{ matrix.target }}/*
+          path: ditfa-rs/dist/${{ matrix.target }}/*
           if-no-files-found: error
 
   build-windows:
@@ -1176,14 +1176,14 @@ jobs:
       - name: List
         run: ls -R dist/
 
-      - name: Add Codex package checksum manifest
+      - name: Add Ditfa Code package checksum manifest
         run: |
           set -euo pipefail
 
-          manifest="dist/codex-package_SHA256SUMS"
+          manifest="dist/ditfa-package_SHA256SUMS"
           tmp_manifest="$(mktemp)"
           find dist -type f \
-            \( -name 'codex-package-*.tar.gz' -o -name 'codex-app-server-package-*.tar.gz' \) \
+            \( -name 'ditfa-package-*.tar.gz' -o -name 'ditfa-app-server-package-*.tar.gz' \) \
             -print |
             sort |
             while IFS= read -r archive; do
@@ -1192,7 +1192,7 @@ jobs:
             done > "$tmp_manifest"
 
           if [[ ! -s "$tmp_manifest" ]]; then
-            echo "No Codex package archives found for checksum manifest"
+            echo "No Ditfa Code package archives found for checksum manifest"
             exit 1
           fi
 
@@ -1201,7 +1201,7 @@ jobs:
 
       - name: Add config schema release asset
         run: |
-          cp codex-rs/core/config.schema.json dist/config-schema.json
+          cp ditfa-rs/core/config.schema.json dist/config-schema.json
 
       - name: Define release name
         id: release_name
@@ -1260,9 +1260,9 @@ jobs:
             --release-version "$RELEASE_VERSION" \
             --workflow-url "$workflow_url" \
             --artifacts-dir "${GITHUB_WORKSPACE}/dist" \
-            --package codex \
-            --package codex-responses-api-proxy \
-            --package codex-sdk
+            --package ditfa \
+            --package ditfa-responses-api-proxy \
+            --package ditfa-sdk
 
       - name: Stage installer scripts
         run: |
@@ -1358,12 +1358,12 @@ jobs:
           tag="$RELEASE_TAG"
           mkdir -p dist/npm
           patterns=(
-            "codex-npm-${version}.tgz"
-            "codex-npm-linux-*-${version}.tgz"
-            "codex-npm-darwin-*-${version}.tgz"
-            "codex-npm-win32-*-${version}.tgz"
-            "codex-responses-api-proxy-npm-${version}.tgz"
-            "codex-sdk-npm-${version}.tgz"
+            "ditfa-npm-${version}.tgz"
+            "ditfa-npm-linux-*-${version}.tgz"
+            "ditfa-npm-darwin-*-${version}.tgz"
+            "ditfa-npm-win32-*-${version}.tgz"
+            "ditfa-responses-api-proxy-npm-${version}.tgz"
+            "ditfa-sdk-npm-${version}.tgz"
           )
           for pattern in "${patterns[@]}"; do
             gh release download "$tag" \
@@ -1384,19 +1384,19 @@ jobs:
             prefix="${NPM_TAG}-"
           fi
 
-          root_tarball="dist/npm/codex-npm-${VERSION}.tgz"
-          sdk_tarball="dist/npm/codex-sdk-npm-${VERSION}.tgz"
-          # Keep this list in sync with CODEX_PLATFORM_PACKAGES in
-          # codex-cli/scripts/build_npm_package.py. The root wrapper advances
-          # @openai/codex@latest as soon as it publishes, so every platform
+          root_tarball="dist/npm/ditfa-npm-${VERSION}.tgz"
+          sdk_tarball="dist/npm/ditfa-sdk-npm-${VERSION}.tgz"
+          # Keep this list in sync with DITFA_PLATFORM_PACKAGES in
+          # ditfa-cli/scripts/build_npm_package.py. The root wrapper advances
+          # @Teamtem-dev/ditfa-code@latest as soon as it publishes, so every platform
           # package it aliases must already exist in the registry first.
           platform_tarballs=(
-            "dist/npm/codex-npm-linux-x64-${VERSION}.tgz"
-            "dist/npm/codex-npm-linux-arm64-${VERSION}.tgz"
-            "dist/npm/codex-npm-darwin-x64-${VERSION}.tgz"
-            "dist/npm/codex-npm-darwin-arm64-${VERSION}.tgz"
-            "dist/npm/codex-npm-win32-x64-${VERSION}.tgz"
-            "dist/npm/codex-npm-win32-arm64-${VERSION}.tgz"
+            "dist/npm/ditfa-npm-linux-x64-${VERSION}.tgz"
+            "dist/npm/ditfa-npm-linux-arm64-${VERSION}.tgz"
+            "dist/npm/ditfa-npm-darwin-x64-${VERSION}.tgz"
+            "dist/npm/ditfa-npm-darwin-arm64-${VERSION}.tgz"
+            "dist/npm/ditfa-npm-win32-x64-${VERSION}.tgz"
+            "dist/npm/ditfa-npm-win32-arm64-${VERSION}.tgz"
           )
 
           for required_tarball in "${platform_tarballs[@]}" "${root_tarball}"; do
@@ -1428,7 +1428,7 @@ jobs:
           done
 
           # npm returns HTTP 409 when concurrent publishes update the same
-          # packument. Every platform tarball is a version of @openai/codex,
+          # packument. Every platform tarball is a version of @Teamtem-dev/ditfa-code,
           # so publish all tarballs serially.
           tarballs=(
             "${platform_tarballs[@]}"
@@ -1445,12 +1445,12 @@ jobs:
             tag=""
 
             case "${filename}" in
-              codex-npm-linux-*-"${VERSION}".tgz|codex-npm-darwin-*-"${VERSION}".tgz|codex-npm-win32-*-"${VERSION}".tgz)
-                platform="${filename#codex-npm-}"
+              ditfa-npm-linux-*-"${VERSION}".tgz|ditfa-npm-darwin-*-"${VERSION}".tgz|ditfa-npm-win32-*-"${VERSION}".tgz)
+                platform="${filename#ditfa-npm-}"
                 platform="${platform%-${VERSION}.tgz}"
                 tag="${prefix}${platform}"
                 ;;
-              codex-npm-"${VERSION}".tgz|codex-responses-api-proxy-npm-"${VERSION}".tgz|codex-sdk-npm-"${VERSION}".tgz)
+              ditfa-npm-"${VERSION}".tgz|ditfa-responses-api-proxy-npm-"${VERSION}".tgz|ditfa-sdk-npm-"${VERSION}".tgz)
                 tag="${NPM_TAG}"
                 ;;
               *)
@@ -1536,11 +1536,11 @@ jobs:
       - name: Publish to WinGet
         uses: vedantmgoyal9/winget-releaser@7bd472be23763def6e16bd06cc8b1cdfab0e2fd5
         with:
-          identifier: OpenAI.Codex
+          identifier: OpenAI.Ditfa Code
           version: ${{ needs.release.outputs.version }}
           release-tag: ${{ needs.release.outputs.tag }}
           fork-user: openai-oss-forks
-          installers-regex: '^codex-(?:x86_64|aarch64)-pc-windows-msvc\.exe\.zip$'
+          installers-regex: '^ditfa-(?:x86_64|aarch64)-pc-windows-msvc\.exe\.zip$'
           token: ${{ secrets.WINGET_PUBLISH_PAT }}
 
   update-branch:

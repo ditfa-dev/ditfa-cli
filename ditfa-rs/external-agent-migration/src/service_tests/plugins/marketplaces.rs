@@ -98,7 +98,7 @@ async fn import_plugins_supports_external_agent_plugin_marketplace_layout() {
     fs::create_dir_all(marketplace_root.join(EXTERNAL_AGENT_PLUGIN_MANIFEST_DIR))
         .expect("create marketplace manifest dir");
     fs::create_dir_all(plugin_root.join(".ditfa-plugin")).expect("create plugin manifest dir");
-    fs::create_dir_all(&ditfa_home).expect("create codex home");
+    fs::create_dir_all(&ditfa_home).expect("create ditfa home");
 
     fs::write(
         external_agent_home.join("settings.json"),
@@ -181,7 +181,7 @@ async fn import_plugins_reuses_configured_marketplace_with_different_source() {
         .expect("create source marketplace manifest dir");
     fs::create_dir_all(source_plugin_root.join(".ditfa-plugin"))
         .expect("create source plugin manifest dir");
-    fs::create_dir_all(&ditfa_home).expect("create codex home");
+    fs::create_dir_all(&ditfa_home).expect("create ditfa home");
 
     fs::write(
         external_agent_home.join("settings.json"),
@@ -208,7 +208,7 @@ source = {configured_marketplace_root:?}
 "#
         ),
     )
-    .expect("write Codex config");
+    .expect("write Ditfa config");
     fs::write(
         configured_marketplace_root.join(".agents/plugins/marketplace.json"),
         r#"{
@@ -289,7 +289,7 @@ async fn detect_home_supports_relative_external_agent_plugin_marketplace_path() 
     fs::create_dir_all(marketplace_root.join(EXTERNAL_AGENT_PLUGIN_MANIFEST_DIR))
         .expect("create marketplace manifest dir");
     fs::create_dir_all(plugin_root.join(".ditfa-plugin")).expect("create plugin manifest dir");
-    fs::create_dir_all(&ditfa_home).expect("create codex home");
+    fs::create_dir_all(&ditfa_home).expect("create ditfa home");
 
     fs::write(
         external_agent_home.join("settings.json"),
@@ -360,7 +360,7 @@ async fn detect_home_supports_relative_external_agent_plugin_marketplace_path() 
 async fn detect_home_infers_external_official_marketplace_when_missing_from_settings() {
     let (_root, external_agent_home, ditfa_home) = fixture_paths();
     fs::create_dir_all(&external_agent_home).expect("create external agent home");
-    fs::create_dir_all(&ditfa_home).expect("create codex home");
+    fs::create_dir_all(&ditfa_home).expect("create ditfa home");
 
     fs::write(
         external_agent_home.join("settings.json"),
@@ -411,7 +411,7 @@ async fn import_plugins_supports_relative_external_agent_plugin_marketplace_path
     fs::create_dir_all(marketplace_root.join(EXTERNAL_AGENT_PLUGIN_MANIFEST_DIR))
         .expect("create marketplace manifest dir");
     fs::create_dir_all(plugin_root.join(".ditfa-plugin")).expect("create plugin manifest dir");
-    fs::create_dir_all(&ditfa_home).expect("create codex home");
+    fs::create_dir_all(&ditfa_home).expect("create ditfa home");
 
     fs::write(
         external_agent_home.join("settings.json"),
@@ -482,7 +482,7 @@ async fn import_plugins_supports_relative_external_agent_plugin_marketplace_path
 async fn import_plugins_infers_external_official_marketplace_when_missing_from_settings() {
     let (_root, external_agent_home, ditfa_home) = fixture_paths();
     fs::create_dir_all(&external_agent_home).expect("create external agent home");
-    fs::create_dir_all(&ditfa_home).expect("create codex home");
+    fs::create_dir_all(&ditfa_home).expect("create ditfa home");
 
     fs::write(
         external_agent_home.join("settings.json"),
@@ -541,7 +541,7 @@ async fn detect_repo_supports_project_relative_external_agent_plugin_marketplace
     fs::create_dir_all(marketplace_root.join(EXTERNAL_AGENT_PLUGIN_MANIFEST_DIR))
         .expect("create marketplace manifest dir");
     fs::create_dir_all(plugin_root.join(".ditfa-plugin")).expect("create plugin manifest dir");
-    fs::create_dir_all(&ditfa_home).expect("create codex home");
+    fs::create_dir_all(&ditfa_home).expect("create ditfa home");
 
     fs::write(
         repo_root.join(EXTERNAL_AGENT_DIR).join("settings.json"),
@@ -624,7 +624,7 @@ async fn import_plugins_supports_project_relative_external_agent_plugin_marketpl
     fs::create_dir_all(marketplace_root.join(EXTERNAL_AGENT_PLUGIN_MANIFEST_DIR))
         .expect("create marketplace manifest dir");
     fs::create_dir_all(plugin_root.join(".ditfa-plugin")).expect("create plugin manifest dir");
-    fs::create_dir_all(&ditfa_home).expect("create codex home");
+    fs::create_dir_all(&ditfa_home).expect("create ditfa home");
 
     fs::write(
         repo_root.join(EXTERNAL_AGENT_DIR).join("settings.json"),

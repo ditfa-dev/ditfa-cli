@@ -48,12 +48,12 @@ impl Drop for EnvVarGuard {
     }
 }
 
-enum TestCodexHome {
+enum TestDitfaHome {
     Persistent(PathBuf),
     Temporary(TempDir),
 }
 
-impl TestCodexHome {
+impl TestDitfaHome {
     fn path(&self) -> &Path {
         match self {
             Self::Persistent(path) => path.as_path(),
@@ -62,7 +62,7 @@ impl TestCodexHome {
     }
 }
 
-fn ditfa_home_for_windows_sandbox_test(name: &str) -> anyhow::Result<TestCodexHome> {
+fn ditfa_home_for_windows_sandbox_test(name: &str) -> anyhow::Result<TestDitfaHome> {
     if let Some(test_tmpdir) = std::env::var_os("TEST_TMPDIR") {
         // The elevated backend provisions machine-local sandbox users. Bazel
         // retries run in the same Windows VM, so keep DITFA_HOME stable within
@@ -70,10 +70,10 @@ fn ditfa_home_for_windows_sandbox_test(name: &str) -> anyhow::Result<TestCodexHo
         let ditfa_home = PathBuf::from(test_tmpdir).join(name);
         std::fs::create_dir_all(&ditfa_home)
             .with_context(|| format!("create stable test DITFA_HOME {}", ditfa_home.display()))?;
-        return Ok(TestCodexHome::Persistent(ditfa_home));
+        return Ok(TestDitfaHome::Persistent(ditfa_home));
     }
 
-    Ok(TestCodexHome::Temporary(TempDir::new()?))
+    Ok(TestDitfaHome::Temporary(TempDir::new()?))
 }
 
 fn stage_windows_sandbox_helpers() -> anyhow::Result<()> {
@@ -81,7 +81,7 @@ fn stage_windows_sandbox_helpers() -> anyhow::Result<()> {
     let test_exe_dir = test_exe
         .parent()
         .context("Windows test executable should have a parent directory")?;
-    let resources_dir = test_exe_dir.join("codex-resources");
+    let resources_dir = test_exe_dir.join("ditfa-resources");
     match std::fs::create_dir_all(&resources_dir) {
         Ok(()) => {}
         Err(err)
@@ -91,7 +91,7 @@ fn stage_windows_sandbox_helpers() -> anyhow::Result<()> {
                 .with_context(|| format!("create resources dir {}", resources_dir.display()));
         }
     }
-    for helper_name in ["codex-windows-sandbox-setup", "codex-command-runner"] {
+    for helper_name in ["ditfa-windows-sandbox-setup", "ditfa-command-runner"] {
         let helper = ditfa_utils_cargo_bin::cargo_bin(helper_name)?;
         let file_name = Path::new(helper_name).with_extension("exe");
         let destination = resources_dir.join(file_name);
@@ -118,8 +118,8 @@ fn stage_windows_sandbox_helpers() -> anyhow::Result<()> {
 #[serial(ditfa_home)]
 async fn windows_restricted_token_rejects_exact_and_glob_deny_read_policy() -> anyhow::Result<()> {
     let ditfa_home =
-        ditfa_home_for_windows_sandbox_test("windows-restricted-token-deny-read-codex-home")?;
-    let _codex_home_guard = EnvVarGuard::set("DITFA_HOME", ditfa_home.path().as_os_str());
+        ditfa_home_for_windows_sandbox_test("windows-restricted-token-deny-read-ditfa-home")?;
+    let _ditfa_home_guard = EnvVarGuard::set("DITFA_HOME", ditfa_home.path().as_os_str());
     let workspace = TempDir::new()?;
     let cwd = dunce::canonicalize(workspace.path())?.abs();
     let secret = cwd.join("secret.env");
@@ -205,8 +205,8 @@ async fn windows_restricted_token_rejects_exact_and_glob_deny_read_policy() -> a
 #[serial(ditfa_home)]
 async fn windows_elevated_does_not_create_missing_workspace_metadata() -> anyhow::Result<()> {
     let ditfa_home =
-        ditfa_home_for_windows_sandbox_test("windows-elevated-missing-metadata-codex-home")?;
-    let _codex_home_guard = EnvVarGuard::set("DITFA_HOME", ditfa_home.path().as_os_str());
+        ditfa_home_for_windows_sandbox_test("windows-elevated-missing-metadata-ditfa-home")?;
+    let _ditfa_home_guard = EnvVarGuard::set("DITFA_HOME", ditfa_home.path().as_os_str());
     stage_windows_sandbox_helpers()?;
     let workspace = TempDir::new()?;
     let cwd = dunce::canonicalize(workspace.path())?.abs();
@@ -257,8 +257,8 @@ async fn windows_elevated_does_not_create_missing_workspace_metadata() -> anyhow
 #[tokio::test]
 #[serial(ditfa_home)]
 async fn windows_elevated_enforces_deny_read_and_protects_setup_marker() -> anyhow::Result<()> {
-    let ditfa_home = ditfa_home_for_windows_sandbox_test("windows-elevated-deny-read-codex-home")?;
-    let _codex_home_guard = EnvVarGuard::set("DITFA_HOME", ditfa_home.path().as_os_str());
+    let ditfa_home = ditfa_home_for_windows_sandbox_test("windows-elevated-deny-read-ditfa-home")?;
+    let _ditfa_home_guard = EnvVarGuard::set("DITFA_HOME", ditfa_home.path().as_os_str());
     stage_windows_sandbox_helpers()?;
     let workspace = TempDir::new()?;
     let cwd = dunce::canonicalize(workspace.path())?.abs();

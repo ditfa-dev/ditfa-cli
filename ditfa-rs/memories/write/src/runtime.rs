@@ -1,4 +1,4 @@
-use ditfa_core::CodexThread;
+use ditfa_core::DitfaThread;
 use ditfa_core::ModelClient;
 use ditfa_core::NewThread;
 use ditfa_core::Prompt;
@@ -11,7 +11,7 @@ use ditfa_core::detached_memory_responses_metadata;
 use ditfa_core::resolve_installation_id;
 use ditfa_features::Feature;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::auth::AgentIdentityAuthPolicy;
 use ditfa_login::auth_env_telemetry::collect_auth_env_telemetry;
 use ditfa_login::default_client::originator;
@@ -40,7 +40,7 @@ use std::time::Duration;
 
 pub(crate) struct SpawnedConsolidationAgent {
     pub(crate) thread_id: ThreadId,
-    pub(crate) thread: Arc<CodexThread>,
+    pub(crate) thread: Arc<DitfaThread>,
 }
 
 #[derive(Clone, Debug)]
@@ -68,7 +68,7 @@ impl StageOneRequestContext {
 
 pub(crate) struct MemoryStartupContext {
     thread_id: ThreadId,
-    thread: Arc<CodexThread>,
+    thread: Arc<DitfaThread>,
     thread_manager: Arc<ThreadManager>,
     auth_manager: Arc<AuthManager>,
     provider: SharedModelProvider,
@@ -85,9 +85,9 @@ fn build_session_telemetry(
 ) -> SessionTelemetry {
     let auth = auth_manager.auth_cached();
     let auth = auth.as_ref();
-    let auth_mode = auth.map(CodexAuth::auth_mode).map(TelemetryAuthMode::from);
-    let account_id = auth.and_then(CodexAuth::get_account_id);
-    let account_email = auth.and_then(CodexAuth::get_account_email);
+    let auth_mode = auth.map(DitfaAuth::auth_mode).map(TelemetryAuthMode::from);
+    let account_id = auth.and_then(DitfaAuth::get_account_id);
+    let account_email = auth.and_then(DitfaAuth::get_account_email);
     let auth_env_telemetry = collect_auth_env_telemetry(
         &config.model_provider,
         auth_manager.ditfa_api_key_env_enabled(),
@@ -112,7 +112,7 @@ impl MemoryStartupContext {
         thread_manager: Arc<ThreadManager>,
         auth_manager: Arc<AuthManager>,
         thread_id: ThreadId,
-        thread: Arc<CodexThread>,
+        thread: Arc<DitfaThread>,
         config: &Config,
         source: SessionSource,
     ) -> Self {
@@ -136,7 +136,7 @@ impl MemoryStartupContext {
         thread_manager: Arc<ThreadManager>,
         auth_manager: Arc<AuthManager>,
         thread_id: ThreadId,
-        thread: Arc<CodexThread>,
+        thread: Arc<DitfaThread>,
         config: &Config,
         source: SessionSource,
         provider: SharedModelProvider,
@@ -156,7 +156,7 @@ impl MemoryStartupContext {
         thread_manager: Arc<ThreadManager>,
         auth_manager: Arc<AuthManager>,
         thread_id: ThreadId,
-        thread: Arc<CodexThread>,
+        thread: Arc<DitfaThread>,
         config: &Config,
         source: SessionSource,
         provider: SharedModelProvider,

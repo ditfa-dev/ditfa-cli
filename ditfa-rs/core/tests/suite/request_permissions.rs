@@ -30,10 +30,10 @@ use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
 use core_test_support::skip_if_sandbox;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use regex_lite::Regex;
@@ -166,7 +166,7 @@ fn exec_command_event_with_missing_additional_permissions(
 }
 
 async fn submit_turn(
-    test: &TestCodex,
+    test: &TestDitfa,
     prompt: &str,
     approval_policy: AskForApproval,
     permission_profile: CorePermissionProfile,
@@ -204,7 +204,7 @@ async fn submit_turn(
     Ok(())
 }
 
-async fn wait_for_completion(test: &TestCodex) {
+async fn wait_for_completion(test: &TestDitfa) {
     wait_for_event(&test.ditfa, |event| {
         matches!(event, EventMsg::TurnComplete(_))
     })
@@ -212,7 +212,7 @@ async fn wait_for_completion(test: &TestCodex) {
 }
 
 async fn expect_exec_approval(
-    test: &TestCodex,
+    test: &TestDitfa,
     expected_command: &str,
 ) -> ExecApprovalRequestEvent {
     let event = wait_for_event(&test.ditfa, |event| {
@@ -239,7 +239,7 @@ async fn expect_exec_approval(
 }
 
 async fn wait_for_exec_approval_or_completion(
-    test: &TestCodex,
+    test: &TestDitfa,
 ) -> Option<ExecApprovalRequestEvent> {
     let event = wait_for_event(&test.ditfa, |event| {
         matches!(
@@ -257,7 +257,7 @@ async fn wait_for_exec_approval_or_completion(
 }
 
 async fn expect_request_permissions_event(
-    test: &TestCodex,
+    test: &TestDitfa,
     expected_call_id: &str,
 ) -> RequestPermissionProfile {
     let event = wait_for_event(&test.ditfa, |event| {
@@ -317,7 +317,7 @@ async fn with_additional_permissions_requires_approval_under_on_request() -> Res
     let permission_profile = CorePermissionProfile::read_only();
     let permission_profile_for_config = CorePermissionProfile::read_only();
 
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.permissions.approval_policy = Constrained::allow_any(approval_policy);
         config
             .permissions
@@ -415,7 +415,7 @@ async fn request_permissions_tool_is_auto_denied_when_granular_request_permissio
     let permission_profile = CorePermissionProfile::read_only();
     let permission_profile_for_config = CorePermissionProfile::read_only();
 
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.permissions.approval_policy = Constrained::allow_any(approval_policy);
         config
             .permissions
@@ -511,7 +511,7 @@ async fn relative_additional_permissions_resolve_against_tool_workdir(
     let permission_profile = CorePermissionProfile::read_only();
     let permission_profile_for_config = CorePermissionProfile::read_only();
 
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.permissions.approval_policy = Constrained::allow_any(approval_policy);
         config
             .permissions
@@ -632,7 +632,7 @@ async fn read_only_with_additional_permissions_does_not_widen_to_unrequested_cwd
     let permission_profile = CorePermissionProfile::read_only();
     let permission_profile_for_config = CorePermissionProfile::read_only();
 
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.permissions.approval_policy = Constrained::allow_any(approval_policy);
         config
             .permissions
@@ -735,7 +735,7 @@ async fn read_only_with_additional_permissions_does_not_widen_to_unrequested_tmp
     let permission_profile = CorePermissionProfile::read_only();
     let permission_profile_for_config = CorePermissionProfile::read_only();
 
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.permissions.approval_policy = Constrained::allow_any(approval_policy);
         config
             .permissions
@@ -837,7 +837,7 @@ async fn workspace_write_with_additional_permissions_can_write_outside_cwd() -> 
     let permission_profile = workspace_write_excluding_tmp();
     let permission_profile_for_config = workspace_write_excluding_tmp();
 
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.permissions.approval_policy = Constrained::allow_any(approval_policy);
         config
             .permissions
@@ -944,7 +944,7 @@ async fn with_additional_permissions_denied_approval_blocks_execution() -> Resul
     let permission_profile = workspace_write_excluding_tmp();
     let permission_profile_for_config = workspace_write_excluding_tmp();
 
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.permissions.approval_policy = Constrained::allow_any(approval_policy);
         config
             .permissions
@@ -1052,7 +1052,7 @@ async fn request_permissions_grants_apply_to_later_exec_command_calls() -> Resul
     let permission_profile = workspace_write_excluding_tmp();
     let permission_profile_for_config = workspace_write_excluding_tmp();
 
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.permissions.approval_policy = Constrained::allow_any(approval_policy);
         config
             .permissions
@@ -1179,7 +1179,7 @@ async fn request_permissions_preapprove_explicit_exec_permissions_outside_on_req
     let permission_profile = workspace_write_excluding_tmp();
     let permission_profile_for_config = workspace_write_excluding_tmp();
 
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.permissions.approval_policy = Constrained::allow_any(approval_policy);
         config
             .permissions
@@ -1300,7 +1300,7 @@ async fn request_permissions_grants_apply_to_later_shell_command_calls() -> Resu
     let permission_profile = workspace_write_excluding_tmp();
     let permission_profile_for_config = workspace_write_excluding_tmp();
 
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.permissions.approval_policy = Constrained::allow_any(approval_policy);
         config
             .permissions
@@ -1415,7 +1415,7 @@ async fn request_permissions_grants_apply_to_later_shell_command_calls_without_i
     let permission_profile = workspace_write_excluding_tmp();
     let permission_profile_for_config = workspace_write_excluding_tmp();
 
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.permissions.approval_policy = Constrained::allow_any(approval_policy);
         config
             .permissions
@@ -1530,7 +1530,7 @@ async fn partial_request_permissions_grants_do_not_preapprove_new_permissions() 
     let permission_profile = workspace_write_excluding_tmp();
     let permission_profile_for_config = workspace_write_excluding_tmp();
 
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.permissions.approval_policy = Constrained::allow_any(approval_policy);
         config
             .permissions
@@ -1703,7 +1703,7 @@ async fn request_permissions_grants_do_not_carry_across_turns() -> Result<()> {
     let permission_profile = workspace_write_excluding_tmp();
     let permission_profile_for_config = workspace_write_excluding_tmp();
 
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.permissions.approval_policy = Constrained::allow_any(approval_policy);
         config
             .permissions
@@ -1819,7 +1819,7 @@ async fn request_permissions_session_grants_carry_across_turns() -> Result<()> {
     let permission_profile = workspace_write_excluding_tmp();
     let permission_profile_for_config = workspace_write_excluding_tmp();
 
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config.permissions.approval_policy = Constrained::allow_any(approval_policy);
         config
             .permissions

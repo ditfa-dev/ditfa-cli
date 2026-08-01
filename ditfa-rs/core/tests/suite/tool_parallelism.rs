@@ -1,7 +1,7 @@
 #![cfg(not(target_os = "windows"))]
 #![allow(clippy::unwrap_used)]
 
-use core_test_support::test_codex::local_selections;
+use core_test_support::test_ditfa::local_selections;
 use std::fs;
 use std::time::Duration;
 use std::time::Instant;
@@ -23,16 +23,16 @@ use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
 use core_test_support::streaming_sse::StreamingSseChunk;
 use core_test_support::streaming_sse::start_streaming_sse_server;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
 use serde_json::json;
 use tokio::sync::oneshot;
 
-async fn run_turn(test: &TestCodex, prompt: &str) -> anyhow::Result<()> {
+async fn run_turn(test: &TestDitfa, prompt: &str) -> anyhow::Result<()> {
     let session_model = test.session_configured.model.clone();
     let (sandbox_policy, permission_profile) =
         turn_permission_fields(PermissionProfile::Disabled, test.cwd.path());
@@ -69,14 +69,14 @@ async fn run_turn(test: &TestCodex, prompt: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn run_turn_and_measure(test: &TestCodex, prompt: &str) -> anyhow::Result<Duration> {
+async fn run_turn_and_measure(test: &TestDitfa, prompt: &str) -> anyhow::Result<Duration> {
     let start = Instant::now();
     run_turn(test, prompt).await?;
     Ok(start.elapsed())
 }
 
-async fn build_codex_with_test_tool(server: &wiremock::MockServer) -> anyhow::Result<TestCodex> {
-    let mut builder = test_codex().with_model("test-gpt-5.1-codex");
+async fn build_ditfa_with_test_tool(server: &wiremock::MockServer) -> anyhow::Result<TestDitfa> {
+    let mut builder = test_ditfa().with_model("test-gpt-5.1-codex");
     builder.build(server).await
 }
 
@@ -93,7 +93,7 @@ async fn read_file_tools_run_in_parallel() -> anyhow::Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let test = build_codex_with_test_tool(&server).await?;
+    let test = build_ditfa_with_test_tool(&server).await?;
 
     let warmup_args = json!({
         "sleep_after_ms": 10,
@@ -155,7 +155,7 @@ async fn shell_tools_run_in_parallel() -> anyhow::Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex().with_model("gpt-5.4");
+    let mut builder = test_ditfa().with_model("gpt-5.4");
     let test = builder.build(&server).await?;
 
     let shell_args = json!({
@@ -190,7 +190,7 @@ async fn mixed_parallel_tools_run_in_parallel() -> anyhow::Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let test = build_codex_with_test_tool(&server).await?;
+    let test = build_ditfa_with_test_tool(&server).await?;
 
     let sync_args = json!({
         "sleep_after_ms": 300
@@ -226,7 +226,7 @@ async fn tool_results_grouped() -> anyhow::Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let test = build_codex_with_test_tool(&server).await?;
+    let test = build_ditfa_with_test_tool(&server).await?;
 
     let shell_args = serde_json::to_string(&json!({
         "command": "echo 'shell output'",
@@ -354,7 +354,7 @@ async fn shell_tools_start_before_response_completed_when_stream_delayed() -> an
     ])
     .await;
 
-    let mut builder = test_codex().with_model("gpt-5.4");
+    let mut builder = test_ditfa().with_model("gpt-5.4");
     let test = builder
         .build_with_streaming_server(&streaming_server)
         .await?;

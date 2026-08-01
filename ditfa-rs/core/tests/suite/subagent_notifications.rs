@@ -32,10 +32,10 @@ use core_test_support::responses::start_mock_server;
 use core_test_support::responses::strip_metadata_from_json;
 use core_test_support::responses::strip_response_item_ids_from_json;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event_match;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
@@ -326,7 +326,7 @@ async fn wait_for_hook_log(
     }
 }
 
-async fn wait_for_spawned_thread_id(test: &TestCodex) -> Result<String> {
+async fn wait_for_spawned_thread_id(test: &TestDitfa) -> Result<String> {
     let deadline = Instant::now() + Duration::from_secs(2);
     loop {
         let ids = test.thread_manager.list_thread_ids().await;
@@ -382,7 +382,7 @@ async fn wait_for_request_with_model(
 async fn setup_turn_one_with_spawned_child(
     server: &MockServer,
     child_response_delay: Option<Duration>,
-) -> Result<(TestCodex, String)> {
+) -> Result<(TestDitfa, String)> {
     let (test, spawned_id, _child_request_log) = setup_turn_one_with_custom_spawned_child(
         server,
         json!({
@@ -402,10 +402,10 @@ async fn setup_turn_one_with_custom_spawned_child(
     child_response_delay: Option<Duration>,
     wait_for_parent_notification: bool,
     configure_test: impl FnOnce(
-        core_test_support::test_codex::TestCodexBuilder,
-    ) -> core_test_support::test_codex::TestCodexBuilder,
+        core_test_support::test_ditfa::TestDitfaBuilder,
+    ) -> core_test_support::test_ditfa::TestDitfaBuilder,
 ) -> Result<(
-    TestCodex,
+    TestDitfa,
     String,
     core_test_support::responses::ResponseMock,
 )> {
@@ -463,7 +463,7 @@ async fn setup_turn_one_with_custom_spawned_child(
     )
     .await;
 
-    let mut builder = configure_test(test_codex().with_config(|config| {
+    let mut builder = configure_test(test_ditfa().with_config(|config| {
         config
             .features
             .enable(Feature::Collab)
@@ -504,8 +504,8 @@ async fn spawn_child_and_capture_snapshot(
     server: &MockServer,
     spawn_args: serde_json::Value,
     configure_test: impl FnOnce(
-        core_test_support::test_codex::TestCodexBuilder,
-    ) -> core_test_support::test_codex::TestCodexBuilder,
+        core_test_support::test_ditfa::TestDitfaBuilder,
+    ) -> core_test_support::test_ditfa::TestDitfaBuilder,
 ) -> Result<ThreadConfigSnapshot> {
     let (test, spawned_id, _child_request_log) = setup_turn_one_with_custom_spawned_child(
         server,
@@ -578,7 +578,7 @@ async fn subagent_start_replaces_session_start_and_injects_context() -> Result<(
     )
     .await;
 
-    let test = test_codex()
+    let test = test_ditfa()
         .with_pre_build_hook(|home| {
             write_subagent_lifecycle_hooks(home, /*stop_prompts*/ &[], "worker")
                 .expect("failed to write subagent hook fixture");
@@ -722,7 +722,7 @@ async fn subagent_stop_replaces_stop_and_skips_internal_subagents() -> Result<()
     )
     .await;
 
-    let test = test_codex()
+    let test = test_ditfa()
         .with_pre_build_hook(|home| {
             write_subagent_lifecycle_hooks(
                 home,
@@ -939,7 +939,7 @@ async fn spawned_child_receives_forked_parent_context(
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_history_mode(history_mode)
         .with_config(|config| {
             config
@@ -1060,7 +1060,7 @@ async fn spawned_full_history_v2_child_uses_model_precedence_without_dropping_co
         ]),
     )
     .await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config
             .features
             .enable(Feature::Collab)
@@ -1316,7 +1316,7 @@ async fn spawned_multi_agent_v2_child_inherits_parent_developer_context() -> Res
     )
     .await;
 
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config
             .features
             .enable(Feature::Collab)
@@ -1394,7 +1394,7 @@ async fn encrypted_multi_agent_v2_spawn_sends_agent_message_to_child() -> Result
     )
     .await;
 
-    let mut builder = test_codex().with_model("koffing").with_config(|config| {
+    let mut builder = test_ditfa().with_model("koffing").with_config(|config| {
         config
             .features
             .enable(Feature::Collab)
@@ -1589,7 +1589,7 @@ async fn plaintext_multi_agent_v2_completion_sends_agent_message(
         ]),
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_model("koffing")
         .with_config(|config| {
             config
@@ -1681,7 +1681,7 @@ async fn skills_toggle_skips_instructions_for_parent_and_spawned_child() -> Resu
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(|home| {
             write_home_skill(home, "demo", "demo-skill", "demo skill").expect("write home skill");
         })
@@ -1830,7 +1830,7 @@ async fn spawn_agent_rejects_reasoning_effort_unsupported_by_role_model() -> Res
     )
     .await;
 
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| {
             config
                 .features
@@ -1897,7 +1897,7 @@ async fn spawn_agent_tool_description_mentions_role_locked_settings() -> Result<
     )
     .await;
 
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config
             .features
             .enable(Feature::Collab)

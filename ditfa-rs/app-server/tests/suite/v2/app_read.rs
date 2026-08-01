@@ -115,7 +115,7 @@ async fn app_read_deduplicates_orders_partial_misses_and_reuses_cached_metadata(
     let ditfa_home = TempDir::new()?;
     write_apps_config(ditfa_home.path(), &server_url, Some("tpp"))?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .without_managed_config()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -208,7 +208,7 @@ async fn app_read_refetches_metadata_only_cache_entries_when_tools_are_requested
             "apps": [app_response("cached", "Cached", /*icon_url*/ None)]
         }),
         "chatgpt-token",
-        "codex",
+        "ditfa",
     );
     let (server_url, server_handle) = start_batch_server(state.clone()).await?;
     let ditfa_home = TempDir::new()?;
@@ -219,7 +219,7 @@ async fn app_read_refetches_metadata_only_cache_entries_when_tools_are_requested
     )?;
     write_auth(ditfa_home.path())?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .without_managed_config()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -293,7 +293,7 @@ async fn app_read_backend_failure_preserves_fresh_cached_records() -> Result<()>
             "apps": [app_response("cached", "Cached", /*icon_url*/ None)]
         }),
         "chatgpt-token",
-        "codex",
+        "ditfa",
     );
     let (server_url, server_handle) = start_batch_server(state.clone()).await?;
     let ditfa_home = TempDir::new()?;
@@ -304,7 +304,7 @@ async fn app_read_backend_failure_preserves_fresh_cached_records() -> Result<()>
     )?;
     write_auth(ditfa_home.path())?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .without_managed_config()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
@@ -359,7 +359,7 @@ async fn app_read_adds_plugin_display_names_without_starting_mcp() -> Result<()>
             ]
         }),
         "chatgpt-token",
-        "codex",
+        "ditfa",
     );
     let (server_url, server_handle) = start_batch_server(state.clone()).await?;
     let ditfa_home = TempDir::new()?;
@@ -395,7 +395,7 @@ enabled = false
     write_auth(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
 
@@ -435,7 +435,7 @@ enabled = false
 async fn app_read_rejects_more_than_one_hundred_input_ids() -> Result<()> {
     let ditfa_home = TempDir::new()?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;

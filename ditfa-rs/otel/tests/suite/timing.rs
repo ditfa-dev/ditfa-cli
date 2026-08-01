@@ -12,7 +12,7 @@ fn record_duration_records_histogram() -> Result<()> {
     let (metrics, exporter) = build_metrics_with_defaults(&[])?;
 
     metrics.record_duration(
-        "codex.request_latency",
+        "ditfa.request_latency",
         Duration::from_millis(15),
         &[("route", "chat")],
     )?;
@@ -20,13 +20,13 @@ fn record_duration_records_histogram() -> Result<()> {
 
     let resource_metrics = latest_metrics(&exporter);
     let (bounds, bucket_counts, sum, count) =
-        histogram_data(&resource_metrics, "codex.request_latency");
+        histogram_data(&resource_metrics, "ditfa.request_latency");
     assert!(!bounds.is_empty());
     assert_eq!(bucket_counts.iter().sum::<u64>(), 1);
     assert_eq!(sum, 15.0);
     assert_eq!(count, 1);
-    let metric = crate::harness::find_metric(&resource_metrics, "codex.request_latency")
-        .expect("codex.request_latency metric should exist");
+    let metric = crate::harness::find_metric(&resource_metrics, "ditfa.request_latency")
+        .expect("ditfa.request_latency metric should exist");
     assert_eq!(metric.unit(), "ms");
     assert_eq!(metric.description(), "Duration in milliseconds.");
 
@@ -37,11 +37,11 @@ fn record_duration_records_histogram() -> Result<()> {
 fn record_duration_keeps_whole_millisecond_behavior() -> Result<()> {
     let (metrics, exporter) = build_metrics_with_defaults(&[])?;
 
-    metrics.record_duration("codex.request_latency", Duration::from_micros(15_999), &[])?;
+    metrics.record_duration("ditfa.request_latency", Duration::from_micros(15_999), &[])?;
     metrics.shutdown()?;
 
     let resource_metrics = latest_metrics(&exporter);
-    let (_, _, sum, count) = histogram_data(&resource_metrics, "codex.request_latency");
+    let (_, _, sum, count) = histogram_data(&resource_metrics, "ditfa.request_latency");
     assert_eq!(sum, 15.0);
     assert_eq!(count, 1);
 
@@ -66,8 +66,8 @@ fn record_duration_seconds_uses_fractional_seconds_and_scaled_buckets() -> Resul
         Duration::from_secs(121),
     ] {
         metrics.record_duration_seconds_with_description(
-            "codex.request_duration_seconds",
-            "Duration of Codex requests in seconds.",
+            "ditfa.request_duration_seconds",
+            "Duration of Ditfa requests in seconds.",
             duration,
             &[("method", "initialize")],
         )?;
@@ -76,7 +76,7 @@ fn record_duration_seconds_uses_fractional_seconds_and_scaled_buckets() -> Resul
 
     let resource_metrics = latest_metrics(&exporter);
     let (bounds, bucket_counts, sum, count) =
-        histogram_data(&resource_metrics, "codex.request_duration_seconds");
+        histogram_data(&resource_metrics, "ditfa.request_duration_seconds");
     assert_eq!(
         bounds,
         vec![
@@ -92,12 +92,12 @@ fn record_duration_seconds_uses_fractional_seconds_and_scaled_buckets() -> Resul
     );
     assert!((sum - 384.1).abs() < f64::EPSILON * 512.0);
     assert_eq!(count, 10);
-    let metric = crate::harness::find_metric(&resource_metrics, "codex.request_duration_seconds")
-        .expect("codex.request_duration_seconds metric should exist");
+    let metric = crate::harness::find_metric(&resource_metrics, "ditfa.request_duration_seconds")
+        .expect("ditfa.request_duration_seconds metric should exist");
     assert_eq!(metric.unit(), "s");
     assert_eq!(
         metric.description(),
-        "Duration of Codex requests in seconds."
+        "Duration of Ditfa requests in seconds."
     );
 
     Ok(())
@@ -109,7 +109,7 @@ fn timer_result_records_success() -> Result<()> {
     let (metrics, exporter) = build_metrics_with_defaults(&[])?;
 
     {
-        let timer = metrics.start_timer("codex.request_latency", &[("route", "chat")]);
+        let timer = metrics.start_timer("ditfa.request_latency", &[("route", "chat")]);
         assert!(timer.is_ok());
     }
 
@@ -117,16 +117,16 @@ fn timer_result_records_success() -> Result<()> {
 
     let resource_metrics = latest_metrics(&exporter);
     let (bounds, bucket_counts, _sum, count) =
-        histogram_data(&resource_metrics, "codex.request_latency");
+        histogram_data(&resource_metrics, "ditfa.request_latency");
     assert!(!bounds.is_empty());
     assert_eq!(count, 1);
     assert_eq!(bucket_counts.iter().sum::<u64>(), 1);
-    let metric = crate::harness::find_metric(&resource_metrics, "codex.request_latency")
-        .expect("codex.request_latency metric should exist");
+    let metric = crate::harness::find_metric(&resource_metrics, "ditfa.request_latency")
+        .expect("ditfa.request_latency metric should exist");
     assert_eq!(metric.unit(), "ms");
     assert_eq!(metric.description(), "Duration in milliseconds.");
     let attrs = attributes_to_map(
-        crate::harness::find_metric(&resource_metrics, "codex.request_latency")
+        crate::harness::find_metric(&resource_metrics, "ditfa.request_latency")
             .and_then(|metric| match metric.data() {
                 opentelemetry_sdk::metrics::data::AggregatedMetrics::F64(
                     opentelemetry_sdk::metrics::data::MetricData::Histogram(histogram),
@@ -136,7 +136,7 @@ fn timer_result_records_success() -> Result<()> {
                     .map(opentelemetry_sdk::metrics::data::HistogramDataPoint::attributes),
                 _ => None,
             })
-            .expect("codex.request_latency attributes should exist"),
+            .expect("ditfa.request_latency attributes should exist"),
     );
     assert_eq!(attrs.get("route").map(String::as_str), Some("chat"));
 

@@ -5,7 +5,7 @@ use tempfile::TempDir;
 
 #[tokio::test]
 async fn prunes_only_old_resources_from_extensions_with_instructions() {
-    let ditfa_home = TempDir::new().expect("create temp codex home");
+    let ditfa_home = TempDir::new().expect("create temp ditfa home");
     let memory_root = ditfa_home.path().join("memories");
     let extensions_root = memory_extensions_root(&memory_root);
     let chronicle_resources = extensions_root.join("chronicle/resources");

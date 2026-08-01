@@ -1,11 +1,11 @@
-use ditfa_core::CodexThread;
+use ditfa_core::DitfaThread;
 use ditfa_core::NewThread;
 use ditfa_core::StartThreadOptions;
 use ditfa_core::ThreadManager;
 use ditfa_core::config::Config;
 use ditfa_protocol::ThreadId;
-use ditfa_protocol::error::CodexErr;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::DitfaErr;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::protocol::W3cTraceContext;
 use ditfa_protocol::user_input::UserInput;
 use std::sync::Arc;
@@ -25,7 +25,7 @@ pub struct AgentInvocation {
 pub struct AgentRun {
     pub thread_id: ThreadId,
     pub turn_id: String,
-    pub thread: Arc<CodexThread>,
+    pub thread: Arc<DitfaThread>,
 }
 
 /// Runs resolved agents in threads forked by the owning [`ThreadManager`].
@@ -44,14 +44,14 @@ impl AgentRunner {
         &self,
         parent_thread_id: ThreadId,
         invocation: AgentInvocation,
-    ) -> CodexResult<AgentRun> {
+    ) -> DitfaResult<AgentRun> {
         let AgentInvocation {
             config,
             prompt,
             parent_trace,
         } = invocation;
         if prompt.trim().is_empty() {
-            return Err(CodexErr::InvalidRequest(
+            return Err(DitfaErr::InvalidRequest(
                 "agent prompt must not be empty".to_string(),
             ));
         }
@@ -59,7 +59,7 @@ impl AgentRunner {
         let thread_manager = self
             .thread_manager
             .upgrade()
-            .ok_or_else(|| CodexErr::UnsupportedOperation("thread manager dropped".to_string()))?;
+            .ok_or_else(|| DitfaErr::UnsupportedOperation("thread manager dropped".to_string()))?;
         let NewThread {
             thread_id, thread, ..
         } = thread_manager

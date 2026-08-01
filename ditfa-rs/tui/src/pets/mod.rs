@@ -47,7 +47,7 @@ pub(crate) use picker::PET_PICKER_VIEW_ID;
 pub(crate) use picker::build_pet_picker_params;
 pub(crate) use preview::PetPickerPreviewState;
 
-pub(crate) const DEFAULT_PET_ID: &str = "codex";
+pub(crate) const DEFAULT_PET_ID: &str = "ditfa";
 pub(crate) const DISABLED_PET_ID: &str = "disabled";
 
 /// Ensure that a selected built-in pet has a locally cached spritesheet.

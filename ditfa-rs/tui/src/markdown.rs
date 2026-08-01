@@ -398,7 +398,7 @@ mod tests {
 
     #[test]
     fn append_markdown_preserves_full_text_line() {
-        let src = "Hi! How can I help with codex-rs today? Want me to explore the repo, run tests, or work on a specific change?\n";
+        let src = "Hi! How can I help with ditfa-rs today? Want me to explore the repo, run tests, or work on a specific change?\n";
         let mut out = Vec::new();
         append_markdown(src, /*width*/ None, /*cwd*/ None, &mut out);
         assert_eq!(
@@ -414,7 +414,7 @@ mod tests {
             .join("");
         assert_eq!(
             rendered,
-            "Hi! How can I help with codex-rs today? Want me to explore the repo, run tests, or work on a specific change?"
+            "Hi! How can I help with ditfa-rs today? Want me to explore the repo, run tests, or work on a specific change?"
         );
     }
 

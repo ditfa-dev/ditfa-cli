@@ -54,7 +54,7 @@ use crate::session::session::Session;
 use crate::session::turn_context::TurnContext;
 use ditfa_login::AuthManager;
 use ditfa_models_manager::manager::SharedModelsManager;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::protocol::InitialHistory;
 use ditfa_protocol::protocol::MultiAgentVersion;
 
@@ -67,13 +67,13 @@ struct PendingMcpInvocation {
     metadata: Option<McpToolApprovalMetadata>,
 }
 
-/// Start an interactive sub-Codex thread and return its runtime and IO channels.
+/// Start an interactive sub-Ditfa thread and return its runtime and IO channels.
 ///
 /// The returned IO yields non-approval events emitted by the sub-agent.
 /// Approval requests are handled via `parent_session` and are not surfaced.
 /// Its submission channel accepts additional `Op`s for the sub-agent.
 #[allow(clippy::too_many_arguments)]
-pub(crate) async fn run_codex_thread_interactive(
+pub(crate) async fn run_ditfa_thread_interactive(
     config: Config,
     auth_manager: Arc<AuthManager>,
     models_manager: SharedModelsManager,
@@ -83,7 +83,7 @@ pub(crate) async fn run_codex_thread_interactive(
     subagent_source: SubAgentSource,
     initial_history: Option<InitialHistory>,
     git_enrichment_policy: GitEnrichmentPolicy,
-) -> Result<(Arc<Session>, SessionIo), CodexErr> {
+) -> Result<(Arc<Session>, SessionIo), DitfaErr> {
     let (tx_sub, rx_sub) = async_channel::bounded(SUBMISSION_CHANNEL_CAPACITY);
     let (tx_ops, rx_ops) = async_channel::bounded(SUBMISSION_CHANNEL_CAPACITY);
     let conversation_history = initial_history.unwrap_or(InitialHistory::New);
@@ -195,7 +195,7 @@ pub(crate) async fn run_codex_thread_interactive(
 ///
 /// Internally calls the interactive variant, then immediately submits the provided input.
 #[allow(clippy::too_many_arguments)]
-pub(crate) async fn run_codex_thread_one_shot(
+pub(crate) async fn run_ditfa_thread_one_shot(
     config: Config,
     auth_manager: Arc<AuthManager>,
     models_manager: SharedModelsManager,
@@ -206,11 +206,11 @@ pub(crate) async fn run_codex_thread_one_shot(
     subagent_source: SubAgentSource,
     final_output_json_schema: Option<Value>,
     initial_history: Option<InitialHistory>,
-) -> Result<(Arc<Session>, SessionIo), CodexErr> {
+) -> Result<(Arc<Session>, SessionIo), DitfaErr> {
     // Use a child token so we can stop the delegate after completion without
     // requiring the caller to cancel the parent token.
     let child_cancel = cancel_token.child_token();
-    let (session, io) = Box::pin(run_codex_thread_interactive(
+    let (session, io) = Box::pin(run_ditfa_thread_interactive(
         config,
         auth_manager,
         models_manager,

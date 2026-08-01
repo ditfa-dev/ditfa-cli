@@ -705,7 +705,7 @@ mod tests {
         let mut config = base_config();
         let mut hook = github_hook();
         hook.matcher.body = Some(MitmHookBodyConfig(serde_json::json!({
-            "repository": "openai/codex"
+            "repository": "openai/ditfa"
         })));
         config.mitm_hooks = vec![hook];
 
@@ -797,7 +797,7 @@ mod tests {
         .unwrap();
         let req = Request::builder()
             .method(Method::POST)
-            .uri("/repos/openai/codex/issues")
+            .uri("/repos/openai/ditfa/issues")
             .header("x-trace", "1")
             .body(Body::empty())
             .unwrap();
@@ -835,7 +835,7 @@ mod tests {
         .unwrap();
         let req = Request::builder()
             .method(Method::POST)
-            .uri("/repos/openai/codex/issues?state=open&per_page=10")
+            .uri("/repos/openai/ditfa/issues?state=open&per_page=10")
             .header("x-github-api-version", "2022-11-28")
             .body(Body::empty())
             .unwrap();
@@ -852,7 +852,7 @@ mod tests {
     fn evaluate_matches_wildcard_path_query_and_header_constraints() {
         let mut config = base_config();
         let mut hook = github_hook();
-        hook.matcher.path_prefixes = vec!["pattern:/repos/*/codex/issues*".to_string()];
+        hook.matcher.path_prefixes = vec!["pattern:/repos/*/ditfa/issues*".to_string()];
         hook.matcher.query =
             BTreeMap::from([("state".to_string(), vec!["pattern:op*".to_string()])]);
         hook.matcher.headers = BTreeMap::from([(
@@ -869,7 +869,7 @@ mod tests {
         .unwrap();
         let req = Request::builder()
             .method(Method::POST)
-            .uri("/repos/openai/codex/issues?state=open")
+            .uri("/repos/openai/ditfa/issues?state=open")
             .header("x-github-api-version", "2022-11-28-preview")
             .body(Body::empty())
             .unwrap();
@@ -897,7 +897,7 @@ mod tests {
     fn evaluate_path_wildcard_does_not_cross_segment_boundaries() {
         let mut config = base_config();
         let mut hook = github_hook();
-        hook.matcher.path_prefixes = vec!["pattern:/repos/*/codex/issues*".to_string()];
+        hook.matcher.path_prefixes = vec!["pattern:/repos/*/ditfa/issues*".to_string()];
         config.mitm_hooks = vec![hook];
 
         let hooks = compile_mitm_hooks_with_resolvers(
@@ -908,7 +908,7 @@ mod tests {
         .unwrap();
         let nested_req = Request::builder()
             .method(Method::POST)
-            .uri("/repos/openai/private/codex/issues")
+            .uri("/repos/openai/private/ditfa/issues")
             .body(Body::empty())
             .unwrap();
 
@@ -938,13 +938,13 @@ mod tests {
         .unwrap();
         let exact_req = Request::builder()
             .method(Method::POST)
-            .uri("/repos/[draft]/codex/issues?state=op*")
+            .uri("/repos/[draft]/ditfa/issues?state=op*")
             .header("x-github-api-version", "2022-11-28[preview]")
             .body(Body::empty())
             .unwrap();
         let non_literal_req = Request::builder()
             .method(Method::POST)
-            .uri("/repos/draft/codex/issues?state=open")
+            .uri("/repos/draft/ditfa/issues?state=open")
             .header("x-github-api-version", "2022-11-28-preview")
             .body(Body::empty())
             .unwrap();
@@ -981,13 +981,13 @@ mod tests {
         .unwrap();
         let exact_req = Request::builder()
             .method(Method::POST)
-            .uri("/repos/openai/codex/issues?state=pattern%3A%2A")
+            .uri("/repos/openai/ditfa/issues?state=pattern%3A%2A")
             .header("x-github-api-version", "pattern:*")
             .body(Body::empty())
             .unwrap();
         let non_literal_req = Request::builder()
             .method(Method::POST)
-            .uri("/repos/openai/codex/issues?state=pattern%3Aopen")
+            .uri("/repos/openai/ditfa/issues?state=pattern%3Aopen")
             .header("x-github-api-version", "pattern:preview")
             .body(Body::empty())
             .unwrap();
@@ -1019,7 +1019,7 @@ mod tests {
         .unwrap();
         let req = Request::builder()
             .method(Method::POST)
-            .uri("/repos/openai/codex/issues?state=closed")
+            .uri("/repos/openai/ditfa/issues?state=closed")
             .body(Body::empty())
             .unwrap();
 
@@ -1033,7 +1033,7 @@ mod tests {
     fn evaluate_returns_no_hooks_for_unconfigured_host() {
         let req = Request::builder()
             .method(Method::POST)
-            .uri("/repos/openai/codex/issues")
+            .uri("/repos/openai/ditfa/issues")
             .body(Body::empty())
             .unwrap();
 

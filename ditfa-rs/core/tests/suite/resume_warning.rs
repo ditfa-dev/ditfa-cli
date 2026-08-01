@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use ditfa_core::NewThread;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::config_types::ModeKind;
 use ditfa_protocol::config_types::ReasoningSummary;
@@ -100,11 +100,11 @@ async fn emits_warning_when_resumed_model_differs() {
     let initial_history = resume_history(&config, "previous-model", &rollout_path);
 
     let thread_manager = ditfa_core::test_support::thread_manager_with_models_provider(
-        CodexAuth::from_api_key("test"),
+        DitfaAuth::from_api_key("test"),
         config.model_provider.clone(),
     );
     let auth_manager =
-        ditfa_core::test_support::auth_manager_from_auth(CodexAuth::from_api_key("test"));
+        ditfa_core::test_support::auth_manager_from_auth(DitfaAuth::from_api_key("test"));
 
     // Act: resume the conversation.
     let NewThread {

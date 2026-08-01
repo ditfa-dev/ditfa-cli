@@ -7,9 +7,9 @@ use ditfa_protocol::mcp::CallToolResult;
 use serde_json::Value as JsonValue;
 use tracing::Span;
 
-const MCP_CALL_COUNT_METRIC: &str = "codex.mcp.call";
-const MCP_CALL_DURATION_METRIC: &str = "codex.mcp.call.duration_ms";
-const MCP_CALL_ERROR_COUNT_METRIC: &str = "codex.mcp.call.error";
+const MCP_CALL_COUNT_METRIC: &str = "ditfa.mcp.call";
+const MCP_CALL_DURATION_METRIC: &str = "ditfa.mcp.call.duration_ms";
+const MCP_CALL_ERROR_COUNT_METRIC: &str = "ditfa.mcp.call.error";
 // No CallToolResult was received. This includes request setup, transport, timeout, protocol, and
 // JSON-RPC failures; it does not imply that the request never reached the MCP server.
 const MCP_CALL_ERROR_TYPE_MCP_REQUEST: &str = "mcp_request";
@@ -18,7 +18,7 @@ const MCP_CALL_ERROR_TYPE_TOOL_RESULT: &str = "tool_result";
 const MCP_CALL_ERROR_CODE_UNKNOWN: &str = "unknown";
 const MCP_CALL_ERROR_CODE_MAX_CHARS: usize = 256;
 const MCP_CALL_ERROR_TYPE_SPAN_ATTR: &str = "error.type";
-const MCP_CALL_ERROR_CODE_SPAN_ATTR: &str = "codex.mcp.error.code";
+const MCP_CALL_ERROR_CODE_SPAN_ATTR: &str = "ditfa.mcp.error.code";
 
 #[derive(Debug, PartialEq, Eq)]
 pub(super) struct McpCallMetricOutcome {

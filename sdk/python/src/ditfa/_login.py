@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
-from .async_client import AsyncCodexClient
-from .client import CodexClient
+from .async_client import AsyncDitfaClient
+from .client import DitfaClient
 from .generated.v2_all import (
     AccountLoginCompletedNotification,
     CancelLoginAccountResponse,
@@ -17,16 +17,16 @@ from .generated.v2_all import (
 
 
 class _AsyncLoginOwner(Protocol):
-    """Subset of AsyncCodex needed by async login handles."""
+    """Subset of AsyncDitfa needed by async login handles."""
 
-    _client: AsyncCodexClient
+    _client: AsyncDitfaClient
 
     async def _ensure_initialized(self) -> None:
-        """Ensure the owning SDK client has a live Codex connection."""
+        """Ensure the owning SDK client has a live Ditfa connection."""
         ...
 
 
-def start_chatgpt_login(client: CodexClient) -> ChatgptLoginHandle:
+def start_chatgpt_login(client: DitfaClient) -> ChatgptLoginHandle:
     """Start browser ChatGPT login and return the handle for that attempt."""
     response = client.account_login_start(
         LoginAccountParams(
@@ -60,7 +60,7 @@ async def async_start_chatgpt_login(owner: _AsyncLoginOwner) -> AsyncChatgptLogi
     )
 
 
-def start_device_code_login(client: CodexClient) -> DeviceCodeLoginHandle:
+def start_device_code_login(client: DitfaClient) -> DeviceCodeLoginHandle:
     """Start device-code ChatGPT login and return the handle for that attempt."""
     response = client.account_login_start(
         LoginAccountParams(
@@ -100,9 +100,9 @@ async def async_start_device_code_login(
 
 @dataclass(slots=True)
 class ChatgptLoginHandle:
-    """Live browser-login attempt returned by `Codex.login_chatgpt()`."""
+    """Live browser-login attempt returned by `Ditfa.login_chatgpt()`."""
 
-    _client: CodexClient
+    _client: DitfaClient
     login_id: str
     auth_url: str
 
@@ -117,9 +117,9 @@ class ChatgptLoginHandle:
 
 @dataclass(slots=True)
 class DeviceCodeLoginHandle:
-    """Live device-code login attempt returned by `Codex.login_chatgpt_device_code()`."""
+    """Live device-code login attempt returned by `Ditfa.login_chatgpt_device_code()`."""
 
-    _client: CodexClient
+    _client: DitfaClient
     login_id: str
     verification_url: str
     user_code: str
@@ -135,38 +135,38 @@ class DeviceCodeLoginHandle:
 
 @dataclass(slots=True)
 class AsyncChatgptLoginHandle:
-    """Live browser-login attempt returned by `AsyncCodex.login_chatgpt()`."""
+    """Live browser-login attempt returned by `AsyncDitfa.login_chatgpt()`."""
 
-    _codex: _AsyncLoginOwner
+    _ditfa: _AsyncLoginOwner
     login_id: str
     auth_url: str
 
     async def wait(self) -> AccountLoginCompletedNotification:
         """Wait for this browser login attempt's completion notification."""
-        await self._codex._ensure_initialized()
-        return await self._codex._client.wait_for_login_completed(self.login_id)
+        await self._ditfa._ensure_initialized()
+        return await self._ditfa._client.wait_for_login_completed(self.login_id)
 
     async def cancel(self) -> CancelLoginAccountResponse:
         """Cancel this browser login attempt."""
-        await self._codex._ensure_initialized()
-        return await self._codex._client.account_login_cancel(self.login_id)
+        await self._ditfa._ensure_initialized()
+        return await self._ditfa._client.account_login_cancel(self.login_id)
 
 
 @dataclass(slots=True)
 class AsyncDeviceCodeLoginHandle:
-    """Live device-code attempt returned by `AsyncCodex.login_chatgpt_device_code()`."""
+    """Live device-code attempt returned by `AsyncDitfa.login_chatgpt_device_code()`."""
 
-    _codex: _AsyncLoginOwner
+    _ditfa: _AsyncLoginOwner
     login_id: str
     verification_url: str
     user_code: str
 
     async def wait(self) -> AccountLoginCompletedNotification:
         """Wait for this device-code login attempt's completion notification."""
-        await self._codex._ensure_initialized()
-        return await self._codex._client.wait_for_login_completed(self.login_id)
+        await self._ditfa._ensure_initialized()
+        return await self._ditfa._client.wait_for_login_completed(self.login_id)
 
     async def cancel(self) -> CancelLoginAccountResponse:
         """Cancel this device-code login attempt."""
-        await self._codex._ensure_initialized()
-        return await self._codex._client.account_login_cancel(self.login_id)
+        await self._ditfa._ensure_initialized()
+        return await self._ditfa._client.account_login_cancel(self.login_id)

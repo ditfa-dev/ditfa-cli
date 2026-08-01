@@ -235,7 +235,7 @@ impl std::fmt::Display for SandboxTransformError {
                 "sandbox policy cwd URI `{cwd}` is not valid on this host: {source}"
             ),
             Self::MissingLinuxSandboxExecutable => {
-                write!(f, "missing codex-linux-sandbox executable path")
+                write!(f, "missing ditfa-linux-sandbox executable path")
             }
             Self::EnvironmentNetworkProxy(err) => {
                 write!(f, "failed to prepare environment network proxy: {err}")
@@ -467,9 +467,9 @@ impl SandboxManager {
     ) -> Result<SandboxExecRequest, SandboxTransformError> {
         #[cfg(target_os = "windows")]
         {
-            let ditfa_home = ditfa_utils_home_dir::find_codex_home()
+            let ditfa_home = ditfa_utils_home_dir::find_ditfa_home()
                 .map_err(|err| SandboxTransformError::WindowsSandboxPreparation(err.to_string()))?;
-            self.transform_for_direct_spawn_with_codex_home(request, ditfa_home.as_path())
+            self.transform_for_direct_spawn_with_ditfa_home(request, ditfa_home.as_path())
         }
 
         #[cfg(not(target_os = "windows"))]
@@ -479,7 +479,7 @@ impl SandboxManager {
     }
 
     #[cfg(target_os = "windows")]
-    fn transform_for_direct_spawn_with_codex_home(
+    fn transform_for_direct_spawn_with_ditfa_home(
         &self,
         request: SandboxDirectSpawnTransformRequest<'_>,
         ditfa_home: &Path,

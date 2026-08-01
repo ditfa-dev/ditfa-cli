@@ -61,7 +61,7 @@ async fn assert_terminate_kills_descendant(
     env: &HashMap<String, String>,
 ) -> anyhow::Result<()> {
     let marker = std::env::temp_dir().join(format!(
-        "codex-job-descendant-{backend}-{}-{}",
+        "ditfa-job-descendant-{backend}-{}-{}",
         std::process::id(),
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)?
@@ -115,7 +115,7 @@ async fn assert_normal_exit_preserves_descendant(
     env: &HashMap<String, String>,
 ) -> anyhow::Result<()> {
     let marker_base = std::env::temp_dir().join(format!(
-        "codex-job-natural-exit-{backend}-{}-{}",
+        "ditfa-job-natural-exit-{backend}-{}-{}",
         std::process::id(),
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)?

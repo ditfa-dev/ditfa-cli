@@ -19,8 +19,8 @@ use core_test_support::responses::ev_response_created;
 use core_test_support::responses::mount_sse_sequence;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use ditfa_utils_path_uri::PathUri;
 use pretty_assertions::assert_eq;
@@ -32,9 +32,9 @@ async fn windows_exec_server_runs_with_native_shell_and_cwd() -> Result<()> {
     const CALL_ID: &str = "wine-cmd-smoke";
     const PATCH_CALL_ID: &str = "wine-apply-patch";
     const VERIFY_CALL_ID: &str = "wine-verify-patch";
-    const PATCH_FILE: &str = "codex-apply-patch-smoke.txt";
+    const PATCH_FILE: &str = "ditfa-apply-patch-smoke.txt";
     const COMMAND: &str = r#"if ((Get-Location).Path -ne 'C:\windows') { exit 1 }"#;
-    const VERIFY_COMMAND: &str = r#"$path = Join-Path (Get-Location) 'codex-apply-patch-smoke.txt'; if (-not (Test-Path $path)) { exit 1 }; if ([IO.File]::ReadAllText($path) -ne "patched through unified exec`n") { exit 2 }; Remove-Item $path; Write-Output 'PATCH_VERIFIED'"#;
+    const VERIFY_COMMAND: &str = r#"$path = Join-Path (Get-Location) 'ditfa-apply-patch-smoke.txt'; if (-not (Test-Path $path)) { exit 1 }; if ([IO.File]::ReadAllText($path) -ne "patched through unified exec`n") { exit 2 }; Remove-Item $path; Write-Output 'PATCH_VERIFIED'"#;
 
     WineExecServer
         .scope(|exec_server_url, _wine_prefix| async move {
@@ -90,7 +90,7 @@ async fn windows_exec_server_runs_with_native_shell_and_cwd() -> Result<()> {
             )
             .await;
 
-            let mut builder = test_codex()
+            let mut builder = test_ditfa()
                 .with_model("gpt-5.2")
                 .with_exec_server_url(exec_server_url)
                 .with_config(|config| {
@@ -106,7 +106,7 @@ async fn windows_exec_server_runs_with_native_shell_and_cwd() -> Result<()> {
             let environments = TurnEnvironmentSelections::new(
                 test.config.cwd.clone(),
                 vec![{
-                    let cwd = PathUri::parse("file:///C:/codex-home")?;
+                    let cwd = PathUri::parse("file:///C:/ditfa-home")?;
                     TurnEnvironmentSelection {
                         environment_id: REMOTE_ENVIRONMENT_ID.to_string(),
                         cwd: cwd.clone(),
@@ -190,7 +190,7 @@ async fn windows_exec_server_runs_with_native_shell_and_cwd() -> Result<()> {
                 patch_end
                     .changes
                     .contains_key(&std::path::PathBuf::from(format!(
-                        r"C:\codex-home\apply-patch-smoke\nested\{PATCH_FILE}"
+                        r"C:\ditfa-home\apply-patch-smoke\nested\{PATCH_FILE}"
                     ))),
                 "apply_patch should retain the Windows cwd: {:?}",
                 patch_end.changes

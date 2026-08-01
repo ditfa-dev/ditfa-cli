@@ -22,7 +22,7 @@ impl WineExecServer {
     {
         let executable = ditfa_utils_cargo_bin::cargo_bin("wine-windows-exec-server")?;
         let mut exec_server = WineTestCommand::new(executable)
-            .env("DITFA_HOME", r"C:\codex-home")
+            .env("DITFA_HOME", r"C:\ditfa-home")
             .spawn()?;
         let wine_prefix = exec_server.prefix_path().to_path_buf();
         let stdout = exec_server.take_stdout();

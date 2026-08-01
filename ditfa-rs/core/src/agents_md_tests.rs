@@ -355,13 +355,13 @@ fn project_provenance(path: AbsolutePathBuf, cwd: AbsolutePathBuf) -> Instructio
 fn foreign_agents_md_uses_environment_native_paths() {
     let (cwd, rendered_cwd) = if cfg!(windows) {
         (
-            PathUri::parse("file:///codex%20runtime").expect("POSIX cwd URI"),
-            "/codex runtime",
+            PathUri::parse("file:///ditfa%20runtime").expect("POSIX cwd URI"),
+            "/ditfa runtime",
         )
     } else {
         (
-            PathUri::parse("file:///C:/codex%20runtime").expect("Windows cwd URI"),
-            r"C:\codex runtime",
+            PathUri::parse("file:///C:/ditfa%20runtime").expect("Windows cwd URI"),
+            r"C:\ditfa runtime",
         )
     };
     let source_path = cwd.join("AGENTS.md").expect("AGENTS.md URI");
@@ -1359,9 +1359,9 @@ async fn project_layers_do_not_override_project_root_markers() {
 
     let mut config = make_config(&root, /*limit*/ 4096, /*instructions*/ None).await;
     config.cwd = nested.abs();
-    let project_layer = |dot_codex_folder: AbsolutePathBuf, marker: &str| {
+    let project_layer = |dot_ditfa_folder: AbsolutePathBuf, marker: &str| {
         ConfigLayerEntry::new(
-            ConfigLayerSource::Project { dot_codex_folder },
+            ConfigLayerSource::Project { dot_ditfa_folder },
             TomlValue::Table(
                 [(
                     "project_root_markers".to_string(),

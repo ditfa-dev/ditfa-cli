@@ -18,8 +18,8 @@ use core_test_support::responses::mount_sse_sequence;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_wine_exec;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::test_target_os;
 use serde_json::json;
 use wiremock::MockServer;
@@ -36,8 +36,8 @@ fn workspace_roots_profile() -> PermissionProfile {
     )
 }
 
-async fn workspace_roots_test(server: &MockServer) -> Result<TestCodex> {
-    let mut builder = test_codex().with_config(|config| {
+async fn workspace_roots_test(server: &MockServer) -> Result<TestDitfa> {
+    let mut builder = test_ditfa().with_config(|config| {
         #[cfg(windows)]
         {
             config.cwd = dunce::canonicalize(config.cwd.as_path())
@@ -55,8 +55,8 @@ async fn workspace_roots_test(server: &MockServer) -> Result<TestCodex> {
     builder.build_with_auto_env(server).await
 }
 
-fn outside_workspace_path(test: &TestCodex, file_name: &str) -> Result<PathUri> {
-    let file_name = format!("codex-workspace-roots-{}-{file_name}", std::process::id());
+fn outside_workspace_path(test: &TestDitfa, file_name: &str) -> Result<PathUri> {
+    let file_name = format!("ditfa-workspace-roots-{}-{file_name}", std::process::id());
     PathUri::from_abs_path(&test.config.cwd)
         .parent()
         .context("test workspace should have a parent")?
@@ -108,18 +108,18 @@ async fn mount_patch_and_command_calls(
     .await)
 }
 
-async fn submit_workspace_turn(test: &TestCodex, prompt: &str) -> Result<()> {
+async fn submit_workspace_turn(test: &TestDitfa, prompt: &str) -> Result<()> {
     test.submit_turn_with_permission_profile(prompt, workspace_roots_profile())
         .await
 }
 
-async fn read_file(test: &TestCodex, path: &PathUri) -> Result<String> {
+async fn read_file(test: &TestDitfa, path: &PathUri) -> Result<String> {
     Ok(String::from_utf8(
         test.fs().read_file(path, /*sandbox*/ None).await?,
     )?)
 }
 
-async fn remove_files(test: &TestCodex, paths: &[&PathUri]) -> Result<()> {
+async fn remove_files(test: &TestDitfa, paths: &[&PathUri]) -> Result<()> {
     for path in paths {
         test.fs()
             .remove(

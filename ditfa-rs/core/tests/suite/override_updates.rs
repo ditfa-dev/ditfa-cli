@@ -9,8 +9,8 @@ use ditfa_protocol::protocol::Op;
 use core_test_support::TempDirExt;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use tempfile::TempDir;
 
@@ -31,7 +31,7 @@ async fn thread_settings_update_without_user_turn_does_not_record_permissions_up
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.permissions.approval_policy = Constrained::allow_any(AskForApproval::OnRequest);
     });
     let test = builder.build(&server).await?;
@@ -63,7 +63,7 @@ async fn thread_settings_update_without_user_turn_does_not_record_environment_up
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let test = test_codex().build(&server).await?;
+    let test = test_ditfa().build(&server).await?;
     let new_cwd = TempDir::new()?;
 
     core_test_support::submit_thread_settings(
@@ -93,7 +93,7 @@ async fn thread_settings_update_without_user_turn_does_not_record_collaboration_
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let test = test_codex().build(&server).await?;
+    let test = test_ditfa().build(&server).await?;
     let collab_text = "override collaboration instructions";
     let collaboration_mode = collab_mode_with_instructions(Some(collab_text));
 

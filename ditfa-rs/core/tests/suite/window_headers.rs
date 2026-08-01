@@ -1,6 +1,6 @@
 use super::compact::COMPACT_WARNING_MESSAGE;
 use anyhow::Result;
-use ditfa_core::CodexThread;
+use ditfa_core::DitfaThread;
 use ditfa_core::compact::SUMMARIZATION_PROMPT;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::Op;
@@ -13,7 +13,7 @@ use core_test_support::responses::mount_sse_sequence;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use std::sync::Arc;
@@ -41,7 +41,7 @@ async fn window_id_advances_after_compact_persists_on_resume_and_resets_on_fork(
     )
     .await;
 
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.model_provider.name = "Non-OpenAI Model provider".to_string();
         config.compact_prompt = Some(SUMMARIZATION_PROMPT.to_string());
     });
@@ -99,8 +99,8 @@ async fn window_id_advances_after_compact_persists_on_resume_and_resets_on_fork(
     Ok(())
 }
 
-async fn submit_user_turn(codex: &Arc<CodexThread>, text: &str) -> Result<()> {
-    codex
+async fn submit_user_turn(ditfa: &Arc<DitfaThread>, text: &str) -> Result<()> {
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: text.to_string(),
@@ -112,24 +112,24 @@ async fn submit_user_turn(codex: &Arc<CodexThread>, text: &str) -> Result<()> {
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
     Ok(())
 }
 
-async fn submit_compact_turn(codex: &Arc<CodexThread>) -> Result<()> {
-    codex.submit(Op::Compact).await?;
-    let warning_event = wait_for_event(codex, |event| matches!(event, EventMsg::Warning(_))).await;
+async fn submit_compact_turn(ditfa: &Arc<DitfaThread>) -> Result<()> {
+    ditfa.submit(Op::Compact).await?;
+    let warning_event = wait_for_event(ditfa, |event| matches!(event, EventMsg::Warning(_))).await;
     let EventMsg::Warning(WarningEvent { message }) = warning_event else {
         panic!("expected warning event after compact");
     };
     assert_eq!(message, COMPACT_WARNING_MESSAGE);
-    wait_for_event(codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
     Ok(())
 }
 
-async fn shutdown_thread(codex: &Arc<CodexThread>) -> Result<()> {
-    codex.submit(Op::Shutdown).await?;
-    wait_for_event(codex, |event| matches!(event, EventMsg::ShutdownComplete)).await;
+async fn shutdown_thread(ditfa: &Arc<DitfaThread>) -> Result<()> {
+    ditfa.submit(Op::Shutdown).await?;
+    wait_for_event(ditfa, |event| matches!(event, EventMsg::ShutdownComplete)).await;
     Ok(())
 }
 

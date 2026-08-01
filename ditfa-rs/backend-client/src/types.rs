@@ -55,14 +55,14 @@ pub(crate) struct RateLimitStatusWithResetCredits {
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
-pub struct CodexWorkspaceMessagesResponse {
+pub struct DitfaWorkspaceMessagesResponse {
     #[serde(default)]
-    pub messages: Vec<CodexWorkspaceMessage>,
+    pub messages: Vec<DitfaWorkspaceMessage>,
 }
 
-/// Authenticated Codex user settings used by CLI runtime policy.
+/// Authenticated Ditfa user settings used by CLI runtime policy.
 #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Eq)]
-pub struct CodexUserSettingsResponse {
+pub struct DitfaUserSettingsResponse {
     /// Server-computed effective commit-attribution policy.
     ///
     /// Older backend responses omit this field, which safely defaults to disabled.
@@ -71,9 +71,9 @@ pub struct CodexUserSettingsResponse {
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
-pub struct CodexWorkspaceMessage {
+pub struct DitfaWorkspaceMessage {
     pub message_id: String,
-    pub message_type: CodexWorkspaceMessageType,
+    pub message_type: DitfaWorkspaceMessageType,
     pub message_body: String,
     #[serde(default)]
     pub created_at: Option<String>,
@@ -99,7 +99,7 @@ pub struct ConsumeRateLimitResetCreditResponse {
 
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
-pub enum CodexWorkspaceMessageType {
+pub enum DitfaWorkspaceMessageType {
     Headline,
     Announcement,
     #[serde(other)]
@@ -577,7 +577,7 @@ Second line"
 
     #[test]
     fn workspace_messages_response_deserializes_messages() {
-        let response: CodexWorkspaceMessagesResponse = serde_json::from_value(serde_json::json!({
+        let response: DitfaWorkspaceMessagesResponse = serde_json::from_value(serde_json::json!({
             "messages": [
                 {
                     "message_id": "headline-id",
@@ -604,25 +604,25 @@ Second line"
 
         assert_eq!(
             response,
-            CodexWorkspaceMessagesResponse {
+            DitfaWorkspaceMessagesResponse {
                 messages: vec![
-                    CodexWorkspaceMessage {
+                    DitfaWorkspaceMessage {
                         message_id: "headline-id".to_string(),
-                        message_type: CodexWorkspaceMessageType::Headline,
+                        message_type: DitfaWorkspaceMessageType::Headline,
                         message_body: "Headline body".to_string(),
                         created_at: Some("2026-06-14T00:00:00Z".to_string()),
                         archived_at: None,
                     },
-                    CodexWorkspaceMessage {
+                    DitfaWorkspaceMessage {
                         message_id: "announcement-id".to_string(),
-                        message_type: CodexWorkspaceMessageType::Announcement,
+                        message_type: DitfaWorkspaceMessageType::Announcement,
                         message_body: "Announcement body".to_string(),
                         created_at: Some("2026-06-14T01:00:00Z".to_string()),
                         archived_at: None,
                     },
-                    CodexWorkspaceMessage {
+                    DitfaWorkspaceMessage {
                         message_id: "unknown-id".to_string(),
-                        message_type: CodexWorkspaceMessageType::Unknown,
+                        message_type: DitfaWorkspaceMessageType::Unknown,
                         message_body: "Unknown body".to_string(),
                         created_at: None,
                         archived_at: None,

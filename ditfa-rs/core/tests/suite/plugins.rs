@@ -7,7 +7,7 @@ use std::time::Instant;
 
 use anyhow::Result;
 use ditfa_features::Feature;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_mcp::DITFA_APPS_MCP_SERVER_NAME;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::Op;
@@ -25,8 +25,8 @@ use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
 use core_test_support::stdio_server_bin;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_mcp_server;
 use tempfile::TempDir;
@@ -35,7 +35,7 @@ use wiremock::MockServer;
 const SAMPLE_PLUGIN_CONFIG_NAME: &str = "sample@test";
 const SAMPLE_PLUGIN_DISPLAY_NAME: &str = "sample";
 const SAMPLE_PLUGIN_DESCRIPTION: &str = "inspect sample data";
-const SAMPLE_PLUGIN_APP_NAMESPACE: &str = "mcp__codex_apps__google_calendar";
+const SAMPLE_PLUGIN_APP_NAMESPACE: &str = "mcp__ditfa_apps__google_calendar";
 const SAMPLE_PLUGIN_MCP_NAMESPACE: &str = "mcp__sample";
 const PLUGIN_APP_SEARCH_CALL_ID: &str = "plugin-app-search";
 const PLUGIN_MCP_SEARCH_CALL_ID: &str = "plugin-mcp-search";
@@ -116,14 +116,14 @@ fn write_plugin_app_plugin_with_name(home: &TempDir, app_name: &str) {
     .expect("write plugin app config");
 }
 
-async fn build_analytics_plugin_test_codex(
+async fn build_analytics_plugin_test_ditfa(
     server: &MockServer,
     ditfa_home: Arc<TempDir>,
-) -> Result<TestCodex> {
+) -> Result<TestDitfa> {
     let chatgpt_base_url = server.uri();
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_home(ditfa_home)
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_model("gpt-5.2")
         .with_config(move |config| {
             config.chatgpt_base_url = chatgpt_base_url;
@@ -134,14 +134,14 @@ async fn build_analytics_plugin_test_codex(
         .expect("create new conversation"))
 }
 
-async fn build_apps_enabled_plugin_test_codex(
+async fn build_apps_enabled_plugin_test_ditfa(
     server: &MockServer,
     ditfa_home: Arc<TempDir>,
     chatgpt_base_url: String,
-) -> Result<TestCodex> {
-    let mut builder = test_codex()
+) -> Result<TestDitfa> {
+    let mut builder = test_ditfa()
         .with_home(ditfa_home)
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_config(move |config| {
             config
                 .features
@@ -219,15 +219,15 @@ async fn capability_sections_render_in_developer_message_in_order() -> Result<()
     let ditfa_home = Arc::new(TempDir::new()?);
     write_plugin_skill_plugin(ditfa_home.as_ref());
     write_plugin_app_plugin(ditfa_home.as_ref());
-    let test_codex = build_apps_enabled_plugin_test_codex(
+    let test_ditfa = build_apps_enabled_plugin_test_ditfa(
         &server,
         Arc::clone(&ditfa_home),
         apps_server.chatgpt_base_url,
     )
     .await?;
-    let codex = Arc::clone(&test_codex.ditfa);
+    let ditfa = Arc::clone(&test_ditfa.ditfa);
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![ditfa_protocol::user_input::UserInput::Text {
                 text: "hello".into(),
@@ -240,7 +240,7 @@ async fn capability_sections_render_in_developer_message_in_order() -> Result<()
         })
         .await?;
 
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
     let developer_messages = request.message_input_texts("developer");
@@ -293,13 +293,13 @@ async fn explicit_plugin_mentions_use_apps_for_chatgpt_dual_surface_plugins() ->
     write_plugin_mcp_plugin(ditfa_home.as_ref(), &rmcp_test_server_bin);
     write_plugin_app_plugin(ditfa_home.as_ref());
 
-    let test_codex =
-        build_apps_enabled_plugin_test_codex(&server, ditfa_home, apps_server.chatgpt_base_url)
+    let test_ditfa =
+        build_apps_enabled_plugin_test_ditfa(&server, ditfa_home, apps_server.chatgpt_base_url)
             .await?;
-    let codex = Arc::clone(&test_codex.ditfa);
-    wait_for_mcp_server(&codex, DITFA_APPS_MCP_SERVER_NAME).await?;
+    let ditfa = Arc::clone(&test_ditfa.ditfa);
+    wait_for_mcp_server(&ditfa, DITFA_APPS_MCP_SERVER_NAME).await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![ditfa_protocol::user_input::UserInput::Mention {
                 name: "sample".into(),
@@ -311,7 +311,7 @@ async fn explicit_plugin_mentions_use_apps_for_chatgpt_dual_surface_plugins() ->
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let requests = mock.requests();
     let request = &requests[0];
@@ -370,13 +370,13 @@ async fn explicit_plugin_mentions_keep_non_conflicting_mcp_for_chatgpt_auth() ->
     write_plugin_mcp_plugin(ditfa_home.as_ref(), &rmcp_test_server_bin);
     write_plugin_app_plugin_with_name(ditfa_home.as_ref(), "sample_app");
 
-    let test_codex =
-        build_apps_enabled_plugin_test_codex(&server, ditfa_home, apps_server.chatgpt_base_url)
+    let test_ditfa =
+        build_apps_enabled_plugin_test_ditfa(&server, ditfa_home, apps_server.chatgpt_base_url)
             .await?;
-    let codex = Arc::clone(&test_codex.ditfa);
-    wait_for_mcp_server(&codex, "sample").await?;
+    let ditfa = Arc::clone(&test_ditfa.ditfa);
+    wait_for_mcp_server(&ditfa, "sample").await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![ditfa_protocol::user_input::UserInput::Mention {
                 name: "sample".into(),
@@ -388,7 +388,7 @@ async fn explicit_plugin_mentions_keep_non_conflicting_mcp_for_chatgpt_auth() ->
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let requests = mock.requests();
     let request = &requests[0];
@@ -434,23 +434,23 @@ async fn explicit_plugin_mentions_use_mcp_for_api_key_dual_surface_plugins() -> 
     write_plugin_mcp_plugin(ditfa_home.as_ref(), &rmcp_test_server_bin);
     write_plugin_app_plugin(ditfa_home.as_ref());
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_home(ditfa_home)
-        .with_auth(CodexAuth::from_api_key("Test API Key"))
+        .with_auth(DitfaAuth::from_api_key("Test API Key"))
         .with_config(move |config| {
             config
                 .features
                 .enable(Feature::Apps)
                 .expect("test config should allow feature update");
         });
-    let test_codex = builder
+    let test_ditfa = builder
         .build(&server)
         .await
         .expect("create new conversation");
-    let codex = Arc::clone(&test_codex.ditfa);
-    wait_for_mcp_server(&codex, "sample").await?;
+    let ditfa = Arc::clone(&test_ditfa.ditfa);
+    wait_for_mcp_server(&ditfa, "sample").await?;
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![ditfa_protocol::user_input::UserInput::Mention {
                 name: "sample".into(),
@@ -462,7 +462,7 @@ async fn explicit_plugin_mentions_use_mcp_for_api_key_dual_surface_plugins() -> 
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let requests = mock.requests();
     let request = &requests[0];
@@ -514,10 +514,10 @@ async fn explicit_plugin_mentions_track_plugin_used_analytics() -> Result<()> {
 
     let ditfa_home = Arc::new(TempDir::new()?);
     write_plugin_skill_plugin(ditfa_home.as_ref());
-    let test_codex = build_analytics_plugin_test_codex(&server, ditfa_home).await?;
-    let codex = Arc::clone(&test_codex.ditfa);
+    let test_ditfa = build_analytics_plugin_test_ditfa(&server, ditfa_home).await?;
+    let ditfa = Arc::clone(&test_ditfa.ditfa);
 
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![ditfa_protocol::user_input::UserInput::Mention {
                 name: "sample".into(),
@@ -529,14 +529,14 @@ async fn explicit_plugin_mentions_track_plugin_used_analytics() -> Result<()> {
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let deadline = Instant::now() + Duration::from_secs(10);
     let plugin_event = loop {
         let requests = server.received_requests().await.unwrap_or_default();
         if let Some(event) = requests
             .into_iter()
-            .filter(|request| request.url.path() == "/codex/analytics-events/events")
+            .filter(|request| request.url.path() == "/ditfa/analytics-events/events")
             .find_map(|request| {
                 let payload: serde_json::Value = serde_json::from_slice(&request.body).ok()?;
                 payload["events"].as_array().and_then(|events| {

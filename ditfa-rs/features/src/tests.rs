@@ -187,8 +187,8 @@ fn collab_is_legacy_alias_for_multi_agent() {
 
 #[test]
 fn ditfa_hooks_is_legacy_alias_for_hooks() {
-    assert_eq!(feature_for_key("hooks"), Some(Feature::CodexHooks));
-    assert_eq!(feature_for_key("ditfa_hooks"), Some(Feature::CodexHooks));
+    assert_eq!(feature_for_key("hooks"), Some(Feature::DitfaHooks));
+    assert_eq!(feature_for_key("ditfa_hooks"), Some(Feature::DitfaHooks));
 }
 
 #[test]

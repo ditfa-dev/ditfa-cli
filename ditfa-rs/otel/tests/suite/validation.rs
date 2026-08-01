@@ -6,7 +6,7 @@ use opentelemetry_sdk::metrics::InMemoryMetricExporter;
 
 fn build_in_memory_client() -> Result<MetricsClient> {
     let exporter = InMemoryMetricExporter::default();
-    let config = MetricsConfig::in_memory("test", "codex-cli", env!("CARGO_PKG_VERSION"), exporter);
+    let config = MetricsConfig::in_memory("test", "ditfa-cli", env!("CARGO_PKG_VERSION"), exporter);
     MetricsClient::new(config)
 }
 
@@ -15,7 +15,7 @@ fn build_in_memory_client() -> Result<MetricsClient> {
 fn invalid_tag_component_is_rejected() -> Result<()> {
     let err = MetricsConfig::in_memory(
         "test",
-        "codex-cli",
+        "ditfa-cli",
         env!("CARGO_PKG_VERSION"),
         InMemoryMetricExporter::default(),
     )
@@ -34,7 +34,7 @@ fn invalid_tag_component_is_rejected() -> Result<()> {
 fn counter_rejects_invalid_tag_key() -> Result<()> {
     let metrics = build_in_memory_client()?;
     let err = metrics
-        .counter("codex.turns", /*inc*/ 1, &[("bad key", "value")])
+        .counter("ditfa.turns", /*inc*/ 1, &[("bad key", "value")])
         .unwrap_err();
     assert!(matches!(
         err,
@@ -51,7 +51,7 @@ fn histogram_rejects_invalid_tag_value() -> Result<()> {
     let metrics = build_in_memory_client()?;
     let err = metrics
         .histogram(
-            "codex.request_latency",
+            "ditfa.request_latency",
             /*value*/ 3,
             &[("route", "bad value")],
         )
@@ -81,10 +81,10 @@ fn counter_rejects_invalid_metric_name() -> Result<()> {
 #[test]
 fn counter_rejects_negative_increment() -> Result<()> {
     let metrics = build_in_memory_client()?;
-    let err = metrics.counter("codex.turns", /*inc*/ -1, &[]).unwrap_err();
+    let err = metrics.counter("ditfa.turns", /*inc*/ -1, &[]).unwrap_err();
     assert!(matches!(
         err,
-        MetricsError::NegativeCounterIncrement { name, inc } if name == "codex.turns" && inc == -1
+        MetricsError::NegativeCounterIncrement { name, inc } if name == "ditfa.turns" && inc == -1
     ));
     metrics.shutdown()?;
     Ok(())

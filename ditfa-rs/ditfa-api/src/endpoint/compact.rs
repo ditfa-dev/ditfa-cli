@@ -13,7 +13,7 @@ use std::sync::Arc;
 use std::sync::OnceLock;
 use std::time::Duration;
 
-const X_DITFA_TURN_STATE_HEADER: &str = "x-codex-turn-state";
+const X_DITFA_TURN_STATE_HEADER: &str = "x-ditfa-turn-state";
 
 pub struct CompactClient<T: HttpTransport> {
     session: EndpointSession<T>,

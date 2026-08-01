@@ -13,8 +13,8 @@ use core_test_support::responses::mount_sse_once;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
@@ -69,7 +69,7 @@ async fn no_collaboration_instructions_by_default() -> Result<()> {
     )
     .await;
 
-    let test = test_codex().build(&server).await?;
+    let test = test_ditfa().build(&server).await?;
 
     test.ditfa
         .submit(Op::UserInput {
@@ -112,7 +112,7 @@ async fn user_input_includes_collaboration_instructions_after_override() -> Resu
     )
     .await;
 
-    let test = test_codex().build(&server).await?;
+    let test = test_ditfa().build(&server).await?;
 
     let collab_text = "collab instructions";
     let collaboration_mode = collab_mode_with_instructions(Some(collab_text));
@@ -158,7 +158,7 @@ async fn collaboration_instructions_added_on_user_turn() -> Result<()> {
     )
     .await;
 
-    let test = test_codex().build(&server).await?;
+    let test = test_ditfa().build(&server).await?;
     let collab_text = "turn instructions";
     let collaboration_mode = collab_mode_with_instructions(Some(collab_text));
 
@@ -206,7 +206,7 @@ async fn collaboration_instructions_omitted_when_disabled() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config.include_collaboration_mode_instructions = false;
     });
     let test = builder.build(&server).await?;
@@ -258,7 +258,7 @@ async fn override_then_next_turn_uses_updated_collaboration_instructions() -> Re
     )
     .await;
 
-    let test = test_codex().build(&server).await?;
+    let test = test_ditfa().build(&server).await?;
     let collab_text = "override instructions";
     let collaboration_mode = collab_mode_with_instructions(Some(collab_text));
 
@@ -304,7 +304,7 @@ async fn user_turn_overrides_collaboration_instructions_after_override() -> Resu
     )
     .await;
 
-    let test = test_codex().build(&server).await?;
+    let test = test_ditfa().build(&server).await?;
     let base_text = "base instructions";
     let base_mode = collab_mode_with_instructions(Some(base_text));
     let turn_text = "turn override";
@@ -370,7 +370,7 @@ async fn collaboration_mode_update_ignores_instruction_changes_within_same_mode(
     )
     .await;
 
-    let test = test_codex().build(&server).await?;
+    let test = test_ditfa().build(&server).await?;
     let first_text = "first instructions";
     let second_text = "second instructions";
 
@@ -446,7 +446,7 @@ async fn collaboration_mode_update_noop_does_not_append() -> Result<()> {
     )
     .await;
 
-    let test = test_codex().build(&server).await?;
+    let test = test_ditfa().build(&server).await?;
     let collab_text = "same instructions";
 
     core_test_support::submit_thread_settings(
@@ -519,7 +519,7 @@ async fn collaboration_mode_update_emits_new_instruction_message_when_mode_chang
     )
     .await;
 
-    let test = test_codex().build(&server).await?;
+    let test = test_ditfa().build(&server).await?;
     let default_text = "default mode instructions";
     let plan_text = "plan mode instructions";
 
@@ -601,7 +601,7 @@ async fn collaboration_mode_update_noop_does_not_append_when_mode_is_unchanged()
     )
     .await;
 
-    let test = test_codex().build(&server).await?;
+    let test = test_ditfa().build(&server).await?;
     let collab_text = "mode-stable instructions";
 
     core_test_support::submit_thread_settings(
@@ -680,7 +680,7 @@ async fn resume_replays_collaboration_instructions() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex();
+    let mut builder = test_ditfa();
     let initial = builder.build(&server).await?;
     let rollout_path = initial
         .session_configured
@@ -749,7 +749,7 @@ async fn empty_collaboration_instructions_are_ignored() -> Result<()> {
     )
     .await;
 
-    let test = test_codex().build(&server).await?;
+    let test = test_ditfa().build(&server).await?;
     let current_model = test.session_configured.model.clone();
 
     core_test_support::submit_thread_settings(

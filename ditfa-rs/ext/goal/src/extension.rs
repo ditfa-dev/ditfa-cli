@@ -26,7 +26,7 @@ use ditfa_extension_api::TurnStartInput;
 use ditfa_extension_api::TurnStopInput;
 use ditfa_otel::MetricsClient;
 use ditfa_protocol::ThreadId;
-use ditfa_protocol::protocol::CodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::SessionSource;
 use ditfa_protocol::protocol::SubAgentSource;
 use ditfa_protocol::protocol::ThreadGoalStatus;
@@ -312,7 +312,7 @@ where
             };
 
             let reason = match input.error {
-                CodexErrorInfo::UsageLimitExceeded => ActiveGoalStopReason::UsageLimit,
+                DitfaErrorInfo::UsageLimitExceeded => ActiveGoalStopReason::UsageLimit,
                 // The turn has ended because the error was non-retryable or its
                 // retries were exhausted. Block the goal to prevent automatic
                 // continuation from looping and consuming tokens, as can happen

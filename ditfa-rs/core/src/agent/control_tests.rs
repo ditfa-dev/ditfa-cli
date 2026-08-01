@@ -1,5 +1,5 @@
 use super::*;
-use crate::CodexThread;
+use crate::DitfaThread;
 use crate::StateDbHandle;
 use crate::ThreadManager;
 use crate::agent::agent_status_from_event;
@@ -17,7 +17,7 @@ use ditfa_extension_api::ExtensionDataInit;
 use ditfa_extension_api::empty_extension_registry;
 use ditfa_features::Feature;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_protocol::AgentPath;
 use ditfa_protocol::ResponseItemId;
 use ditfa_protocol::capabilities::CapabilityRootLocation;
@@ -140,7 +140,7 @@ impl AgentControlHarness {
     async fn new_with_config(home: TempDir, config: Config) -> Self {
         let state_db = init_state_db(&config).await;
         let manager = ThreadManager::with_models_provider_home_and_state_for_tests(
-            CodexAuth::from_api_key("dummy"),
+            DitfaAuth::from_api_key("dummy"),
             config.model_provider.clone(),
             config.ditfa_home.to_path_buf(),
             std::sync::Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -156,7 +156,7 @@ impl AgentControlHarness {
         }
     }
 
-    async fn start_thread(&self) -> (ThreadId, Arc<CodexThread>) {
+    async fn start_thread(&self) -> (ThreadId, Arc<DitfaThread>) {
         let new_thread = self
             .manager
             .start_thread(StartThreadOptions::new(self.config.clone()))
@@ -165,7 +165,7 @@ impl AgentControlHarness {
         (new_thread.thread_id, new_thread.thread)
     }
 
-    async fn start_paginated_thread(&self) -> (ThreadId, Arc<CodexThread>) {
+    async fn start_paginated_thread(&self) -> (ThreadId, Arc<DitfaThread>) {
         let new_thread = self
             .manager
             .start_thread(StartThreadOptions {
@@ -202,7 +202,7 @@ impl AgentControlHarness {
     }
 }
 
-async fn persisted_originator(thread: &CodexThread) -> String {
+async fn persisted_originator(thread: &DitfaThread) -> String {
     thread.ensure_rollout_materialized().await;
     thread
         .flush_rollout()
@@ -288,7 +288,7 @@ fn history_contains_assistant_inter_agent_communication(
     })
 }
 
-async fn wait_for_subagent_notification(parent_thread: &Arc<CodexThread>) -> bool {
+async fn wait_for_subagent_notification(parent_thread: &Arc<DitfaThread>) -> bool {
     let wait = async {
         loop {
             let history_items = parent_thread
@@ -308,7 +308,7 @@ async fn wait_for_subagent_notification(parent_thread: &Arc<CodexThread>) -> boo
     timeout(Duration::from_secs(10), wait).await.is_ok()
 }
 
-async fn persist_thread_for_tree_resume(thread: &Arc<CodexThread>, message: &str) {
+async fn persist_thread_for_tree_resume(thread: &Arc<DitfaThread>, message: &str) {
     thread
         .inject_user_message_without_turn(message.to_string())
         .await;
@@ -350,7 +350,7 @@ async fn wait_for_live_thread_spawn_children(
 
 async fn assert_thread_not_loaded(manager: &ThreadManager, thread_id: ThreadId) {
     match manager.get_thread(thread_id).await {
-        Err(CodexErr::ThreadNotFound(id)) => assert_eq!(id, thread_id),
+        Err(DitfaErr::ThreadNotFound(id)) => assert_eq!(id, thread_id),
         Err(err) => panic!("expected ThreadNotFound, got {err:?}"),
         Ok(_) => panic!("expected thread not to be loaded"),
     }
@@ -483,7 +483,7 @@ async fn send_input_errors_when_thread_missing() {
         )
         .await
         .expect_err("send_input should fail for missing thread");
-    assert_matches!(err, CodexErr::ThreadNotFound(id) if id == thread_id);
+    assert_matches!(err, DitfaErr::ThreadNotFound(id) if id == thread_id);
 }
 
 #[tokio::test]
@@ -510,7 +510,7 @@ async fn subscribe_status_errors_for_missing_thread() {
         .subscribe_status(thread_id)
         .await
         .expect_err("subscribe_status should fail for missing thread");
-    assert_matches!(err, CodexErr::ThreadNotFound(id) if id == thread_id);
+    assert_matches!(err, DitfaErr::ThreadNotFound(id) if id == thread_id);
 }
 
 #[tokio::test]
@@ -689,7 +689,7 @@ async fn ensure_v2_agent_loaded_reloads_registered_unloaded_agent() {
             .is_some()
     );
     match harness.manager.get_thread(spawned_agent.thread_id).await {
-        Err(CodexErr::ThreadNotFound(id)) => assert_eq!(id, spawned_agent.thread_id),
+        Err(DitfaErr::ThreadNotFound(id)) => assert_eq!(id, spawned_agent.thread_id),
         Err(err) => panic!("expected ThreadNotFound, got {err:?}"),
         Ok(_) => panic!("expected thread to be removed"),
     }
@@ -799,7 +799,7 @@ async fn resume_agent_from_rollout_does_not_reopen_v2_descendants() {
     assert_eq!(report.timed_out, Vec::<ThreadId>::new());
 
     let resumed_manager = ThreadManager::with_models_provider_home_and_state_for_tests(
-        CodexAuth::from_api_key("dummy"),
+        DitfaAuth::from_api_key("dummy"),
         harness.config.model_provider.clone(),
         harness.config.ditfa_home.to_path_buf(),
         std::sync::Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -1949,7 +1949,7 @@ async fn spawn_agent_respects_legacy_max_threads_alias() {
     )])
     .await;
     let manager = ThreadManager::with_models_provider_and_home_for_tests(
-        CodexAuth::from_api_key("dummy"),
+        DitfaAuth::from_api_key("dummy"),
         config.model_provider.clone(),
         config.ditfa_home.to_path_buf(),
         std::sync::Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -1978,11 +1978,11 @@ async fn spawn_agent_respects_legacy_max_threads_alias() {
         )
         .await
         .expect_err("spawn_agent should respect max threads");
-    let CodexErr::AgentLimitReached {
+    let DitfaErr::AgentLimitReached {
         max_threads: seen_max_threads,
     } = err
     else {
-        panic!("expected CodexErr::AgentLimitReached");
+        panic!("expected DitfaErr::AgentLimitReached");
     };
     assert_eq!(seen_max_threads, max_threads);
 
@@ -2001,7 +2001,7 @@ async fn spawn_agent_releases_slot_after_shutdown() {
     )])
     .await;
     let manager = ThreadManager::with_models_provider_and_home_for_tests(
-        CodexAuth::from_api_key("dummy"),
+        DitfaAuth::from_api_key("dummy"),
         config.model_provider.clone(),
         config.ditfa_home.to_path_buf(),
         std::sync::Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -2044,7 +2044,7 @@ async fn spawn_agent_limit_shared_across_clones() {
     )])
     .await;
     let manager = ThreadManager::with_models_provider_and_home_for_tests(
-        CodexAuth::from_api_key("dummy"),
+        DitfaAuth::from_api_key("dummy"),
         config.model_provider.clone(),
         config.ditfa_home.to_path_buf(),
         std::sync::Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -2069,8 +2069,8 @@ async fn spawn_agent_limit_shared_across_clones() {
         )
         .await
         .expect_err("spawn_agent should respect shared guard");
-    let CodexErr::AgentLimitReached { max_threads } = err else {
-        panic!("expected CodexErr::AgentLimitReached");
+    let DitfaErr::AgentLimitReached { max_threads } = err else {
+        panic!("expected DitfaErr::AgentLimitReached");
     };
     assert_eq!(max_threads, 1);
 
@@ -2089,7 +2089,7 @@ async fn resume_agent_respects_max_threads_limit() {
     )])
     .await;
     let manager = ThreadManager::with_models_provider_and_home_for_tests(
-        CodexAuth::from_api_key("dummy"),
+        DitfaAuth::from_api_key("dummy"),
         config.model_provider.clone(),
         config.ditfa_home.to_path_buf(),
         std::sync::Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -2122,11 +2122,11 @@ async fn resume_agent_respects_max_threads_limit() {
         .resume_agent_from_rollout(config, resumable_id, SessionSource::Exec)
         .await
         .expect_err("resume should respect max threads");
-    let CodexErr::AgentLimitReached {
+    let DitfaErr::AgentLimitReached {
         max_threads: seen_max_threads,
     } = err
     else {
-        panic!("expected CodexErr::AgentLimitReached");
+        panic!("expected DitfaErr::AgentLimitReached");
     };
     assert_eq!(seen_max_threads, max_threads);
 
@@ -2145,7 +2145,7 @@ async fn resume_agent_releases_slot_after_resume_failure() {
     )])
     .await;
     let manager = ThreadManager::with_models_provider_and_home_for_tests(
-        CodexAuth::from_api_key("dummy"),
+        DitfaAuth::from_api_key("dummy"),
         config.model_provider.clone(),
         config.ditfa_home.to_path_buf(),
         std::sync::Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
@@ -2614,12 +2614,12 @@ async fn spawn_thread_subagent_uses_role_specific_nickname_candidates() {
 async fn resume_thread_subagent_restores_stored_metadata() {
     let (home, config) = test_config().await;
     let thread_store = Arc::new(InMemoryThreadStore::default());
-    let auth_manager = AuthManager::from_auth_for_testing(CodexAuth::from_api_key("dummy"));
+    let auth_manager = AuthManager::from_auth_for_testing(DitfaAuth::from_api_key("dummy"));
     let manager = ThreadManager::new(
         &config,
         auth_manager.clone(),
         crate::thread_manager::build_models_manager(&config, auth_manager),
-        crate::CodexAppsToolsCache::default(),
+        crate::DitfaAppsToolsCache::default(),
         SessionSource::Exec,
         Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),
         empty_extension_registry(),
@@ -3008,7 +3008,7 @@ async fn list_agent_subtree_thread_ids_includes_anonymous_and_closed_descendants
 async fn list_agent_subtree_thread_ids_finds_live_descendants_of_unloaded_root() {
     let (_home, config) = test_config().await;
     let manager = ThreadManager::with_models_provider_home_and_state_for_tests(
-        CodexAuth::from_api_key("dummy"),
+        DitfaAuth::from_api_key("dummy"),
         config.model_provider.clone(),
         config.ditfa_home.to_path_buf(),
         std::sync::Arc::new(ditfa_exec_server::EnvironmentManager::default_for_tests()),

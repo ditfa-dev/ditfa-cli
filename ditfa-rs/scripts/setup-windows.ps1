@@ -1,5 +1,5 @@
 <#
-  Setup script for building codex-rs on Windows.
+  Setup script for building ditfa-rs on Windows.
 
   What it does:
   - Installs Rust toolchain (via winget rustup) and required components
@@ -11,7 +11,7 @@
 
   Usage:
     - Right-click PowerShell and "Run as Administrator" (VS Build Tools require elevation)
-    - From the repo root (codex-rs), run:
+    - From the repo root (ditfa-rs), run:
         powershell -ExecutionPolicy Bypass -File scripts/setup-windows.ps1
 
   Notes:

@@ -175,7 +175,7 @@ fn otlp_http_exporter_sends_metrics_to_collector() -> Result<()> {
 
     let metrics = MetricsClient::new(MetricsConfig::otlp(
         "test",
-        "codex-cli",
+        "ditfa-cli",
         env!("CARGO_PKG_VERSION"),
         OtelExporter::OtlpHttp {
             endpoint: format!("http://{addr}/v1/metrics"),
@@ -185,10 +185,10 @@ fn otlp_http_exporter_sends_metrics_to_collector() -> Result<()> {
         },
     ))?;
 
-    metrics.counter("codex.turns", /*inc*/ 1, &[("source", "test")])?;
+    metrics.counter("ditfa.turns", /*inc*/ 1, &[("source", "test")])?;
     metrics.gauge_with_description(
-        "codex.active",
-        "Number of active Codex operations.",
+        "ditfa.active",
+        "Number of active Ditfa operations.",
         /*value*/ 1,
         &[("component", "test")],
     )?;
@@ -212,12 +212,12 @@ fn otlp_http_exporter_sends_metrics_to_collector() -> Result<()> {
 
     let body = String::from_utf8_lossy(&request.body);
     assert!(
-        body.contains("codex.turns"),
+        body.contains("ditfa.turns"),
         "expected metric name not found; body prefix: {}",
         &body.chars().take(2000).collect::<String>()
     );
     assert!(
-        body.contains("codex.active"),
+        body.contains("ditfa.active"),
         "expected gauge not found; body prefix: {}",
         &body.chars().take(2000).collect::<String>()
     );
@@ -267,7 +267,7 @@ fn otlp_http_exporter_sends_logs_to_collector()
 
     let otel = OtelProvider::from(&OtelSettings {
         environment: "test".to_string(),
-        service_name: "codex-cli".to_string(),
+        service_name: "ditfa-cli".to_string(),
         service_version: env!("CARGO_PKG_VERSION").to_string(),
         ditfa_home: PathBuf::from("."),
         exporter: OtelExporter::OtlpHttp {
@@ -291,7 +291,7 @@ fn otlp_http_exporter_sends_logs_to_collector()
         tracing::event!(
             target: "ditfa_otel.log_only",
             tracing::Level::INFO,
-            event.name = "codex.test.log_exported",
+            event.name = "ditfa.test.log_exported",
             "test OTEL log export"
         );
     });
@@ -315,7 +315,7 @@ fn otlp_http_exporter_sends_logs_to_collector()
 
     let body = String::from_utf8_lossy(&request.body);
     assert!(
-        body.contains("codex.test.log_exported"),
+        body.contains("ditfa.test.log_exported"),
         "expected exported log event not found; body prefix: {}",
         &body.chars().take(2000).collect::<String>()
     );
@@ -326,7 +326,7 @@ fn otlp_http_exporter_sends_logs_to_collector()
 fn otel_provider_rejects_header_unsafe_configured_tracestate() {
     let result = OtelProvider::from(&OtelSettings {
         environment: "test".to_string(),
-        service_name: "codex-cli".to_string(),
+        service_name: "ditfa-cli".to_string(),
         service_version: env!("CARGO_PKG_VERSION").to_string(),
         ditfa_home: PathBuf::from("."),
         exporter: OtelExporter::None,
@@ -391,7 +391,7 @@ fn otlp_http_exporter_sends_traces_to_collector()
 
     let otel = OtelProvider::from(&OtelSettings {
         environment: "test".to_string(),
-        service_name: "codex-cli".to_string(),
+        service_name: "ditfa-cli".to_string(),
         service_version: env!("CARGO_PKG_VERSION").to_string(),
         ditfa_home: PathBuf::from("."),
         exporter: OtelExporter::None,
@@ -442,7 +442,7 @@ fn otlp_http_exporter_sends_traces_to_collector()
         tracing::event!(
             target: "ditfa_otel.trace_safe",
             tracing::Level::INFO,
-            event.name = "codex.test.trace_event",
+            event.name = "ditfa.test.trace_event",
             "test OTEL trace event"
         );
         tracing::info!("trace loopback event");
@@ -478,7 +478,7 @@ fn otlp_http_exporter_sends_traces_to_collector()
         &body.chars().take(2000).collect::<String>()
     );
     assert!(
-        body.contains("codex-cli"),
+        body.contains("ditfa-cli"),
         "expected service name not found; body prefix: {}",
         &body.chars().take(2000).collect::<String>()
     );
@@ -488,7 +488,7 @@ fn otlp_http_exporter_sends_traces_to_collector()
         &body.chars().take(2000).collect::<String>()
     );
     assert!(
-        body.contains("codex.test.trace_event"),
+        body.contains("ditfa.test.trace_event"),
         "expected trace event not found; body prefix: {}",
         &body.chars().take(2000).collect::<String>()
     );
@@ -536,7 +536,7 @@ async fn otlp_http_exporter_sends_traces_to_collector_in_tokio_runtime()
 
     let otel = OtelProvider::from(&OtelSettings {
         environment: "test".to_string(),
-        service_name: "codex-cli".to_string(),
+        service_name: "ditfa-cli".to_string(),
         service_version: env!("CARGO_PKG_VERSION").to_string(),
         ditfa_home: PathBuf::from("."),
         exporter: OtelExporter::None,
@@ -591,7 +591,7 @@ async fn otlp_http_exporter_sends_traces_to_collector_in_tokio_runtime()
         &body.chars().take(2000).collect::<String>()
     );
     assert!(
-        body.contains("codex-cli"),
+        body.contains("ditfa-cli"),
         "expected service name not found; body prefix: {}",
         &body.chars().take(2000).collect::<String>()
     );
@@ -647,7 +647,7 @@ fn otlp_http_exporter_sends_traces_to_collector_in_current_thread_tokio_runtime(
         let result = runtime.block_on(async move {
             let otel = OtelProvider::from(&OtelSettings {
                 environment: "test".to_string(),
-                service_name: "codex-cli".to_string(),
+                service_name: "ditfa-cli".to_string(),
                 service_version: env!("CARGO_PKG_VERSION").to_string(),
                 ditfa_home: PathBuf::from("."),
                 exporter: OtelExporter::None,
@@ -713,7 +713,7 @@ fn otlp_http_exporter_sends_traces_to_collector_in_current_thread_tokio_runtime(
         &body.chars().take(2000).collect::<String>()
     );
     assert!(
-        body.contains("codex-cli"),
+        body.contains("ditfa-cli"),
         "expected service name not found; body prefix: {}",
         &body.chars().take(2000).collect::<String>()
     );

@@ -1,6 +1,6 @@
-# Bazel in codex-rs
+# Bazel in ditfa-rs
 
-This repository uses Bazel to build the Rust workspace under `codex-rs`.
+This repository uses Bazel to build the Rust workspace under `ditfa-rs`.
 Cargo remains the source of truth for crates and features, while Bazel
 provides hermetic builds, toolchains, and cross-platform artifacts.
 
@@ -9,14 +9,14 @@ As of 6/1/2026, this setup is still experimental as we stabilize it.
 ## High-level layout
 
 - `../MODULE.bazel` defines Bazel dependencies and Rust toolchains.
-- `rules_rs` imports third-party crates from `codex-rs/Cargo.toml` and
-  `codex-rs/Cargo.lock` via `crate.from_cargo(...)` and exposes them under
+- `rules_rs` imports third-party crates from `ditfa-rs/Cargo.toml` and
+  `ditfa-rs/Cargo.lock` via `crate.from_cargo(...)` and exposes them under
   `@crates`.
-- `../defs.bzl` provides `codex_rust_crate`, which wraps `rust_library`,
+- `../defs.bzl` provides `ditfa_rust_crate`, which wraps `rust_library`,
   `rust_binary`, and `rust_test` so Bazel targets line up with Cargo conventions.
   It provides a sane set of defaults that work for most first-party crates, but may
   need tweaks in some cases.
-- Each crate in `codex-rs/*/BUILD.bazel` typically uses `codex_rust_crate` and
+- Each crate in `ditfa-rs/*/BUILD.bazel` typically uses `ditfa_rust_crate` and
   makes some adjustments if the crate needs additional compile-time or runtime data,
   or other customizations.
 
@@ -34,7 +34,7 @@ build event upload, downloads, and remote execution are opt-in configurations.
 
 ## BuildBuddy
 
-Codex uses BuildBuddy for a shared Bazel cache and remoted builds and tests. To use it
+Ditfa uses BuildBuddy for a shared Bazel cache and remoted builds and tests. To use it
 to speed up your builds and tests you'll need to provide an API key and select a
 configuration.
 
@@ -104,10 +104,10 @@ locally. With a key, workflows choose the host as follows:
 
 | Run | Key | Uses OpenAI BuildBuddy Host |
 | --- | --- | --- |
-| Push to `main` in `openai/codex` | Yes | Yes |
-| `workflow_dispatch` in `openai/codex` | Yes | Yes |
-| Same-repository pull request in `openai/codex` | Yes | Yes |
-| Fork pull request into `openai/codex` | No | No; local |
+| Push to `main` in `openai/ditfa` | Yes | Yes |
+| `workflow_dispatch` in `openai/ditfa` | Yes | Yes |
+| Same-repository pull request in `openai/ditfa` | Yes | Yes |
+| Fork pull request into `openai/ditfa` | No | No; local |
 | Push or `workflow_dispatch` in a fork with a key | Yes | No; generic host |
 | Pull request run in a fork repository with a key | Yes | No; generic host |
 
@@ -125,13 +125,13 @@ CI configurations determine whether builds and tests execute remotely:
 To exercise the generic remote configuration with your key:
 
 ```bash
-BUILDBUDDY_API_KEY=... GITHUB_REPOSITORY=my-fork/codex \
+BUILDBUDDY_API_KEY=... GITHUB_REPOSITORY=my-fork/ditfa \
   ./.github/scripts/run_bazel_with_buildbuddy.py \
-  build --config=ci-linux //codex-rs/cli:codex
+  build --config=ci-linux //ditfa-rs/cli:ditfa
 ```
 
 The wrapper selects the OpenAI host only inside GitHub Actions for a trusted
-run in `openai/codex`. A missing or malformed pull request event
+run in `openai/ditfa`. A missing or malformed pull request event
 payload fails closed to the generic host. For local OpenAI host access, use
 the `user.bazelrc` configuration above.
 
@@ -160,11 +160,11 @@ feel free to ping zbarsky or mbolin.
 When you add a new crate or binary:
 
 1. Add it to the Cargo workspace as usual.
-2. Create a `BUILD.bazel` that calls `codex_rust_crate` (see nearby crates for
+2. Create a `BUILD.bazel` that calls `ditfa_rust_crate` (see nearby crates for
    examples).
 3. If a dependency needs special handling (compile/runtime data, additional binaries
    for integration tests, env vars, etc) you may need to adjust the parameters to
-   `codex_rust_crate` to configure it.
+   `ditfa_rust_crate` to configure it.
    One common customization is setting `test_tags = ["no-sandbox]` to run the test
    unsandboxed. Prefer to avoid it, but it is necessary in some cases such as when the
    test itself uses Seatbelt (the sandbox does as well, and it cannot be nested).

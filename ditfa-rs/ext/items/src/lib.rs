@@ -1,6 +1,6 @@
 //! Typed display items owned by Ditfa extensions.
 //!
-//! This crate intentionally sits below `codex-protocol` so core can carry
+//! This crate intentionally sits below `ditfa-protocol` so core can carry
 //! extension items without owning each extension's display schema.
 
 use schemars::JsonSchema;

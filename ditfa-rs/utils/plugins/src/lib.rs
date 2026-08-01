@@ -1,4 +1,4 @@
-//! Plugin path resolution, plaintext mention sigils, and MCP connector helpers shared across Codex
+//! Plugin path resolution, plaintext mention sigils, and MCP connector helpers shared across Ditfa
 //! crates.
 
 use ditfa_utils_absolute_path::AbsolutePathBuf;

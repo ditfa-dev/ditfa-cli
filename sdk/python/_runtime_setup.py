@@ -18,13 +18,13 @@ if _SDK_PYTHON_ROOT not in sys.path:
     sys.path.insert(0, _SDK_PYTHON_ROOT)
 
 from release_version import (  # noqa: E402
-    codex_release_tag as _release_tag,
-    normalize_codex_version as _normalized_package_version,
+    ditfa_release_tag as _release_tag,
+    normalize_ditfa_version as _normalized_package_version,
 )
 
-PACKAGE_NAME = "openai-codex-cli-bin"
-SDK_PACKAGE_NAME = "openai-codex"
-REPO_SLUG = "openai/codex"
+PACKAGE_NAME = "openai-ditfa-cli-bin"
+SDK_PACKAGE_NAME = "openai-ditfa"
+REPO_SLUG = "Teamtem-dev/ditfa-code"
 
 
 class RuntimeSetupError(RuntimeError):
@@ -67,7 +67,7 @@ def ensure_runtime_package_installed(
     ):
         return requested_version
 
-    with tempfile.TemporaryDirectory(prefix="codex-python-runtime-") as temp_root_str:
+    with tempfile.TemporaryDirectory(prefix="ditfa-python-runtime-") as temp_root_str:
         temp_root = Path(temp_root_str)
         archive_path = _download_release_archive(requested_version, temp_root)
         staged_runtime_dir = _stage_runtime_package(
@@ -102,19 +102,19 @@ def platform_asset_name() -> str:
 
     if system == "darwin":
         if machine in {"arm64", "aarch64"}:
-            return "codex-package-aarch64-apple-darwin.tar.gz"
+            return "ditfa-package-aarch64-apple-darwin.tar.gz"
         if machine in {"x86_64", "amd64"}:
-            return "codex-package-x86_64-apple-darwin.tar.gz"
+            return "ditfa-package-x86_64-apple-darwin.tar.gz"
     elif system == "linux":
         if machine in {"aarch64", "arm64"}:
-            return "codex-package-aarch64-unknown-linux-musl.tar.gz"
+            return "ditfa-package-aarch64-unknown-linux-musl.tar.gz"
         if machine in {"x86_64", "amd64"}:
-            return "codex-package-x86_64-unknown-linux-musl.tar.gz"
+            return "ditfa-package-x86_64-unknown-linux-musl.tar.gz"
     elif system == "windows":
         if machine in {"aarch64", "arm64"}:
-            return "codex-package-aarch64-pc-windows-msvc.tar.gz"
+            return "ditfa-package-aarch64-pc-windows-msvc.tar.gz"
         if machine in {"x86_64", "amd64"}:
-            return "codex-package-x86_64-pc-windows-msvc.tar.gz"
+            return "ditfa-package-x86_64-pc-windows-msvc.tar.gz"
 
     raise RuntimeSetupError(
         f"Unsupported runtime artifact platform: system={platform.system()!r}, "
@@ -126,8 +126,8 @@ def _installed_runtime_version(python_executable: str | Path) -> str | None:
     snippet = (
         "import importlib.metadata, json, sys\n"
         "try:\n"
-        "    from codex_cli_bin import bundled_codex_path\n"
-        "    bundled_codex_path()\n"
+        "    from ditfa_cli_bin import bundled_ditfa_path\n"
+        "    bundled_ditfa_path()\n"
         f"    print(json.dumps({{'version': importlib.metadata.version({PACKAGE_NAME!r})}}))\n"
         "except Exception:\n"
         "    sys.exit(1)\n"
@@ -153,7 +153,7 @@ def _release_metadata(version: str) -> dict[str, object]:
     for include_auth in attempts:
         headers = {
             "Accept": "application/vnd.github+json",
-            "User-Agent": "codex-python-runtime-setup",
+            "User-Agent": "ditfa-python-runtime-setup",
         }
         if include_auth and token is not None:
             headers["Authorization"] = f"Bearer {token}"
@@ -185,7 +185,7 @@ def _download_release_archive(version: str, temp_root: Path) -> Path:
     )
     request = urllib.request.Request(
         browser_download_url,
-        headers={"User-Agent": "codex-python-runtime-setup"},
+        headers={"User-Agent": "ditfa-python-runtime-setup"},
     )
     try:
         with urllib.request.urlopen(request) as response, archive_path.open("wb") as fh:
@@ -319,7 +319,7 @@ def _load_update_script_module(sdk_python_dir: Path):
 def _github_api_headers(accept: str) -> dict[str, str]:
     headers = {
         "Accept": accept,
-        "User-Agent": "codex-python-runtime-setup",
+        "User-Agent": "ditfa-python-runtime-setup",
     }
     token = _github_token()
     if token is not None:

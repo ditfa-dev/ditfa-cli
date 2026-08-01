@@ -1,7 +1,7 @@
 {
-  "name": "@ditfa/cli",
+  "name": "ditfa",
   "version": "0.0.0-dev",
-  "description": "Ditfa CLI is a multi-provider AI coding agent that runs locally on your computer.",
+  "description": "Ditfa Code is a multi-provider AI coding agent that runs locally on your computer.",
   "license": "Apache-2.0",
   "bin": {
     "ditfa": "bin/ditfa.js"
@@ -15,8 +15,23 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Foshati/arlenta.git",
+    "url": "git+https://github.com/Teamtem-dev/ditfa-code.git",
     "directory": "ditfa-cli"
   },
-  "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319"
+  "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319",
+  "homepage": "https://github.com/Teamtem-dev/ditfa-code",
+  "bugs": {
+    "url": "https://github.com/Teamtem-dev/ditfa-code/issues"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "coding assistant",
+    "cli",
+    "openai",
+    "anthropic",
+    "gemini",
+    "ollama",
+    "local llm"
+  ]
 }

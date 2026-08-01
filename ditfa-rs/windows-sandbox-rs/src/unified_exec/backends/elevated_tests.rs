@@ -63,18 +63,18 @@ fn retry_uses_original_unified_exec_request_and_stops_after_second_failure() {
     ]);
     let request = RunnerTransportRequest {
         permissions: permissions.clone(),
-        ditfa_home: PathBuf::from(r"C:\Users\codex"),
+        ditfa_home: PathBuf::from(r"C:\Users\ditfa"),
         cwd: PathBuf::from(r"C:\workspace"),
         env_map: env_map.clone(),
-        logs_base_dir: Some(PathBuf::from(r"C:\Users\codex\.sandbox")),
+        logs_base_dir: Some(PathBuf::from(r"C:\Users\ditfa\.sandbox")),
         spawn_request: SpawnRequest {
             command: vec!["pwsh.exe".to_string(), "-NoProfile".to_string()],
             cwd: PathBuf::from(r"C:\workspace"),
             env: env_map.clone(),
             permission_profile,
             workspace_roots: vec![workspace_root],
-            ditfa_home: PathBuf::from(r"C:\Users\codex\.sandbox"),
-            real_codex_home: PathBuf::from(r"C:\Users\codex"),
+            ditfa_home: PathBuf::from(r"C:\Users\ditfa\.sandbox"),
+            real_ditfa_home: PathBuf::from(r"C:\Users\ditfa"),
             cap_sids: vec!["S-1-15-3-1024-1".to_string()],
             network_proxy_restricting_sid: Some("S-1-5-21-100-200-300-400".to_string()),
             timeout_ms: Some(5_000),

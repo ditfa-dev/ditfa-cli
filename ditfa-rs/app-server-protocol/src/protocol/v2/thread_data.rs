@@ -1,4 +1,4 @@
-use super::CodexErrorInfo;
+use super::DitfaErrorInfo;
 use super::ThreadItem;
 use super::ThreadStatus;
 use super::TurnStatus;
@@ -168,7 +168,7 @@ pub struct GitInfo {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
 pub struct Thread {
-    /// Identifier for this thread. Codex-generated thread IDs are UUIDv7.
+    /// Identifier for this thread. Ditfa-generated thread IDs are UUIDv7.
     pub id: String,
     /// Optional implementation-specific thread data.
     #[experimental("thread.extra")]
@@ -209,7 +209,7 @@ pub struct Thread {
     pub cwd: AbsolutePathBuf,
     /// Version of the CLI that created the thread.
     pub cli_version: String,
-    /// Origin of the thread (CLI, VSCode, codex exec, codex app-server, etc.).
+    /// Origin of the thread (CLI, VSCode, ditfa exec, ditfa app-server, etc.).
     pub source: SessionSource,
     /// Whether the app server accepts direct turn input for this loaded thread.
     /// `None` means the capability is unavailable, such as for an unloaded stored thread.
@@ -236,7 +236,7 @@ pub struct Thread {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
 pub struct Turn {
-    /// Identifier for this turn. Codex-generated turn IDs are UUIDv7.
+    /// Identifier for this turn. Ditfa-generated turn IDs are UUIDv7.
     pub id: String,
     /// Thread items currently included in this turn payload.
     pub items: Vec<ThreadItem>,
@@ -276,7 +276,7 @@ pub enum TurnItemsView {
 #[error("{message}")]
 pub struct TurnError {
     pub message: String,
-    pub ditfa_error_info: Option<CodexErrorInfo>,
+    pub ditfa_error_info: Option<DitfaErrorInfo>,
     #[serde(default)]
     pub additional_details: Option<String>,
 }

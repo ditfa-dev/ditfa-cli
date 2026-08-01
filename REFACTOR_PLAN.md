@@ -1,15 +1,15 @@
 # Ditfa Refactor Plan: Discovery & Inventory Mapping
 
 ## Executive Summary
-This document serves as the discovery report and refactoring roadmap for transforming `openai/codex` (`codex-rs`) into **Ditfa**: an open, multi-provider AI coding CLI agent supporting OpenAI, Anthropic, Google Gemini, and local/self-hosted LLM endpoints (Ollama, LM Studio, vLLM).
+This document serves as the discovery report and refactoring roadmap for transforming `openai/codex` (`ditfa-rs`) into **Ditfa**: an open, multi-provider AI coding CLI agent supporting OpenAI, Anthropic, Google Gemini, and local/self-hosted LLM endpoints (Ollama, LM Studio, vLLM).
 
 ---
 
 ## 1. Crate & Package Inventory
 
-The repository is structured as a Rust cargo workspace (`codex-rs`), alongside Node.js packaging (`codex-cli`), SDK components (`sdk`), build definitions (`BUILD.bazel`, `flake.nix`, `justfile`), and documentation.
+The repository is structured as a Rust cargo workspace (`ditfa-rs`), alongside Node.js packaging (`codex-cli`), SDK components (`sdk`), build definitions (`BUILD.bazel`, `flake.nix`, `justfile`), and documentation.
 
-### Core Cargo Workspace Crates (`codex-rs/`)
+### Core Cargo Workspace Crates (`ditfa-rs/`)
 
 | Crate Name | Primary Responsibility |
 | :--- | :--- |

@@ -23,34 +23,34 @@ pub use ditfa_core::connectors::list_accessible_connectors_from_mcp_tools_with_o
 pub use ditfa_core::connectors::list_cached_accessible_connectors_from_mcp_tools;
 pub use ditfa_core::connectors::with_app_enabled_state;
 use ditfa_login::AuthManager;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_plugin::AppConnectorId;
 use serde::Deserialize;
 use serde::Serialize;
 
 const DIRECTORY_CONNECTORS_TIMEOUT: Duration = Duration::from_secs(60);
 const CONNECTOR_METADATA_TIMEOUT: Duration = Duration::from_secs(60);
-const DEFAULT_APPS_PRODUCT_SKU: &str = "codex";
+const DEFAULT_APPS_PRODUCT_SKU: &str = "ditfa";
 
 async fn apps_enabled(config: &Config) -> bool {
     let auth_manager =
-        AuthManager::shared_from_config(config, /*enable_codex_api_key_env*/ false).await;
+        AuthManager::shared_from_config(config, /*enable_ditfa_api_key_env*/ false).await;
     let auth = auth_manager.auth().await;
     config
         .features
-        .apps_enabled_for_auth(auth.as_ref().is_some_and(CodexAuth::uses_codex_backend))
+        .apps_enabled_for_auth(auth.as_ref().is_some_and(DitfaAuth::uses_ditfa_backend))
 }
 
-async fn connector_auth(config: &Config) -> anyhow::Result<CodexAuth> {
+async fn connector_auth(config: &Config) -> anyhow::Result<DitfaAuth> {
     let auth_manager =
-        AuthManager::shared_from_config(config, /*enable_codex_api_key_env*/ false).await;
+        AuthManager::shared_from_config(config, /*enable_ditfa_api_key_env*/ false).await;
     let auth = auth_manager
         .auth()
         .await
         .ok_or_else(|| anyhow::anyhow!("ChatGPT auth not available"))?;
     anyhow::ensure!(
-        auth.uses_codex_backend(),
-        "ChatGPT connectors require Codex backend auth"
+        auth.uses_ditfa_backend(),
+        "ChatGPT connectors require Ditfa backend auth"
     );
     Ok(auth)
 }
@@ -135,17 +135,17 @@ pub struct ConnectorMetadataReadResult {
 /// account or backend change can only commit to the scope under which it was requested.
 pub async fn read_connector_metadata(
     config: &Config,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     app_ids: &[String],
     include_tools: bool,
 ) -> anyhow::Result<ConnectorMetadataReadResult> {
     anyhow::ensure!(
-        auth.uses_codex_backend(),
-        "ChatGPT backend requests require Codex backend auth"
+        auth.uses_ditfa_backend(),
+        "ChatGPT backend requests require Ditfa backend auth"
     );
     anyhow::ensure!(
         auth.get_account_id().is_some(),
-        "ChatGPT account ID not available, please re-run codex login"
+        "ChatGPT account ID not available, please re-run ditfa login"
     );
 
     let store = ConnectorMetadataStore::new(
@@ -299,7 +299,7 @@ fn batch_app_to_metadata(app: BatchApp) -> ConnectorMetadata {
 
 fn connector_directory_cache_context(
     config: &Config,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
 ) -> ConnectorDirectoryCacheContext {
     ConnectorDirectoryCacheContext::new(
         config.ditfa_home.to_path_buf(),

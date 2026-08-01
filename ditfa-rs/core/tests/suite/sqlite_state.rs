@@ -5,7 +5,7 @@ use ditfa_core::StartThreadOptions;
 use ditfa_core::config::Config;
 use ditfa_extension_api::ExtensionRegistryBuilder;
 use ditfa_features::Feature;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::config_types::WebSearchMode;
 use ditfa_protocol::dynamic_tools::DynamicToolFunctionSpec;
@@ -35,9 +35,9 @@ use core_test_support::responses::mount_sse_sequence;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
 use core_test_support::stdio_server_bin;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_event_match;
 use core_test_support::wait_for_mcp_server;
@@ -57,7 +57,7 @@ use wiremock::matchers::path;
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn new_thread_is_recorded_in_state_db() -> Result<()> {
     let server = start_mock_server().await;
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config
             .features
             .enable(Feature::Sqlite)
@@ -146,7 +146,7 @@ async fn resume_restores_dynamic_tools_from_rollout_with_sqlite_enabled() -> Res
             },
         )],
     });
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config
             .features
             .enable(Feature::Sqlite)
@@ -184,7 +184,7 @@ async fn resume_restores_dynamic_tools_from_rollout_with_sqlite_enabled() -> Res
     })
     .await;
 
-    let mut resume_builder = test_codex().with_config(|config| {
+    let mut resume_builder = test_ditfa().with_config(|config| {
         config
             .features
             .enable(Feature::Sqlite)
@@ -246,7 +246,7 @@ async fn resume_restores_legacy_dynamic_tools_from_rollout_with_sqlite_enabled()
         "required": ["query"],
         "additionalProperties": false,
     });
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config
             .features
             .enable(Feature::Sqlite)
@@ -304,7 +304,7 @@ async fn resume_restores_legacy_dynamic_tools_from_rollout_with_sqlite_enabled()
         .join("\n");
     fs::write(&rollout_path, format!("{rollout}\n"))?;
 
-    let mut resume_builder = test_codex().with_config(|config| {
+    let mut resume_builder = test_ditfa().with_config(|config| {
         config
             .features
             .enable(Feature::Sqlite)
@@ -354,7 +354,7 @@ async fn backfill_scans_existing_rollouts() -> Result<()> {
     let rollout_rel_path = format!("sessions/2026/01/27/rollout-2026-01-27T12-00-00-{uuid}.jsonl");
     let rollout_rel_path_for_hook = rollout_rel_path.clone();
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_pre_build_hook(move |ditfa_home| {
             let rollout_path = ditfa_home.join(&rollout_rel_path_for_hook);
             let parent = rollout_path
@@ -471,7 +471,7 @@ async fn user_messages_persist_in_state_db() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config
             .features
             .enable(Feature::Sqlite)
@@ -527,7 +527,7 @@ async fn web_search_marks_thread_memory_mode_polluted_when_configured() -> Resul
     )
     .await;
 
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config
             .features
             .enable(Feature::Sqlite)
@@ -590,11 +590,11 @@ async fn standalone_web_search_marks_thread_memory_mode_polluted_when_configured
     )
     .await;
 
-    let auth = CodexAuth::from_api_key("dummy");
+    let auth = DitfaAuth::from_api_key("dummy");
     let auth_manager = ditfa_core::test_support::auth_manager_from_auth(auth.clone());
     let mut extension_builder = ExtensionRegistryBuilder::<Config>::new();
     install_web_search_extension(&mut extension_builder, auth_manager);
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_auth(auth)
         .with_extensions(Arc::new(extension_builder.build()))
         .with_config(|config| {
@@ -663,7 +663,7 @@ async fn mcp_call_marks_thread_memory_mode_polluted_when_configured() -> Result<
     .await;
 
     let rmcp_test_server_bin = stdio_server_bin()?;
-    let mut builder = test_codex().with_config(move |config| {
+    let mut builder = test_ditfa().with_config(move |config| {
         config
             .features
             .enable(Feature::Sqlite)
@@ -787,7 +787,7 @@ async fn tool_call_logs_include_thread_id() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config
             .features
             .enable(Feature::Sqlite)

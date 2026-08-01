@@ -56,7 +56,7 @@ async fn thread_delete_deletes_spawned_descendants() -> Result<()> {
     }
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -150,7 +150,7 @@ async fn thread_delete_preflights_external_fork_references_for_spawned_subtrees(
         .await?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized()
         .await?;
@@ -207,7 +207,7 @@ async fn thread_delete_handles_live_threads_before_rollout_exists() -> Result<()
     let ditfa_home = TempDir::new()?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized()
         .await?;
 

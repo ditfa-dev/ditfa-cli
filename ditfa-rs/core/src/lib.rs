@@ -1,4 +1,4 @@
-//! Root of the `codex-core` library.
+//! Root of the `ditfa-core` library.
 
 // Prevent accidental direct writes to stdout/stderr in library code. All
 // user-visible output must go through the appropriate abstraction (e.g.,
@@ -16,7 +16,7 @@ mod realtime_prompt;
 mod responses_metadata;
 mod responses_retry;
 pub(crate) mod session;
-pub use responses_metadata::CodexResponsesMetadata;
+pub use responses_metadata::DitfaResponsesMetadata;
 pub use session::SteerInputError;
 pub use turn_metadata::detached_memory_responses_metadata;
 mod ditfa_thread;
@@ -26,8 +26,8 @@ mod compact_remote_v2;
 mod compact_token_budget;
 mod config_lock;
 pub use ditfa_thread::BackgroundTerminalInfo;
-pub use ditfa_thread::CodexThread;
-pub use ditfa_thread::CodexThreadSettingsOverrides;
+pub use ditfa_thread::DitfaThread;
+pub use ditfa_thread::DitfaThreadSettingsOverrides;
 pub use ditfa_thread::ThreadConfigSnapshot;
 pub use ditfa_thread::TryStartTurnIfIdleError;
 pub use ditfa_thread::TryStartTurnIfIdleRejectionReason;
@@ -60,7 +60,7 @@ mod mcp_tool_exposure;
 mod network_policy_decision;
 pub use mcp::McpManager;
 mod original_image_detail;
-pub use ditfa_mcp::CodexAppsToolsCache;
+pub use ditfa_mcp::DitfaAppsToolsCache;
 pub use ditfa_mcp::SandboxState;
 mod mcp_openai_file;
 mod mcp_tool_call;
@@ -123,7 +123,7 @@ pub type ConversationManager = ThreadManager;
 #[deprecated(note = "use NewThread")]
 pub type NewConversation = NewThread;
 #[deprecated(note = "use DitfaThread")]
-pub type CodexConversation = CodexThread;
+pub type DitfaConversation = DitfaThread;
 pub(crate) mod agents_md;
 mod agents_md_manager;
 pub use agents_md::DEFAULT_AGENTS_MD_FILENAME;

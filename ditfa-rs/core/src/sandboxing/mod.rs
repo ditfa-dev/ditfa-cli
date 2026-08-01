@@ -2,7 +2,7 @@
 Module: sandboxing
 
 Core-owned adapter types for exec/runtime plumbing. Policy selection and
-command transformation live in the codex-sandboxing crate; this module keeps
+command transformation live in the ditfa-sandboxing crate; this module keeps
 the exec-only metadata and translates transformed sandbox commands back into
 ExecRequest for execution.
 */

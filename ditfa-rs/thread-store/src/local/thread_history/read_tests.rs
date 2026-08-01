@@ -1,7 +1,7 @@
 use std::fs;
 
 use chrono::Utc;
-use ditfa_app_server_protocol::CodexErrorInfo;
+use ditfa_app_server_protocol::DitfaErrorInfo;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::HistoryPosition;
@@ -38,7 +38,7 @@ async fn list_turns_pages_projected_rows_and_applies_item_views() {
             20,
             "failed",
             Some(
-                r#"{"message":"turn failed","codexErrorInfo":"serverOverloaded","additionalDetails":"retry later"}"#,
+                r#"{"message":"turn failed","ditfaErrorInfo":"serverOverloaded","additionalDetails":"retry later"}"#,
             ),
             None,
             None,
@@ -87,7 +87,7 @@ async fn list_turns_pages_projected_rows_and_applies_item_views() {
         first_page.turns[1].error,
         Some(StoredTurnError {
             message: "turn failed".to_string(),
-            ditfa_error_info: Some(CodexErrorInfo::ServerOverloaded),
+            ditfa_error_info: Some(DitfaErrorInfo::ServerOverloaded),
             additional_details: Some("retry later".to_string()),
         })
     );

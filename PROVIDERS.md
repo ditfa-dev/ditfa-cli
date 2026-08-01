@@ -44,7 +44,7 @@ Ditfa uses a **Translation Adapter Pattern** to support multiple model providers
 
 ### Step 1: Create the Adapter File
 
-Create a new file under `codex-rs/model-provider/src/adapter/my_provider.rs`:
+Create a new file under `ditfa-rs/model-provider/src/adapter/my_provider.rs`:
 
 ```rust
 use async_trait::async_trait;
@@ -140,7 +140,7 @@ impl ProviderAdapter for MyProviderAdapter {
 
 ### Step 2: Export in `adapter/mod.rs`
 
-In `codex-rs/model-provider/src/adapter/mod.rs`:
+In `ditfa-rs/model-provider/src/adapter/mod.rs`:
 
 ```rust
 pub mod anthropic;

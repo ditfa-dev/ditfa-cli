@@ -49,7 +49,7 @@ async fn consume_rate_limit_reset_credit_requires_chatgpt_auth() -> Result<()> {
     assert_eq!(consume_error.error.code, INVALID_REQUEST_ERROR_CODE);
     assert_eq!(
         consume_error.error.message,
-        "codex account authentication required for rate limit reset credits"
+        "ditfa account authentication required for rate limit reset credits"
     );
 
     login_with_api_key(&mut mcp, "sk-test-key").await?;
@@ -239,7 +239,7 @@ async fn consume_timeout_releases_account_auth_queue() -> Result<()> {
         .await;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("OPENAI_API_KEY", None),
@@ -289,7 +289,7 @@ async fn chatgpt_test_context() -> Result<(TempDir, MockServer)> {
 
 async fn initialized_app_server(ditfa_home: &Path) -> Result<TestAppServer> {
     TestAppServer::builder()
-        .with_codex_home(ditfa_home)
+        .with_ditfa_home(ditfa_home)
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)

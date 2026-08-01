@@ -43,7 +43,7 @@ use ditfa_app_server_protocol::TurnStartResponse;
 use ditfa_app_server_protocol::TurnStartedNotification;
 use ditfa_app_server_protocol::UserInput as V2UserInput;
 use ditfa_features::Feature;
-use ditfa_protocol::protocol::CodexResponseHandoffMode;
+use ditfa_protocol::protocol::DitfaResponseHandoffMode;
 use ditfa_protocol::protocol::ConversationTextRole;
 use ditfa_protocol::protocol::RealtimeConversationVersion;
 use ditfa_protocol::protocol::RealtimeOutputModality;
@@ -203,7 +203,7 @@ struct RealtimeSidebandScript {
 
 struct RealtimeE2eHarness {
     mcp: TestAppServer,
-    _codex_home: TempDir,
+    _ditfa_home: TempDir,
     main_loop_responses_server: MockServer,
     realtime_server: WebSocketTestServer,
     call_capture: RealtimeCallRequestCapture,
@@ -302,7 +302,7 @@ impl RealtimeE2eHarness {
         )?;
 
         let mut mcp = TestAppServer::builder()
-            .with_codex_home(ditfa_home.path())
+            .with_ditfa_home(ditfa_home.path())
             .build_initialized_with_timeout(DEFAULT_TIMEOUT)
             .await?;
         login_with_api_key(&mut mcp, "sk-test-key").await?;
@@ -315,7 +315,7 @@ impl RealtimeE2eHarness {
 
         Ok(Self {
             mcp,
-            _codex_home: ditfa_home,
+            _ditfa_home: ditfa_home,
             main_loop_responses_server,
             realtime_server,
             call_capture,
@@ -324,7 +324,7 @@ impl RealtimeE2eHarness {
     }
 
     async fn start_webrtc_realtime(&mut self, offer_sdp: &str) -> Result<StartedWebrtcRealtime> {
-        self.start_webrtc_realtime_with_codex_response_routing(
+        self.start_webrtc_realtime_with_ditfa_response_routing(
             offer_sdp,
             /*client_managed_handoffs*/ None,
             /*ditfa_responses_as_items*/ None,
@@ -334,11 +334,11 @@ impl RealtimeE2eHarness {
         .await
     }
 
-    async fn start_webrtc_realtime_with_codex_response_items(
+    async fn start_webrtc_realtime_with_ditfa_response_items(
         &mut self,
         offer_sdp: &str,
     ) -> Result<StartedWebrtcRealtime> {
-        self.start_webrtc_realtime_with_codex_response_routing(
+        self.start_webrtc_realtime_with_ditfa_response_routing(
             offer_sdp,
             /*client_managed_handoffs*/ None,
             /*ditfa_responses_as_items*/ Some(true),
@@ -348,12 +348,12 @@ impl RealtimeE2eHarness {
         .await
     }
 
-    async fn start_webrtc_realtime_with_codex_response_routing(
+    async fn start_webrtc_realtime_with_ditfa_response_routing(
         &mut self,
         offer_sdp: &str,
         client_managed_handoffs: Option<bool>,
         ditfa_responses_as_items: Option<bool>,
-        ditfa_response_handoff_mode: Option<CodexResponseHandoffMode>,
+        ditfa_response_handoff_mode: Option<DitfaResponseHandoffMode>,
         version: RealtimeConversationVersion,
     ) -> Result<StartedWebrtcRealtime> {
         // Starts realtime through the public JSON-RPC method, then waits for the same client-visible
@@ -397,22 +397,22 @@ impl RealtimeE2eHarness {
     }
 
     async fn start_websocket_realtime(&mut self) -> Result<ThreadRealtimeStartedNotification> {
-        self.start_websocket_realtime_with_codex_responses_as_items(
+        self.start_websocket_realtime_with_ditfa_responses_as_items(
             /*ditfa_responses_as_items*/ None,
         )
         .await
     }
 
-    async fn start_websocket_realtime_with_codex_response_items(
+    async fn start_websocket_realtime_with_ditfa_response_items(
         &mut self,
     ) -> Result<ThreadRealtimeStartedNotification> {
-        self.start_websocket_realtime_with_codex_responses_as_items(
+        self.start_websocket_realtime_with_ditfa_responses_as_items(
             /*ditfa_responses_as_items*/ Some(true),
         )
         .await
     }
 
-    async fn start_websocket_realtime_with_codex_responses_as_items(
+    async fn start_websocket_realtime_with_ditfa_responses_as_items(
         &mut self,
         ditfa_responses_as_items: Option<bool>,
     ) -> Result<ThreadRealtimeStartedNotification> {
@@ -448,7 +448,7 @@ impl RealtimeE2eHarness {
 
     async fn start_frameless_bidi_realtime(
         &mut self,
-        ditfa_response_handoff_mode: Option<CodexResponseHandoffMode>,
+        ditfa_response_handoff_mode: Option<DitfaResponseHandoffMode>,
         ditfa_response_handoff_channel_prefixes: Option<BTreeMap<String, Vec<String>>>,
         initial_items: Option<Vec<ThreadRealtimeInitialItem>>,
     ) -> Result<ThreadRealtimeStartedNotification> {
@@ -691,7 +691,7 @@ async fn realtime_conversation_streams_v2_notifications() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
     login_with_api_key(&mut mcp, "sk-test-key").await?;
@@ -970,7 +970,7 @@ async fn realtime_start_can_skip_startup_context() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
     login_with_api_key(&mut mcp, "sk-test-key").await?;
@@ -1065,7 +1065,7 @@ async fn realtime_text_output_modality_requests_text_output_and_final_transcript
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
     login_with_api_key(&mut mcp, "sk-test-key").await?;
@@ -1171,7 +1171,7 @@ async fn realtime_list_voices_returns_supported_names() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
 
@@ -1241,7 +1241,7 @@ async fn realtime_conversation_stop_emits_closed_notification() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
     login_with_api_key(&mut mcp, "sk-test-key").await?;
@@ -1337,7 +1337,7 @@ async fn realtime_webrtc_start_emits_sdp_notification() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
     login_with_api_key(&mut mcp, "sk-test-key").await?;
@@ -1439,25 +1439,25 @@ async fn realtime_webrtc_start_emits_sdp_notification() -> Result<()> {
             .headers
             .get("content-type")
             .and_then(|value| value.to_str().ok()),
-        Some("multipart/form-data; boundary=codex-realtime-call-boundary")
+        Some("multipart/form-data; boundary=ditfa-realtime-call-boundary")
     );
     let body = String::from_utf8(request.body).context("multipart body should be utf-8")?;
     let session = normalized_json_string(v1_session_create_json())?;
     assert_eq!(
         body,
         format!(
-            "--codex-realtime-call-boundary\r\n\
+            "--ditfa-realtime-call-boundary\r\n\
              Content-Disposition: form-data; name=\"sdp\"\r\n\
              Content-Type: application/sdp\r\n\
              \r\n\
              v=offer\r\n\
              \r\n\
-             --codex-realtime-call-boundary\r\n\
+             --ditfa-realtime-call-boundary\r\n\
              Content-Disposition: form-data; name=\"session\"\r\n\
              Content-Type: application/json\r\n\
              \r\n\
              {session}\r\n\
-             --codex-realtime-call-boundary--\r\n"
+             --ditfa-realtime-call-boundary--\r\n"
         )
     );
 
@@ -1539,7 +1539,7 @@ async fn webrtc_v3_start_posts_live_session_and_joins_without_session_update() -
     .await?;
 
     let started = harness
-        .start_webrtc_realtime_with_codex_response_routing(
+        .start_webrtc_realtime_with_ditfa_response_routing(
             "v=offer\r\n",
             /*client_managed_handoffs*/ None,
             /*ditfa_responses_as_items*/ None,
@@ -1638,7 +1638,7 @@ async fn webrtc_v1_default_automatic_output_uses_handoff_append() -> Result<()> 
         harness.sideband_outbound_request(/*request_index*/ 1).await,
         json!({
             "type": "conversation.handoff.append",
-            "handoff_id": "codex",
+            "handoff_id": "ditfa",
             "output_text": "\"Agent Final Message\":\n\nlegacy automatic speech",
         })
     );
@@ -1664,7 +1664,7 @@ async fn webrtc_v1_client_managed_handoffs_disable_automatic_output() -> Result<
     .await?;
 
     let started = harness
-        .start_webrtc_realtime_with_codex_response_routing(
+        .start_webrtc_realtime_with_ditfa_response_routing(
             "v=offer\r\n",
             /*client_managed_handoffs*/ Some(true),
             /*ditfa_responses_as_items*/ None,
@@ -1701,7 +1701,7 @@ async fn webrtc_v1_client_managed_handoffs_disable_automatic_output() -> Result<
     .await;
     assert!(
         automatic_handoff.is_err(),
-        "automatic Codex output should not reach realtime in client-managed handoff mode"
+        "automatic Ditfa output should not reach realtime in client-managed handoff mode"
     );
 
     harness
@@ -1711,7 +1711,7 @@ async fn webrtc_v1_client_managed_handoffs_disable_automatic_output() -> Result<
         harness.sideband_outbound_request(/*request_index*/ 1).await,
         json!({
             "type": "conversation.handoff.append",
-            "handoff_id": "codex",
+            "handoff_id": "ditfa",
             "output_text": "client-selected speech",
         })
     );
@@ -1721,7 +1721,7 @@ async fn webrtc_v1_client_managed_handoffs_disable_automatic_output() -> Result<
 }
 
 #[tokio::test]
-async fn webrtc_v1_ignores_codex_response_handoff_mode() -> Result<()> {
+async fn webrtc_v1_ignores_ditfa_response_handoff_mode() -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let mut commentary = responses::ev_assistant_message("msg-commentary", "background progress");
@@ -1754,11 +1754,11 @@ async fn webrtc_v1_ignores_codex_response_handoff_mode() -> Result<()> {
     .await?;
 
     let started = harness
-        .start_webrtc_realtime_with_codex_response_routing(
+        .start_webrtc_realtime_with_ditfa_response_routing(
             "v=offer\r\n",
             /*client_managed_handoffs*/ None,
             /*ditfa_responses_as_items*/ None,
-            /*ditfa_response_handoff_mode*/ Some(CodexResponseHandoffMode::BemTags),
+            /*ditfa_response_handoff_mode*/ Some(DitfaResponseHandoffMode::BemTags),
             RealtimeConversationVersion::V1,
         )
         .await?;
@@ -1827,7 +1827,7 @@ async fn webrtc_v1_handoff_request_delegates_context_and_manual_append_speaks() 
     .await?;
 
     let started = harness
-        .start_webrtc_realtime_with_codex_response_items("v=offer\r\n")
+        .start_webrtc_realtime_with_ditfa_response_items("v=offer\r\n")
         .await?;
     assert_eq!(started.started.version, RealtimeConversationVersion::V1);
     assert_call_create_multipart(
@@ -1884,7 +1884,7 @@ async fn webrtc_v1_handoff_request_delegates_context_and_manual_append_speaks() 
         spoken_append,
         json!({
             "type": "conversation.handoff.append",
-            "handoff_id": "codex",
+            "handoff_id": "ditfa",
             "output_text": "manual spoken v1 update",
         })
     );
@@ -1912,7 +1912,7 @@ async fn realtime_automatic_standalone_output_is_item_and_append_speaks() -> Res
     .await?;
 
     let started = harness
-        .start_websocket_realtime_with_codex_response_items()
+        .start_websocket_realtime_with_ditfa_response_items()
         .await?;
     assert_eq!(started.version, RealtimeConversationVersion::V2);
     assert_eq!(
@@ -1989,7 +1989,7 @@ async fn realtime_automatic_handoff_output_is_item_and_append_speaks() -> Result
     .await?;
 
     let started = harness
-        .start_websocket_realtime_with_codex_response_items()
+        .start_websocket_realtime_with_ditfa_response_items()
         .await?;
     assert_eq!(started.version, RealtimeConversationVersion::V2);
     assert_eq!(
@@ -2072,7 +2072,7 @@ async fn websocket_v2_assistant_output_without_handoff_reaches_realtime_context(
     .await?;
 
     let started = harness
-        .start_websocket_realtime_with_codex_response_items()
+        .start_websocket_realtime_with_ditfa_response_items()
         .await?;
     assert_eq!(started.version, RealtimeConversationVersion::V2);
 
@@ -2182,7 +2182,7 @@ async fn websocket_v3_routes_handoffs_by_session_mode() -> Result<()> {
             [None, None, None, None],
         ),
         (
-            Some(CodexResponseHandoffMode::Commentary),
+            Some(DitfaResponseHandoffMode::Commentary),
             None,
             [
                 "[ANALYSIS]silent context",
@@ -2198,7 +2198,7 @@ async fn websocket_v3_routes_handoffs_by_session_mode() -> Result<()> {
             ],
         ),
         (
-            Some(CodexResponseHandoffMode::BemTags),
+            Some(DitfaResponseHandoffMode::BemTags),
             None,
             [
                 "[ANALYSIS]silent context",
@@ -2214,7 +2214,7 @@ async fn websocket_v3_routes_handoffs_by_session_mode() -> Result<()> {
             ],
         ),
         (
-            Some(CodexResponseHandoffMode::BemTags),
+            Some(DitfaResponseHandoffMode::BemTags),
             Some(BTreeMap::from([
                 ("analysis".to_string(), vec!["[THOUGHT]".to_string()]),
                 (
@@ -2708,7 +2708,7 @@ async fn websocket_v2_background_agent_steering_ack_requests_response_create() -
     // acknowledgement so it can surface that acknowledgement to the user.
     assert_v2_response_create(&harness.sideband_outbound_request(/*request_index*/ 2).await);
 
-    // Phase 4: release the gated delegated turn. Codex should then continue
+    // Phase 4: release the gated delegated turn. Ditfa should then continue
     // the same run with the steering text included in the follow-up Responses
     // request, proving realtime did not merely acknowledge and drop it.
     let _ = gate_completed_tx.send(());
@@ -2972,7 +2972,7 @@ async fn realtime_webrtc_start_surfaces_backend_error() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
     login_with_api_key(&mut mcp, "sk-test-key").await?;
@@ -3037,7 +3037,7 @@ async fn realtime_conversation_requires_feature_flag() -> Result<()> {
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .build_initialized_with_timeout(DEFAULT_TIMEOUT)
         .await?;
 
@@ -3311,23 +3311,23 @@ fn assert_call_create_multipart(
             .headers
             .get("content-type")
             .and_then(|value| value.to_str().ok()),
-        Some("multipart/form-data; boundary=codex-realtime-call-boundary")
+        Some("multipart/form-data; boundary=ditfa-realtime-call-boundary")
     );
     let body = String::from_utf8(request.body).context("multipart body should be utf-8")?;
     let session_prefix = format!(
-        "--codex-realtime-call-boundary\r\n\
+        "--ditfa-realtime-call-boundary\r\n\
              Content-Disposition: form-data; name=\"sdp\"\r\n\
              Content-Type: application/sdp\r\n\
              \r\n\
              {offer_sdp}\r\n\
-             --codex-realtime-call-boundary\r\n\
+             --ditfa-realtime-call-boundary\r\n\
              Content-Disposition: form-data; name=\"session\"\r\n\
              Content-Type: application/json\r\n\
              \r\n"
     );
     let actual_session = body
         .strip_prefix(&session_prefix)
-        .and_then(|body| body.strip_suffix("\r\n--codex-realtime-call-boundary--\r\n"))
+        .and_then(|body| body.strip_suffix("\r\n--ditfa-realtime-call-boundary--\r\n"))
         .context("multipart body should contain one JSON session part")?;
     let actual_session: Value =
         serde_json::from_str(actual_session).context("session part should be valid JSON")?;

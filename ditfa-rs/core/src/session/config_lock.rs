@@ -38,7 +38,7 @@ pub(crate) async fn validate_config_lock_if_configured(
     let actual = session_configuration.to_config_lockfile_toml()?;
     let config = session_configuration.original_config_do_not_use.as_ref();
     let options = ConfigLockReplayOptions {
-        allow_codex_version_mismatch: config.config_lock_allow_codex_version_mismatch,
+        allow_ditfa_version_mismatch: config.config_lock_allow_ditfa_version_mismatch,
     };
     validate_config_lock_replay(expected, &actual, options)
         .context("config lock replay validation failed")?;
@@ -542,7 +542,7 @@ sandbox_private_desktop = false
     }
 
     #[tokio::test]
-    async fn lock_validation_rejects_codex_version_mismatch_by_default() {
+    async fn lock_validation_rejects_ditfa_version_mismatch_by_default() {
         let sc = crate::session::tests::make_session_configuration_for_tests().await;
         let mut expected = sc.to_config_lockfile_toml().expect("lock should serialize");
         expected.ditfa_version = "older-version".to_string();
@@ -553,17 +553,17 @@ sandbox_private_desktop = false
                 .expect_err("version drift should fail");
         let message = error.to_string();
         assert!(
-            message.contains("config lock Codex version mismatch"),
+            message.contains("config lock Ditfa version mismatch"),
             "{message}"
         );
         assert!(
-            message.contains("debug.config_lockfile.allow_codex_version_mismatch=true"),
+            message.contains("debug.config_lockfile.allow_ditfa_version_mismatch=true"),
             "{message}"
         );
     }
 
     #[tokio::test]
-    async fn lock_validation_can_ignore_codex_version_mismatch() {
+    async fn lock_validation_can_ignore_ditfa_version_mismatch() {
         let sc = crate::session::tests::make_session_configuration_for_tests().await;
         let mut expected = sc.to_config_lockfile_toml().expect("lock should serialize");
         expected.ditfa_version = "older-version".to_string();
@@ -573,7 +573,7 @@ sandbox_private_desktop = false
             &expected,
             &actual,
             ConfigLockReplayOptions {
-                allow_codex_version_mismatch: true,
+                allow_ditfa_version_mismatch: true,
             },
         )
         .expect("version drift should be ignored");

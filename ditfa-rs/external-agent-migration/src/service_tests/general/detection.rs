@@ -187,9 +187,9 @@ async fn detect_repo_still_reports_non_plugin_items_when_home_config_is_invalid(
             .join("skill-a"),
     )
     .expect("create repo skills");
-    fs::create_dir_all(&ditfa_home).expect("create codex home");
+    fs::create_dir_all(&ditfa_home).expect("create ditfa home");
     fs::write(ditfa_home.join("config.toml"), "this is not valid = [toml")
-        .expect("write invalid codex config");
+        .expect("write invalid ditfa config");
     fs::write(
         repo_root.join(EXTERNAL_AGENT_DIR).join("settings.json"),
         r#"{"env":{"FOO":"bar"}}"#,

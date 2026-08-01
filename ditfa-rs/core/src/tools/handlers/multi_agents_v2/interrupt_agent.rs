@@ -1,6 +1,6 @@
 use super::*;
 use crate::tools::handlers::multi_agents_spec::create_interrupt_agent_tool_v2;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_tools::ToolSpec;
 
 pub(crate) struct Handler;
@@ -66,7 +66,7 @@ async fn handle_interrupt_agent(
         .interrupt_agent(agent_id)
         .await
     {
-        Ok(_) | Err(CodexErr::ThreadNotFound(_)) | Err(CodexErr::InternalAgentDied) => Ok(()),
+        Ok(_) | Err(DitfaErr::ThreadNotFound(_)) | Err(DitfaErr::InternalAgentDied) => Ok(()),
         Err(err) => Err(collab_agent_error(agent_id, err)),
     };
     result?;

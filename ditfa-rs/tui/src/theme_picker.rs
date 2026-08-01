@@ -598,7 +598,7 @@ mod tests {
     }
 
     #[test]
-    fn subtitle_uses_tilde_path_when_codex_home_under_home_directory() {
+    fn subtitle_uses_tilde_path_when_ditfa_home_under_home_directory() {
         let home = dirs::home_dir().expect("home directory should be available");
         let ditfa_home = home.join(".ditfa");
 

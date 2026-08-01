@@ -4,7 +4,7 @@ use http::HeaderMap;
 
 /// Request headers returned by an external auth provider.
 ///
-/// The provider owns credential validation, rotation, and persistence. Codex
+/// The provider owns credential validation, rotation, and persistence. Ditfa
 /// keeps the resolved headers in memory and attaches them to backend requests.
 #[derive(Clone, PartialEq, Eq)]
 pub struct AuthHeaders {

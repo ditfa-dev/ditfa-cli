@@ -68,8 +68,8 @@ use tracing::info;
 use tracing::warn;
 
 pub(super) const REMOTE_CONTROL_PROTOCOL_VERSION: &str = "3";
-pub(super) const REMOTE_CONTROL_INSTALLATION_ID_HEADER: &str = "x-codex-installation-id";
-const REMOTE_CONTROL_SUBSCRIBE_CURSOR_HEADER: &str = "x-codex-subscribe-cursor";
+pub(super) const REMOTE_CONTROL_INSTALLATION_ID_HEADER: &str = "x-ditfa-installation-id";
+const REMOTE_CONTROL_SUBSCRIBE_CURSOR_HEADER: &str = "x-ditfa-subscribe-cursor";
 const REMOTE_CONTROL_WEBSOCKET_PING_INTERVAL: std::time::Duration =
     std::time::Duration::from_secs(10);
 const REMOTE_CONTROL_WEBSOCKET_PONG_TIMEOUT: std::time::Duration =
@@ -1263,15 +1263,15 @@ fn build_remote_control_websocket_request(
         )
     })?;
     let headers = request.headers_mut();
-    set_remote_control_header(headers, "x-codex-server-id", &enrollment.server_id)?;
+    set_remote_control_header(headers, "x-ditfa-server-id", &enrollment.server_id)?;
     set_remote_control_header(
         headers,
-        "x-codex-name",
+        "x-ditfa-name",
         &base64::engine::general_purpose::STANDARD.encode(&enrollment.server_name),
     )?;
     set_remote_control_header(
         headers,
-        "x-codex-protocol-version",
+        "x-ditfa-protocol-version",
         REMOTE_CONTROL_PROTOCOL_VERSION,
     )?;
     set_remote_control_header(
@@ -1830,7 +1830,7 @@ mod tests {
     use ditfa_core::test_support::auth_manager_from_auth;
     use ditfa_login::AuthDotJson;
     use ditfa_login::AuthKeyringBackendKind;
-    use ditfa_login::CodexAuth;
+    use ditfa_login::DitfaAuth;
     use ditfa_login::save_auth;
     use ditfa_login::token_data::TokenData;
     use ditfa_login::token_data::parse_chatgpt_jwt_claims;
@@ -2000,7 +2000,7 @@ mod tests {
     }
 
     pub(super) fn remote_control_auth_manager() -> Arc<AuthManager> {
-        auth_manager_from_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+        auth_manager_from_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
     }
 
     pub(super) fn remote_control_url_for_listener(listener: &TcpListener) -> String {
@@ -2223,7 +2223,7 @@ mod tests {
         let state_db = remote_control_state_runtime(&ditfa_home).await;
         let auth_manager = AuthManager::shared(
             ditfa_home.path().to_path_buf(),
-            /*enable_codex_api_key_env*/ false,
+            /*enable_ditfa_api_key_env*/ false,
             AuthCredentialsStoreMode::File,
             /*forced_chatgpt_workspace_id*/ None,
             /*chatgpt_base_url*/ None,
@@ -2322,7 +2322,7 @@ mod tests {
         let state_db = remote_control_state_runtime(&ditfa_home).await;
         let auth_manager = AuthManager::shared(
             ditfa_home.path().to_path_buf(),
-            /*enable_codex_api_key_env*/ false,
+            /*enable_ditfa_api_key_env*/ false,
             AuthCredentialsStoreMode::File,
             /*forced_chatgpt_workspace_id*/ None,
             /*chatgpt_base_url*/ None,
@@ -2450,7 +2450,7 @@ mod tests {
         let state_db = remote_control_state_runtime(&ditfa_home).await;
         let auth_manager = AuthManager::shared(
             ditfa_home.path().to_path_buf(),
-            /*enable_codex_api_key_env*/ false,
+            /*enable_ditfa_api_key_env*/ false,
             AuthCredentialsStoreMode::File,
             /*forced_chatgpt_workspace_id*/ None,
             /*chatgpt_base_url*/ None,

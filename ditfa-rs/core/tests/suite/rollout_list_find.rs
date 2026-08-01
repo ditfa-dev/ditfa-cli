@@ -100,7 +100,7 @@ async fn find_locates_rollout_file_by_id() {
 }
 
 #[tokio::test]
-async fn find_handles_gitignore_covering_codex_home_directory() {
+async fn find_handles_gitignore_covering_ditfa_home_directory() {
     let repo = TempDir::new().unwrap();
     let ditfa_home = repo.path().join(".ditfa");
     std::fs::create_dir_all(&ditfa_home).unwrap();

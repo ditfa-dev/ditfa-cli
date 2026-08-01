@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from openai_codex.client import CodexClient, _params_dict
-from openai_codex.generated.notification_registry import notification_turn_id
-from openai_codex.generated.v2_all import (
+from ditfa.client import DitfaClient, _params_dict
+from ditfa.generated.notification_registry import notification_turn_id
+from ditfa.generated.v2_all import (
     AgentMessageDeltaNotification,
     ApprovalsReviewer,
     ReasoningEffort,
@@ -18,8 +18,8 @@ from openai_codex.generated.v2_all import (
     TurnStartParams,
     WarningNotification,
 )
-from openai_codex.models import Notification, UnknownNotification
-from openai_codex.types import ThreadSource
+from ditfa.models import Notification, UnknownNotification
+from ditfa.types import ThreadSource
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -33,7 +33,7 @@ def test_generated_params_models_are_snake_case_and_dump_by_alias() -> None:
 
 
 def test_generated_v2_bundle_has_single_shared_plan_type_definition() -> None:
-    source = (ROOT / "src" / "openai_codex" / "generated" / "v2_all.py").read_text()
+    source = (ROOT / "src" / "ditfa" / "generated" / "v2_all.py").read_text()
     assert source.count("class PlanType(") == 1
 
 
@@ -119,7 +119,7 @@ def test_thread_resume_response_accepts_auto_review_reviewer() -> None:
 
 
 def test_notifications_are_typed_with_canonical_v2_methods() -> None:
-    client = CodexClient()
+    client = DitfaClient()
     event = client._coerce_notification(
         "thread/tokenUsage/updated",
         {
@@ -150,7 +150,7 @@ def test_notifications_are_typed_with_canonical_v2_methods() -> None:
 
 
 def test_unknown_notifications_fall_back_to_unknown_payloads() -> None:
-    client = CodexClient()
+    client = DitfaClient()
     event = client._coerce_notification(
         "unknown/notification",
         {
@@ -166,7 +166,7 @@ def test_unknown_notifications_fall_back_to_unknown_payloads() -> None:
 
 
 def test_invalid_notification_payload_falls_back_to_unknown() -> None:
-    client = CodexClient()
+    client = DitfaClient()
     event = client._coerce_notification("thread/tokenUsage/updated", {"threadId": "missing"})
 
     assert event.method == "thread/tokenUsage/updated"
@@ -200,7 +200,7 @@ def test_generated_notification_turn_id_handles_known_payload_shapes() -> None:
 
 def test_turn_notification_router_demuxes_registered_turns() -> None:
     """The router should deliver out-of-order turn events to the matching queues."""
-    client = CodexClient()
+    client = DitfaClient()
     client.register_turn_notifications("turn-1")
     client.register_turn_notifications("turn-2")
 
@@ -243,7 +243,7 @@ def test_turn_notification_router_demuxes_registered_turns() -> None:
 
 def test_goal_notification_router_routes_by_thread_id() -> None:
     """A goal operation should receive turn notifications across physical turn ids."""
-    client = CodexClient()
+    client = DitfaClient()
     state = client.register_goal_operation("thread-1")
 
     client._router.route_notification(
@@ -269,7 +269,7 @@ def test_goal_notification_router_routes_by_thread_id() -> None:
 
 def test_client_reader_routes_interleaved_turn_notifications_by_turn_id() -> None:
     """Reader-loop routing should preserve order within each interleaved turn stream."""
-    client = CodexClient()
+    client = DitfaClient()
     client.register_turn_notifications("turn-1")
     client.register_turn_notifications("turn-2")
 
@@ -348,7 +348,7 @@ def test_client_reader_routes_interleaved_turn_notifications_by_turn_id() -> Non
 
 def test_turn_notification_router_buffers_events_before_registration() -> None:
     """Early turn events should be replayed once their TurnHandle registers."""
-    client = CodexClient()
+    client = DitfaClient()
     client._router.route_notification(
         client._coerce_notification(
             "item/agentMessage/delta",
@@ -373,7 +373,7 @@ def test_turn_notification_router_buffers_events_before_registration() -> None:
 
 def test_turn_notification_router_clears_unregistered_turn_when_completed() -> None:
     """A completed unregistered turn should not leave a pending queue behind."""
-    client = CodexClient()
+    client = DitfaClient()
     client._router.route_notification(
         client._coerce_notification(
             "item/agentMessage/delta",
@@ -400,7 +400,7 @@ def test_turn_notification_router_clears_unregistered_turn_when_completed() -> N
 
 def test_turn_notification_router_routes_unknown_turn_notifications() -> None:
     """Unknown notifications should still route when their raw params carry a turn id."""
-    client = CodexClient()
+    client = DitfaClient()
     client.register_turn_notifications("turn-1")
     client.register_turn_notifications("turn-2")
 

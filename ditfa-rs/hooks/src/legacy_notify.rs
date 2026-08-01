@@ -89,7 +89,7 @@ mod tests {
             "thread-id": "b5f6c1c2-1111-2222-3333-444455556666",
             "turn-id": "12345",
             "cwd": cwd.display().to_string(),
-            "client": "codex-tui",
+            "client": "ditfa-tui",
             "input-messages": ["Rename `foo` to `bar` and update the callsites."],
             "last-assistant-message": "Rename complete and verified `cargo build` succeeds.",
         })
@@ -103,7 +103,7 @@ mod tests {
             cwd: test_path_buf("/Users/example/project")
                 .display()
                 .to_string(),
-            client: Some("codex-tui".to_string()),
+            client: Some("ditfa-tui".to_string()),
             input_messages: vec!["Rename `foo` to `bar` and update the callsites.".to_string()],
             last_assistant_message: Some(
                 "Rename complete and verified `cargo build` succeeds.".to_string(),
@@ -120,7 +120,7 @@ mod tests {
         let payload = HookPayload {
             session_id: ThreadId::new(),
             cwd: test_path_buf("/Users/example/project").abs(),
-            client: Some("codex-tui".to_string()),
+            client: Some("ditfa-tui".to_string()),
             triggered_at: chrono::Utc::now(),
             hook_event: HookEvent::AfterAgent {
                 event: HookEventAfterAgent {

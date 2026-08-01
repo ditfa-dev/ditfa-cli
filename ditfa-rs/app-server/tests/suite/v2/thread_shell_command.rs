@@ -52,7 +52,7 @@ async fn thread_shell_command_history_responses_exclude_persisted_command_execut
     MockResponsesConfig::new(&server.uri()).write(&ditfa_home)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.as_path())
+        .with_ditfa_home(ditfa_home.as_path())
         // thread/shellCommand intentionally executes on the app-server host.
         .without_auto_env()
         .build_initialized()
@@ -167,7 +167,7 @@ async fn thread_shell_command_returns_error_when_local_environment_is_disabled()
     MockResponsesConfig::new(&server.uri()).write(&ditfa_home)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.as_path())
+        .with_ditfa_home(ditfa_home.as_path())
         // This test intentionally exercises thread/shellCommand without a local host environment.
         .without_auto_env()
         .with_env_overrides(&[(DITFA_EXEC_SERVER_URL_ENV_VAR, Some("none"))])
@@ -220,7 +220,7 @@ async fn thread_shell_command_uses_existing_active_turn() -> Result<()> {
         .write(&ditfa_home)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.as_path())
+        .with_ditfa_home(ditfa_home.as_path())
         // thread/shellCommand intentionally joins the app-server's host-local active turn.
         .without_auto_env()
         .build_initialized()

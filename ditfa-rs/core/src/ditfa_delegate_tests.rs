@@ -193,7 +193,7 @@ async fn forward_ops_preserves_submission_trace_context() {
 }
 
 #[tokio::test]
-async fn run_codex_thread_interactive_respects_pre_cancelled_spawn() {
+async fn run_ditfa_thread_interactive_respects_pre_cancelled_spawn() {
     let (parent_session, parent_ctx, _rx_events) =
         crate::session::tests::make_session_and_context_with_rx().await;
     let cancel_token = CancellationToken::new();
@@ -201,7 +201,7 @@ async fn run_codex_thread_interactive_respects_pre_cancelled_spawn() {
 
     let result = timeout(
         Duration::from_secs(/*secs*/ 1),
-        run_codex_thread_interactive(
+        run_ditfa_thread_interactive(
             parent_ctx.config.as_ref().clone(),
             Arc::clone(&parent_session.services.auth_manager),
             Arc::clone(&parent_session.services.models_manager),
@@ -216,7 +216,7 @@ async fn run_codex_thread_interactive_respects_pre_cancelled_spawn() {
     .await
     .expect("cancelled delegate spawn should not hang");
 
-    assert!(matches!(result, Err(CodexErr::TurnAborted)));
+    assert!(matches!(result, Err(DitfaErr::TurnAborted)));
 }
 
 #[tokio::test]

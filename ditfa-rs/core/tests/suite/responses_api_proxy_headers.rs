@@ -19,10 +19,10 @@ use core_test_support::responses::mount_sse_once_match;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::TestCodex;
-use core_test_support::test_codex::local_selections;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::TestDitfa;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use pretty_assertions::assert_eq;
 use serde_json::json;
 use std::time::Duration;
@@ -85,7 +85,7 @@ async fn responses_api_parent_and_subagent_requests_include_identity_headers() -
     )
     .await;
 
-    let mut builder = test_codex().with_config(|config| {
+    let mut builder = test_ditfa().with_config(|config| {
         config
             .features
             .disable(Feature::EnableRequestCompression)
@@ -123,7 +123,7 @@ async fn responses_api_parent_and_subagent_requests_include_identity_headers() -
         Some("collab_spawn")
     );
     assert_eq!(
-        child.header("x-codex-parent-thread-id").as_deref(),
+        child.header("x-ditfa-parent-thread-id").as_deref(),
         Some(parent_thread_id)
     );
     let child_turn_metadata: serde_json::Value = serde_json::from_str(
@@ -140,7 +140,7 @@ async fn responses_api_parent_and_subagent_requests_include_identity_headers() -
     Ok(())
 }
 
-async fn submit_turn_with_timeout(test: &TestCodex, prompt: &str) -> Result<()> {
+async fn submit_turn_with_timeout(test: &TestDitfa, prompt: &str) -> Result<()> {
     let session_model = test.session_configured.model.clone();
     let cwd = test.config.cwd.clone();
     let (sandbox_policy, permission_profile) =
@@ -213,7 +213,7 @@ where
 }
 
 async fn wait_for_event_result<F>(
-    test: &TestCodex,
+    test: &TestDitfa,
     stage: &str,
     mut predicate: F,
 ) -> Result<EventMsg>

@@ -2069,7 +2069,7 @@ fn is_local_path_like_link(dest_url: &str) -> bool {
 
 /// Parse a local link target into normalized path text plus an optional location suffix.
 ///
-/// This accepts the path shapes Codex emits today: `file://` URLs, absolute and relative paths,
+/// This accepts the path shapes Ditfa emits today: `file://` URLs, absolute and relative paths,
 /// `~/...`, Windows paths, and `#L..C..` or `:line:col` suffixes.
 fn render_local_link_target(dest_url: &str, cwd: Option<&Path>) -> Option<String> {
     let (path_text, location_suffix) = parse_local_link_target(dest_url)?;
@@ -2544,10 +2544,10 @@ mod tests {
         let header = vec![make_cell("Files")];
         let rows = vec![
             vec![make_cell(
-                "codex-rs/core/src/next_prompt_suggestion.rs:1, codex-rs/core/src/next_prompt_suggestion_tests.rs:1",
+                "ditfa-rs/core/src/next_prompt_suggestion.rs:1, ditfa-rs/core/src/next_prompt_suggestion_tests.rs:1",
             )],
             vec![make_cell(
-                "codex-rs/core/src/context/next_prompt_suggestion.rs:1, codex-rs/core/src/context/contextual_user_message_tests.rs:1",
+                "ditfa-rs/core/src/context/next_prompt_suggestion.rs:1, ditfa-rs/core/src/context/contextual_user_message_tests.rs:1",
             )],
         ];
         let metrics = W::collect_table_column_metrics(&header, &rows, /*column_count*/ 1);

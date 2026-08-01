@@ -14,8 +14,8 @@ use ditfa_protocol::config_types::CollaborationMode;
 use ditfa_protocol::config_types::Personality;
 use ditfa_protocol::config_types::ReasoningSummary;
 use ditfa_protocol::config_types::WindowsSandboxLevel;
-use ditfa_protocol::error::CodexErr;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::DitfaErr;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::mcp::CallToolResult;
 use ditfa_protocol::models::ActivePermissionProfile;
 use ditfa_protocol::models::ContentItem;
@@ -85,7 +85,7 @@ pub struct ThreadConfigSnapshot {
     pub originator: String,
 }
 
-/// Explains why `CodexThread::try_start_turn_if_idle` rejected an automatic
+/// Explains why `DitfaThread::try_start_turn_if_idle` rejected an automatic
 /// idle turn.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TryStartTurnIfIdleRejectionReason {
@@ -162,7 +162,7 @@ impl ThreadConfigSnapshot {
 
 /// Thread settings overrides that app-server validates before starting a turn.
 #[derive(Clone, Default)]
-pub struct CodexThreadSettingsOverrides {
+pub struct DitfaThreadSettingsOverrides {
     pub environments: Option<TurnEnvironmentSelections>,
     pub profile_workspace_roots: Option<Vec<AbsolutePathBuf>>,
     pub approval_policy: Option<AskForApproval>,
@@ -179,7 +179,7 @@ pub struct CodexThreadSettingsOverrides {
     pub personality: Option<Personality>,
 }
 
-pub struct CodexThread {
+pub struct DitfaThread {
     pub(crate) session: Arc<Session>,
     pub(crate) io: SessionIo,
     pub(crate) session_source: SessionSource,
@@ -204,7 +204,7 @@ pub struct BackgroundTerminalInfo {
 
 /// Conduit for the bidirectional stream of messages that compose a thread
 /// (formerly called a conversation) in Ditfa.
-impl CodexThread {
+impl DitfaThread {
     pub(crate) fn new(
         session: Arc<Session>,
         io: SessionIo,
@@ -222,7 +222,7 @@ impl CodexThread {
         }
     }
 
-    pub async fn submit(&self, op: Op) -> CodexResult<String> {
+    pub async fn submit(&self, op: Op) -> DitfaResult<String> {
         self.io.submit(op).await
     }
 
@@ -231,7 +231,7 @@ impl CodexThread {
         self.session.services.session_telemetry.clone()
     }
 
-    pub async fn shutdown_and_wait(&self) -> CodexResult<()> {
+    pub async fn shutdown_and_wait(&self) -> DitfaResult<()> {
         self.io.shutdown_and_wait().await
     }
 
@@ -274,7 +274,7 @@ impl CodexThread {
         &self,
         op: Op,
         trace: Option<W3cTraceContext>,
-    ) -> CodexResult<String> {
+    ) -> DitfaResult<String> {
         self.io.submit_with_trace(op, trace).await
     }
 
@@ -283,7 +283,7 @@ impl CodexThread {
         op: Op,
         trace: Option<W3cTraceContext>,
         client_user_message_id: Option<String>,
-    ) -> CodexResult<String> {
+    ) -> DitfaResult<String> {
         self.session
             .services
             .agent_control
@@ -321,7 +321,7 @@ impl CodexThread {
     /// Injects model-visible items into the currently active turn.
     ///
     /// This is the thread-level bridge to `Session::inject_if_running` for
-    /// callers that only hold a `CodexThread`.
+    /// callers that only hold a `DitfaThread`.
     /// It returns the unchanged items when this thread has no active turn.
     pub async fn inject_if_running(
         &self,
@@ -374,7 +374,7 @@ impl CodexThread {
     /// Preview persistent thread settings overrides without committing them.
     pub async fn preview_thread_settings_overrides(
         &self,
-        overrides: CodexThreadSettingsOverrides,
+        overrides: DitfaThreadSettingsOverrides,
     ) -> ConstraintResult<ThreadConfigSnapshot> {
         let updates = self.thread_settings_update(overrides).await;
         self.session.preview_settings(&updates).await
@@ -382,9 +382,9 @@ impl CodexThread {
 
     async fn thread_settings_update(
         &self,
-        overrides: CodexThreadSettingsOverrides,
+        overrides: DitfaThreadSettingsOverrides,
     ) -> SessionSettingsUpdate {
-        let CodexThreadSettingsOverrides {
+        let DitfaThreadSettingsOverrides {
             environments,
             profile_workspace_roots,
             approval_policy,
@@ -427,11 +427,11 @@ impl CodexThread {
     }
 
     /// Use sparingly: this is intended to be removed soon.
-    pub async fn submit_with_id(&self, sub: Submission) -> CodexResult<()> {
+    pub async fn submit_with_id(&self, sub: Submission) -> DitfaResult<()> {
         self.io.submit_with_id(sub).await
     }
 
-    pub async fn next_event(&self) -> CodexResult<Event> {
+    pub async fn next_event(&self) -> DitfaResult<Event> {
         self.io.next_event().await
     }
 
@@ -477,9 +477,9 @@ impl CodexThread {
     }
 
     /// Record raw Responses API items without starting a new turn.
-    pub async fn inject_response_items(&self, items: Vec<ResponseItem>) -> CodexResult<()> {
+    pub async fn inject_response_items(&self, items: Vec<ResponseItem>) -> DitfaResult<()> {
         if items.is_empty() {
-            return Err(CodexErr::InvalidRequest(
+            return Err(DitfaErr::InvalidRequest(
                 "items must not be empty".to_string(),
             ));
         }
@@ -675,10 +675,10 @@ impl CodexThread {
         self.session.enabled(feature)
     }
 
-    pub async fn increment_out_of_band_elicitation_count(&self) -> CodexResult<i64> {
+    pub async fn increment_out_of_band_elicitation_count(&self) -> DitfaResult<i64> {
         let mut elicitations = self.out_of_band_elicitations.lock().await;
         let incremented = elicitations.count.checked_add(1).ok_or_else(|| {
-            CodexErr::Fatal("out-of-band elicitation count overflowed".to_string())
+            DitfaErr::Fatal("out-of-band elicitation count overflowed".to_string())
         })?;
         if elicitations.count == 0 {
             elicitations.registration = Some(self.session.services.elicitations.register());
@@ -687,10 +687,10 @@ impl CodexThread {
         Ok(incremented)
     }
 
-    pub async fn decrement_out_of_band_elicitation_count(&self) -> CodexResult<i64> {
+    pub async fn decrement_out_of_band_elicitation_count(&self) -> DitfaResult<i64> {
         let mut elicitations = self.out_of_band_elicitations.lock().await;
         if elicitations.count == 0 {
-            return Err(CodexErr::InvalidRequest(
+            return Err(DitfaErr::InvalidRequest(
                 "out-of-band elicitation count is already zero".to_string(),
             ));
         }

@@ -60,7 +60,7 @@ pub async fn load_auth_manager(
     let http_client_factory = config.http_client_factory();
     let auth_manager = AuthManager::new(
         config.ditfa_home.to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
+        /*enable_ditfa_api_key_env*/ false,
         config.cli_auth_credentials_store_mode,
         config.forced_chatgpt_workspace_id.clone(),
         chatgpt_base_url.or(Some(config.chatgpt_base_url.clone())),
@@ -78,15 +78,15 @@ pub async fn build_chatgpt_headers() -> HeaderMap {
     use http::header::USER_AGENT;
 
     set_user_agent_suffix("ditfa_cloud_tasks_tui");
-    let ua = ditfa_login::default_client::get_codex_user_agent();
+    let ua = ditfa_login::default_client::get_ditfa_user_agent();
     let mut headers = HeaderMap::new();
     headers.insert(
         USER_AGENT,
-        HeaderValue::from_str(&ua).unwrap_or(HeaderValue::from_static("codex-cli")),
+        HeaderValue::from_str(&ua).unwrap_or(HeaderValue::from_static("ditfa-cli")),
     );
     if let Some(am) = load_auth_manager(/*chatgpt_base_url*/ None).await.0
         && let Some(auth) = am.auth().await
-        && auth.uses_codex_backend()
+        && auth.uses_ditfa_backend()
     {
         headers.extend(ditfa_model_provider::auth_provider_from_auth(&auth).to_auth_headers());
     }
@@ -97,15 +97,15 @@ pub async fn build_chatgpt_headers() -> HeaderMap {
 pub fn task_url(base_url: &str, task_id: &str) -> String {
     let normalized = normalize_base_url(base_url);
     if let Some(root) = normalized.strip_suffix("/backend-api") {
-        return format!("{root}/codex/tasks/{task_id}");
+        return format!("{root}/ditfa/tasks/{task_id}");
     }
     if let Some(root) = normalized.strip_suffix("/api/codex") {
-        return format!("{root}/codex/tasks/{task_id}");
+        return format!("{root}/ditfa/tasks/{task_id}");
     }
-    if normalized.ends_with("/codex") {
+    if normalized.ends_with("/ditfa") {
         return format!("{normalized}/tasks/{task_id}");
     }
-    format!("{normalized}/codex/tasks/{task_id}")
+    format!("{normalized}/ditfa/tasks/{task_id}")
 }
 
 pub fn format_relative_time(reference: DateTime<Utc>, ts: DateTime<Utc>) -> String {

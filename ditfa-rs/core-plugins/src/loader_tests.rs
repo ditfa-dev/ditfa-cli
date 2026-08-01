@@ -162,7 +162,7 @@ enabled = true
         HashMap::new(),
         &store,
         /*plugin_skill_snapshots*/ None,
-        Some(Product::Codex),
+        Some(Product::Ditfa),
         /*remote_global_catalog_active*/ false,
         Arc::new(Semaphore::new(MAX_CONCURRENT_ROOT_SCANS)),
     )
@@ -456,7 +456,7 @@ fn load_plugin_hooks_supports_inline_manifest_hook_list() {
 
 #[test]
 fn materialize_git_subdir_uses_sparse_checkout() {
-    let ditfa_home = tempfile::tempdir().expect("create codex home");
+    let ditfa_home = tempfile::tempdir().expect("create ditfa home");
     let repo = tempfile::tempdir().expect("create git repo");
     let plugin_dir = repo.path().join("plugins/toolkit");
     fs::create_dir_all(&plugin_dir).expect("create plugin directory");
@@ -504,7 +504,7 @@ fn materialize_git_subdir_uses_sparse_checkout() {
 
 #[test]
 fn materialize_git_source_rejects_sha_that_resolves_to_hostile_default_branch() {
-    let ditfa_home = tempfile::tempdir().expect("create codex home");
+    let ditfa_home = tempfile::tempdir().expect("create ditfa home");
     let repo = tempfile::tempdir().expect("create git repo");
     run_git(&["init"], Some(repo.path())).expect("init git repo");
     run_git(

@@ -28,7 +28,7 @@ use core_test_support::responses::namespace_child_tool;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_wine_exec;
-use core_test_support::test_codex::TestCodex;
+use core_test_support::test_ditfa::TestDitfa;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
 use serde_json::json;
@@ -105,7 +105,7 @@ async fn mount_file_upload_mocks(server: &MockServer, file_size_bytes: u64) {
         .and(body_json(json!({
             "file_name": "report.txt",
             "file_size": file_size_bytes,
-            "use_case": "codex",
+            "use_case": "ditfa",
         })))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "file_id": "file_123",
@@ -135,7 +135,7 @@ async fn mount_file_upload_mocks(server: &MockServer, file_size_bytes: u64) {
         .await;
 }
 
-async fn run_extract_turn(test: &TestCodex, server: &MockServer) -> Result<ResponseMock> {
+async fn run_extract_turn(test: &TestDitfa, server: &MockServer) -> Result<ResponseMock> {
     let mock = mount_sse_sequence(
         server,
         vec![
@@ -229,7 +229,7 @@ async fn ditfa_apps_file_params_omit_fields_absent_from_tool_schema() -> Result<
         Some(&schema_filtered_uploaded_file(&server))
     );
     assert_eq!(
-        apps_tool_call.pointer("/params/_meta/_codex_apps"),
+        apps_tool_call.pointer("/params/_meta/_ditfa_apps"),
         Some(&json!({
             "call_id": "extract-call-1",
             "resource_uri": DOCUMENT_EXTRACT_TEXT_RESOURCE_URI,

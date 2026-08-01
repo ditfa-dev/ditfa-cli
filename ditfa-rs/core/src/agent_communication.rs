@@ -50,7 +50,7 @@ pub(crate) fn emit_agent_communication_send(
     tracing::info!(
         target: AGENT_COMMUNICATION_TARGET,
         {
-            event.name = "codex.agent_communication",
+            event.name = "ditfa.agent_communication",
             communication_id,
             kind = context.kind.as_str(),
             state = "send",
@@ -70,7 +70,7 @@ pub(crate) fn emit_agent_communication_receive(communication_id: &str) {
     tracing::info!(
         target: AGENT_COMMUNICATION_TARGET,
         {
-            event.name = "codex.agent_communication",
+            event.name = "ditfa.agent_communication",
             communication_id,
             state = "receive",
         },

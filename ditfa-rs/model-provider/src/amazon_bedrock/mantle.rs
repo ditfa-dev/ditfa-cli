@@ -1,7 +1,7 @@
 use ditfa_aws_auth::AwsAuthConfig;
 use ditfa_login::auth::BedrockApiKeyAuth;
 use ditfa_model_provider_info::ModelProviderAwsAuthInfo;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::Result;
 
 use super::auth::BedrockAuthMethod;
@@ -48,7 +48,7 @@ pub(super) fn base_url(region: &str) -> Result<String> {
     if is_supported_amazon_bedrock_region(region) {
         Ok(format!("https://bedrock-mantle.{region}.api.aws/openai/v1"))
     } else {
-        Err(CodexErr::Fatal(format!(
+        Err(DitfaErr::Fatal(format!(
             "Amazon Bedrock Mantle does not support region `{region}`"
         )))
     }
@@ -101,11 +101,11 @@ mod tests {
     fn aws_auth_config_uses_profile_and_mantle_service() {
         assert_eq!(
             aws_auth_config(&ModelProviderAwsAuthInfo {
-                profile: Some("codex-bedrock".to_string()),
+                profile: Some("ditfa-bedrock".to_string()),
                 region: None,
             }),
             AwsAuthConfig {
-                profile: Some("codex-bedrock".to_string()),
+                profile: Some("ditfa-bedrock".to_string()),
                 region: None,
                 service: "bedrock-mantle".to_string(),
             }

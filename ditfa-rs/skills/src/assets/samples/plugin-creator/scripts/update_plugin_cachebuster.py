@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rewrite a local plugin version to a single Codex cachebuster suffix."""
+"""Rewrite a local plugin version to a single Ditfa cachebuster suffix."""
 
 from __future__ import annotations
 
@@ -11,14 +11,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-CACHEBUSTER_PREFIX = "codex"
+CACHEBUSTER_PREFIX = "ditfa"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Rewrite a local plugin's version so it preserves everything before '+' and uses "
-            "a single +codex.<cachebuster> suffix."
+            "a single +ditfa.<cachebuster> suffix."
         )
     )
     parser.add_argument("plugin_path", help="Path to the plugin root directory")
@@ -32,7 +32,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     plugin_root = Path(args.plugin_path).expanduser().resolve()
-    manifest_path = plugin_root / ".codex-plugin" / "plugin.json"
+    manifest_path = plugin_root / ".ditfa-plugin" / "plugin.json"
     manifest = load_manifest(manifest_path)
 
     version = manifest.get("version")

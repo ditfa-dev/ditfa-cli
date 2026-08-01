@@ -1,6 +1,6 @@
-# `codex-config` loader
+# `ditfa-config` loader
 
-This module is the canonical place to **load and describe Codex configuration layers** (user config, CLI/session overrides, cloud-managed config, managed config, and MDM-managed preferences) and to produce:
+This module is the canonical place to **load and describe Ditfa configuration layers** (user config, CLI/session overrides, cloud-managed config, managed config, and MDM-managed preferences) and to produce:
 
 - An **effective merged** TOML config.
 - **Per-key origins** metadata (which layer “wins” for a given key).
@@ -8,9 +8,9 @@ This module is the canonical place to **load and describe Codex configuration la
 
 ## Public surface
 
-Exported from `codex_config::loader`:
+Exported from `ditfa_config::loader`:
 
-- `load_config_layers_state(fs, codex_home, cwd_opt, cli_overrides, options, thread_config_loader) -> ConfigLayerStack`
+- `load_config_layers_state(fs, ditfa_home, cwd_opt, cli_overrides, options, thread_config_loader) -> ConfigLayerStack`
 - `ConfigLayerStack`
   - `effective_config() -> toml::Value`
   - `origins() -> HashMap<String, ConfigLayerMetadata>`
@@ -28,11 +28,11 @@ Precedence is **top overrides bottom**:
 1. `LegacyManagedConfigTomlFromMdm` (MDM-delivered `managed_config.toml`, while it is being phased out)
 2. `LegacyManagedConfigTomlFromFile` (`managed_config.toml`, while it is being phased out)
 3. `SessionFlags` (CLI overrides, applied as dotted-path TOML writes)
-4. `Project` config (`.codex/config.toml`)
+4. `Project` config (`.ditfa/config.toml`)
 5. `User` profile config, when present
 6. `User` config (`config.toml`)
 7. `EnterpriseManaged` cloud-managed config bundle layers
-8. `System` config (`/etc/codex/config.toml` or the Windows system config path)
+8. `System` config (`/etc/ditfa/config.toml` or the Windows system config path)
 
 `ConfigLayerStack` stores layers in the opposite order internally: lowest
 precedence first, highest precedence last, so later layers override earlier
@@ -48,18 +48,18 @@ computing the effective config and origins metadata. This is what
 Most callers want the effective config plus metadata:
 
 ```rust
-use codex_config::LoaderOverrides;
-use codex_config::NoopThreadConfigLoader;
-use codex_config::loader::load_config_layers_state;
-use codex_exec_server::LOCAL_FS;
-use codex_utils_absolute_path::AbsolutePathBuf;
+use ditfa_config::LoaderOverrides;
+use ditfa_config::NoopThreadConfigLoader;
+use ditfa_config::loader::load_config_layers_state;
+use ditfa_exec_server::LOCAL_FS;
+use ditfa_utils_absolute_path::AbsolutePathBuf;
 use toml::Value as TomlValue;
 
 let cli_overrides: Vec<(String, TomlValue)> = Vec::new();
 let cwd = AbsolutePathBuf::current_dir()?;
 let layers = load_config_layers_state(
     LOCAL_FS.as_ref(),
-    &codex_home,
+    &ditfa_home,
     Some(cwd),
     &cli_overrides,
     LoaderOverrides::default(),

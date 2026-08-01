@@ -7,7 +7,7 @@
 use anyhow::Context;
 use anyhow::Result;
 use anyhow::anyhow;
-use ditfa_utils_home_dir::find_codex_home;
+use ditfa_utils_home_dir::find_ditfa_home;
 use sha2::Digest;
 use sha2::Sha256;
 use std::fs;
@@ -32,7 +32,7 @@ pub(super) struct RefreshCredentialLock {
 impl RefreshCredentialLock {
     pub(super) async fn acquire_for_server(server_name: &str, url: &str) -> Result<Self> {
         let store_key = super::compute_store_key(server_name, url)?;
-        let ditfa_home = find_codex_home()?;
+        let ditfa_home = find_ditfa_home()?;
         Self::acquire_in(&ditfa_home, &store_key, REFRESH_LOCK_ACQUIRE_TIMEOUT)
             .await
             .with_context(|| format!("failed to acquire OAuth credential lock for {server_name}"))

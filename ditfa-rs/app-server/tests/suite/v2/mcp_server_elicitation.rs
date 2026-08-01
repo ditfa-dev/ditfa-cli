@@ -84,7 +84,7 @@ use super::connection_handling_websocket::spawn_websocket_server;
 const DEFAULT_READ_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
 const CONNECTOR_ID: &str = "calendar";
 const CONNECTOR_NAME: &str = "Calendar";
-const TOOL_NAMESPACE: &str = "mcp__codex_apps__calendar";
+const TOOL_NAMESPACE: &str = "mcp__ditfa_apps__calendar";
 const CALLABLE_TOOL_NAME: &str = "_confirm_action";
 const TOOL_NAME: &str = "calendar_confirm_action";
 const TOOL_CALL_ID: &str = "call-calendar-confirm";
@@ -423,14 +423,14 @@ impl ElicitationRoundTripFixture {
         )?;
 
         let mut mcp = TestAppServer::builder()
-            .with_codex_home(ditfa_home.path())
+            .with_ditfa_home(ditfa_home.path())
             .build()
             .await?;
         timeout(
             DEFAULT_READ_TIMEOUT,
             mcp.initialize_with_capabilities(
                 ClientInfo {
-                    name: "codex-app-server-tests".to_string(),
+                    name: "ditfa-app-server-tests".to_string(),
                     title: None,
                     version: "0.1.0".to_string(),
                 },

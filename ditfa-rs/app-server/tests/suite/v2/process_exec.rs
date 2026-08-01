@@ -109,7 +109,7 @@ async fn process_spawn_returns_error_when_local_environment_is_disabled() -> Res
     let server = create_mock_responses_server_sequence_unchecked(Vec::new()).await;
     create_config_toml(ditfa_home.path(), &server.uri(), "never")?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[(DITFA_EXEC_SERVER_URL_ENV_VAR, Some("none"))])
         .build()
@@ -235,7 +235,7 @@ async fn initialized_mcp(ditfa_home: &Path) -> Result<(MockServer, TestAppServer
     let server = create_mock_responses_server_sequence_unchecked(Vec::new()).await;
     create_config_toml(ditfa_home, &server.uri(), "never")?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home)
+        .with_ditfa_home(ditfa_home)
         .without_auto_env()
         .build()
         .await?;

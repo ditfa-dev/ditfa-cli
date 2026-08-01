@@ -18,7 +18,7 @@ use ditfa_features::Feature;
 use ditfa_model_provider_info::built_in_model_providers;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::models::PermissionProfile;
-use ditfa_protocol::protocol::CodexErrorInfo;
+use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::Op;
 use ditfa_protocol::user_input::UserInput;
@@ -34,7 +34,7 @@ use core_test_support::responses::mount_sse_sequence;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use serde_json::json;
@@ -141,7 +141,7 @@ async fn current_time_reminders_follow_time_interval_and_persist_in_history() ->
         ],
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| {
             enable_current_time_reminder(config, /*interval*/ 120, CurrentTimeSource::External)
         })
@@ -178,7 +178,7 @@ async fn zero_current_time_reminder_interval_delivers_when_time_moves_backward()
     )
     .await;
     let time_provider = Arc::new(TestTimeProvider::default());
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| {
             enable_current_time_reminder(config, /*interval*/ 0, CurrentTimeSource::External)
         })
@@ -235,7 +235,7 @@ async fn current_time_reminders_can_follow_only_user_or_tool_outputs() -> Result
         ],
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| {
             enable_current_time_reminder(config, /*interval*/ 0, CurrentTimeSource::External);
             config
@@ -275,7 +275,7 @@ async fn system_time_source_adds_current_time_reminder() -> Result<()> {
         sse(vec![ev_response_created("resp-1"), ev_completed("resp-1")]),
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| {
             enable_current_time_reminder(config, /*interval*/ 1, CurrentTimeSource::System)
         })
@@ -316,7 +316,7 @@ async fn current_time_reminder_is_refreshed_after_compaction() -> Result<()> {
     model_provider.name = "OpenAI-compatible test provider".to_string();
     model_provider.base_url = Some(format!("{}/v1", server.uri()));
     model_provider.supports_websockets = false;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(move |config| {
             config.model_provider = model_provider;
             enable_current_time_reminder(
@@ -366,7 +366,7 @@ async fn time_provider_failure_stops_before_inference() -> Result<()> {
         ]),
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| {
             enable_current_time_reminder(config, /*interval*/ 1, CurrentTimeSource::External)
         })
@@ -396,7 +396,7 @@ async fn time_provider_failure_stops_before_inference() -> Result<()> {
         error.message,
         "Fatal error: failed to read current time: test clock unavailable"
     );
-    assert_eq!(error.ditfa_error_info, Some(CodexErrorInfo::Other));
+    assert_eq!(error.ditfa_error_info, Some(DitfaErrorInfo::Other));
 
     wait_for_event(&test.ditfa, |event| {
         matches!(event, EventMsg::TurnComplete(_))
@@ -426,7 +426,7 @@ async fn current_time_tool_returns_the_latest_time() -> Result<()> {
         ],
     )
     .await;
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| {
             enable_current_time_reminder(
                 config,
@@ -483,7 +483,7 @@ async fn sleep_tool_uses_configured_time_provider() -> Result<()> {
     )
     .await;
     let time_provider = Arc::new(TestTimeProvider::default());
-    let test = test_codex()
+    let test = test_ditfa()
         .with_config(|config| {
             enable_current_time_reminder(
                 config,

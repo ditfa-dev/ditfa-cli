@@ -65,7 +65,7 @@ additionalContextLimit = 4096
 "#,
     )?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -108,7 +108,7 @@ service_tier = "fast"
 "#,
     )?;
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -145,7 +145,7 @@ sandbox_mode = "workspace-write"
     let user_file = AbsolutePathBuf::try_from(ditfa_home_path.join("config.toml"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -193,7 +193,7 @@ allowed_domains = ["example.com"]
     let user_file = AbsolutePathBuf::try_from(ditfa_home_path.join("config.toml"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -262,7 +262,7 @@ forced_chatgpt_workspace_id = "{WORKSPACE_ID}"
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -300,7 +300,7 @@ forced_chatgpt_workspace_id = ["{WORKSPACE_ID_A}", "{WORKSPACE_ID_B}"]
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -341,7 +341,7 @@ location = { country = "US", city = "New York", timezone = "America/New_York" }
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -384,7 +384,7 @@ web_search = true
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -424,7 +424,7 @@ default_tools_approval_mode = "prompt"
     let user_file = AbsolutePathBuf::try_from(ditfa_home_path.join("config.toml"))?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -537,7 +537,7 @@ async fn config_read_includes_desktop_settings() -> Result<()> {
         r#"
 [desktop]
 appearanceTheme = "dark"
-selected-avatar-id = "codex"
+selected-avatar-id = "ditfa"
 
 [desktop.workspace]
 collapsed = true
@@ -546,7 +546,7 @@ width = 320
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -562,7 +562,7 @@ width = 320
 
     let desktop = config.desktop.expect("desktop settings present");
     assert_eq!(desktop.get("appearanceTheme"), Some(&json!("dark")));
-    assert_eq!(desktop.get("selected-avatar-id"), Some(&json!("codex")));
+    assert_eq!(desktop.get("selected-avatar-id"), Some(&json!("ditfa")));
     assert_eq!(
         desktop.get("workspace"),
         Some(&json!({
@@ -592,7 +592,7 @@ model_reasoning_effort = "high"
     let project_config = AbsolutePathBuf::try_from(project_config_dir)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -611,7 +611,7 @@ model_reasoning_effort = "high"
     assert_eq!(
         origins.get("model_reasoning_effort").expect("origin").name,
         ConfigLayerSource::Project {
-            dot_codex_folder: project_config
+            dot_ditfa_folder: project_config
         }
     );
 
@@ -660,7 +660,7 @@ writable_roots = [{}]
     let managed_path_str = managed_path.display().to_string();
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[(
             "DITFA_APP_SERVER_MANAGED_CONFIG_PATH",
@@ -751,7 +751,7 @@ model = "gpt-old"
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -803,7 +803,7 @@ async fn config_value_write_updates_desktop_settings() -> Result<()> {
     write_config(&temp_dir, "")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -847,7 +847,7 @@ model = "gpt-old"
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -890,7 +890,7 @@ model = "gpt-old"
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -928,7 +928,7 @@ async fn config_batch_write_applies_multiple_edits() -> Result<()> {
     write_config(&tmp_dir, "")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -995,7 +995,7 @@ model = "gpt-5.3-spark"
     )?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -1054,7 +1054,7 @@ async fn config_batch_write_updates_multiple_desktop_settings() -> Result<()> {
     write_config(&tmp_dir, "")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(&ditfa_home)
+        .with_ditfa_home(&ditfa_home)
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -1065,7 +1065,7 @@ async fn config_batch_write_updates_multiple_desktop_settings() -> Result<()> {
             edits: vec![
                 ConfigEdit {
                     key_path: "desktop.selected-avatar-id".to_string(),
-                    value: json!("codex"),
+                    value: json!("ditfa"),
                     merge_strategy: MergeStrategy::Replace,
                 },
                 ConfigEdit {
@@ -1094,7 +1094,7 @@ async fn config_batch_write_updates_multiple_desktop_settings() -> Result<()> {
     let read: ConfigReadResponse =
         timeout(DEFAULT_READ_TIMEOUT, mcp.read_response(read_id)).await??;
     let desktop = read.config.desktop.expect("desktop settings present");
-    assert_eq!(desktop.get("selected-avatar-id"), Some(&json!("codex")));
+    assert_eq!(desktop.get("selected-avatar-id"), Some(&json!("ditfa")));
     assert_eq!(
         desktop.get("workspace"),
         Some(&json!({

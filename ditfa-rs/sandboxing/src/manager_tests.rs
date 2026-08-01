@@ -417,7 +417,7 @@ fn wsl1_allows_non_bubblewrap_linux_paths() {
 #[cfg(target_os = "linux")]
 #[test]
 fn transform_linux_seccomp_preserves_helper_path_in_arg0_when_available() {
-    let ditfa_linux_sandbox_exe = std::path::PathBuf::from("/tmp/codex-linux-sandbox");
+    let ditfa_linux_sandbox_exe = std::path::PathBuf::from("/tmp/ditfa-linux-sandbox");
     let exec_request = transform_linux_seccomp_request(&ditfa_linux_sandbox_exe);
 
     assert_eq!(
@@ -429,10 +429,10 @@ fn transform_linux_seccomp_preserves_helper_path_in_arg0_when_available() {
 #[cfg(target_os = "linux")]
 #[test]
 fn transform_linux_seccomp_uses_helper_alias_when_launcher_is_not_helper_path() {
-    let ditfa_linux_sandbox_exe = std::path::PathBuf::from("/tmp/codex");
+    let ditfa_linux_sandbox_exe = std::path::PathBuf::from("/tmp/ditfa");
     let exec_request = transform_linux_seccomp_request(&ditfa_linux_sandbox_exe);
 
-    assert_eq!(exec_request.arg0, Some("codex-linux-sandbox".to_string()));
+    assert_eq!(exec_request.arg0, Some("ditfa-linux-sandbox".to_string()));
 }
 
 #[cfg(target_os = "windows")]
@@ -472,9 +472,9 @@ fn transform_for_direct_spawn_windows_preserves_only_wrapper_setup_identity() {
 #[cfg(target_os = "windows")]
 #[test]
 fn transform_for_direct_spawn_windows_materializes_inner_helper() {
-    let ditfa_home = tempfile::TempDir::new().expect("codex home");
+    let ditfa_home = tempfile::TempDir::new().expect("ditfa home");
     let helper_dir = tempfile::TempDir::new().expect("helper dir");
-    let configured_helper = helper_dir.path().join("configured-codex-helper.exe");
+    let configured_helper = helper_dir.path().join("configured-ditfa-helper.exe");
     std::fs::write(&configured_helper, b"helper").expect("write configured helper");
     let cwd = AbsolutePathBuf::from_absolute_path(helper_dir.path()).expect("absolute cwd");
     let cwd_uri = PathUri::from_abs_path(&cwd);
@@ -510,7 +510,7 @@ fn transform_for_direct_spawn_windows_materializes_inner_helper() {
     let workspace_roots = vec![cwd, other_workspace_root];
     let manager = SandboxManager::new();
     let exec_request = manager
-        .transform_for_direct_spawn_with_codex_home(
+        .transform_for_direct_spawn_with_ditfa_home(
             SandboxDirectSpawnTransformRequest {
                 workspace_roots: workspace_roots.as_slice(),
                 windows_sandbox_proxy_settings_mode:
@@ -518,7 +518,7 @@ fn transform_for_direct_spawn_windows_materializes_inner_helper() {
                 transform: SandboxTransformRequest {
                     command: SandboxCommand {
                         program: configured_helper.as_os_str().to_owned(),
-                        args: vec!["--codex-run-as-fs-helper".to_string()],
+                        args: vec!["--ditfa-run-as-fs-helper".to_string()],
                         cwd: cwd_uri.clone(),
                         env: HashMap::from([(
                             "Path".to_string(),
@@ -574,7 +574,7 @@ fn transform_for_direct_spawn_windows_materializes_inner_helper() {
     );
     assert_eq!(
         exec_request.command[separator_index + 2],
-        "--codex-run-as-fs-helper"
+        "--ditfa-run-as-fs-helper"
     );
     assert_eq!(
         exec_request

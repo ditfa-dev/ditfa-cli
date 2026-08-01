@@ -24,7 +24,7 @@ use uuid::Uuid;
 
 use self::viewer::materialize_document;
 
-pub(crate) const DIRECTIVE_PREFIX: &str = "::codex-inline-vis{";
+pub(crate) const DIRECTIVE_PREFIX: &str = "::ditfa-inline-vis{";
 const MAX_FRAGMENT_BYTES: u64 = 2 * 1024 * 1024;
 
 #[derive(Clone, Debug)]
@@ -240,7 +240,7 @@ fn link_placeholder() -> String {
     let mut bytes = [0_u8; 24];
     rand::rng().fill_bytes(&mut bytes);
     let token = URL_SAFE_NO_PAD.encode(bytes);
-    format!("https://codex.invalid/inline-visualization/{token}")
+    format!("https://ditfa.invalid/inline-visualization/{token}")
 }
 
 fn parse_directive_file(directive: &str) -> Option<&str> {

@@ -148,7 +148,7 @@ fn install_mcp_permission_request_hook(
         .join("mcp_permission_request_hook_log.jsonl");
     let hook_output = hook_output.to_string();
     std::fs::create_dir_all(&turn_context.config.ditfa_home)
-        .expect("create codex home for MCP permission hook");
+        .expect("create ditfa home for MCP permission hook");
     let script = format!(
         r#"import json
 from pathlib import Path
@@ -251,7 +251,7 @@ fn mcp_app_resource_uri_reads_known_tool_meta_keys() {
 }
 
 #[test]
-fn openai_file_params_are_only_honored_for_codex_apps() {
+fn openai_file_params_are_only_honored_for_ditfa_apps() {
     let params = HashMap::from([("file".to_string(), Vec::new())]);
 
     assert_eq!(
@@ -432,7 +432,7 @@ async fn mcp_tool_call_span_records_error_type_and_error_code() {
     let logs = String::from_utf8(buffer.lock().expect("buffer lock").clone()).expect("utf8 logs");
     assert!(
         logs.contains("error.type=\"tool_result\"")
-            && logs.contains("codex.mcp.error.code=\"RATE_LIMITED\""),
+            && logs.contains("ditfa.mcp.error.code=\"RATE_LIMITED\""),
         "missing MCP tool error span fields\nlogs:\n{logs}"
     );
 }
@@ -484,7 +484,7 @@ async fn mcp_result_telemetry_span_logs(meta: Option<serde_json::Value>) -> Stri
 #[tokio::test]
 async fn mcp_result_telemetry_records_allowlisted_span_fields() {
     let logs = mcp_result_telemetry_span_logs(Some(serde_json::json!({
-        "codex/telemetry": {
+        "ditfa/telemetry": {
             "span": {
                 "target_id": "com.apple.reminders",
                 "did_trigger_server_user_flow": false,
@@ -495,8 +495,8 @@ async fn mcp_result_telemetry_records_allowlisted_span_fields() {
     .await;
 
     assert!(
-        logs.contains("codex.mcp.target.id=\"com.apple.reminders\"")
-            && logs.contains("codex.mcp.server_user_flow.triggered=false"),
+        logs.contains("ditfa.mcp.target.id=\"com.apple.reminders\"")
+            && logs.contains("ditfa.mcp.server_user_flow.triggered=false"),
         "missing MCP result telemetry span fields\nlogs:\n{logs}"
     );
     assert!(
@@ -509,7 +509,7 @@ async fn mcp_result_telemetry_records_allowlisted_span_fields() {
 #[tokio::test]
 async fn mcp_result_telemetry_ignores_invalid_and_missing_values() {
     let invalid_logs = mcp_result_telemetry_span_logs(Some(serde_json::json!({
-        "codex/telemetry": {
+        "ditfa/telemetry": {
             "span": {
                 "target_id": 123,
                 "did_trigger_server_user_flow": "false",
@@ -518,25 +518,25 @@ async fn mcp_result_telemetry_ignores_invalid_and_missing_values() {
     })))
     .await;
     assert!(
-        !invalid_logs.contains("codex.mcp.target.id=")
-            && !invalid_logs.contains("codex.mcp.server_user_flow.triggered="),
+        !invalid_logs.contains("ditfa.mcp.target.id=")
+            && !invalid_logs.contains("ditfa.mcp.server_user_flow.triggered="),
         "invalid MCP result telemetry values should be ignored\nlogs:\n{invalid_logs}"
     );
 
     let missing_logs = mcp_result_telemetry_span_logs(Some(serde_json::json!({
-        "codex/telemetry": {},
+        "ditfa/telemetry": {},
     })))
     .await;
     assert!(
-        !missing_logs.contains("codex.mcp.target.id=")
-            && !missing_logs.contains("codex.mcp.server_user_flow.triggered="),
+        !missing_logs.contains("ditfa.mcp.target.id=")
+            && !missing_logs.contains("ditfa.mcp.server_user_flow.triggered="),
         "missing MCP result telemetry span object should be ignored\nlogs:\n{missing_logs}"
     );
 
     let no_meta_logs = mcp_result_telemetry_span_logs(/*meta*/ None).await;
     assert!(
-        !no_meta_logs.contains("codex.mcp.target.id=")
-            && !no_meta_logs.contains("codex.mcp.server_user_flow.triggered="),
+        !no_meta_logs.contains("ditfa.mcp.target.id=")
+            && !no_meta_logs.contains("ditfa.mcp.server_user_flow.triggered="),
         "missing MCP result metadata should be ignored\nlogs:\n{no_meta_logs}"
     );
 }
@@ -546,7 +546,7 @@ async fn mcp_result_telemetry_truncates_long_target_id() {
     let truncated = "x".repeat(MCP_RESULT_TELEMETRY_TARGET_ID_MAX_CHARS);
     let target_id = format!("{truncated}tail");
     let logs = mcp_result_telemetry_span_logs(Some(serde_json::json!({
-        "codex/telemetry": {
+        "ditfa/telemetry": {
             "span": {
                 "target_id": target_id,
             },
@@ -555,7 +555,7 @@ async fn mcp_result_telemetry_truncates_long_target_id() {
     .await;
 
     assert!(
-        logs.contains(&format!("codex.mcp.target.id=\"{truncated}\"")) && !logs.contains("tail"),
+        logs.contains(&format!("ditfa.mcp.target.id=\"{truncated}\"")) && !logs.contains("tail"),
         "long MCP result telemetry target_id should be truncated\nlogs:\n{logs}"
     );
 }
@@ -707,7 +707,7 @@ fn ditfa_apps_tool_question_uses_fallback_app_label() {
 }
 
 #[test]
-fn trusted_codex_apps_tool_question_offers_always_allow() {
+fn trusted_ditfa_apps_tool_question_offers_always_allow() {
     let question = build_mcp_tool_approval_question(
         "q".to_string(),
         DITFA_APPS_MCP_SERVER_NAME,
@@ -1146,7 +1146,7 @@ async fn plugin_mcp_tool_call_request_meta_includes_plugin_id() {
 }
 
 #[test]
-fn mcp_tool_call_item_metadata_only_trusts_codex_apps_identity() {
+fn mcp_tool_call_item_metadata_only_trusts_ditfa_apps_identity() {
     let mut metadata = approval_metadata(
         Some("asdk_app_0123456789abcdef0123456789abcdef"),
         Some("Calendar"),
@@ -1161,7 +1161,7 @@ fn mcp_tool_call_item_metadata_only_trusts_codex_apps_identity() {
         })
         .as_object()
         .cloned()
-        .expect("_codex_apps metadata should be an object"),
+        .expect("_ditfa_apps metadata should be an object"),
     );
 
     assert_eq!(
@@ -1237,7 +1237,7 @@ async fn mcp_tool_call_item_includes_app_identity() {
 }
 
 #[tokio::test]
-async fn ditfa_apps_tool_call_request_meta_includes_turn_metadata_and_codex_apps_meta() {
+async fn ditfa_apps_tool_call_request_meta_includes_turn_metadata_and_ditfa_apps_meta() {
     let (_, turn_context) = make_session_and_context().await;
     let expected_turn_metadata = turn_context
         .turn_metadata_state
@@ -1262,7 +1262,7 @@ async fn ditfa_apps_tool_call_request_meta_includes_turn_metadata_and_codex_apps
             })
             .as_object()
             .cloned()
-            .expect("_codex_apps metadata should be an object"),
+            .expect("_ditfa_apps metadata should be an object"),
         ),
         openai_file_input_optional_fields: None,
     };
@@ -1287,7 +1287,7 @@ async fn ditfa_apps_tool_call_request_meta_includes_turn_metadata_and_codex_apps
 }
 
 #[tokio::test]
-async fn ditfa_apps_tool_call_request_meta_includes_call_id_without_existing_codex_apps_meta() {
+async fn ditfa_apps_tool_call_request_meta_includes_call_id_without_existing_ditfa_apps_meta() {
     let (_, turn_context) = make_session_and_context().await;
     let expected_turn_metadata = turn_context
         .turn_metadata_state
@@ -1355,7 +1355,7 @@ async fn ditfa_apps_auth_elicitation_feature_disabled_returns_original_result() 
     let result = ditfa_apps_auth_failure_result();
     let metadata = ditfa_apps_auth_failure_metadata();
 
-    let returned = maybe_request_codex_apps_auth_elicitation(
+    let returned = maybe_request_ditfa_apps_auth_elicitation(
         &session,
         &turn_context,
         turn_context.approval_policy.value(),
@@ -1380,7 +1380,7 @@ async fn ditfa_apps_auth_elicitation_disallowed_by_policy_returns_original_resul
     let result = ditfa_apps_auth_failure_result();
     let metadata = ditfa_apps_auth_failure_metadata();
 
-    let returned = maybe_request_codex_apps_auth_elicitation(
+    let returned = maybe_request_ditfa_apps_auth_elicitation(
         &session,
         &turn_context,
         AskForApproval::Never,
@@ -1415,7 +1415,7 @@ async fn ditfa_apps_auth_elicitation_granular_mcp_disabled_returns_original_resu
     let result = ditfa_apps_auth_failure_result();
     let metadata = ditfa_apps_auth_failure_metadata();
 
-    let returned = maybe_request_codex_apps_auth_elicitation(
+    let returned = maybe_request_ditfa_apps_auth_elicitation(
         &session,
         &turn_context,
         turn_context.approval_policy.value(),
@@ -1441,7 +1441,7 @@ async fn ditfa_apps_auth_elicitation_enabled_by_default_requests_elicitation() {
         let session = Arc::clone(&session);
         let turn_context = Arc::clone(&turn_context);
         async move {
-            maybe_request_codex_apps_auth_elicitation(
+            maybe_request_ditfa_apps_auth_elicitation(
                 &session,
                 &turn_context,
                 turn_context.approval_policy.value(),
@@ -1752,7 +1752,7 @@ fn guardian_review_decision_maps_to_mcp_tool_decision() {
 }
 
 #[test]
-fn approval_elicitation_meta_includes_connector_source_for_codex_apps() {
+fn approval_elicitation_meta_includes_connector_source_for_ditfa_apps() {
     assert_eq!(
         build_mcp_tool_approval_elicitation_meta(
             DITFA_APPS_MCP_SERVER_NAME,
@@ -1905,7 +1905,7 @@ fn accepted_elicitation_without_content_defaults_to_accept() {
 }
 
 #[tokio::test]
-async fn persist_codex_app_tool_approval_writes_tool_override() {
+async fn persist_ditfa_app_tool_approval_writes_tool_override() {
     let tmp = tempdir().expect("tempdir");
     let config = ConfigBuilder::default()
         .ditfa_home(tmp.path().to_path_buf())
@@ -1913,7 +1913,7 @@ async fn persist_codex_app_tool_approval_writes_tool_override() {
         .await
         .expect("load config");
 
-    persist_codex_app_tool_approval(&config, "calendar", "calendar/list_events")
+    persist_ditfa_app_tool_approval(&config, "calendar", "calendar/list_events")
         .await
         .expect("persist approval");
 
@@ -2118,7 +2118,7 @@ approval_mode = "approve"
 async fn maybe_persist_mcp_tool_approval_reloads_session_config() {
     let (session, turn_context) = make_session_and_context().await;
     let ditfa_home = session.ditfa_home().await;
-    std::fs::create_dir_all(&ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&ditfa_home).expect("create ditfa home");
     let key = McpToolApprovalKey {
         server: DITFA_APPS_MCP_SERVER_NAME.to_string(),
         connector_id: Some("calendar".to_string()),
@@ -2157,7 +2157,7 @@ async fn maybe_persist_mcp_tool_approval_reloads_session_config() {
 async fn maybe_persist_mcp_tool_approval_reloads_session_config_for_custom_server() {
     let (session, mut turn_context) = make_session_and_context().await;
     let ditfa_home = session.ditfa_home().await;
-    std::fs::create_dir_all(&ditfa_home).expect("create codex home");
+    std::fs::create_dir_all(&ditfa_home).expect("create ditfa home");
     std::fs::write(
         ditfa_home.join(CONFIG_TOML_FILE),
         "[mcp_servers.docs]\ncommand = \"docs-server\"\n",
@@ -2257,10 +2257,10 @@ async fn maybe_persist_mcp_tool_approval_writes_project_config_for_project_serve
     let ditfa_home = session.ditfa_home().await;
     let project_dir = tempdir().expect("tempdir");
     std::fs::write(project_dir.path().join(".git"), "gitdir: nowhere").expect("seed git marker");
-    let project_codex_dir = project_dir.path().join(".ditfa");
-    std::fs::create_dir_all(&project_codex_dir).expect("create project .ditfa dir");
+    let project_ditfa_dir = project_dir.path().join(".ditfa");
+    std::fs::create_dir_all(&project_ditfa_dir).expect("create project .ditfa dir");
     std::fs::write(
-        project_codex_dir.join(CONFIG_TOML_FILE),
+        project_ditfa_dir.join(CONFIG_TOML_FILE),
         "[mcp_servers.docs]\ncommand = \"docs-server\"\n",
     )
     .expect("seed project config");
@@ -2287,7 +2287,7 @@ async fn maybe_persist_mcp_tool_approval_writes_project_config_for_project_serve
 
     maybe_persist_mcp_tool_approval(&session, &turn_context, key.clone()).await;
 
-    let contents = std::fs::read_to_string(project_codex_dir.join(CONFIG_TOML_FILE))
+    let contents = std::fs::read_to_string(project_ditfa_dir.join(CONFIG_TOML_FILE))
         .expect("read project config");
     let parsed: ConfigToml = toml::from_str(&contents).expect("parse project config");
     let tool = parsed
@@ -2892,7 +2892,7 @@ async fn approve_mode_skips_guardian_in_every_permission_mode() {
     ] {
         let (mut session, mut turn_context) = make_session_and_context().await;
         turn_context.auth_manager = Some(crate::test_support::auth_manager_from_auth(
-            ditfa_login::CodexAuth::create_dummy_chatgpt_auth_for_testing(),
+            ditfa_login::DitfaAuth::create_dummy_chatgpt_auth_for_testing(),
         ));
         turn_context
             .approval_policy

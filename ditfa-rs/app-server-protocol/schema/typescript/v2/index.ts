@@ -49,7 +49,6 @@ export type { CapabilityRootLocation } from "./CapabilityRootLocation";
 export type { ChatgptAuthTokensRefreshParams } from "./ChatgptAuthTokensRefreshParams";
 export type { ChatgptAuthTokensRefreshReason } from "./ChatgptAuthTokensRefreshReason";
 export type { ChatgptAuthTokensRefreshResponse } from "./ChatgptAuthTokensRefreshResponse";
-export type { CodexErrorInfo } from "./CodexErrorInfo";
 export type { CollabAgentState } from "./CollabAgentState";
 export type { CollabAgentStatus } from "./CollabAgentStatus";
 export type { CollabAgentTool } from "./CollabAgentTool";
@@ -97,6 +96,7 @@ export type { ConsumeAccountRateLimitResetCreditResponse } from "./ConsumeAccoun
 export type { ContextCompactedNotification } from "./ContextCompactedNotification";
 export type { CreditsSnapshot } from "./CreditsSnapshot";
 export type { DeprecationNoticeNotification } from "./DeprecationNoticeNotification";
+export type { DitfaErrorInfo } from "./DitfaErrorInfo";
 export type { DynamicToolCallOutputContentItem } from "./DynamicToolCallOutputContentItem";
 export type { DynamicToolCallParams } from "./DynamicToolCallParams";
 export type { DynamicToolCallResponse } from "./DynamicToolCallResponse";

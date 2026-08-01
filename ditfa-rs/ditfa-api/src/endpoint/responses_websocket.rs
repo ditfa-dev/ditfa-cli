@@ -151,7 +151,7 @@ impl Drop for WsStream {
     }
 }
 
-const X_DITFA_TURN_STATE_HEADER: &str = "x-codex-turn-state";
+const X_DITFA_TURN_STATE_HEADER: &str = "x-ditfa-turn-state";
 const X_MODELS_ETAG_HEADER: &str = "x-models-etag";
 const X_REASONING_INCLUDED_HEADER: &str = "x-reasoning-included";
 const OPENAI_MODEL_HEADER: &str = "openai-model";
@@ -165,7 +165,7 @@ const RESPONSES_WEBSOCKET_TIMING_EVENT_TARGET: &str = "ditfa_api::responses_webs
 const SESSION_ID_CLIENT_METADATA_KEY: &str = "session_id";
 const THREAD_ID_CLIENT_METADATA_KEY: &str = "thread_id";
 const TURN_ID_CLIENT_METADATA_KEY: &str = "turn_id";
-const WS_STREAM_REQUEST_START_MS_CLIENT_METADATA_KEY: &str = "x-codex-ws-stream-request-start-ms";
+const WS_STREAM_REQUEST_START_MS_CLIENT_METADATA_KEY: &str = "x-ditfa-ws-stream-request-start-ms";
 
 struct ResponsesWebsocketTimingLogContext {
     model: String,
@@ -745,7 +745,7 @@ async fn run_websocket_response_stream(
                 let turn_moderation_metadata = event.turn_moderation_metadata();
                 let safety_buffering =
                     safety_buffering_for_event(&event, &mut safety_buffering_treatment);
-                if event.kind() == "codex.rate_limits" {
+                if event.kind() == "ditfa.rate_limits" {
                     if let Some(snapshot) = parse_rate_limit_event(&text) {
                         let _ = tx_event.send(Ok(ResponseEvent::RateLimits(snapshot))).await;
                     }
@@ -989,8 +989,8 @@ mod tests {
                 "resets_at": 1738888888
             },
             "headers": {
-                "x-codex-primary-used-percent": "100.0",
-                "x-codex-primary-window-minutes": 15
+                "x-ditfa-primary-used-percent": "100.0",
+                "x-ditfa-primary-window-minutes": 15
             }
         })
         .to_string();
@@ -1014,13 +1014,13 @@ mod tests {
         let headers = headers.expect("expected headers");
         assert_eq!(
             headers
-                .get("x-codex-primary-used-percent")
+                .get("x-ditfa-primary-used-percent")
                 .and_then(|value| value.to_str().ok()),
             Some("100.0")
         );
         assert_eq!(
             headers
-                .get("x-codex-primary-window-minutes")
+                .get("x-ditfa-primary-window-minutes")
                 .and_then(|value| value.to_str().ok()),
             Some("15")
         );
@@ -1101,8 +1101,8 @@ mod tests {
                 "message": "The usage limit has been reached"
             },
             "headers": {
-                "x-codex-primary-used-percent": "100.0",
-                "x-codex-primary-window-minutes": 15
+                "x-ditfa-primary-used-percent": "100.0",
+                "x-ditfa-primary-window-minutes": 15
             }
         })
         .to_string();
@@ -1149,10 +1149,10 @@ mod tests {
     #[test]
     fn websocket_safety_buffering_uses_event_before_header_fallback() {
         let metadata: ResponsesStreamEvent = serde_json::from_value(json!({
-            "type": "codex.response.metadata",
+            "type": "ditfa.response.metadata",
             "headers": {
-                "x-codex-safety-buffering-enabled": "true",
-                "x-codex-safety-buffering-faster-model": "gpt-fast-header"
+                "x-ditfa-safety-buffering-enabled": "true",
+                "x-ditfa-safety-buffering-faster-model": "gpt-fast-header"
             }
         }))
         .expect("deserialize treatment metadata");
@@ -1185,10 +1185,10 @@ mod tests {
     #[test]
     fn websocket_safety_buffering_event_controls_visibility_when_header_disables_it() {
         let metadata: ResponsesStreamEvent = serde_json::from_value(json!({
-            "type": "codex.response.metadata",
+            "type": "ditfa.response.metadata",
             "headers": {
-                "x-codex-safety-buffering-enabled": "false",
-                "x-codex-safety-buffering-faster-model": "gpt-fast-header"
+                "x-ditfa-safety-buffering-enabled": "false",
+                "x-ditfa-safety-buffering-faster-model": "gpt-fast-header"
             }
         }))
         .expect("deserialize treatment metadata");

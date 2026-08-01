@@ -12,7 +12,7 @@ use ditfa_connectors::merge::plugin_connector_to_app_info;
 use ditfa_connectors::metadata::connector_install_url;
 use ditfa_connectors::metadata::sanitize_name;
 use ditfa_features::Feature;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_mcp::DITFA_APPS_MCP_SERVER_NAME;
 use ditfa_mcp::ToolInfo;
 use pretty_assertions::assert_eq;
@@ -153,7 +153,7 @@ fn synthetic_links_are_exposed_to_the_agent_but_not_accessible_in_app_list() {
     synthetic_tool.tool.meta = Some(Meta(
         serde_json::json!({
             "resource_name": "gmail.batch_read_email",
-            "_codex_apps": {
+            "_ditfa_apps": {
                 "resource_uri": "/connector/gmail/batch_read_email",
                 "contains_mcp_source": false,
                 "synthetic_link": true
@@ -292,7 +292,7 @@ fn accessible_connectors_from_mcp_tools_preserves_description() {
         supports_parallel_tool_calls: false,
         server_origin: None,
         callable_name: "calendar_create_event".to_string(),
-        callable_namespace: "mcp__codex_apps__calendar".to_string(),
+        callable_namespace: "mcp__ditfa_apps__calendar".to_string(),
         namespace_description: Some("Plan events".to_string()),
         tool: Tool::new(
             "calendar_create_event",
@@ -567,7 +567,7 @@ discoverables = [
         .build()
         .await
         .expect("config should load");
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let plugins_manager = PluginsManager::new(config.ditfa_home.to_path_buf());
 
     let discoverable_tools = list_tool_suggest_discoverable_tools_with_auth(
@@ -604,7 +604,7 @@ apps = true
         .build()
         .await
         .expect("config should load");
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let loaded_plugin_app_connector_ids = vec!["asdk_app_databricks_workspace".to_string()];
     let plugins_manager = PluginsManager::new(config.ditfa_home.to_path_buf());
 

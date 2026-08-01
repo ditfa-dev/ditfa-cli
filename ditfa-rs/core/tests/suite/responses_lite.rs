@@ -8,7 +8,7 @@ use ditfa_extension_api::ExtensionRegistry;
 use ditfa_extension_api::ExtensionRegistryBuilder;
 use ditfa_features::Feature;
 use ditfa_image_generation_extension::install as install_image_generation_extension;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::auth::BedrockApiKeyAuth;
 use ditfa_protocol::config_types::WebSearchMode;
 use ditfa_protocol::models::ImageDetail;
@@ -19,14 +19,14 @@ use ditfa_protocol::user_input::UserInput;
 use ditfa_web_search_extension::install as install_web_search_extension;
 use core_test_support::responses;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
 
-const RESPONSES_LITE_HEADER: &str = "x-openai-internal-codex-responses-lite";
+const RESPONSES_LITE_HEADER: &str = "x-openai-internal-ditfa-responses-lite";
 
-fn responses_extensions(auth: &CodexAuth) -> Arc<ExtensionRegistry<Config>> {
+fn responses_extensions(auth: &DitfaAuth) -> Arc<ExtensionRegistry<Config>> {
     let auth_manager = ditfa_core::test_support::auth_manager_from_auth(auth.clone());
     let mut extension_builder = ExtensionRegistryBuilder::<Config>::new();
     install_web_search_extension(&mut extension_builder, Arc::clone(&auth_manager));
@@ -94,7 +94,7 @@ async fn responses_lite_uses_input_items_for_instructions_and_tools() -> Result<
     )
     .await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model_info_override("gpt-5.4", |model_info| {
             model_info.use_responses_lite = true;
         })
@@ -147,7 +147,7 @@ async fn responses_lite_prepares_images() -> Result<()> {
     .await;
     let image_url = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==";
     let remote_image_url = "https://example.com/image.png";
-    let mut builder = test_codex().with_model_info_override("gpt-5.4", |model_info| {
+    let mut builder = test_ditfa().with_model_info_override("gpt-5.4", |model_info| {
         model_info.use_responses_lite = true;
         configure_image_capable_model(model_info);
     });
@@ -216,10 +216,10 @@ async fn responses_lite_uses_standalone_web_search_and_image_generation() -> Res
     )
     .await;
 
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let extensions = responses_extensions(&auth);
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_auth(auth)
         .with_extensions(extensions)
         .with_model_info_override("gpt-5.4", |model_info| {
@@ -261,9 +261,9 @@ async fn responses_lite_exposes_standalone_tools_for_actor_authorized_provider()
     )
     .await;
 
-    let auth = CodexAuth::from_api_key("dummy");
+    let auth = DitfaAuth::from_api_key("dummy");
     let extensions = responses_extensions(&auth);
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_auth(auth)
         .with_extensions(extensions)
         .with_model_info_override("gpt-5.4", |model_info| {
@@ -338,12 +338,12 @@ async fn responses_lite_does_not_expose_standalone_web_search_for_opted_in_bedro
     )
     .await;
 
-    let auth = CodexAuth::BedrockApiKey(BedrockApiKeyAuth {
+    let auth = DitfaAuth::BedrockApiKey(BedrockApiKeyAuth {
         api_key: "dummy".to_string(),
         region: "us-east-1".to_string(),
     });
     let extensions = responses_extensions(&auth);
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_auth(auth)
         .with_extensions(extensions)
         .with_model_info_override("gpt-5.4", |model_info| {
@@ -391,9 +391,9 @@ async fn assert_responses_lite_custom_provider_web_search(
     )
     .await;
 
-    let auth = CodexAuth::from_api_key("dummy");
+    let auth = DitfaAuth::from_api_key("dummy");
     let extensions = responses_extensions(&auth);
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_auth(auth)
         .with_extensions(extensions)
         .with_model_info_override("gpt-5.4", |model_info| {
@@ -441,7 +441,7 @@ async fn responses_lite_compact_request_uses_lite_transport_contract() -> Result
     let compact_mock =
         responses::mount_compact_json_once(&server, serde_json::json!({ "output": [] })).await;
 
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_model_info_override("gpt-5.4", |model_info| {
             model_info.use_responses_lite = true;
             model_info.supports_parallel_tool_calls = true;
@@ -494,8 +494,8 @@ async fn responses_lite_omits_hosted_tools_without_standalone_extensions() -> Re
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::create_dummy_chatgpt_auth_for_testing())
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
         .with_model_info_override("gpt-5.4", |model_info| {
             model_info.use_responses_lite = true;
             configure_image_capable_model(model_info);
@@ -528,9 +528,9 @@ async fn non_lite_uses_standalone_image_generation_by_default() -> Result<()> {
     )
     .await;
 
-    let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+    let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
     let extensions = responses_extensions(&auth);
-    let mut builder = test_codex()
+    let mut builder = test_ditfa()
         .with_auth(auth)
         .with_extensions(extensions)
         .with_model_info_override("gpt-5.4", configure_image_capable_model)

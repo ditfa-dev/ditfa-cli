@@ -43,7 +43,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          path-to-document: https://github.com/openai/codex/blob/main/docs/CLA.md
+          path-to-document: https://github.com/Teamtem-dev/ditfa-code/blob/main/docs/CLA.md
           path-to-signatures: signatures/cla.json
           branch: cla-signatures
-          allowlist: codex,dependabot,dependabot[bot],github-actions[bot]
+          allowlist: ditfa,dependabot,dependabot[bot],github-actions[bot]

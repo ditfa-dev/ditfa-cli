@@ -1,8 +1,8 @@
 use ditfa_config::CloudConfigBundle;
 
-const CLOUD_CONFIG_BUNDLE_FETCH_ATTEMPT_METRIC: &str = "codex.cloud_config_bundle.fetch_attempt";
-const CLOUD_CONFIG_BUNDLE_FETCH_FINAL_METRIC: &str = "codex.cloud_config_bundle.fetch_final";
-const CLOUD_CONFIG_BUNDLE_LOAD_METRIC: &str = "codex.cloud_config_bundle.load";
+const CLOUD_CONFIG_BUNDLE_FETCH_ATTEMPT_METRIC: &str = "ditfa.cloud_config_bundle.fetch_attempt";
+const CLOUD_CONFIG_BUNDLE_FETCH_FINAL_METRIC: &str = "ditfa.cloud_config_bundle.fetch_final";
+const CLOUD_CONFIG_BUNDLE_LOAD_METRIC: &str = "ditfa.cloud_config_bundle.load";
 
 pub(crate) fn emit_fetch_attempt_metric(
     trigger: &str,

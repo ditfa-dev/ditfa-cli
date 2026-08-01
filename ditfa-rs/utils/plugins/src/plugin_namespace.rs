@@ -51,7 +51,7 @@ pub async fn plugin_namespace_for_root_uri(
 }
 
 /// Returns the plugin manifest `name` for the nearest ancestor of `path` that contains a valid
-/// plugin manifest (same `name` rules as full manifest loading in codex-core).
+/// plugin manifest (same `name` rules as full manifest loading in ditfa-core).
 pub async fn plugin_namespace_for_skill_path(
     fs: &dyn ExecutorFileSystem,
     path: &AbsolutePathBuf,

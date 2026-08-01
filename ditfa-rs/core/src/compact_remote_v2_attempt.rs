@@ -6,11 +6,11 @@ use crate::Prompt;
 use crate::client::ModelClientSession;
 use crate::compact::CompactionAnalyticsDetails;
 use crate::compact_remote::trim_function_call_history_to_fit_context_window;
-use crate::responses_metadata::CodexResponsesRequestKind;
+use crate::responses_metadata::DitfaResponsesRequestKind;
 use crate::responses_metadata::CompactionTurnMetadata;
 use crate::session::session::Session;
 use crate::session::step_context::StepContext;
-use ditfa_protocol::error::Result as CodexResult;
+use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::models::ResponseItem;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::RawResponseCompletedEvent;
@@ -34,7 +34,7 @@ pub(super) async fn run_remote_compact_v2_attempt(
     compaction_trace: &CompactionTraceContext,
     compaction_metadata: CompactionTurnMetadata,
     analytics_details: &mut CompactionAnalyticsDetails,
-) -> CodexResult<RemoteCompactV2Attempt> {
+) -> DitfaResult<RemoteCompactV2Attempt> {
     let turn_context = &step_context.turn;
     let mut history = sess.clone_history().await;
     let base_instructions = sess.get_base_instructions().await;
@@ -82,7 +82,7 @@ pub(super) async fn run_remote_compact_v2_attempt(
     let responses_metadata = turn_context.turn_metadata_state.to_responses_metadata(
         sess.installation_id.clone(),
         window_id,
-        CodexResponsesRequestKind::Compaction(compaction_metadata),
+        DitfaResponsesRequestKind::Compaction(compaction_metadata),
     );
     let trace_attempt = compaction_trace.start_attempt(&serde_json::json!({
         "model": turn_context.model_info.slug.as_str(),

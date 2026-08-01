@@ -155,7 +155,7 @@ mod tests {
     use ditfa_extension_api::ExtensionData;
     use ditfa_extension_api::ExtensionRegistryBuilder;
     use ditfa_extension_api::ToolName;
-    use ditfa_login::CodexAuth;
+    use ditfa_login::DitfaAuth;
     use ditfa_model_provider_info::ModelProviderInfo;
     use pretty_assertions::assert_eq;
 
@@ -194,7 +194,7 @@ mod tests {
         let mut builder = ExtensionRegistryBuilder::<Config>::new();
         install(
             &mut builder,
-            AuthManager::from_auth_for_testing(CodexAuth::from_api_key("dummy")),
+            AuthManager::from_auth_for_testing(DitfaAuth::from_api_key("dummy")),
         );
         let registry = builder.build();
         let session_store = ExtensionData::new("session");

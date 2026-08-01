@@ -19,7 +19,7 @@ impl Display for RateLimitError {
     }
 }
 
-/// Parses the default Codex rate-limit header family into a `RateLimitSnapshot`.
+/// Parses the default Ditfa rate-limit header family into a `RateLimitSnapshot`.
 pub fn parse_default_rate_limit(headers: &HeaderMap) -> Option<RateLimitSnapshot> {
     parse_rate_limit_for_limit(headers, /*limit_id*/ None)
 }
@@ -36,7 +36,7 @@ pub fn parse_all_rate_limits(headers: &HeaderMap) -> Vec<RateLimitSnapshot> {
     for name in headers.keys() {
         let header_name = name.as_str().to_ascii_lowercase();
         if let Some(limit_id) = header_name_to_limit_id(&header_name)
-            && limit_id != "codex"
+            && limit_id != "ditfa"
         {
             limit_ids.insert(limit_id);
         }
@@ -52,8 +52,8 @@ pub fn parse_all_rate_limits(headers: &HeaderMap) -> Vec<RateLimitSnapshot> {
 
 /// Parses rate-limit headers for the provided limit id.
 ///
-/// `limit_id` should match the server-provided metered limit id (e.g. `codex`,
-/// `ditfa_other`). When omitted, this defaults to the legacy `codex` header family.
+/// `limit_id` should match the server-provided metered limit id (e.g. `ditfa`,
+/// `ditfa_other`). When omitted, this defaults to the legacy `ditfa` header family.
 pub fn parse_rate_limit_for_limit(
     headers: &HeaderMap,
     limit_id: Option<&str>,
@@ -61,7 +61,7 @@ pub fn parse_rate_limit_for_limit(
     let normalized_limit = limit_id
         .map(str::trim)
         .filter(|name| !name.is_empty())
-        .unwrap_or("codex")
+        .unwrap_or("ditfa")
         .to_ascii_lowercase()
         .replace('_', "-");
     let prefix = format!("x-{normalized_limit}");
@@ -133,7 +133,7 @@ struct RateLimitEvent {
 
 pub fn parse_rate_limit_event(payload: &str) -> Option<RateLimitSnapshot> {
     let event: RateLimitEvent = serde_json::from_str(payload).ok()?;
-    if event.kind != "codex.rate_limits" {
+    if event.kind != "ditfa.rate_limits" {
         return None;
     }
     let (primary, secondary) = if let Some(details) = event.rate_limits.as_ref() {
@@ -154,7 +154,7 @@ pub fn parse_rate_limit_event(payload: &str) -> Option<RateLimitSnapshot> {
         .or(event.limit_name)
         .map(normalize_limit_id);
     Some(RateLimitSnapshot {
-        limit_id: Some(limit_id.unwrap_or_else(|| "codex".to_string())),
+        limit_id: Some(limit_id.unwrap_or_else(|| "ditfa".to_string())),
         limit_name: None,
         primary,
         secondary,
@@ -175,16 +175,16 @@ fn map_event_window(window: Option<&RateLimitEventWindow>) -> Option<RateLimitWi
     })
 }
 
-/// Parses the bespoke Codex rate-limit headers into a `RateLimitSnapshot`.
+/// Parses the bespoke Ditfa rate-limit headers into a `RateLimitSnapshot`.
 pub fn parse_promo_message(headers: &HeaderMap) -> Option<String> {
-    parse_header_str(headers, "x-codex-promo-message")
+    parse_header_str(headers, "x-ditfa-promo-message")
         .map(str::trim)
         .filter(|value| !value.is_empty())
         .map(std::string::ToString::to_string)
 }
 
 pub(crate) fn parse_rate_limit_reached_type(headers: &HeaderMap) -> Option<RateLimitReachedType> {
-    parse_header_str(headers, "x-codex-rate-limit-reached-type")?
+    parse_header_str(headers, "x-ditfa-rate-limit-reached-type")?
         .trim()
         .parse()
         .ok()
@@ -215,9 +215,9 @@ fn parse_rate_limit_window(
 }
 
 fn parse_credits_snapshot(headers: &HeaderMap) -> Option<CreditsSnapshot> {
-    let has_credits = parse_header_bool(headers, "x-codex-credits-has-credits")?;
-    let unlimited = parse_header_bool(headers, "x-codex-credits-unlimited")?;
-    let balance = parse_header_str(headers, "x-codex-credits-balance")
+    let has_credits = parse_header_bool(headers, "x-ditfa-credits-has-credits")?;
+    let unlimited = parse_header_bool(headers, "x-ditfa-credits-unlimited")?;
+    let balance = parse_header_str(headers, "x-ditfa-credits-balance")
         .map(str::trim)
         .filter(|value| !value.is_empty())
         .map(std::string::ToString::to_string);
@@ -276,23 +276,23 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
-    fn parse_rate_limit_for_limit_defaults_to_codex_headers() {
+    fn parse_rate_limit_for_limit_defaults_to_ditfa_headers() {
         let mut headers = HeaderMap::new();
         headers.insert(
-            "x-codex-primary-used-percent",
+            "x-ditfa-primary-used-percent",
             HeaderValue::from_static("12.5"),
         );
         headers.insert(
-            "x-codex-primary-window-minutes",
+            "x-ditfa-primary-window-minutes",
             HeaderValue::from_static("60"),
         );
         headers.insert(
-            "x-codex-primary-reset-at",
+            "x-ditfa-primary-reset-at",
             HeaderValue::from_static("1704069000"),
         );
 
         let snapshot = parse_rate_limit_for_limit(&headers, /*limit_id*/ None).expect("snapshot");
-        assert_eq!(snapshot.limit_id.as_deref(), Some("codex"));
+        assert_eq!(snapshot.limit_id.as_deref(), Some("ditfa"));
         assert_eq!(snapshot.limit_name, None);
         let primary = snapshot.primary.expect("primary");
         assert_eq!(primary.used_percent, 12.5);
@@ -304,15 +304,15 @@ mod tests {
     fn parse_rate_limit_for_limit_reads_secondary_headers() {
         let mut headers = HeaderMap::new();
         headers.insert(
-            "x-codex-secondary-primary-used-percent",
+            "x-ditfa-secondary-primary-used-percent",
             HeaderValue::from_static("80"),
         );
         headers.insert(
-            "x-codex-secondary-primary-window-minutes",
+            "x-ditfa-secondary-primary-window-minutes",
             HeaderValue::from_static("1440"),
         );
         headers.insert(
-            "x-codex-secondary-primary-reset-at",
+            "x-ditfa-secondary-primary-reset-at",
             HeaderValue::from_static("1704074400"),
         );
 
@@ -331,11 +331,11 @@ mod tests {
     fn parse_rate_limit_for_limit_prefers_limit_name_header() {
         let mut headers = HeaderMap::new();
         headers.insert(
-            "x-codex-bengalfox-primary-used-percent",
+            "x-ditfa-bengalfox-primary-used-percent",
             HeaderValue::from_static("80"),
         );
         headers.insert(
-            "x-codex-bengalfox-limit-name",
+            "x-ditfa-bengalfox-limit-name",
             HeaderValue::from_static("gpt-5.2-codex-sonic"),
         );
 
@@ -349,29 +349,29 @@ mod tests {
     fn parse_all_rate_limits_reads_all_limit_families() {
         let mut headers = HeaderMap::new();
         headers.insert(
-            "x-codex-primary-used-percent",
+            "x-ditfa-primary-used-percent",
             HeaderValue::from_static("12.5"),
         );
         headers.insert(
-            "x-codex-secondary-primary-used-percent",
+            "x-ditfa-secondary-primary-used-percent",
             HeaderValue::from_static("80"),
         );
 
         let updates = parse_all_rate_limits(&headers);
         assert_eq!(updates.len(), 2);
-        assert_eq!(updates[0].limit_id.as_deref(), Some("codex"));
+        assert_eq!(updates[0].limit_id.as_deref(), Some("ditfa"));
         assert_eq!(updates[1].limit_id.as_deref(), Some("ditfa_secondary"));
         assert_eq!(updates[0].limit_name, None);
         assert_eq!(updates[1].limit_name, None);
     }
 
     #[test]
-    fn parse_all_rate_limits_includes_default_codex_snapshot() {
+    fn parse_all_rate_limits_includes_default_ditfa_snapshot() {
         let headers = HeaderMap::new();
 
         let updates = parse_all_rate_limits(&headers);
         assert_eq!(updates.len(), 1);
-        assert_eq!(updates[0].limit_id.as_deref(), Some("codex"));
+        assert_eq!(updates[0].limit_id.as_deref(), Some("ditfa"));
         assert_eq!(updates[0].limit_name, None);
         assert_eq!(updates[0].primary, None);
         assert_eq!(updates[0].secondary, None);

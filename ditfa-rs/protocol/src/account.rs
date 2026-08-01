@@ -39,7 +39,7 @@ pub enum ProviderAccount {
         plan_type: PlanType,
     },
     AmazonBedrock {
-        uses_codex_managed_credentials: bool,
+        uses_ditfa_managed_credentials: bool,
     },
 }
 

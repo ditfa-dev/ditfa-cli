@@ -16,7 +16,7 @@ use ditfa_http_client::HttpClientFactory;
 use ditfa_http_client::RouteAwareClientPool;
 use ditfa_http_client::RouteAwareRequestBuilder;
 use ditfa_http_client::RouteAwareRequestError;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_login::default_client::default_headers;
 use ditfa_plugin::AppConnectorId;
 use ditfa_plugin::AppDeclaration;
@@ -91,7 +91,7 @@ pub const REMOTE_WORKSPACE_SHARED_WITH_ME_UNLISTED_MARKETPLACE_DISPLAY_NAME: &st
 
 const OPENAI_CURATED_REMOTE_COLLECTION_KEY: &str = "vertical";
 const OAI_PRODUCT_SKU_HEADER: &str = "OAI-Product-Sku";
-const DITFA_PRODUCT_SKU: &str = "codex";
+const DITFA_PRODUCT_SKU: &str = "ditfa";
 const REMOTE_PLUGIN_CATALOG_TIMEOUT: Duration = Duration::from_secs(30);
 const RECOMMENDED_PLUGINS_TIMEOUT: Duration = Duration::from_secs(5);
 const REMOTE_PLUGIN_LIST_PAGE_LIMIT: u32 = 200;
@@ -734,7 +734,7 @@ pub struct RemotePluginInstallResult {
 
 pub async fn fetch_remote_marketplaces(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     sources: &[RemoteMarketplaceSource],
     catalog_cache_root: Option<&Path>,
     catalog_cache_mode: RemotePluginCatalogCacheMode,
@@ -899,7 +899,7 @@ pub async fn fetch_remote_marketplaces(
 pub(crate) async fn fetch_and_cache_remote_plugin_catalog(
     ditfa_home: &Path,
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     scope: RemotePluginScope,
 ) -> Result<(), RemotePluginCatalogError> {
     let auth = ensure_chatgpt_auth(auth)?;
@@ -911,7 +911,7 @@ pub(crate) async fn fetch_and_cache_remote_plugin_catalog(
 pub async fn fetch_and_cache_global_remote_plugin_catalog(
     ditfa_home: &Path,
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
 ) -> Result<(), RemotePluginCatalogError> {
     fetch_and_cache_remote_plugin_catalog(ditfa_home, config, auth, RemotePluginScope::Global).await
 }
@@ -919,7 +919,7 @@ pub async fn fetch_and_cache_global_remote_plugin_catalog(
 pub fn invalidate_cached_remote_plugin_catalog_scopes(
     ditfa_home: &Path,
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     scopes: &[RemotePluginScope],
 ) {
     let Ok(auth) = ensure_chatgpt_auth(auth) else {
@@ -933,7 +933,7 @@ pub fn invalidate_cached_remote_plugin_catalog_scopes(
 #[instrument(level = "trace", skip_all)]
 pub async fn fetch_recommended_plugins(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
 ) -> Result<RecommendedPluginsMode, RemotePluginCatalogError> {
     let auth = ensure_chatgpt_auth(auth)?;
     let base_url = config.chatgpt_base_url.trim_end_matches('/');
@@ -1015,7 +1015,7 @@ fn recommended_plugins_mode(response: RecommendedPluginsResponse) -> Recommended
 pub(crate) fn has_fresh_cached_remote_plugin_catalog(
     ditfa_home: &Path,
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     scope: RemotePluginScope,
 ) -> bool {
     let Ok(auth) = ensure_chatgpt_auth(auth) else {
@@ -1034,7 +1034,7 @@ pub(crate) fn has_fresh_cached_remote_plugin_catalog(
 pub(crate) fn cached_remote_plugin_catalog_scopes(
     ditfa_home: &Path,
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
 ) -> BTreeSet<RemotePluginScope> {
     let Ok(auth) = ensure_chatgpt_auth(auth) else {
         return BTreeSet::new();
@@ -1050,7 +1050,7 @@ pub(crate) fn cached_remote_plugin_catalog_scopes(
 pub fn cached_global_remote_discoverable_plugins(
     ditfa_home: &Path,
     config: &RemotePluginServiceConfig,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
 ) -> Vec<RemoteDiscoverablePlugin> {
     catalog_cache::load_cached_directory_plugins(
         ditfa_home,
@@ -1075,7 +1075,7 @@ pub fn cached_global_remote_discoverable_plugins(
 
 pub async fn fetch_openai_curated_remote_collection_marketplace(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
 ) -> Result<Option<RemoteMarketplace>, RemotePluginCatalogError> {
     let auth = ensure_chatgpt_auth(auth)?;
     let scope = RemotePluginScope::Global;
@@ -1137,7 +1137,7 @@ fn build_remote_marketplace(
 
 pub(crate) async fn fetch_remote_installed_plugins(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
 ) -> Result<Vec<RemoteInstalledPlugin>, RemotePluginCatalogError> {
     let auth = ensure_chatgpt_auth(auth)?;
     let global = async {
@@ -1223,7 +1223,7 @@ pub fn group_remote_installed_plugins_by_marketplaces(
 
 pub async fn fetch_remote_plugin_detail(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     marketplace_name: &str,
     plugin_id: &str,
 ) -> Result<RemotePluginDetail, RemotePluginCatalogError> {
@@ -1239,7 +1239,7 @@ pub async fn fetch_remote_plugin_detail(
 
 pub async fn fetch_remote_plugin_share_context(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     plugin_id: &str,
 ) -> Result<Option<RemotePluginShareContext>, RemotePluginCatalogError> {
     let auth = ensure_chatgpt_auth(auth)?;
@@ -1252,7 +1252,7 @@ pub async fn fetch_remote_plugin_share_context(
 
 pub async fn fetch_remote_plugin_detail_with_download_urls(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     marketplace_name: &str,
     plugin_id: &str,
 ) -> Result<RemotePluginDetail, RemotePluginCatalogError> {
@@ -1268,7 +1268,7 @@ pub async fn fetch_remote_plugin_detail_with_download_urls(
 
 pub async fn fetch_remote_plugin_skill_detail(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     marketplace_name: &str,
     plugin_id: &str,
     skill_name: &str,
@@ -1303,7 +1303,7 @@ pub async fn fetch_remote_plugin_skill_detail(
 
 async fn fetch_remote_plugin_detail_with_download_url_option(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     _marketplace_name: &str,
     plugin_id: &str,
     include_download_urls: bool,
@@ -1321,7 +1321,7 @@ async fn fetch_remote_plugin_detail_with_download_url_option(
 
 async fn build_remote_plugin_detail(
     config: &RemotePluginServiceConfig,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     scope: RemotePluginScope,
     marketplace_name: String,
     plugin_id: &str,
@@ -1427,7 +1427,7 @@ fn app_declarations_from_remote_app_ids(app_ids: &[String]) -> Vec<AppDeclaratio
 
 pub async fn install_remote_plugin(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     _marketplace_name: &str,
     plugin_id: &str,
 ) -> Result<RemotePluginInstallResult, RemotePluginCatalogError> {
@@ -1464,7 +1464,7 @@ pub async fn install_remote_plugin(
 
 pub async fn resolve_remote_plugin_uninstall_target(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     remote_plugin_id: &str,
 ) -> Result<RemotePluginUninstallTarget, RemotePluginCatalogError> {
     let auth = ensure_chatgpt_auth(auth)?;
@@ -1513,7 +1513,7 @@ pub async fn resolve_remote_plugin_uninstall_target(
 
 pub async fn uninstall_remote_plugin(
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
     ditfa_home: PathBuf,
     target: RemotePluginUninstallTarget,
 ) -> Result<(), RemotePluginCatalogError> {
@@ -1845,7 +1845,7 @@ struct DirectoryPluginsFetchOutcome {
 async fn fetch_directory_plugins_for_scope_with_cache(
     ditfa_home: Option<&Path>,
     config: &RemotePluginServiceConfig,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     scope: RemotePluginScope,
     cache_mode: RemotePluginCatalogCacheMode,
 ) -> Result<DirectoryPluginsFetchOutcome, RemotePluginCatalogError> {
@@ -1875,7 +1875,7 @@ async fn fetch_directory_plugins_for_scope_with_cache(
 
 async fn fetch_directory_plugins_for_scope(
     config: &RemotePluginServiceConfig,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     scope: RemotePluginScope,
 ) -> Result<Vec<RemotePluginDirectoryItem>, RemotePluginCatalogError> {
     fetch_directory_plugins_for_scope_with_optional_collection(
@@ -1886,7 +1886,7 @@ async fn fetch_directory_plugins_for_scope(
 
 async fn fetch_directory_plugins_for_scope_with_collection(
     config: &RemotePluginServiceConfig,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     scope: RemotePluginScope,
     collection: &str,
 ) -> Result<Vec<RemotePluginDirectoryItem>, RemotePluginCatalogError> {
@@ -1901,7 +1901,7 @@ async fn fetch_directory_plugins_for_scope_with_collection(
 
 async fn fetch_directory_plugins_for_scope_with_optional_collection(
     config: &RemotePluginServiceConfig,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     scope: RemotePluginScope,
     collection: Option<&str>,
 ) -> Result<Vec<RemotePluginDirectoryItem>, RemotePluginCatalogError> {
@@ -1931,7 +1931,7 @@ async fn fetch_directory_plugins_for_scope_with_optional_collection(
 
 async fn fetch_shared_workspace_plugins(
     config: &RemotePluginServiceConfig,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
 ) -> Result<Vec<RemotePluginDirectoryItem>, RemotePluginCatalogError> {
     let mut plugins = Vec::new();
     let mut page_token = None;
@@ -1949,7 +1949,7 @@ async fn fetch_shared_workspace_plugins(
 
 async fn fetch_installed_plugins_for_scope(
     config: &RemotePluginServiceConfig,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     scope: RemotePluginScope,
 ) -> Result<Vec<RemotePluginInstalledItem>, RemotePluginCatalogError> {
     fetch_installed_plugins_for_scope_with_download_url(
@@ -1960,7 +1960,7 @@ async fn fetch_installed_plugins_for_scope(
 
 async fn fetch_installed_plugins_for_scope_with_download_url(
     config: &RemotePluginServiceConfig,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     scope: RemotePluginScope,
     include_download_urls: bool,
 ) -> Result<Vec<RemotePluginInstalledItem>, RemotePluginCatalogError> {
@@ -1986,7 +1986,7 @@ async fn fetch_installed_plugins_for_scope_with_download_url(
 
 async fn get_remote_plugin_list_page(
     config: &RemotePluginServiceConfig,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     scope: RemotePluginScope,
     page_token: Option<&str>,
     collection: Option<&str>,
@@ -2010,7 +2010,7 @@ async fn get_remote_plugin_list_page(
 
 async fn get_remote_shared_workspace_plugins_page(
     config: &RemotePluginServiceConfig,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     page_token: Option<&str>,
 ) -> Result<RemotePluginListResponse, RemotePluginCatalogError> {
     let base_url = config.chatgpt_base_url.trim_end_matches('/');
@@ -2028,7 +2028,7 @@ async fn get_remote_shared_workspace_plugins_page(
 
 async fn get_remote_plugin_installed_page(
     config: &RemotePluginServiceConfig,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     scope: RemotePluginScope,
     page_token: Option<&str>,
     include_download_urls: bool,
@@ -2052,7 +2052,7 @@ async fn get_remote_plugin_installed_page(
 
 async fn fetch_plugin_detail(
     config: &RemotePluginServiceConfig,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
     plugin_id: &str,
     include_download_urls: bool,
 ) -> Result<RemotePluginDirectoryItem, RemotePluginCatalogError> {
@@ -2089,11 +2089,11 @@ fn remote_plugin_skill_detail_url(
     Ok(url.to_string())
 }
 
-fn ensure_chatgpt_auth(auth: Option<&CodexAuth>) -> Result<&CodexAuth, RemotePluginCatalogError> {
+fn ensure_chatgpt_auth(auth: Option<&DitfaAuth>) -> Result<&DitfaAuth, RemotePluginCatalogError> {
     let Some(auth) = auth else {
         return Err(RemotePluginCatalogError::AuthRequired);
     };
-    if !auth.uses_codex_backend() {
+    if !auth.uses_ditfa_backend() {
         return Err(RemotePluginCatalogError::UnsupportedAuthMode);
     }
     Ok(auth)
@@ -2101,7 +2101,7 @@ fn ensure_chatgpt_auth(auth: Option<&CodexAuth>) -> Result<&CodexAuth, RemotePlu
 
 fn authenticated_request(
     request: RouteAwareRequestBuilder,
-    auth: &CodexAuth,
+    auth: &DitfaAuth,
 ) -> RouteAwareRequestBuilder {
     request
         .timeout(REMOTE_PLUGIN_CATALOG_TIMEOUT)

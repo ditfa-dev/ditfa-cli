@@ -3,7 +3,7 @@ use crate::memory_root;
 use ditfa_model_provider::create_model_provider;
 use ditfa_protocol::protocol::SandboxPolicy;
 use core_test_support::responses::start_mock_server;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use pretty_assertions::assert_eq;
 use std::sync::Arc;
 use tempfile::TempDir;
@@ -12,7 +12,7 @@ use tempfile::TempDir;
 async fn consolidation_rebinds_workspace_roots_to_memory_root() -> anyhow::Result<()> {
     let server = start_mock_server().await;
     let home = Arc::new(TempDir::new()?);
-    let test = test_codex()
+    let test = test_ditfa()
         .with_home(home)
         .build_with_auto_env(&server)
         .await?;

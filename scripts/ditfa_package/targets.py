@@ -43,20 +43,20 @@ class PackageInputs:
     rg_bin: Path
     zsh_bin: Path | None
     bwrap_bin: Path | None
-    codex_command_runner_bin: Path | None
-    codex_windows_sandbox_setup_bin: Path | None
+    ditfa_command_runner_bin: Path | None
+    ditfa_windows_sandbox_setup_bin: Path | None
 
 
 PACKAGE_VARIANTS: dict[str, PackageVariant] = {
-    "codex": PackageVariant(
-        name="codex",
-        cargo_bin="codex",
-        executable_stem="codex",
+    "ditfa": PackageVariant(
+        name="ditfa",
+        cargo_bin="ditfa",
+        executable_stem="ditfa",
     ),
-    "codex-app-server": PackageVariant(
-        name="codex-app-server",
-        cargo_bin="codex-app-server",
-        executable_stem="codex-app-server",
+    "ditfa-app-server": PackageVariant(
+        name="ditfa-app-server",
+        cargo_bin="ditfa-app-server",
+        executable_stem="ditfa-app-server",
     ),
 }
 

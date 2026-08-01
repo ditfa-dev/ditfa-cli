@@ -55,7 +55,7 @@ fn find_marketplace_plugin_finds_repo_marketplace_plugin() {
     fs::write(
         repo_root.join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "local-plugin",
@@ -78,7 +78,7 @@ fn find_marketplace_plugin_finds_repo_marketplace_plugin() {
     assert_eq!(
         resolved,
         ResolvedMarketplacePlugin {
-            plugin_id: PluginId::new("local-plugin".to_string(), "codex-curated".to_string())
+            plugin_id: PluginId::new("local-plugin".to_string(), "ditfa-curated".to_string())
                 .unwrap(),
             source: MarketplacePluginSource::Local {
                 path: AbsolutePathBuf::try_from(repo_root.join("plugin-1")).unwrap(),
@@ -179,7 +179,7 @@ fn find_marketplace_plugin_supports_git_subdir_sources() {
     fs::write(
         repo_root.join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "remote-plugin",
@@ -205,7 +205,7 @@ fn find_marketplace_plugin_supports_git_subdir_sources() {
     assert_eq!(
         resolved,
         ResolvedMarketplacePlugin {
-            plugin_id: PluginId::new("remote-plugin".to_string(), "codex-curated".to_string())
+            plugin_id: PluginId::new("remote-plugin".to_string(), "ditfa-curated".to_string())
                 .unwrap(),
             source: MarketplacePluginSource::Git {
                 url: "https://github.com/openai/joey_marketplace3.git".to_string(),
@@ -234,7 +234,7 @@ fn find_marketplace_plugin_omits_interface_asset_paths_for_git_sources() {
     fs::write(
         repo_root.join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "remote-plugin",
@@ -279,13 +279,13 @@ fn find_marketplace_plugin_supports_npm_sources() {
     fs::write(
         repo_root.join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "npm-plugin",
       "source": {
         "source": "npm",
-        "package": "@acme/codex-plugin",
+        "package": "@acme/ditfa-plugin",
         "version": "^1.2.0",
         "registry": "https://npm.example.com"
       }
@@ -304,10 +304,10 @@ fn find_marketplace_plugin_supports_npm_sources() {
     assert_eq!(
         resolved,
         ResolvedMarketplacePlugin {
-            plugin_id: PluginId::new("npm-plugin".to_string(), "codex-curated".to_string())
+            plugin_id: PluginId::new("npm-plugin".to_string(), "ditfa-curated".to_string())
                 .unwrap(),
             source: MarketplacePluginSource::Npm {
-                package: "@acme/codex-plugin".to_string(),
+                package: "@acme/ditfa-plugin".to_string(),
                 version: Some("^1.2.0".to_string()),
                 registry: Some("https://npm.example.com".to_string()),
             },
@@ -331,13 +331,13 @@ fn find_marketplace_plugin_skips_unsafe_npm_sources() {
     let marketplace_path = write_alternate_marketplace(
         &repo_root,
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "remote-version",
       "source": {
         "source": "npm",
-        "package": "@acme/codex-plugin",
+        "package": "@acme/ditfa-plugin",
         "version": "https://attacker.example/plugin.tgz",
         "registry": "https://npm.example.com"
       }
@@ -346,7 +346,7 @@ fn find_marketplace_plugin_skips_unsafe_npm_sources() {
       "name": "local-version",
       "source": {
         "source": "npm",
-        "package": "@acme/codex-plugin",
+        "package": "@acme/ditfa-plugin",
         "version": ".",
         "registry": "https://npm.example.com"
       }
@@ -355,7 +355,7 @@ fn find_marketplace_plugin_skips_unsafe_npm_sources() {
       "name": "plaintext-registry",
       "source": {
         "source": "npm",
-        "package": "@acme/codex-plugin",
+        "package": "@acme/ditfa-plugin",
         "version": "1.2.0",
         "registry": "http://npm.example.com"
       }
@@ -364,7 +364,7 @@ fn find_marketplace_plugin_skips_unsafe_npm_sources() {
       "name": "credential-registry",
       "source": {
         "source": "npm",
-        "package": "@acme/codex-plugin",
+        "package": "@acme/ditfa-plugin",
         "version": "1.2.0",
         "registry": "https://user:password@npm.example.com"
       }
@@ -381,7 +381,7 @@ fn find_marketplace_plugin_skips_unsafe_npm_sources() {
       "name": "underscore-package",
       "source": {
         "source": "npm",
-        "package": "_codex-plugin",
+        "package": "_ditfa-plugin",
         "registry": "https://npm.example.com"
       }
     }
@@ -403,13 +403,13 @@ fn find_marketplace_plugin_supports_npm_registry_version_selectors() {
     let marketplace_path = write_alternate_marketplace(
         &repo_root,
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "dist-tag",
       "source": {
         "source": "npm",
-        "package": "@acme/codex-plugin",
+        "package": "@acme/ditfa-plugin",
         "version": "latest"
       }
     },
@@ -417,7 +417,7 @@ fn find_marketplace_plugin_supports_npm_registry_version_selectors() {
       "name": "comparator-range",
       "source": {
         "source": "npm",
-        "package": "@acme/codex-plugin",
+        "package": "@acme/ditfa-plugin",
         "version": ">=1.2.7 <1.3.0"
       }
     },
@@ -425,7 +425,7 @@ fn find_marketplace_plugin_supports_npm_registry_version_selectors() {
       "name": "x-range",
       "source": {
         "source": "npm",
-        "package": "@acme/codex-plugin",
+        "package": "@acme/ditfa-plugin",
         "version": "1.2.x"
       }
     },
@@ -433,7 +433,7 @@ fn find_marketplace_plugin_supports_npm_registry_version_selectors() {
       "name": "or-range",
       "source": {
         "source": "npm",
-        "package": "@acme/codex-plugin",
+        "package": "@acme/ditfa-plugin",
         "version": "1.2.7 || >=1.2.9 <2.0.0"
       }
     }
@@ -450,22 +450,22 @@ fn find_marketplace_plugin_supports_npm_registry_version_selectors() {
             .collect::<Vec<_>>(),
         vec![
             MarketplacePluginSource::Npm {
-                package: "@acme/codex-plugin".to_string(),
+                package: "@acme/ditfa-plugin".to_string(),
                 version: Some("latest".to_string()),
                 registry: None,
             },
             MarketplacePluginSource::Npm {
-                package: "@acme/codex-plugin".to_string(),
+                package: "@acme/ditfa-plugin".to_string(),
                 version: Some(">=1.2.7 <1.3.0".to_string()),
                 registry: None,
             },
             MarketplacePluginSource::Npm {
-                package: "@acme/codex-plugin".to_string(),
+                package: "@acme/ditfa-plugin".to_string(),
                 version: Some("1.2.x".to_string()),
                 registry: None,
             },
             MarketplacePluginSource::Npm {
-                package: "@acme/codex-plugin".to_string(),
+                package: "@acme/ditfa-plugin".to_string(),
                 version: Some("1.2.7 || >=1.2.9 <2.0.0".to_string()),
                 registry: None,
             },
@@ -482,13 +482,13 @@ fn find_marketplace_plugin_supports_npm_sources_without_optional_fields() {
     fs::write(
         repo_root.join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "npm-plugin",
       "source": {
         "source": "npm",
-        "package": "@acme/codex-plugin"
+        "package": "@acme/ditfa-plugin"
       }
     }
   ]
@@ -505,7 +505,7 @@ fn find_marketplace_plugin_supports_npm_sources_without_optional_fields() {
     assert_eq!(
         resolved.source,
         MarketplacePluginSource::Npm {
-            package: "@acme/codex-plugin".to_string(),
+            package: "@acme/ditfa-plugin".to_string(),
             version: None,
             registry: None,
         }
@@ -730,7 +730,7 @@ fn find_marketplace_plugin_normalizes_github_shorthand_with_dot_git_suffix() {
     fs::write(
         repo_root.join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "remote-plugin",
@@ -775,7 +775,7 @@ fn find_marketplace_plugin_normalizes_relative_git_source_urls_to_marketplace_ro
             repo_root.join(".agents/plugins/marketplace.json"),
             format!(
                 r#"{{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {{
       "name": "remote-plugin",
@@ -846,7 +846,7 @@ fn find_marketplace_plugin_skips_root_equivalent_git_subdir_paths() {
             repo_root.join(".agents/plugins/marketplace.json"),
             format!(
                 r#"{{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {{
       "name": "remote-plugin",
@@ -870,7 +870,7 @@ fn find_marketplace_plugin_skips_root_equivalent_git_subdir_paths() {
 
         assert_eq!(
             err.to_string(),
-            "plugin `remote-plugin` was not found in marketplace `codex-curated`"
+            "plugin `remote-plugin` was not found in marketplace `ditfa-curated`"
         );
     }
 }
@@ -883,7 +883,7 @@ fn find_marketplace_plugin_reports_missing_plugin() {
     fs::create_dir_all(repo_root.join(".agents/plugins")).unwrap();
     fs::write(
         repo_root.join(".agents/plugins/marketplace.json"),
-        r#"{"name":"codex-curated","plugins":[]}"#,
+        r#"{"name":"ditfa-curated","plugins":[]}"#,
     )
     .unwrap();
 
@@ -895,7 +895,7 @@ fn find_marketplace_plugin_reports_missing_plugin() {
 
     assert_eq!(
         err.to_string(),
-        "plugin `missing` was not found in marketplace `codex-curated`"
+        "plugin `missing` was not found in marketplace `ditfa-curated`"
     );
 }
 
@@ -1237,7 +1237,7 @@ fn list_marketplaces_returns_home_and_repo_marketplaces() {
     fs::write(
         home_root.join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "shared-plugin",
@@ -1260,7 +1260,7 @@ fn list_marketplaces_returns_home_and_repo_marketplaces() {
     fs::write(
         repo_root.join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "shared-plugin",
@@ -1292,7 +1292,7 @@ fn list_marketplaces_returns_home_and_repo_marketplaces() {
         marketplaces,
         vec![
             Marketplace {
-                name: "codex-curated".to_string(),
+                name: "ditfa-curated".to_string(),
                 path:
                     AbsolutePathBuf::try_from(home_root.join(".agents/plugins/marketplace.json"),)
                         .unwrap(),
@@ -1331,7 +1331,7 @@ fn list_marketplaces_returns_home_and_repo_marketplaces() {
                 ],
             },
             Marketplace {
-                name: "codex-curated".to_string(),
+                name: "ditfa-curated".to_string(),
                 path:
                     AbsolutePathBuf::try_from(repo_root.join(".agents/plugins/marketplace.json"),)
                         .unwrap(),
@@ -1388,7 +1388,7 @@ fn list_marketplaces_keeps_distinct_entries_for_same_name() {
     fs::write(
         home_marketplace.clone(),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "local-plugin",
@@ -1404,7 +1404,7 @@ fn list_marketplaces_keeps_distinct_entries_for_same_name() {
     fs::write(
         repo_marketplace.clone(),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "local-plugin",
@@ -1429,7 +1429,7 @@ fn list_marketplaces_keeps_distinct_entries_for_same_name() {
         marketplaces,
         vec![
             Marketplace {
-                name: "codex-curated".to_string(),
+                name: "ditfa-curated".to_string(),
                 path: AbsolutePathBuf::try_from(home_marketplace).unwrap(),
                 interface: None,
                 plugins: vec![MarketplacePlugin {
@@ -1449,7 +1449,7 @@ fn list_marketplaces_keeps_distinct_entries_for_same_name() {
                 }],
             },
             Marketplace {
-                name: "codex-curated".to_string(),
+                name: "ditfa-curated".to_string(),
                 path: AbsolutePathBuf::try_from(repo_marketplace.clone()).unwrap(),
                 interface: None,
                 plugins: vec![MarketplacePlugin {
@@ -1497,7 +1497,7 @@ fn list_marketplaces_dedupes_multiple_roots_in_same_repo() {
     fs::write(
         repo_root.join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "local-plugin",
@@ -1524,7 +1524,7 @@ fn list_marketplaces_dedupes_multiple_roots_in_same_repo() {
     assert_eq!(
         marketplaces,
         vec![Marketplace {
-            name: "codex-curated".to_string(),
+            name: "ditfa-curated".to_string(),
             path: AbsolutePathBuf::try_from(repo_root.join(".agents/plugins/marketplace.json"))
                 .unwrap(),
             interface: None,
@@ -1888,7 +1888,7 @@ fn list_marketplaces_resolves_plugin_interface_paths_to_absolute() {
     fs::write(
         repo_root.join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "demo-plugin",
@@ -1899,7 +1899,7 @@ fn list_marketplaces_resolves_plugin_interface_paths_to_absolute() {
       "policy": {
         "installation": "AVAILABLE",
         "authentication": "ON_INSTALL",
-        "products": ["CODEX", "CHATGPT", "ATLAS"]
+        "products": ["DITFA", "CHATGPT", "ATLAS"]
       },
       "category": "Design"
     }
@@ -1940,7 +1940,7 @@ fn list_marketplaces_resolves_plugin_interface_paths_to_absolute() {
     );
     assert_eq!(
         marketplaces[0].plugins[0].policy.products,
-        Some(vec![Product::Codex, Product::Chatgpt, Product::Atlas])
+        Some(vec![Product::Ditfa, Product::Chatgpt, Product::Atlas])
     );
     assert_eq!(
         marketplaces[0].plugins[0].interface,
@@ -1978,7 +1978,7 @@ fn list_marketplaces_ignores_legacy_top_level_policy_fields() {
     fs::write(
         repo_root.join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "demo-plugin",
@@ -2024,7 +2024,7 @@ fn list_marketplaces_ignores_plugin_interface_assets_without_dot_slash() {
     fs::write(
         repo_root.join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "demo-plugin",
@@ -2101,7 +2101,7 @@ fn find_marketplace_plugin_skips_invalid_local_paths() {
             repo_root.join(".agents/plugins/marketplace.json"),
             format!(
                 r#"{{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {{
       "name": "local-plugin",
@@ -2124,7 +2124,7 @@ fn find_marketplace_plugin_skips_invalid_local_paths() {
 
         assert_eq!(
             err.to_string(),
-            "plugin `local-plugin` was not found in marketplace `codex-curated`"
+            "plugin `local-plugin` was not found in marketplace `ditfa-curated`"
         );
     }
 }
@@ -2138,7 +2138,7 @@ fn find_marketplace_plugin_uses_first_duplicate_entry() {
     fs::write(
         repo_root.join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "local-plugin",
@@ -2182,7 +2182,7 @@ fn find_installable_marketplace_plugin_rejects_disallowed_product() {
     fs::write(
         repo_root.join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "chatgpt-plugin",
@@ -2208,7 +2208,7 @@ fn find_installable_marketplace_plugin_rejects_disallowed_product() {
 
     assert_eq!(
         err.to_string(),
-        "plugin `chatgpt-plugin` is not available for install in marketplace `codex-curated`"
+        "plugin `chatgpt-plugin` is not available for install in marketplace `ditfa-curated`"
     );
 }
 
@@ -2221,7 +2221,7 @@ fn find_marketplace_plugin_allows_missing_products_field() {
     fs::write(
         repo_root.join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "default-plugin",
@@ -2242,7 +2242,7 @@ fn find_marketplace_plugin_allows_missing_products_field() {
     )
     .unwrap();
 
-    assert_eq!(resolved.plugin_id.as_key(), "default-plugin@codex-curated");
+    assert_eq!(resolved.plugin_id.as_key(), "default-plugin@ditfa-curated");
 }
 
 #[test]
@@ -2254,7 +2254,7 @@ fn find_installable_marketplace_plugin_rejects_explicit_empty_products() {
     fs::write(
         repo_root.join(".agents/plugins/marketplace.json"),
         r#"{
-  "name": "codex-curated",
+  "name": "ditfa-curated",
   "plugins": [
     {
       "name": "disabled-plugin",
@@ -2274,12 +2274,12 @@ fn find_installable_marketplace_plugin_rejects_explicit_empty_products() {
     let err = find_installable_marketplace_plugin(
         &AbsolutePathBuf::try_from(repo_root.join(".agents/plugins/marketplace.json")).unwrap(),
         "disabled-plugin",
-        Some(Product::Codex),
+        Some(Product::Ditfa),
     )
     .unwrap_err();
 
     assert_eq!(
         err.to_string(),
-        "plugin `disabled-plugin` is not available for install in marketplace `codex-curated`"
+        "plugin `disabled-plugin` is not available for install in marketplace `ditfa-curated`"
     );
 }

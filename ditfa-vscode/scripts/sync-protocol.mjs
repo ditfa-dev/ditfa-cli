@@ -37,10 +37,9 @@ if (repaired.length > 0) {
 }
 
 /**
- * The ditfa fork renamed some generated files from `CodexX.ts` to `ditfaX.ts`
- * without renaming the type they export or the `import` paths that reference
- * them, so the schema does not type-check as shipped. Rename such files back to
- * match the type they actually export.
+ * The rebrand renamed some generated files without renaming the type
+ * they export or the `import` paths that reference them, so the schema would
+ * not type-check as shipped. Rename such files to match the type they export.
  */
 function repairRebrandedFilenames(root) {
   const renamed = [];

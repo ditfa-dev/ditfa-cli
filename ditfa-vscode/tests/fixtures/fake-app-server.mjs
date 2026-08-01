@@ -44,7 +44,7 @@ function handle(message) {
         id: message.id,
         result: {
           userAgent: "fake-app-server/0.0.0",
-          codexHome: "/tmp/fake-ditfa-home",
+          ditfaHome: "/tmp/fake-ditfa-home",
           platformFamily: "unix",
           platformOs: "linux",
         },

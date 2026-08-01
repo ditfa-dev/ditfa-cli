@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 
 pub fn apps_route_available(auth_mode: Option<AuthMode>) -> bool {
-    auth_mode.is_some_and(AuthMode::uses_codex_backend)
+    auth_mode.is_some_and(AuthMode::uses_ditfa_backend)
 }
 
 pub(crate) fn apply_app_mcp_routing_policy<M>(

@@ -14,8 +14,8 @@ use ditfa_connectors::ConnectorMetadata;
 use ditfa_connectors::ConnectorToolSummary;
 use ditfa_connectors::metadata::connector_install_url;
 
-/// Converts connector-domain app metadata owned by `codex-connectors` into the app-server wire
-/// type owned by `codex-app-server-protocol`.
+/// Converts connector-domain app metadata owned by `ditfa-connectors` into the app-server wire
+/// type owned by `ditfa-app-server-protocol`.
 ///
 /// The types stay separate so app-server protocol ownership does not leak into the connector
 /// domain crate. Because this crate owns neither type, Rust's orphan rules require an explicit

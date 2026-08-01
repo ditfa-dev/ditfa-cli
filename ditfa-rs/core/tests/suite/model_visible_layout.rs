@@ -1,4 +1,4 @@
-use core_test_support::test_codex::local_selections;
+use core_test_support::test_ditfa::local_selections;
 use std::fs;
 use std::sync::Arc;
 
@@ -27,8 +27,8 @@ use core_test_support::responses::mount_sse_sequence;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
-use core_test_support::test_codex::test_codex;
-use core_test_support::test_codex::turn_permission_fields;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use serde_json::json;
 
@@ -96,7 +96,7 @@ async fn model_visible_environment_context_preserves_foreign_workspace_roots() -
         ]),
     )
     .await;
-    let test = test_codex().build(&server).await?;
+    let test = test_ditfa().build(&server).await?;
     let foreign_root = PathUri::parse("file:///C:/workspace")?;
 
     test.ditfa
@@ -162,7 +162,7 @@ async fn snapshot_model_visible_layout_turn_overrides() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex().with_model("gpt-5.4").with_config(|config| {
+    let mut builder = test_ditfa().with_model("gpt-5.4").with_config(|config| {
         config
             .features
             .enable(Feature::Personality)
@@ -282,7 +282,7 @@ async fn snapshot_model_visible_layout_cwd_change_refreshes_agents() -> Result<(
     )
     .await;
 
-    let mut builder = test_codex().with_model("gpt-5.4");
+    let mut builder = test_ditfa().with_model("gpt-5.4");
     let test = builder.build(&server).await?;
     let cwd_one = test.cwd_path().join("agents_one");
     let cwd_two = test.cwd_path().join("agents_two");
@@ -396,11 +396,11 @@ async fn snapshot_model_visible_layout_resume_with_personality_change() -> Resul
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut initial_builder = test_codex().with_config(|config| {
+    let mut initial_builder = test_ditfa().with_config(|config| {
         config.model = Some("gpt-5.2".to_string());
     });
     let initial = initial_builder.build(&server).await?;
-    let codex = Arc::clone(&initial.ditfa);
+    let ditfa = Arc::clone(&initial.ditfa);
     let home = initial.home.clone();
     let rollout_path = initial
         .session_configured
@@ -417,7 +417,7 @@ async fn snapshot_model_visible_layout_resume_with_personality_change() -> Resul
         ]),
     )
     .await;
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "seed resume history".into(),
@@ -429,7 +429,7 @@ async fn snapshot_model_visible_layout_resume_with_personality_change() -> Resul
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
     let initial_request = initial_mock.single_request();
 
     let resumed_mock = mount_sse_once(
@@ -442,7 +442,7 @@ async fn snapshot_model_visible_layout_resume_with_personality_change() -> Resul
     )
     .await;
 
-    let mut resume_builder = test_codex().with_config(|config| {
+    let mut resume_builder = test_ditfa().with_config(|config| {
         config.model = Some("gpt-5.4".to_string());
         config
             .features
@@ -511,11 +511,11 @@ async fn snapshot_model_visible_layout_resume_override_matches_rollout_model() -
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let mut initial_builder = test_codex().with_config(|config| {
+    let mut initial_builder = test_ditfa().with_config(|config| {
         config.model = Some("gpt-5.2".to_string());
     });
     let initial = initial_builder.build(&server).await?;
-    let codex = Arc::clone(&initial.ditfa);
+    let ditfa = Arc::clone(&initial.ditfa);
     let home = initial.home.clone();
     let rollout_path = initial
         .session_configured
@@ -532,7 +532,7 @@ async fn snapshot_model_visible_layout_resume_override_matches_rollout_model() -
         ]),
     )
     .await;
-    codex
+    ditfa
         .submit(Op::UserInput {
             items: vec![UserInput::Text {
                 text: "seed resume history".into(),
@@ -544,7 +544,7 @@ async fn snapshot_model_visible_layout_resume_override_matches_rollout_model() -
             thread_settings: Default::default(),
         })
         .await?;
-    wait_for_event(&codex, |event| matches!(event, EventMsg::TurnComplete(_))).await;
+    wait_for_event(&ditfa, |event| matches!(event, EventMsg::TurnComplete(_))).await;
     let initial_request = initial_mock.single_request();
 
     let resumed_mock = mount_sse_once(
@@ -557,7 +557,7 @@ async fn snapshot_model_visible_layout_resume_override_matches_rollout_model() -
     )
     .await;
 
-    let mut resume_builder = test_codex().with_config(|config| {
+    let mut resume_builder = test_ditfa().with_config(|config| {
         config.model = Some("gpt-5.4".to_string());
     });
     let resumed = resume_builder.resume(&server, home, rollout_path).await?;

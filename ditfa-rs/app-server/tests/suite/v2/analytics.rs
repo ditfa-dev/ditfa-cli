@@ -43,7 +43,7 @@ async fn app_server_default_analytics_disabled_without_flag() -> Result<()> {
     let provider = ditfa_core::otel_init::build_provider(
         &config,
         SERVICE_VERSION,
-        Some("codex-app-server"),
+        Some("ditfa-app-server"),
         /*default_analytics_enabled*/ false,
     )
     .map_err(|err| anyhow::anyhow!(err.to_string()))?;
@@ -68,7 +68,7 @@ async fn app_server_default_analytics_enabled_with_flag() -> Result<()> {
     let provider = ditfa_core::otel_init::build_provider(
         &config,
         SERVICE_VERSION,
-        Some("codex-app-server"),
+        Some("ditfa-app-server"),
         /*default_analytics_enabled*/ true,
     )
     .map_err(|err| anyhow::anyhow!(err.to_string()))?;
@@ -81,7 +81,7 @@ async fn app_server_default_analytics_enabled_with_flag() -> Result<()> {
 
 pub(crate) async fn mount_analytics_capture(server: &MockServer, ditfa_home: &Path) -> Result<()> {
     Mock::given(method("POST"))
-        .and(path("/codex/analytics-events/events"))
+        .and(path("/ditfa/analytics-events/events"))
         .respond_with(ResponseTemplate::new(200))
         .mount(server)
         .await;
@@ -109,7 +109,7 @@ pub(crate) async fn wait_for_analytics_payload(
                 continue;
             };
             if let Some(request) = requests.iter().find(|request| {
-                request.method == "POST" && request.url.path() == "/codex/analytics-events/events"
+                request.method == "POST" && request.url.path() == "/ditfa/analytics-events/events"
             }) {
                 break request.body.clone();
             }
@@ -158,7 +158,7 @@ pub(crate) async fn wait_for_matching_analytics_event(
             };
             for request in &requests {
                 if request.method != "POST"
-                    || request.url.path() != "/codex/analytics-events/events"
+                    || request.url.path() != "/ditfa/analytics-events/events"
                 {
                     continue;
                 }

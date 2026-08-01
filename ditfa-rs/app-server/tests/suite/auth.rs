@@ -94,7 +94,7 @@ async fn get_auth_status_no_auth() -> Result<()> {
     create_config_toml(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[("OPENAI_API_KEY", None)])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -120,7 +120,7 @@ async fn get_auth_status_with_api_key() -> Result<()> {
     create_config_toml(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -163,7 +163,7 @@ async fn personal_access_token_without_email_supports_auth_status_and_account_re
 
     let authapi_base_url = server.uri();
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("OPENAI_API_KEY", None),
@@ -229,7 +229,7 @@ async fn get_auth_status_with_api_key_when_auth_not_required() -> Result<()> {
     create_config_toml_custom_provider(ditfa_home.path(), /*requires_openai_auth*/ false)?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -261,7 +261,7 @@ async fn get_auth_status_with_api_key_no_include_token() -> Result<()> {
     create_config_toml(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -288,7 +288,7 @@ async fn get_auth_status_with_api_key_refresh_requested() -> Result<()> {
     create_config_toml(ditfa_home.path())?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;
@@ -343,7 +343,7 @@ async fn get_auth_status_omits_token_after_permanent_refresh_failure() -> Result
 
     let refresh_url = format!("{}/oauth/token", server.uri());
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("OPENAI_API_KEY", None),
@@ -417,7 +417,7 @@ async fn get_auth_status_omits_token_after_proactive_refresh_failure() -> Result
 
     let refresh_url = format!("{}/oauth/token", server.uri());
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("OPENAI_API_KEY", None),
@@ -480,7 +480,7 @@ async fn get_auth_status_returns_token_after_proactive_refresh_recovery() -> Res
 
     let refresh_url = format!("{}/oauth/token", server.uri());
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .with_env_overrides(&[
             ("OPENAI_API_KEY", None),
@@ -552,7 +552,7 @@ async fn login_api_key_rejected_when_forced_chatgpt() -> Result<()> {
     create_config_toml_forced_login(ditfa_home.path(), "chatgpt")?;
 
     let mut mcp = TestAppServer::builder()
-        .with_codex_home(ditfa_home.path())
+        .with_ditfa_home(ditfa_home.path())
         .without_auto_env()
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
         .await?;

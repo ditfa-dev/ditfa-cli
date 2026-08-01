@@ -43,7 +43,7 @@ pub fn current_log_file_path(base_dir: &Path) -> PathBuf {
     log_file_path_for_utc_date(base_dir, chrono::Utc::now().date_naive())
 }
 
-pub fn current_log_file_path_for_codex_home(ditfa_home: &Path) -> PathBuf {
+pub fn current_log_file_path_for_ditfa_home(ditfa_home: &Path) -> PathBuf {
     current_log_file_path(&crate::sandbox_dir(ditfa_home))
 }
 
@@ -148,11 +148,11 @@ mod tests {
     }
 
     #[test]
-    fn current_log_file_path_for_codex_home_uses_sandbox_dir() {
-        let ditfa_home = Path::new("codex-home");
+    fn current_log_file_path_for_ditfa_home_uses_sandbox_dir() {
+        let ditfa_home = Path::new("ditfa-home");
 
         assert_eq!(
-            current_log_file_path_for_codex_home(ditfa_home),
+            current_log_file_path_for_ditfa_home(ditfa_home),
             current_log_file_path(&ditfa_home.join(".sandbox"))
         );
     }

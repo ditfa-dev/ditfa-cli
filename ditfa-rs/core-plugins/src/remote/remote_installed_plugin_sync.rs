@@ -14,7 +14,7 @@ use super::remote_plugin_canonical_marketplace_name;
 use crate::store::PLUGINS_CACHE_DIR;
 use crate::store::PluginStore;
 use crate::store::PluginStoreError;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use ditfa_plugin::PluginId;
 use std::collections::BTreeMap;
 use std::collections::BTreeSet;
@@ -86,7 +86,7 @@ pub struct RemotePluginCacheMutationGuard {
 pub(crate) fn maybe_start_remote_installed_plugin_bundle_sync(
     ditfa_home: PathBuf,
     config: RemotePluginServiceConfig,
-    auth: Option<CodexAuth>,
+    auth: Option<DitfaAuth>,
     on_local_cache_changed: Option<
         Arc<dyn Fn(RemoteInstalledPluginBundleSyncOutcome) + Send + Sync + 'static>,
     >,
@@ -132,7 +132,7 @@ pub(crate) fn maybe_start_remote_installed_plugin_bundle_sync(
 pub async fn sync_remote_installed_plugin_bundles_once(
     ditfa_home: PathBuf,
     config: &RemotePluginServiceConfig,
-    auth: Option<&CodexAuth>,
+    auth: Option<&DitfaAuth>,
 ) -> Result<RemoteInstalledPluginBundleSyncOutcome, RemoteInstalledPluginBundleSyncError> {
     let auth = ensure_chatgpt_auth(auth)?;
     let authenticated_account_id = auth.get_account_id();
@@ -488,7 +488,7 @@ mod tests {
 
     #[test]
     fn remote_installed_plugin_sync_in_flight_dedupes_by_cache_root() {
-        let ditfa_home = tempfile::tempdir().expect("create codex home");
+        let ditfa_home = tempfile::tempdir().expect("create ditfa home");
         let key = RemoteInstalledPluginBundleSyncKey {
             plugin_cache_root: remote_plugin_cache_root(ditfa_home.path()),
         };
@@ -510,7 +510,7 @@ mod tests {
     #[tokio::test]
     async fn sync_same_version_backfills_metadata_without_materialization() {
         let server = MockServer::start().await;
-        let ditfa_home = tempfile::tempdir().expect("create codex home");
+        let ditfa_home = tempfile::tempdir().expect("create ditfa home");
         let cached_manifest = ditfa_home
             .path()
             .join(PLUGINS_CACHE_DIR)
@@ -575,7 +575,7 @@ mod tests {
             format!("{}/backend-api", server.uri()),
             crate::test_support::test_http_client_factory(),
         );
-        let auth = CodexAuth::create_dummy_chatgpt_auth_for_testing();
+        let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();
 
         let outcome = sync_remote_installed_plugin_bundles_once(
             ditfa_home.path().to_path_buf(),
@@ -609,7 +609,7 @@ mod tests {
 
     #[test]
     fn stale_remote_plugin_cleanup_skips_cache_mutations_in_progress() {
-        let ditfa_home = tempfile::tempdir().expect("create codex home");
+        let ditfa_home = tempfile::tempdir().expect("create ditfa home");
         let cached_manifest = ditfa_home
             .path()
             .join(PLUGINS_CACHE_DIR)
@@ -678,7 +678,7 @@ mod tests {
 
     #[test]
     fn stale_remote_plugin_cleanup_removes_stale_marketplace_caches_and_keeps_canonical_cache() {
-        let ditfa_home = tempfile::tempdir().expect("create codex home");
+        let ditfa_home = tempfile::tempdir().expect("create ditfa home");
         let created_by_me_cached_manifest = ditfa_home
             .path()
             .join(PLUGINS_CACHE_DIR)

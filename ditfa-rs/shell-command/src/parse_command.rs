@@ -19,7 +19,7 @@ pub fn extract_shell_command(command: &[String]) -> Option<(&str, &str)> {
 
 /// DO NOT REVIEW THIS CODE BY HAND
 /// This parsing code is quite complex and not easy to hand-modify.
-/// The easiest way to iterate is to add unit tests and have Codex fix the implementation.
+/// The easiest way to iterate is to add unit tests and have Ditfa fix the implementation.
 /// To encourage this, the tests have been put directly below this function rather than at the bottom of the
 ///
 /// Parses metadata out of an arbitrary command.
@@ -61,7 +61,7 @@ fn single_unknown_for_command(command: &[String]) -> ParsedCommand {
 
 #[cfg(test)]
 #[allow(clippy::items_after_test_module)]
-/// Tests are at the top to encourage using TDD + Codex to fix the implementation.
+/// Tests are at the top to encourage using TDD + Ditfa to fix the implementation.
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
@@ -681,7 +681,7 @@ mod tests {
     #[test]
     fn supports_cd_and_rg_files() {
         assert_parsed(
-            &shlex_split_safe("cd codex-rs && rg --files"),
+            &shlex_split_safe("cd ditfa-rs && rg --files"),
             vec![ParsedCommand::ListFiles {
                 cmd: "rg --files".to_string(),
                 path: None,
@@ -691,13 +691,13 @@ mod tests {
 
     #[test]
     fn supports_single_string_script_with_cd_and_pipe() {
-        let inner = r#"cd /Users/pakrym/code/codex && rg -n "ditfa_api" codex-rs -S | head -n 50"#;
+        let inner = r#"cd /Users/pakrym/code/ditfa && rg -n "ditfa_api" ditfa-rs -S | head -n 50"#;
         assert_parsed(
             &vec_str(&["bash", "-lc", inner]),
             vec![ParsedCommand::Search {
-                cmd: "rg -n ditfa_api codex-rs -S".to_string(),
+                cmd: "rg -n ditfa_api ditfa-rs -S".to_string(),
                 query: Some("ditfa_api".to_string()),
-                path: Some("codex-rs".to_string()),
+                path: Some("ditfa-rs".to_string()),
             }],
         );
     }

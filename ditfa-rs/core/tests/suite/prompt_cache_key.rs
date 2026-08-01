@@ -3,7 +3,7 @@ use std::time::Duration;
 use anyhow::Result;
 use anyhow::anyhow;
 use ditfa_features::Feature;
-use ditfa_login::CodexAuth;
+use ditfa_login::DitfaAuth;
 use core_test_support::responses::ev_assistant_message;
 use core_test_support::responses::ev_completed;
 use core_test_support::responses::ev_function_call_with_namespace;
@@ -11,7 +11,7 @@ use core_test_support::responses::ev_response_created;
 use core_test_support::responses::mount_sse_once_match;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
-use core_test_support::test_codex::test_codex;
+use core_test_support::test_ditfa::test_ditfa;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
 use serde_json::json;
@@ -85,8 +85,8 @@ async fn api_key_subagent_uses_session_id_as_prompt_cache_key() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex()
-        .with_auth(CodexAuth::from_api_key("dummy"))
+    let mut builder = test_ditfa()
+        .with_auth(DitfaAuth::from_api_key("dummy"))
         .with_config(|config| {
             config
                 .features

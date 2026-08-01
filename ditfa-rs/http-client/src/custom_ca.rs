@@ -1,6 +1,6 @@
 //! Custom CA handling shared by Ditfa outbound HTTP and websocket clients.
 //!
-//! Codex constructs outbound reqwest clients and secure websocket connections in a few crates, but
+//! Ditfa constructs outbound reqwest clients and secure websocket connections in a few crates, but
 //! they all need the same trust-store policy when enterprise proxies or gateways intercept TLS.
 //! This module centralizes that policy so callers can start from an ordinary
 //! `reqwest::ClientBuilder` or rustls client config, layer in custom CA support, and either get
@@ -161,7 +161,7 @@ impl From<BuildCustomCaTransportError> for io::Error {
     }
 }
 
-/// Builds a reqwest client that honors Codex custom CA environment variables.
+/// Builds a reqwest client that honors Ditfa custom CA environment variables.
 ///
 /// Callers supply the baseline builder configuration they need, and this helper layers in custom
 /// CA handling before finally constructing the client. `DITFA_CA_CERTIFICATE` takes precedence
@@ -169,7 +169,7 @@ impl From<BuildCustomCaTransportError> for io::Error {
 /// accidentally turn `VAR=""` into a bogus path lookup.
 ///
 /// Callers that build a raw `reqwest::Client` directly bypass this policy entirely. That is an
-/// easy mistake to make when adding a new outbound Codex HTTP path, and the resulting bug only
+/// easy mistake to make when adding a new outbound Ditfa HTTP path, and the resulting bug only
 /// shows up in environments where a proxy or gateway requires a custom root CA.
 ///
 /// # Errors
@@ -182,7 +182,7 @@ pub fn build_reqwest_client_with_custom_ca(
     build_reqwest_client_with_env(&ProcessEnv, builder)
 }
 
-/// Builds a rustls client config when a Codex custom CA bundle is configured.
+/// Builds a rustls client config when a Ditfa custom CA bundle is configured.
 ///
 /// This is the websocket-facing sibling of [`build_reqwest_client_with_custom_ca`]. When
 /// `DITFA_CA_CERTIFICATE` or `SSL_CERT_FILE` selects a CA bundle, the returned config starts from
@@ -198,7 +198,7 @@ pub fn maybe_build_rustls_client_config_with_custom_ca()
     maybe_build_rustls_client_config_with_env(&ProcessEnv)
 }
 
-/// Builds a rustls client config using native roots and any configured Codex custom CA bundle.
+/// Builds a rustls client config using native roots and any configured Ditfa custom CA bundle.
 ///
 /// Unlike [`maybe_build_rustls_client_config_with_custom_ca`], this always returns a config. Use
 /// this when the caller must perform TLS itself instead of delegating default configuration to a
@@ -245,7 +245,7 @@ fn build_rustls_client_config(
     ensure_rustls_crypto_provider();
 
     // Start from the platform roots so websocket callers keep the same baseline trust behavior
-    // they would get from tungstenite's default rustls connector, then layer in the Codex custom
+    // they would get from tungstenite's default rustls connector, then layer in the Ditfa custom
     // CA bundle on top when configured.
     let mut root_store = RootCertStore::empty();
     let rustls_native_certs::CertificateResult { certs, errors, .. } =
@@ -392,7 +392,7 @@ trait EnvSource {
 
     /// Returns the configured CA bundle and which environment variable selected it.
     ///
-    /// `DITFA_CA_CERTIFICATE` wins over `SSL_CERT_FILE` because it is the Codex-specific override.
+    /// `DITFA_CA_CERTIFICATE` wins over `SSL_CERT_FILE` because it is the Ditfa-specific override.
     /// Keeping the winning variable name with the path lets later logging explain not only which
     /// file was used but also why that file was chosen.
     fn configured_ca_bundle(&self) -> Option<ConfiguredCaBundle> {
@@ -469,7 +469,7 @@ impl ConfiguredCaBundle {
 
     /// Loads every certificate block from a PEM file intended for Ditfa CA overrides.
     ///
-    /// This accepts a few common real-world variants so Codex behaves like other CA-aware tooling:
+    /// This accepts a few common real-world variants so Ditfa behaves like other CA-aware tooling:
     /// leading comments are preserved, `TRUSTED CERTIFICATE` labels are normalized to standard
     /// certificate labels, and embedded CRLs are ignored when they are well-formed enough for the
     /// section iterator to classify them.
@@ -756,15 +756,15 @@ mod tests {
     }
 
     #[test]
-    fn ca_path_prefers_codex_env() {
+    fn ca_path_prefers_ditfa_env() {
         let env = map_env(&[
-            (DITFA_CA_CERT_ENV, "/tmp/codex.pem"),
+            (DITFA_CA_CERT_ENV, "/tmp/ditfa.pem"),
             (SSL_CERT_FILE_ENV, "/tmp/fallback.pem"),
         ]);
 
         assert_eq!(
             env.configured_ca_bundle().map(|bundle| bundle.path),
-            Some(PathBuf::from("/tmp/codex.pem"))
+            Some(PathBuf::from("/tmp/ditfa.pem"))
         );
     }
 

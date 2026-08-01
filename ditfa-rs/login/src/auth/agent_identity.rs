@@ -498,7 +498,7 @@ mod tests {
             &header,
             &json!({
                 "iss": "http://localhost:3000/ditfa-backend/agent-identity",
-                "aud": "codex-app-server",
+                "aud": "ditfa-app-server",
                 "iat": 1_700_000_000usize,
                 "exp": 4_000_000_000usize,
                 "agent_runtime_id": record.agent_runtime_id,

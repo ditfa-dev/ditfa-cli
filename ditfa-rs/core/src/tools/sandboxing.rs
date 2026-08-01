@@ -15,7 +15,7 @@ use ditfa_file_system::FileSystemSandboxContext;
 use ditfa_network_proxy::NetworkProxy;
 use ditfa_protocol::approvals::ExecPolicyAmendment;
 use ditfa_protocol::approvals::NetworkApprovalContext;
-use ditfa_protocol::error::CodexErr;
+use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::permissions::FileSystemSandboxKind;
 use ditfa_protocol::permissions::FileSystemSandboxPolicy;
 use ditfa_protocol::protocol::AskForApproval;
@@ -98,7 +98,7 @@ where
     let decision = fetch().await;
 
     services.session_telemetry.counter(
-        "codex.approval.requested",
+        "ditfa.approval.requested",
         /*inc*/ 1,
         &[
             ("tool", tool_name),
@@ -160,7 +160,7 @@ pub(crate) enum ExecApprovalRequirement {
         /// greenlit by policy).
         bypass_sandbox: bool,
         /// Proposed execpolicy amendment to skip future approvals for similar commands
-        /// Only applies if the command fails to run in sandbox and codex prompts the user to run outside the sandbox.
+        /// Only applies if the command fails to run in sandbox and ditfa prompts the user to run outside the sandbox.
         proposed_execpolicy_amendment: Option<ExecPolicyAmendment>,
     },
     /// Approval required for this tool call.
@@ -383,7 +383,7 @@ pub(crate) struct ToolCtx {
 #[derive(Debug)]
 pub(crate) enum ToolError {
     Rejected(String),
-    Codex(CodexErr),
+    Ditfa(DitfaErr),
 }
 
 pub(crate) trait ToolRuntime<Req, Out>: Approvable<Req> + Sandboxable {
@@ -438,7 +438,7 @@ impl<'a> SandboxAttempt<'a> {
         options: ExecOptions,
         network: Option<&NetworkProxy>,
         environment_id: Option<&str>,
-    ) -> Result<crate::sandboxing::ExecRequest, CodexErr> {
+    ) -> Result<crate::sandboxing::ExecRequest, DitfaErr> {
         let network = self.network_proxy(network);
         let request = self
             .manager
@@ -457,7 +457,7 @@ impl<'a> SandboxAttempt<'a> {
                 windows_sandbox_level: self.windows_sandbox_level,
                 windows_sandbox_private_desktop: self.windows_sandbox_private_desktop,
             })
-            .map_err(CodexErr::from)?;
+            .map_err(DitfaErr::from)?;
         let workspace_roots = self
             .workspace_roots
             .iter()
@@ -474,7 +474,7 @@ impl<'a> SandboxAttempt<'a> {
         &self,
         command: SandboxCommand,
         options: ExecOptions,
-    ) -> Result<crate::sandboxing::ExecRequest, CodexErr> {
+    ) -> Result<crate::sandboxing::ExecRequest, DitfaErr> {
         let managed_network = command.managed_network.clone();
         let exec_server_permissions = effective_permission_profile(
             self.exec_server_permissions,
@@ -496,7 +496,7 @@ impl<'a> SandboxAttempt<'a> {
                 windows_sandbox_level: self.windows_sandbox_level,
                 windows_sandbox_private_desktop: self.windows_sandbox_private_desktop,
             })
-            .map_err(CodexErr::from)?;
+            .map_err(DitfaErr::from)?;
         let mut exec_request =
             crate::sandboxing::ExecRequest::from_sandbox_exec_request(request, options, Vec::new());
         exec_request.exec_server_managed_network = managed_network;

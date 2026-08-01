@@ -27,7 +27,7 @@ pub(crate) struct LocalMemoriesBackend {
 }
 
 impl LocalMemoriesBackend {
-    pub(crate) fn from_codex_home(ditfa_home: &AbsolutePathBuf) -> Self {
+    pub(crate) fn from_ditfa_home(ditfa_home: &AbsolutePathBuf) -> Self {
         Self::from_memory_root(ditfa_home.join("memories").to_path_buf())
     }
 
