@@ -15,8 +15,8 @@ MODULE_SPEC.loader.exec_module(gh_pr_watch)
 def sample_pr():
     return {
         "number": 123,
-        "url": "https://github.com/Teamtem-dev/ditfa-code/pull/123",
-        "repo": "Teamtem-dev/ditfa-code",
+        "url": "https://github.com/ditfa-dev/ditfa-cli/pull/123",
+        "repo": "ditfa-dev/ditfa-cli",
         "head_sha": "abc123",
         "head_branch": "feature",
         "state": "OPEN",
@@ -131,7 +131,7 @@ def test_pending_review_feedback_surfaces_only_after_publication(monkeypatch):
         "body": "Please rename this.",
         "created_at": "2026-06-08T10:00:00Z",
         "submitted_at": None,
-        "html_url": "https://github.com/Teamtem-dev/ditfa-code/pull/123#pullrequestreview-10",
+        "html_url": "https://github.com/ditfa-dev/ditfa-cli/pull/123#pullrequestreview-10",
     }
     review_comment = {
         "id": 20,
@@ -142,7 +142,7 @@ def test_pending_review_feedback_surfaces_only_after_publication(monkeypatch):
         "created_at": "2026-06-08T10:00:00Z",
         "path": "src/example.rs",
         "line": 7,
-        "html_url": "https://github.com/Teamtem-dev/ditfa-code/pull/123#discussion_r20",
+        "html_url": "https://github.com/ditfa-dev/ditfa-cli/pull/123#discussion_r20",
     }
 
     def fake_list(endpoint, **kwargs):
@@ -238,7 +238,7 @@ def test_failed_jobs_include_direct_logs_endpoint(monkeypatch):
                 "name": "unit tests",
                 "status": "completed",
                 "conclusion": "failure",
-                "html_url": "https://github.com/Teamtem-dev/ditfa-code/actions/runs/99/job/555",
+                "html_url": "https://github.com/ditfa-dev/ditfa-cli/actions/runs/99/job/555",
             },
             {
                 "id": 556,
@@ -256,7 +256,7 @@ def test_failed_jobs_include_direct_logs_endpoint(monkeypatch):
     )
 
     failed_jobs = gh_pr_watch.failed_jobs_from_workflow_runs(
-        "Teamtem-dev/ditfa-code",
+        "ditfa-dev/ditfa-cli",
         [
             {
                 "id": 99,
@@ -279,7 +279,7 @@ def test_failed_jobs_include_direct_logs_endpoint(monkeypatch):
             "job_name": "unit tests",
             "status": "completed",
             "conclusion": "failure",
-            "html_url": "https://github.com/Teamtem-dev/ditfa-code/actions/runs/99/job/555",
-            "logs_endpoint": "repos/Teamtem-dev/ditfa-code/actions/jobs/555/logs",
+            "html_url": "https://github.com/ditfa-dev/ditfa-cli/actions/runs/99/job/555",
+            "logs_endpoint": "repos/ditfa-dev/ditfa-cli/actions/jobs/555/logs",
         }
     ]

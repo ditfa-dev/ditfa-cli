@@ -24,7 +24,7 @@ from release_version import (  # noqa: E402
 
 PACKAGE_NAME = "openai-ditfa-cli-bin"
 SDK_PACKAGE_NAME = "openai-ditfa"
-REPO_SLUG = "Teamtem-dev/ditfa-code"
+REPO_SLUG = "ditfa-dev/ditfa-cli"
 
 
 class RuntimeSetupError(RuntimeError):

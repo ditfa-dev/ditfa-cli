@@ -40,7 +40,7 @@ First release.
 - **Release pipeline never ran.** The workflow's path filters and working
   directories assumed `ditfa-code/` was a subdirectory; it is the repository root.
 - **Repository metadata** pointed at `Foshati/arlenta` instead of
-  `Teamtem-dev/ditfa-code`.
+  `ditfa-dev/ditfa-cli`.
 - **Install instructions** referenced `@ditfa/cli`, which is not a published
   package. The CLI is published as `ditfa`.
 

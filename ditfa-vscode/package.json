@@ -12,11 +12,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Teamtem-dev/ditfa-code.git",
+    "url": "git+https://github.com/ditfa-dev/ditfa-cli.git",
     "directory": "ditfa-vscode"
   },
   "bugs": {
-    "url": "https://github.com/Teamtem-dev/ditfa-code/issues"
+    "url": "https://github.com/ditfa-dev/ditfa-cli/issues"
   },
   "categories": [
     "AI",
@@ -392,5 +392,5 @@
     "typescript": "^5.9.2",
     "vitest": "^2.1.8"
   },
-  "homepage": "https://github.com/Teamtem-dev/ditfa-code"
+  "homepage": "https://github.com/ditfa-dev/ditfa-cli"
 }

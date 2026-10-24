@@ -4,15 +4,30 @@
 
 | Requirement                 | Details                                                         |
 | --------------------------- | --------------------------------------------------------------- |
-| Operating systems           | macOS 12+, Ubuntu 20.04+/Debian 10+, or Windows 11 **via WSL2** |
+| Operating systems           | macOS 12+, Linux with glibc 2.35+ (Ubuntu 22.04+, Debian 12+), Windows 10/11 |
 | Git (optional, recommended) | 2.23+ for built-in PR helpers                                   |
 | RAM                         | 4-GB minimum (8-GB recommended)                                 |
 
 ### Install a release
 
+macOS and Linux:
+
 ```bash
-npm install -g ditfa
+curl -fsSL https://github.com/ditfa-dev/ditfa-cli/releases/latest/download/install.sh | sh
 ```
+
+Windows (PowerShell):
+
+```powershell
+irm https://github.com/ditfa-dev/ditfa-cli/releases/latest/download/install.ps1 | iex
+```
+
+Both scripts verify the archive against `SHA256SUMS` before installing. Set
+`DITFA_VERSION=0.1.0` to pin a release or `DITFA_INSTALL_DIR` to choose the
+folder. With Node.js you can also run `npm install -g ditfa`.
+
+Archives for every platform are on the
+[releases page](https://github.com/ditfa-dev/ditfa-cli/releases/latest).
 
 For VS Code, install the **Ditfa Code** extension:
 
@@ -24,8 +39,8 @@ code --install-extension ditfa.ditfa-code
 
 ```bash
 # Clone the repository and navigate to the root of the Cargo workspace.
-git clone https://github.com/Teamtem-dev/ditfa-code.git
-cd ditfa-code/ditfa-rs
+git clone https://github.com/ditfa-dev/ditfa-cli.git
+cd ditfa-cli/ditfa-rs
 
 # Install the Rust toolchain, if necessary.
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y

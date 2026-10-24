@@ -4,7 +4,7 @@
   "description": "TypeScript SDK for Ditfa Code.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Teamtem-dev/ditfa-code.git",
+    "url": "git+https://github.com/ditfa-dev/ditfa-cli.git",
     "directory": "sdk/typescript"
   },
   "keywords": [
