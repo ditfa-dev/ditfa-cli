@@ -36,7 +36,7 @@ fn list_tasks_url_omits_empty_query_and_encodes_all_parameters() {
                 /*cursor*/ None,
             )
             .unwrap(),
-        "https://example.test/api/codex/tasks/list"
+        "https://example.test/api/ditfa/tasks/list"
     );
     assert_eq!(
         client
@@ -47,7 +47,7 @@ fn list_tasks_url_omits_empty_query_and_encodes_all_parameters() {
                 /*cursor*/ Some("next=page"),
             )
             .unwrap(),
-        "https://example.test/api/codex/tasks/list?limit=10&task_filter=mine+%2F+shared&cursor=next%3Dpage&environment_id=env%26one"
+        "https://example.test/api/ditfa/tasks/list?limit=10&task_filter=mine+%2F+shared&cursor=next%3Dpage&environment_id=env%26one"
     );
 }
 
@@ -127,14 +127,14 @@ async fn migrated_requests_preserve_query_auth_and_json_body() {
     assert_eq!(task_id, "task-created");
     assert_eq!(requests.len(), 2);
     assert!(requests[0].starts_with(
-        "GET /api/codex/tasks/list?limit=10&task_filter=mine+%2F+shared&cursor=next%3Dpage&environment_id=env%26one HTTP/1.1\r\n"
+        "GET /api/ditfa/tasks/list?limit=10&task_filter=mine+%2F+shared&cursor=next%3Dpage&environment_id=env%26one HTTP/1.1\r\n"
     ));
     assert!(
         requests[0]
             .to_ascii_lowercase()
             .contains("authorization: bearer request-token\r\n")
     );
-    assert!(requests[1].starts_with("POST /api/codex/tasks HTTP/1.1\r\n"));
+    assert!(requests[1].starts_with("POST /api/ditfa/tasks HTTP/1.1\r\n"));
     assert!(
         requests[1]
             .to_ascii_lowercase()

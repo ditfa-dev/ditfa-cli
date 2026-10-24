@@ -167,7 +167,7 @@ mod tests {
             etag: None,
         };
 
-        let provider = provider("https://example.com/api/codex");
+        let provider = provider("https://example.com/api/ditfa");
         let request_url = ModelsClient::<CapturingTransport>::request_url(&provider, "0.99.0");
         let client = ModelsClient::new(transport.clone(), provider, Arc::new(DummyAuth));
 
@@ -188,7 +188,7 @@ mod tests {
             .clone();
         assert_eq!(
             url,
-            "https://example.com/api/codex/models?client_version=0.99.0"
+            "https://example.com/api/ditfa/models?client_version=0.99.0"
         );
     }
 
@@ -228,7 +228,7 @@ mod tests {
             etag: None,
         };
 
-        let provider = provider("https://example.com/api/codex");
+        let provider = provider("https://example.com/api/ditfa");
         let request_url = ModelsClient::<CapturingTransport>::request_url(&provider, "0.99.0");
         let client = ModelsClient::new(transport, provider, Arc::new(DummyAuth));
 
@@ -253,7 +253,7 @@ mod tests {
             etag: Some("\"abc\"".to_string()),
         };
 
-        let provider = provider("https://example.com/api/codex");
+        let provider = provider("https://example.com/api/ditfa");
         let request_url = ModelsClient::<CapturingTransport>::request_url(&provider, "0.1.0");
         let client = ModelsClient::new(transport, provider, Arc::new(DummyAuth));
 

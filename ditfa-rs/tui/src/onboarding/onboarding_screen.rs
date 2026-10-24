@@ -10,6 +10,10 @@
 //! editing a non-empty API-key field, while control/alt chords remain available
 //! as explicit exit shortcuts.
 
+use crossterm::event::KeyCode;
+use crossterm::event::KeyEvent;
+use crossterm::event::KeyEventKind;
+use crossterm::event::KeyModifiers;
 use ditfa_app_server_client::AppServerEvent;
 use ditfa_app_server_client::AppServerRequestHandle;
 use ditfa_app_server_protocol::ServerNotification;
@@ -17,10 +21,6 @@ use ditfa_exec_server::LOCAL_FS;
 use ditfa_git_utils::resolve_root_git_project_for_trust;
 #[cfg(target_os = "windows")]
 use ditfa_protocol::config_types::WindowsSandboxLevel;
-use crossterm::event::KeyCode;
-use crossterm::event::KeyEvent;
-use crossterm::event::KeyEventKind;
-use crossterm::event::KeyModifiers;
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 use ratatui::prelude::Widget;
@@ -111,7 +111,9 @@ impl OnboardingScreen {
             config,
         } = args;
         let cwd = config.cwd.to_path_buf();
-        let forced_login_method = config.forced_login_method;
+        // Account sign-in needs a hosted login service; until one is configured,
+        // onboarding offers API keys only.
+        let forced_login_method = config.forced_login_method.or(Some(ForcedLoginMethod::Api));
         let mut steps: Vec<Step> = Vec::new();
         steps.push(Step::Welcome(WelcomeWidget::new(
             !matches!(login_status, LoginStatus::NotAuthenticated),

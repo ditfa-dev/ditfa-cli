@@ -1,180 +1,89 @@
-# Adding a New Provider to Ditfa
+# Model providers
 
-This guide explains Ditfa's multi-provider architecture and provides a step-by-step tutorial on how to implement a new `ProviderAdapter` for a custom LLM provider or local endpoint.
+Ditfa CLI talks to models over one of two wire protocols:
 
----
+| `wire_api`  | Endpoint                 | Used by                                                                                   |
+| ----------- | ------------------------ | ----------------------------------------------------------------------------------------- |
+| `responses` | `POST /responses`        | OpenAI, Azure OpenAI, Amazon Bedrock, recent Ollama and LM Studio                          |
+| `chat`      | `POST /chat/completions` | Ditfa, Anthropic, Google Gemini, OpenRouter, DeepSeek, Groq, Together, vLLM, llama.cpp, … |
 
-## 1. Multi-Provider Architecture
+The agent core always works with the Responses data model. For `chat` providers,
+`ditfa-rs/ditfa-api/src/chat.rs` translates each request into a Chat Completions
+body and turns the streamed `chat.completion.chunk` frames back into Responses
+events, so tools, approvals, sandboxing, history and compaction behave the same
+on every provider.
 
-Ditfa uses a **Translation Adapter Pattern** to support multiple model providers without modifying the core agent loop or context management:
+## Built-in providers
 
-```
-+-------------------------------------------------------------+
-|                     Ditfa Core Agent                        |
-|   (Builds ResponsesApiRequest / Consumes ResponseEvent)     |
-+-------------------------------------------------------------+
-                              |
-                              v
-                 +--------------------------+
-                 |     ProviderAdapter      |
-                 |      Trait Interface     |
-                 +--------------------------+
-                   /          |         \
-                  /           |          \
-                 v            v           v
-          +------------+ +----------+ +-------------+
-          |  OpenAI    | |Anthropic | |   Gemini    |
-          |  Adapter   | | Adapter  | |  Adapter    |
-          +------------+ +----------+ +-------------+
-                 |            |           |
-                 v            v           v
-           OpenAI API   Anthropic API  Gemini API
-          (/v1/responses)(/v1/messages)(/v1beta/...)
-```
+| id           | Key variable         | Base URL                                                  |
+| ------------ | -------------------- | --------------------------------------------------------- |
+| `ditfa`      | `DITFA_API_KEY`      | `https://api.ditfa.com/api/v1`                            |
+| `openai`     | `OPENAI_API_KEY` or `ditfa login --with-api-key` | `https://api.openai.com/v1`   |
+| `anthropic`  | `ANTHROPIC_API_KEY`  | `https://api.anthropic.com/v1`                            |
+| `gemini`     | `GEMINI_API_KEY`     | `https://generativelanguage.googleapis.com/v1beta/openai` |
+| `openrouter` | `OPENROUTER_API_KEY` | `https://openrouter.ai/api/v1`                            |
+| `deepseek`   | `DEEPSEEK_API_KEY`   | `https://api.deepseek.com/v1`                             |
+| `ollama`     | none                 | `http://localhost:11434/v1`                               |
+| `lmstudio`   | none                 | `http://localhost:1234/v1`                                |
+| `amazon-bedrock` | AWS credentials  | regional Bedrock endpoint                                 |
 
-- **Internal Data Model**: The agent core works with `ResponseItem` enum variants (`Message`, `FunctionCall`, `FunctionCallOutput`, `Reasoning`).
-- **Adapter Responsibilities**:
-  1. Translates `ResponsesApiRequest` (containing `ResponseItem` inputs) into the target provider's HTTP request JSON.
-  2. Sends the HTTP request.
-  3. Parses the streaming chunks into normalized `ResponseEvent` events (`OutputItemAdded`, `OutputTextDelta`, `Completed`, etc.).
+When `model_provider` is not set and `DITFA_API_KEY` holds a Ditfa key (`dt-…`),
+Ditfa is the default provider; otherwise OpenAI is.
 
----
-
-## 2. Step-by-Step: Adding a New Provider Adapter
-
-### Step 1: Create the Adapter File
-
-Create a new file under `ditfa-rs/model-provider/src/adapter/my_provider.rs`:
-
-```rust
-use async_trait::async_trait;
-use ditfa_api::ResponseEvent;
-use ditfa_api::ResponsesApiRequest;
-use futures::StreamExt;
-use http::HeaderMap;
-
-use super::AdapterCapabilities;
-use super::AdapterError;
-use super::ProviderAdapter;
-use super::ResponseEventStream;
-
-#[derive(Debug, Clone)]
-pub struct MyProviderAdapter {
-    pub base_url: String,
-    pub client: reqwest::Client,
-}
-
-impl MyProviderAdapter {
-    pub fn new(base_url: String) -> Self {
-        Self {
-            base_url,
-            client: reqwest::Client::new(),
-        }
-    }
-
-    /// Translates Ditfa ResponseItems to MyProvider JSON format.
-    pub fn translate_request(&self, request: &ResponsesApiRequest) -> serde_json::Value {
-        // Build provider-specific JSON payload here
-        serde_json::json!({
-            "model": request.model,
-            "prompt": request.instructions,
-            "stream": request.stream
-        })
-    }
-}
-
-#[async_trait]
-impl ProviderAdapter for MyProviderAdapter {
-    fn provider_id(&self) -> &str {
-        "my-provider"
-    }
-
-    fn capabilities(&self) -> AdapterCapabilities {
-        AdapterCapabilities {
-            function_calling: true,
-            custom_tool_calls: false,
-            streaming: true,
-            web_search: false,
-            image_generation: false,
-            remote_compaction: false,
-            reasoning: false,
-            max_context_tokens: Some(128_000),
-        }
-    }
-
-    async fn stream_request(
-        &self,
-        request: ResponsesApiRequest,
-        auth_headers: HeaderMap,
-    ) -> Result<ResponseEventStream, AdapterError> {
-        let url = format!("{}/v1/chat", self.base_url.trim_end_matches('/'));
-        let payload = self.translate_request(&request);
-
-        let res = self.client.post(&url)
-            .headers(auth_headers)
-            .json(&payload)
-            .send()
-            .await?;
-
-        if !res.status().is_success() {
-            let status = res.status();
-            let text = res.text().await.unwrap_or_default();
-            return Err(AdapterError::StreamError(format!(
-                "MyProvider API error HTTP {status}: {text}"
-            )));
-        }
-
-        let stream = res.bytes_stream().map(|chunk_res| {
-            match chunk_res {
-                Ok(_bytes) => Ok(ResponseEvent::Created),
-                Err(err) => Err(AdapterError::HttpError(err)),
-            }
-        });
-
-        Ok(Box::pin(stream))
-    }
-}
-```
-
----
-
-### Step 2: Export in `adapter/mod.rs`
-
-In `ditfa-rs/model-provider/src/adapter/mod.rs`:
-
-```rust
-pub mod anthropic;
-pub mod chat_completions;
-pub mod gemini;
-pub mod my_provider;
-pub mod openai;
-```
-
----
-
-### Step 3: Register in Config & Test
-
-Users can now reference your provider in `~/.ditfa/config.toml`:
-
-```toml
-[model_providers.my-provider]
-name = "My Custom Provider"
-base_url = "https://api.myprovider.com/v1"
-env_key = "MY_PROVIDER_API_KEY"
-adapter = "my-provider"
-```
-
-And test execution with:
+Pick a provider per run or in `~/.ditfa/config.toml`:
 
 ```shell
-ditfa --provider my-provider --model default "Hello Ditfa!"
+ditfa -c model_provider=anthropic -m claude-sonnet-4-5
+ditfa -c model_provider=gemini -m gemini-2.5-pro
+ditfa --oss --local-provider ollama
 ```
 
----
+```toml
+model_provider = "openrouter"
+model = "qwen/qwen3-coder"
+```
 
-## 3. Testing Your Provider
+### Choosing a model
 
-Add unit tests in `model-provider/src/adapter/tests.rs` to verify:
-1. `translate_request` outputs valid JSON matching your API spec.
-2. `capabilities()` accurately reflects supported features.
-3. Stream chunk parsing properly maps to `ResponseEvent::OutputTextDelta` or `ResponseEvent::Completed`.
+`model = "auto"` (the default for Ditfa) asks the provider's `GET /models` for
+the models your key can use and picks the first one. If a configured model does
+not exist on a `chat` provider, Ditfa falls back to the first available model
+for the rest of the session and logs a warning instead of failing the turn.
+
+## Adding your own provider
+
+Any OpenAI-compatible server works. Add it under `model_providers`:
+
+```toml
+model_provider = "together"
+model = "Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8"
+
+[model_providers.together]
+name = "Together AI"
+base_url = "https://api.together.xyz/v1"
+env_key = "TOGETHER_API_KEY"
+wire_api = "chat"
+```
+
+Optional fields: `http_headers`, `env_http_headers`, `query_params`,
+`request_max_retries`, `stream_max_retries`, `stream_idle_timeout_ms`. A
+definition with the same id as one of the hosted presets above (`ditfa`,
+`anthropic`, `gemini`, `openrouter`, `deepseek`) replaces the preset, which is
+how you route one of them through a proxy.
+
+## What the translation covers
+
+- System instructions and developer messages become one leading `system` message.
+- Function tools, freeform tools (exposed as a function with a single `input`
+  string) and namespaced MCP tools (`<namespace>__<tool>`) round-trip by name.
+- Parallel tool calls, streamed tool arguments, calls without `index` or `id`.
+- Reasoning streamed as `reasoning_content` or `reasoning` (DeepSeek, Qwen,
+  OpenRouter, vLLM, Ollama).
+- Images in user messages and in tool results.
+- Token usage, including cached and reasoning tokens.
+- Structured output (`--output-schema`) as `response_format: json_schema`.
+- Errors: context-window, quota and rate-limit failures map to the same handling
+  as on the Responses API.
+
+Hosted Responses-only tools (built-in web search, image generation) are not sent
+to `chat` providers.

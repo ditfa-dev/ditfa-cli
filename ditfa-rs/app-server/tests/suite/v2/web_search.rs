@@ -75,7 +75,7 @@ async fn assert_standalone_web_search_round_trips_output(
     )]);
     let server = responses::start_mock_server().await;
     let search_path = match provider {
-        WebSearchProvider::ChatGpt => "/api/codex/alpha/search",
+        WebSearchProvider::ChatGpt => "/api/ditfa/alpha/search",
         WebSearchProvider::CustomResponses => "/v1/alpha/search",
     };
     mount_search_response(&server, search_path).await;
@@ -113,7 +113,7 @@ async fn assert_standalone_web_search_round_trips_output(
         WebSearchProvider::ChatGpt => config
             .with_model_provider("openai-custom")
             .with_provider_name("OpenAI")
-            .with_provider_base_url(&format!("{}/api/codex", server.uri()))
+            .with_provider_base_url(&format!("{}/api/ditfa", server.uri()))
             .with_provider_config("requires_openai_auth = true"),
         WebSearchProvider::CustomResponses => config
             .with_model_provider("custom-responses")
@@ -267,12 +267,12 @@ async fn assert_standalone_web_search_round_trips_output(
     );
     let turn_metadata_header = search_request
         .headers
-        .get("x-codex-turn-metadata")
-        .context("standalone search should include x-codex-turn-metadata")?
+        .get("x-ditfa-turn-metadata")
+        .context("standalone search should include x-ditfa-turn-metadata")?
         .to_str()
-        .context("x-codex-turn-metadata should be valid ASCII")?;
+        .context("x-ditfa-turn-metadata should be valid ASCII")?;
     let turn_metadata: Value = serde_json::from_str(turn_metadata_header)
-        .context("x-codex-turn-metadata should be valid JSON")?;
+        .context("x-ditfa-turn-metadata should be valid JSON")?;
     let mcp_request_meta = turn_metadata["mcp_request_meta"]
         .as_str()
         .context("mcp_request_meta should be a JSON string")?;

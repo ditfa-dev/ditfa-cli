@@ -175,7 +175,7 @@ mod tests {
         );
         let client = MemoriesClient::new(
             transport.clone(),
-            provider("https://example.com/api/codex"),
+            provider("https://example.com/api/ditfa"),
             Arc::new(DummyAuth),
         );
 
@@ -208,7 +208,7 @@ mod tests {
         assert_eq!(request.method, Method::POST);
         assert_eq!(
             request.url,
-            "https://example.com/api/codex/memories/trace_summarize"
+            "https://example.com/api/ditfa/memories/trace_summarize"
         );
         let body = request
             .body

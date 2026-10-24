@@ -95,10 +95,10 @@ async fn turn_start_forwards_client_metadata_to_responses_request_v2() -> Result
 
     let request = response_mock.single_request();
     let metadata = request
-        .header("x-codex-turn-metadata")
+        .header("x-ditfa-turn-metadata")
         .as_deref()
         .map(parse_json_header)
-        .expect("x-codex-turn-metadata header should be present");
+        .expect("x-ditfa-turn-metadata header should be present");
     assert_eq!(metadata["fiber_run_id"].as_str(), Some("fiber-start-123"));
     assert_eq!(metadata["origin"].as_str(), Some("gaas"));
     assert_eq!(metadata["thread_source"].as_str(), Some("automation"));
@@ -107,7 +107,7 @@ async fn turn_start_forwards_client_metadata_to_responses_request_v2() -> Result
     assert!(metadata.get("session_id").is_some());
     assert_eq!(
         metadata["window_id"].as_str(),
-        request.header("x-codex-window-id").as_deref()
+        request.header("x-ditfa-window-id").as_deref()
     );
 
     Ok(())
@@ -173,10 +173,10 @@ async fn turn_start_sends_fork_lineage_in_turn_metadata_for_thread_fork_v2() -> 
 
     let request = response_mock.single_request();
     let metadata = request
-        .header("x-codex-turn-metadata")
+        .header("x-ditfa-turn-metadata")
         .as_deref()
         .map(parse_json_header)
-        .expect("x-codex-turn-metadata header should be present");
+        .expect("x-ditfa-turn-metadata header should be present");
     assert_eq!(
         metadata["forked_from_thread_id"].as_str(),
         Some(source_thread_id.as_str())
@@ -254,10 +254,10 @@ async fn review_start_sends_parent_lineage_in_turn_metadata_for_thread_fork_v2()
 
     let request = response_mock.single_request();
     let metadata = request
-        .header("x-codex-turn-metadata")
+        .header("x-ditfa-turn-metadata")
         .as_deref()
         .map(parse_json_header)
-        .expect("x-codex-turn-metadata header should be present");
+        .expect("x-ditfa-turn-metadata header should be present");
     assert_eq!(
         request.header("x-openai-subagent").as_deref(),
         Some("review")
@@ -273,7 +273,7 @@ async fn review_start_sends_parent_lineage_in_turn_metadata_for_thread_fork_v2()
     assert!(review_request_thread_id != review_thread_id.as_str());
     assert_eq!(
         request
-            .header("x-codex-window-id")
+            .header("x-ditfa-window-id")
             .as_deref()
             .and_then(|window_id| window_id.split_once(':').map(|(thread_id, _)| thread_id)),
         Some(review_request_thread_id)
@@ -362,10 +362,10 @@ async fn turn_start_sends_nested_subagent_lineage_after_cold_thread_resume_v2() 
 
     let request = response_mock.single_request();
     let metadata = request
-        .header("x-codex-turn-metadata")
+        .header("x-ditfa-turn-metadata")
         .as_deref()
         .map(parse_json_header)
-        .expect("x-codex-turn-metadata header should be present");
+        .expect("x-ditfa-turn-metadata header should be present");
     assert_eq!(
         metadata["parent_thread_id"].as_str(),
         Some(parent_thread_id_str.as_str())
@@ -472,10 +472,10 @@ async fn turn_steer_updates_client_metadata_on_follow_up_responses_request_v2() 
     let requests = request_log.requests();
     assert_eq!(requests.len(), 2);
     let first_metadata = requests[0]
-        .header("x-codex-turn-metadata")
+        .header("x-ditfa-turn-metadata")
         .as_deref()
         .map(parse_json_header)
-        .expect("first x-codex-turn-metadata header should be present");
+        .expect("first x-ditfa-turn-metadata header should be present");
     assert_eq!(
         first_metadata["fiber_run_id"].as_str(),
         Some("fiber-start-123")
@@ -483,10 +483,10 @@ async fn turn_steer_updates_client_metadata_on_follow_up_responses_request_v2() 
     assert_eq!(first_metadata["turn_id"].as_str(), Some(turn_id.as_str()));
 
     let second_metadata = requests[1]
-        .header("x-codex-turn-metadata")
+        .header("x-ditfa-turn-metadata")
         .as_deref()
         .map(parse_json_header)
-        .expect("second x-codex-turn-metadata header should be present");
+        .expect("second x-ditfa-turn-metadata header should be present");
     assert_eq!(
         second_metadata["fiber_run_id"].as_str(),
         Some("fiber-steer-456")
@@ -573,10 +573,10 @@ async fn turn_start_forwards_client_metadata_to_responses_websocket_request_body
     assert_eq!(request["type"].as_str(), Some("response.create"));
     assert_eq!(request["previous_response_id"].as_str(), Some("warm-1"));
 
-    let metadata = request["client_metadata"]["x-codex-turn-metadata"]
+    let metadata = request["client_metadata"]["x-ditfa-turn-metadata"]
         .as_str()
         .map(parse_json_header)
-        .expect("websocket x-codex-turn-metadata client metadata should be present");
+        .expect("websocket x-ditfa-turn-metadata client metadata should be present");
     assert_eq!(metadata["fiber_run_id"].as_str(), Some("fiber-start-123"));
     assert_eq!(metadata["origin"].as_str(), Some("gaas"));
     assert_eq!(metadata["thread_source"].as_str(), Some("automation"));
@@ -584,7 +584,7 @@ async fn turn_start_forwards_client_metadata_to_responses_websocket_request_body
     assert!(metadata.get("session_id").is_some());
     assert_eq!(
         metadata["window_id"].as_str(),
-        request["client_metadata"]["x-codex-window-id"].as_str()
+        request["client_metadata"]["x-ditfa-window-id"].as_str()
     );
 
     websocket_server.shutdown().await;

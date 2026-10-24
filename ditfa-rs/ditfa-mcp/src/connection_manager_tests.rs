@@ -2913,7 +2913,7 @@ async fn connection_identity_distinguishes_agent_account_runtime_and_task() -> a
     let previous_auth = DitfaAuth::AgentIdentity(
         ditfa_login::auth::AgentIdentityAuth::from_record(
             record.clone(),
-            "http://localhost:3000/auth/api/accounts",
+            "https://chat.ditfa.com/auth/api/accounts",
             &auth_route_config,
         )
         .await?,
@@ -2961,7 +2961,7 @@ async fn connection_identity_distinguishes_agent_account_runtime_and_task() -> a
         let changed_auth = DitfaAuth::AgentIdentity(
             ditfa_login::auth::AgentIdentityAuth::from_record(
                 changed_record,
-                "http://localhost:3000/auth/api/accounts",
+                "https://chat.ditfa.com/auth/api/accounts",
                 &auth_route_config,
             )
             .await?,

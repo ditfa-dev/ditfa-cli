@@ -474,8 +474,8 @@ pub(crate) fn resolve_multi_agent_version(
 
 pub(crate) const INITIAL_SUBMIT_ID: &str = "";
 pub(crate) const SUBMISSION_CHANNEL_CAPACITY: usize = 512;
-const CYBER_VERIFY_URL: &str = "http://localhost:3000/cyber";
-const CYBER_SAFETY_URL: &str = "https://developers.openai.com/codex/concepts/cyber-safety";
+const CYBER_VERIFY_URL: &str = "https://chat.ditfa.com/cyber";
+const CYBER_SAFETY_URL: &str = "https://github.com/ditfa-dev/ditfa-cli/blob/main/SECURITY.md";
 
 impl Session {
     /// Spawn and initialize a new session.

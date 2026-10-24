@@ -410,7 +410,7 @@ impl InstalledAppsFixture {
                 get(list_directory_apps),
             )
             .route("/accounts/account-123/settings", get(workspace_settings))
-            .nest_service("/api/codex/ps/mcp", mcp_service)
+            .nest_service("/api/ditfa/ps/mcp", mcp_service)
             .with_state(Arc::clone(&state));
         let handle = tokio::spawn(async move {
             let _ = axum::serve(listener, router).await;

@@ -1423,7 +1423,7 @@ async fn live_app_server_model_verification_renders_warning() {
     assert!(rendered.contains("multiple flags for possible cybersecurity risk"));
     assert!(rendered.contains("extra safety checks are on"));
     assert!(rendered.contains("Trusted Access for Cyber"));
-    assert!(rendered.contains("http://localhost:3000/cyber"));
+    assert!(rendered.contains("https://chat.ditfa.com/cyber"));
 }
 
 #[tokio::test]

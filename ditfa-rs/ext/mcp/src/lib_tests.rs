@@ -14,7 +14,7 @@ async fn hosted_plugin_runtime_forwards_thread_originator() -> Result<(), Box<dy
         .fallback_cwd(Some(ditfa_home.path().to_path_buf()))
         .cli_overrides(vec![
             ("features.apps".to_string(), true.into()),
-            ("chatgpt_base_url".to_string(), "http://localhost:3000".into()),
+            ("chatgpt_base_url".to_string(), "https://chat.ditfa.com".into()),
         ])
         .build()
         .await?;

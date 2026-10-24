@@ -481,7 +481,7 @@ fn directory_app_to_app_info(app: DirectoryApp) -> AppInfo {
 
 fn connector_install_url(name: &str, connector_id: &str) -> String {
     let slug = connector_name_slug(name);
-    format!("http://localhost:3000/apps/{slug}/{connector_id}")
+    format!("https://chat.ditfa.com/apps/{slug}/{connector_id}")
 }
 
 fn connector_name_slug(name: &str) -> String {
@@ -728,7 +728,7 @@ mod tests {
         );
         assert_eq!(
             connectors[0].install_url.as_deref(),
-            Some("http://localhost:3000/apps/alpha/alpha")
+            Some("https://chat.ditfa.com/apps/alpha/alpha")
         );
         assert_eq!(
             connectors[0]

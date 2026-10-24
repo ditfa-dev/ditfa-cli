@@ -492,7 +492,7 @@ fn metadata_json(id: &str, name: &str, icon_url: Option<&str>) -> Value {
         "iconUrl": icon_url,
         "iconUrlDark": format!("https://files.openai.com/content?id={id}-dark"),
         "distributionChannel": "ECOSYSTEM_DIRECTORY",
-        "installUrl": format!("http://localhost:3000/apps/{}/{id}", name.to_ascii_lowercase()),
+        "installUrl": format!("https://chat.ditfa.com/apps/{}/{id}", name.to_ascii_lowercase()),
         "pluginDisplayNames": [],
         "toolSummaries": [{
             "name": format!("{id}_tool"),
@@ -677,7 +677,7 @@ async fn start_batch_server(state: BatchServerState) -> Result<(String, JoinHand
     let addr = listener.local_addr()?;
     let router = Router::new()
         .route("/ps/apps/batch", post(batch_apps))
-        .route("/api/codex/ps/mcp", any(unexpected_mcp_request))
+        .route("/api/ditfa/ps/mcp", any(unexpected_mcp_request))
         .with_state(state);
     let handle = tokio::spawn(async move {
         let _ = axum::serve(listener, router).await;

@@ -152,7 +152,7 @@ mod tests {
                 remote_plugin_id: format!("plugins~{name}"),
                 remote_version: Some("7".to_string()),
                 discoverability: Some(PluginShareDiscoverability::Private),
-                share_url: Some(format!("http://localhost:3000/ditfa/plugins/share/{name}")),
+                share_url: Some(format!("https://chat.ditfa.com/ditfa/plugins/share/{name}")),
                 creator_account_user_id: None,
                 creator_name: Some("Test User".to_string()),
                 share_principals: None,

@@ -48,7 +48,7 @@ fn provider(base_url: &str) -> Provider {
 #[tokio::test]
 async fn models_client_hits_models_endpoint() {
     let server = MockServer::start().await;
-    let base_url = format!("{}/api/codex", server.uri());
+    let base_url = format!("{}/api/ditfa", server.uri());
 
     let response = ModelsResponse {
         models: vec![ModelInfo {
@@ -108,7 +108,7 @@ async fn models_client_hits_models_endpoint() {
     };
 
     Mock::given(method("GET"))
-        .and(path("/api/codex/models"))
+        .and(path("/api/ditfa/models"))
         .respond_with(
             ResponseTemplate::new(200)
                 .insert_header("content-type", "application/json")
@@ -136,5 +136,5 @@ async fn models_client_hits_models_endpoint() {
         .expect("should capture requests");
     assert_eq!(received.len(), 1);
     assert_eq!(received[0].method, Method::GET.as_str());
-    assert_eq!(received[0].url.path(), "/api/codex/models");
+    assert_eq!(received[0].url.path(), "/api/ditfa/models");
 }

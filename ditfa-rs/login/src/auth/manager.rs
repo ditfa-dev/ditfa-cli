@@ -188,8 +188,8 @@ const REFRESH_TOKEN_INVALIDATED_MESSAGE: &str = "Your access token could not be 
 const REFRESH_TOKEN_UNKNOWN_MESSAGE: &str =
     "Your access token could not be refreshed. Please log out and sign in again.";
 const REFRESH_TOKEN_ACCOUNT_MISMATCH_MESSAGE: &str = "Your access token could not be refreshed because you have since logged out or signed in to another account. Please sign in again.";
-const REFRESH_TOKEN_URL: &str = "http://localhost:3000/auth/oauth/token";
-pub(super) const REVOKE_TOKEN_URL: &str = "http://localhost:3000/auth/oauth/revoke";
+const REFRESH_TOKEN_URL: &str = "https://chat.ditfa.com/auth/oauth/token";
+pub(super) const REVOKE_TOKEN_URL: &str = "https://chat.ditfa.com/auth/oauth/revoke";
 pub const REFRESH_TOKEN_URL_OVERRIDE_ENV_VAR: &str = "DITFA_REFRESH_TOKEN_URL_OVERRIDE";
 pub const REVOKE_TOKEN_URL_OVERRIDE_ENV_VAR: &str = "DITFA_REVOKE_TOKEN_URL_OVERRIDE";
 pub const CLIENT_ID_OVERRIDE_ENV_VAR: &str = "DITFA_APP_SERVER_LOGIN_CLIENT_ID";

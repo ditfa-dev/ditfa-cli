@@ -81,10 +81,13 @@ use ditfa_mcp::McpPluginAttribution;
 use ditfa_mcp::McpServerRegistration;
 use ditfa_mcp::ResolvedMcpCatalog;
 use ditfa_memories_read::memory_root;
+use ditfa_model_provider_info::AUTO_MODEL;
+use ditfa_model_provider_info::DITFA_PROVIDER_ID;
 use ditfa_model_provider_info::LEGACY_OLLAMA_CHAT_PROVIDER_ID;
 use ditfa_model_provider_info::ModelProviderInfo;
 use ditfa_model_provider_info::OLLAMA_CHAT_PROVIDER_REMOVED_ERROR;
 use ditfa_model_provider_info::built_in_model_providers;
+use ditfa_model_provider_info::default_model_provider_id;
 use ditfa_model_provider_info::merge_configured_model_providers;
 use ditfa_models_manager::ModelsManagerConfig;
 use ditfa_protocol::config_types::AltScreenMode;
@@ -832,7 +835,7 @@ pub struct Config {
     /// Preferred store for MCP OAuth credentials.
     /// keyring: Use an OS-specific keyring service.
     ///          Credentials stored in the keyring will only be readable by Ditfa unless the user explicitly grants access via OS-level keyring access.
-    ///          https://github.com/openai/codex/blob/main/ditfa-rs/rmcp-client/src/oauth.rs#L2
+    ///          https://github.com/ditfa-dev/ditfa-cli/blob/main/ditfa-rs/rmcp-client/src/oauth.rs#L2
     /// file: DITFA_HOME/.credentials.json
     ///       This file will be readable to Ditfa and other applications running as the same user.
     /// auto (default): keyring if available, otherwise file.
@@ -3563,7 +3566,7 @@ impl Config {
 
         let model_provider_id = model_provider
             .or(cfg.model_provider)
-            .unwrap_or_else(|| "openai".to_string());
+            .unwrap_or_else(|| default_model_provider_id().to_string());
         let model_provider = model_providers
             .get(&model_provider_id)
             .ok_or_else(|| {
@@ -3698,7 +3701,11 @@ impl Config {
 
         let forced_login_method = cfg.forced_login_method;
 
-        let model = model.or(cfg.model);
+        // Ditfa model ids depend on the account's plan, so without an explicit
+        // model the client picks the first one the key can use.
+        let model = model.or(cfg.model).or_else(|| {
+            (model_provider_id == DITFA_PROVIDER_ID).then(|| AUTO_MODEL.to_string())
+        });
         let notices = cfg.notice.unwrap_or_default();
         let service_tier = match service_tier_override {
             Some(Some(service_tier)) => Some(service_tier),
@@ -4037,7 +4044,7 @@ impl Config {
             model_verbosity: cfg.model_verbosity,
             chatgpt_base_url: cfg
                 .chatgpt_base_url
-                .unwrap_or("http://localhost:3000/api/".to_string()),
+                .unwrap_or("https://chat.ditfa.com/api/".to_string()),
             respect_system_proxy,
             apps_mcp_product_sku: cfg.apps_mcp_product_sku.clone(),
             realtime_audio: cfg

@@ -7,6 +7,10 @@
 
 #![allow(clippy::unwrap_used)]
 
+use crossterm::event::KeyCode;
+use crossterm::event::KeyEvent;
+use crossterm::event::KeyEventKind;
+use crossterm::event::KeyModifiers;
 use ditfa_app_server_client::AppServerRequestHandle;
 use ditfa_app_server_protocol::AccountLoginCompletedNotification;
 use ditfa_app_server_protocol::AccountUpdatedNotification;
@@ -17,10 +21,6 @@ use ditfa_app_server_protocol::LoginAccountParams;
 use ditfa_app_server_protocol::LoginAccountResponse;
 use ditfa_login::read_openai_api_key_from_env;
 use ditfa_protocol::auth::AuthMode;
-use crossterm::event::KeyCode;
-use crossterm::event::KeyEvent;
-use crossterm::event::KeyEventKind;
-use crossterm::event::KeyModifiers;
 use ratatui::buffer::Buffer;
 use ratatui::layout::Constraint;
 use ratatui::layout::Layout;
@@ -395,7 +395,13 @@ impl AuthModeWidget {
             ]),
             Line::from(vec![
                 "  ".into(),
-                "Supports OpenAI, Anthropic, Gemini, Ollama, and local models".into(),
+                "Ditfa account: ".dim(),
+                "export DITFA_API_KEY=dt-...".cyan(),
+                " (keys at chat.ditfa.com/api-keys), then restart".dim(),
+            ]),
+            Line::from(vec![
+                "  ".into(),
+                "Anthropic, Gemini, OpenRouter, DeepSeek and local models: see PROVIDERS.md".dim(),
             ]),
             "".into(),
         ];
@@ -556,7 +562,7 @@ impl AuthModeWidget {
             Line::from(vec![
                 "  For more details see the ".into(),
                 crate::terminal_hyperlinks::osc8_hyperlink(
-                    "https://developers.openai.com/codex/security",
+                    "https://github.com/ditfa-dev/ditfa-cli/blob/main/docs/sandbox.md",
                     "Ditfa docs",
                 )
                 .underlined(),
@@ -572,7 +578,7 @@ impl AuthModeWidget {
             Line::from(vec![
                 "  Uses your plan's rate limits and ".into(),
                 crate::terminal_hyperlinks::osc8_hyperlink(
-                    "http://localhost:3000/#settings",
+                    "https://chat.ditfa.com/#settings",
                     "training data preferences",
                 )
                 .underlined(),
@@ -1034,7 +1040,7 @@ mod tests {
     use tempfile::TempDir;
 
     const PRODUCTION_LENGTH_AUTH_URL: &str = concat!(
-        "http://localhost:3000/auth/oauth/authorize?",
+        "https://chat.ditfa.com/auth/oauth/authorize?",
         "response_type=code&",
         "client_id=app_EMoamEEZ73f0CkXaXp7hrann&",
         "redirect_uri=http%3A%2F%2Flocalhost%3A1455%2Fauth%2Fcallback&",
@@ -1068,7 +1074,7 @@ mod tests {
                 /*enable_ditfa_api_key_env*/ false,
                 AuthCredentialsStoreMode::File,
                 AuthKeyringBackendKind::default(),
-                "http://localhost:3000/api/".to_string(),
+                "https://chat.ditfa.com/api/".to_string(),
                 auth_route_config,
             )
             .await,
@@ -1181,7 +1187,7 @@ mod tests {
             SignInState::ChatGptDeviceCode(ContinueWithDeviceCodeState::ready(
                 "request-1".to_string(),
                 "login-1".to_string(),
-                "http://localhost:3000/device".to_string(),
+                "https://chat.ditfa.com/device".to_string(),
                 "ABCD-EFGH".to_string(),
             ));
 
@@ -1260,7 +1266,7 @@ mod tests {
             SignInState::ChatGptDeviceCode(ContinueWithDeviceCodeState::ready(
                 "request-1".to_string(),
                 "login-1".to_string(),
-                "http://localhost:3000/device".to_string(),
+                "https://chat.ditfa.com/device".to_string(),
                 "ABCD-EFGH".to_string(),
             ));
 
@@ -1285,7 +1291,7 @@ mod tests {
             SignInState::ChatGptDeviceCode(ContinueWithDeviceCodeState::ready(
                 "request-1".to_string(),
                 "login-1".to_string(),
-                "http://localhost:3000/device".to_string(),
+                "https://chat.ditfa.com/device".to_string(),
                 "ABCD-EFGH".to_string(),
             ));
 

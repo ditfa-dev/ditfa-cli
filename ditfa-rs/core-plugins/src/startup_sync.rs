@@ -24,7 +24,7 @@ const GITHUB_API_BASE_URL: &str = "https://api.github.com";
 const GITHUB_API_ACCEPT_HEADER: &str = "application/vnd.github+json";
 const GITHUB_API_VERSION_HEADER: &str = "2022-11-28";
 const CURATED_PLUGINS_BACKUP_ARCHIVE_API_URL: &str =
-    "http://localhost:3000/api/plugins/export/curated";
+    "https://chat.ditfa.com/api/plugins/export/curated";
 const OPENAI_PLUGINS_OWNER: &str = "openai";
 const OPENAI_PLUGINS_REPO: &str = "plugins";
 const OPENAI_PLUGINS_GIT_URL: &str = "https://github.com/openai/plugins.git";

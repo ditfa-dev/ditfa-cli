@@ -1041,7 +1041,7 @@ async fn plugin_detail_popup_shows_local_share_context_as_read_only_snapshot() {
             remote_plugin_id: "plugins~Plugin_docs".to_string(),
             remote_version: Some("7".to_string()),
             discoverability: Some(PluginShareDiscoverability::Private),
-            share_url: Some("http://localhost:3000/ditfa/plugins/share/docs".to_string()),
+            share_url: Some("https://chat.ditfa.com/ditfa/plugins/share/docs".to_string()),
             creator_account_user_id: None,
             creator_name: Some("Test User".to_string()),
             share_principals: None,

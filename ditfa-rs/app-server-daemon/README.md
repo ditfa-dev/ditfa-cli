@@ -36,7 +36,7 @@ running app-server version when applicable.
 For a new remote machine:
 
 ```sh
-curl -fsSL http://localhost:3000/install.sh | sh
+curl -fsSL https://chat.ditfa.com/install.sh | sh
 $HOME/.ditfa/packages/standalone/current/ditfa app-server daemon bootstrap --remote-control
 ```
 

@@ -35,7 +35,7 @@ const MAX_REQUEST_MAX_RETRIES: u64 = 100;
 const OPENAI_PROVIDER_NAME: &str = "OpenAI";
 const OPENAI_ACTOR_AUTHORIZATION_HEADER: &str = "x-openai-actor-authorization";
 pub const OPENAI_PROVIDER_ID: &str = "openai";
-pub const CHATGPT_DITFA_BASE_URL: &str = "http://localhost:3000/api/codex";
+pub const CHATGPT_DITFA_BASE_URL: &str = "https://chatgpt.com/backend-api/ditfa";
 const AMAZON_BEDROCK_PROVIDER_NAME: &str = "Amazon Bedrock";
 pub const AMAZON_BEDROCK_PROVIDER_ID: &str = "amazon-bedrock";
 pub const AMAZON_BEDROCK_GPT_5_5_MODEL_ID: &str = "openai.gpt-5.5";
@@ -47,9 +47,8 @@ pub const AMAZON_BEDROCK_DEFAULT_BASE_URL: &str =
     "https://bedrock-mantle.us-east-1.api.aws/openai/v1";
 const AMAZON_BEDROCK_MANTLE_CLIENT_AGENT_HEADER: &str = "x-amzn-mantle-client-agent";
 const AMAZON_BEDROCK_MANTLE_CLIENT_AGENT_VALUE: &str = "ditfa";
-const CHAT_WIRE_API_REMOVED_ERROR: &str = "`wire_api = \"chat\"` is no longer supported.\nHow to fix: set `wire_api = \"responses\"` in your provider config.\nMore info: https://github.com/openai/codex/discussions/7782";
 pub const LEGACY_OLLAMA_CHAT_PROVIDER_ID: &str = "ollama-chat";
-pub const OLLAMA_CHAT_PROVIDER_REMOVED_ERROR: &str = "`ollama-chat` is no longer supported.\nHow to fix: replace `ollama-chat` with `ollama` in `model_provider`, `oss_provider`, or `--local-provider`.\nMore info: https://github.com/openai/codex/discussions/7782";
+pub const OLLAMA_CHAT_PROVIDER_REMOVED_ERROR: &str = "`ollama-chat` is no longer supported.\nHow to fix: replace `ollama-chat` with `ollama` in `model_provider`, `oss_provider`, or `--local-provider`.\nMore info: https://github.com/ditfa-dev/ditfa-cli/discussions";
 
 /// Wire protocol that the provider speaks.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, JsonSchema)]
@@ -58,12 +57,15 @@ pub enum WireApi {
     /// The Responses API exposed by OpenAI at `/v1/responses`.
     #[default]
     Responses,
+    /// The OpenAI-compatible Chat Completions API at `/v1/chat/completions`.
+    Chat,
 }
 
 impl fmt::Display for WireApi {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value = match self {
             Self::Responses => "responses",
+            Self::Chat => "chat",
         };
         f.write_str(value)
     }
@@ -77,8 +79,11 @@ impl<'de> Deserialize<'de> for WireApi {
         let value = String::deserialize(deserializer)?;
         match value.as_str() {
             "responses" => Ok(Self::Responses),
-            "chat" => Err(serde::de::Error::custom(CHAT_WIRE_API_REMOVED_ERROR)),
-            _ => Err(serde::de::Error::unknown_variant(&value, &["responses"])),
+            "chat" | "chat_completions" | "chat-completions" => Ok(Self::Chat),
+            _ => Err(serde::de::Error::unknown_variant(
+                &value,
+                &["responses", "chat"],
+            )),
         }
     }
 }
@@ -434,6 +439,120 @@ pub const DEFAULT_OLLAMA_PORT: u16 = 11434;
 pub const LMSTUDIO_OSS_PROVIDER_ID: &str = "lmstudio";
 pub const OLLAMA_OSS_PROVIDER_ID: &str = "ollama";
 
+pub const DITFA_PROVIDER_ID: &str = "ditfa";
+pub const DITFA_API_BASE_URL: &str = "https://api.ditfa.com/api/v1";
+/// Environment variable holding a Ditfa API key (`dt-…`).
+pub const DITFA_PROVIDER_ENV_KEY: &str = "DITFA_API_KEY";
+/// Model name that asks the client to pick the first model the account can use.
+pub const AUTO_MODEL: &str = "auto";
+pub const ANTHROPIC_PROVIDER_ID: &str = "anthropic";
+pub const GEMINI_PROVIDER_ID: &str = "gemini";
+pub const OPENROUTER_PROVIDER_ID: &str = "openrouter";
+pub const DEEPSEEK_PROVIDER_ID: &str = "deepseek";
+
+/// Provider used when the config names none: Ditfa when a Ditfa API key is in
+/// the environment, OpenAI otherwise.
+pub fn default_model_provider_id() -> &'static str {
+    let has_ditfa_key = std::env::var(DITFA_PROVIDER_ENV_KEY)
+        .ok()
+        .is_some_and(|value| value.trim().starts_with("dt-"));
+    if has_ditfa_key {
+        DITFA_PROVIDER_ID
+    } else {
+        OPENAI_PROVIDER_ID
+    }
+}
+
+/// A hosted provider that speaks Chat Completions and reads its key from `env_key`.
+pub fn create_chat_provider(
+    name: &str,
+    base_url: &str,
+    env_key: &str,
+    env_key_instructions: &str,
+) -> ModelProviderInfo {
+    ModelProviderInfo {
+        name: name.into(),
+        base_url: Some(base_url.into()),
+        env_key: Some(env_key.into()),
+        env_key_instructions: Some(env_key_instructions.into()),
+        experimental_bearer_token: None,
+        auth: None,
+        aws: None,
+        wire_api: WireApi::Chat,
+        query_params: None,
+        http_headers: None,
+        env_http_headers: None,
+        request_max_retries: None,
+        stream_max_retries: None,
+        stream_idle_timeout_ms: None,
+        websocket_connect_timeout_ms: None,
+        requires_openai_auth: false,
+        supports_websockets: false,
+        supports_standalone_web_search: false,
+    }
+}
+
+fn is_hosted_chat_provider_id(id: &str) -> bool {
+    matches!(
+        id,
+        DITFA_PROVIDER_ID
+            | ANTHROPIC_PROVIDER_ID
+            | GEMINI_PROVIDER_ID
+            | OPENROUTER_PROVIDER_ID
+            | DEEPSEEK_PROVIDER_ID
+    )
+}
+
+fn hosted_chat_providers() -> [(&'static str, ModelProviderInfo); 5] {
+    [
+        (
+            DITFA_PROVIDER_ID,
+            create_chat_provider(
+                "Ditfa",
+                DITFA_API_BASE_URL,
+                DITFA_PROVIDER_ENV_KEY,
+                "Create an API key at https://chat.ditfa.com/api-keys, then run `export DITFA_API_KEY=dt-...`.",
+            ),
+        ),
+        (
+            ANTHROPIC_PROVIDER_ID,
+            create_chat_provider(
+                "Anthropic",
+                "https://api.anthropic.com/v1",
+                "ANTHROPIC_API_KEY",
+                "Create a key at https://console.anthropic.com/settings/keys, then run `export ANTHROPIC_API_KEY=...`.",
+            ),
+        ),
+        (
+            GEMINI_PROVIDER_ID,
+            create_chat_provider(
+                "Google Gemini",
+                "https://generativelanguage.googleapis.com/v1beta/openai",
+                "GEMINI_API_KEY",
+                "Create a key at https://aistudio.google.com/apikey, then run `export GEMINI_API_KEY=...`.",
+            ),
+        ),
+        (
+            OPENROUTER_PROVIDER_ID,
+            create_chat_provider(
+                "OpenRouter",
+                "https://openrouter.ai/api/v1",
+                "OPENROUTER_API_KEY",
+                "Create a key at https://openrouter.ai/keys, then run `export OPENROUTER_API_KEY=...`.",
+            ),
+        ),
+        (
+            DEEPSEEK_PROVIDER_ID,
+            create_chat_provider(
+                "DeepSeek",
+                "https://api.deepseek.com/v1",
+                "DEEPSEEK_API_KEY",
+                "Create a key at https://platform.deepseek.com/api_keys, then run `export DEEPSEEK_API_KEY=...`.",
+            ),
+        ),
+    ]
+}
+
 /// Built-in default provider list.
 pub fn built_in_model_providers(
     openai_base_url: Option<String>,
@@ -442,10 +561,9 @@ pub fn built_in_model_providers(
     let openai_provider = P::create_openai_provider(openai_base_url);
     let amazon_bedrock_provider = P::create_amazon_bedrock_provider(/*aws*/ None);
 
-    // We do not want to be in the business of adjucating which third-party
-    // providers are bundled with Ditfa CLI, so we only include the OpenAI and
-    // open source ("oss") providers by default. Users are encouraged to add to
-    // `model_providers` in config.toml to add their own providers.
+    // Ditfa ships the hosted providers people ask for most, plus the local
+    // ("oss") servers. Anything else can be added under `model_providers` in
+    // config.toml with `wire_api = "chat"` or `wire_api = "responses"`.
     [
         (OPENAI_PROVIDER_ID, openai_provider),
         (AMAZON_BEDROCK_PROVIDER_ID, amazon_bedrock_provider),
@@ -459,6 +577,7 @@ pub fn built_in_model_providers(
         ),
     ]
     .into_iter()
+    .chain(hosted_chat_providers())
     .map(|(k, v)| (k.to_string(), v))
     .collect()
 }
@@ -499,6 +618,11 @@ provider fields are not supported"
                         .extend(http_headers_override);
                 }
             }
+        } else if is_hosted_chat_provider_id(&key) {
+            // The hosted Chat Completions presets are conveniences, so a user's
+            // own definition under the same id (custom base URL, proxy, key
+            // variable) takes precedence.
+            model_providers.insert(key, provider);
         } else {
             model_providers.entry(key).or_insert(provider);
         }

@@ -53,7 +53,7 @@ use crate::wrapping::word_wrap_lines;
 use std::sync::Arc;
 use std::sync::RwLock;
 
-const CHATGPT_USAGE_URL: &str = "http://localhost:3000/ditfa/settings/usage";
+const CHATGPT_USAGE_URL: &str = "https://chat.ditfa.com/ditfa/settings/usage";
 
 #[derive(Debug, Clone)]
 struct StatusContextWindowData {

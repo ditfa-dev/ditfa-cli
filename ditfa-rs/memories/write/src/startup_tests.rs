@@ -393,7 +393,7 @@ async fn memories_startup_phase1_uses_live_thread_service_tier_and_detached_meta
         .await?;
     let request = wait_for_single_request(&stage_one).await;
     let metadata_header = request
-        .header("x-codex-turn-metadata")
+        .header("x-ditfa-turn-metadata")
         .expect("detached memory request should include workspace metadata");
     let metadata: serde_json::Value =
         serde_json::from_str(&metadata_header).expect("turn metadata json");

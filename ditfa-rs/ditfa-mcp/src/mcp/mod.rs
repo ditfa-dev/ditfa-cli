@@ -470,7 +470,7 @@ fn ditfa_apps_mcp_bearer_token_env_var() -> Option<String> {
 
 fn normalize_ditfa_apps_base_url(base_url: &str) -> String {
     let mut base_url = base_url.trim_end_matches('/').to_string();
-    if (base_url.starts_with("http://localhost:3000")
+    if (base_url.starts_with("https://chat.ditfa.com")
         || base_url.starts_with("https://chat.openai.com"))
         && !base_url.contains("/backend-api")
     {
@@ -481,10 +481,10 @@ fn normalize_ditfa_apps_base_url(base_url: &str) -> String {
 
 fn ditfa_apps_mcp_url_for_base_url(base_url: &str) -> String {
     let base_url = normalize_ditfa_apps_base_url(base_url);
-    let base_url = if base_url.contains("/backend-api") || base_url.contains("/api/codex") {
+    let base_url = if base_url.contains("/backend-api") || base_url.contains("/api/ditfa") {
         base_url
     } else {
-        format!("{base_url}/api/codex")
+        format!("{base_url}/api/ditfa")
     };
     format!("{base_url}/ps/mcp")
 }

@@ -41,7 +41,7 @@ use serde::de::DeserializeOwned;
 use serde_json::Value;
 use tempfile::TempDir;
 
-const CHATGPT_MCP_URL: &str = "http://localhost:3000/api/ps/mcp";
+const CHATGPT_MCP_URL: &str = "https://chat.ditfa.com/api/ps/mcp";
 const NON_CHATGPT_MCP_URL: &str = "https://api.openai.com/backend-api/ps/mcp";
 
 #[derive(Debug)]
@@ -102,7 +102,7 @@ async fn exec_server_replays_only_chatgpt_cloudflare_cookies() -> anyhow::Result
             first.request_line.as_str(),
             first.headers.get("cookie"),
         ),
-        ("localhost:3000", "POST /backend-api/ps/mcp HTTP/1.1", None,)
+        ("staging.chat.ditfa.com", "POST /backend-api/ps/mcp HTTP/1.1", None,)
     );
 
     let west_response = execute_http_request(&mut server, CHATGPT_MCP_URL, "west").await?;

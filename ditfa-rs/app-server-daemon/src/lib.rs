@@ -674,7 +674,7 @@ impl Daemon {
             "managed standalone Ditfa install not found at {managed_ditfa_path}\n\n\
              This command requires the standalone install managed by the Ditfa installer, because \
              the daemon starts and updates app-server from that fixed path.\n\n\
-             Install it with:\n  curl -fsSL http://localhost:3000/install.sh | sh\n\n\
+             Install it with:\n  curl -fsSL https://chat.ditfa.com/install.sh | sh\n\n\
              Then rerun the command you just tried."
         ))
     }

@@ -1384,7 +1384,7 @@ mod tests {
         for (status, expected) in cases {
             let err = BackendRequestError::UnexpectedStatus {
                 method: "GET".to_string(),
-                url: "https://example.test/api/codex/workspace-messages".to_string(),
+                url: "https://example.test/api/ditfa/workspace-messages".to_string(),
                 status,
                 content_type: "application/json".to_string(),
                 body: "{}".to_string(),

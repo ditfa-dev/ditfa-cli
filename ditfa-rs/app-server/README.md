@@ -97,7 +97,7 @@ Applications building on top of `ditfa app-server` should identify themselves vi
 
 **Important**: `clientInfo.name` is used to identify the client for the OpenAI Compliance Logs Platform. If
 you are developing a new Ditfa integration that is intended for enterprise use, please contact us to get it
-added to a known clients list. For more context: http://localhost:3000/admin/api-reference#tag/Logs:-Ditfa
+added to a known clients list. For more context: https://chat.ditfa.com/admin/api-reference#tag/Logs:-Ditfa
 
 Example (from OpenAI's official VSCode extension):
 
@@ -1926,7 +1926,7 @@ Use `app/list` to fetch available apps (connectors). Each entry includes metadat
             "branding": null,
             "appMetadata": null,
             "labels": null,
-            "installUrl": "http://localhost:3000/apps/demo-app/demo-app",
+            "installUrl": "https://chat.ditfa.com/apps/demo-app/demo-app",
             "isAccessible": true,
             "isEnabled": true
         }
@@ -1960,7 +1960,7 @@ The server also emits `app/list/updated` notifications when newly loaded accessi
         "branding": null,
         "appMetadata": null,
         "labels": null,
-        "installUrl": "http://localhost:3000/apps/demo-app/demo-app",
+        "installUrl": "https://chat.ditfa.com/apps/demo-app/demo-app",
         "isAccessible": true,
         "isEnabled": true
       }
@@ -2143,7 +2143,7 @@ Field notes:
 1. Start:
    ```json
    { "method": "account/login/start", "id": 3, "params": { "type": "chatgpt" } }
-   { "id": 3, "result": { "type": "chatgpt", "loginId": "<uuid>", "authUrl": "http://localhost:3000/…&redirect_uri=http%3A%2F%2Flocalhost%3A<port>%2Fauth%2Fcallback" } }
+   { "id": 3, "result": { "type": "chatgpt", "loginId": "<uuid>", "authUrl": "https://chat.ditfa.com/…&redirect_uri=http%3A%2F%2Flocalhost%3A<port>%2Fauth%2Fcallback" } }
    ```
 2. Open `authUrl` in a browser; the app-server hosts the local callback.
    By default, a successful callback redirects to the local success page. Clients may set
@@ -2186,7 +2186,7 @@ Ditfa stores the key and region as the primary Ditfa auth, replacing any previou
 1. Start:
    ```json
    { "method": "account/login/start", "id": 4, "params": { "type": "chatgptDeviceCode" } }
-   { "id": 4, "result": { "type": "chatgptDeviceCode", "loginId": "<uuid>", "verificationUrl": "http://localhost:3000/auth/device", "userCode": "ABCD-1234" } }
+   { "id": 4, "result": { "type": "chatgptDeviceCode", "loginId": "<uuid>", "verificationUrl": "https://chat.ditfa.com/auth/device", "userCode": "ABCD-1234" } }
    ```
 2. Show `verificationUrl` and `userCode` to the user; the frontend owns the UX.
 3. Wait for notifications:

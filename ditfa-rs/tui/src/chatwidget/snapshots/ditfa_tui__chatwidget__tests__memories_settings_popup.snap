@@ -12,6 +12,6 @@ expression: popup
   Reset all memories     Clear local memory files and summaries. Existing
                          threads stay intact.
 
-  Learn more: https://developers.openai.com/codex/memories
+  Learn more: https://github.com/ditfa-dev/ditfa-cli/blob/main/docs/config.md
 
   Press space to toggle; enter to save or select

@@ -673,7 +673,7 @@ mod thread_processor_behavior_tests {
         let temp_dir = TempDir::new()?;
         let session_provider = ModelProviderInfo {
             name: "session".to_string(),
-            base_url: Some("http://127.0.0.1:8061/api/codex".to_string()),
+            base_url: Some("http://127.0.0.1:8061/api/ditfa".to_string()),
             env_key: None,
             env_key_instructions: None,
             experimental_bearer_token: None,
@@ -719,7 +719,7 @@ mod thread_processor_behavior_tests {
                         "model_providers.session".to_string(),
                         json!({
                             "name": "request",
-                            "base_url": "http://127.0.0.1:9999/api/codex",
+                            "base_url": "http://127.0.0.1:9999/api/ditfa",
                             "wire_api": "responses",
                         }),
                     ),

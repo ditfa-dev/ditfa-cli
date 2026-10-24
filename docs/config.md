@@ -1,10 +1,10 @@
 # Configuration
 
-For basic configuration instructions, see [the upstream Ditfa documentation](https://developers.openai.com/codex/config-basic).
+For basic configuration instructions, see [the upstream Ditfa documentation](https://github.com/ditfa-dev/ditfa-cli/blob/main/docs/config.md).
 
-For advanced configuration instructions, see [the upstream Ditfa documentation](https://developers.openai.com/codex/config-advanced).
+For advanced configuration instructions, see [the upstream Ditfa documentation](https://github.com/ditfa-dev/ditfa-cli/blob/main/docs/config.md).
 
-For a full configuration reference, see [the upstream Ditfa documentation](https://developers.openai.com/codex/config-reference).
+For a full configuration reference, see [the upstream Ditfa documentation](https://github.com/ditfa-dev/ditfa-cli/blob/main/docs/config.md).
 
 ## Lifecycle hooks
 

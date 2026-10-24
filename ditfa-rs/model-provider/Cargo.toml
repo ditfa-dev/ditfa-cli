@@ -13,11 +13,7 @@ path = "src/lib.rs"
 workspace = true
 
 [dependencies]
-async-trait = { workspace = true }
-thiserror = { workspace = true }
-reqwest = { workspace = true, features = ["json", "stream"] }
 serde_json = { workspace = true }
-futures = { workspace = true }
 ditfa-api = { workspace = true }
 ditfa-agent-identity = { workspace = true }
 ditfa-aws-auth = { workspace = true }

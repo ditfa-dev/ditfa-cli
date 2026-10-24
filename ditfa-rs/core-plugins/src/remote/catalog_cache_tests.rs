@@ -21,7 +21,7 @@ fn catalog_cache_freshness_honors_ttl() {
 fn catalog_cache_paths_are_isolated_by_scope() {
     let ditfa_home = Path::new("/tmp/ditfa-home");
     let cache_key_for_scope = |scope| RemotePluginCatalogCacheKey {
-        chatgpt_base_url: "http://localhost:3000/api".to_string(),
+        chatgpt_base_url: "https://chat.ditfa.com/api".to_string(),
         account_id: Some("account-id".to_string()),
         chatgpt_user_id: Some("user-id".to_string()),
         is_workspace_account: true,
@@ -44,7 +44,7 @@ fn catalog_cache_paths_are_isolated_by_scope() {
 fn global_catalog_cache_reuses_legacy_cache_file() {
     let ditfa_home = tempfile::tempdir().expect("create ditfa home");
     let config = RemotePluginServiceConfig::new(
-        "http://localhost:3000/api".to_string(),
+        "https://chat.ditfa.com/api".to_string(),
         crate::test_support::test_http_client_factory(),
     );
     let auth = DitfaAuth::Headers(AuthHeaders::new(http::HeaderMap::new()));
@@ -83,7 +83,7 @@ fn global_catalog_cache_reuses_legacy_cache_file() {
 fn header_auth_does_not_cache_private_catalogs_without_a_stable_identity() {
     let ditfa_home = tempfile::tempdir().expect("create ditfa home");
     let config = RemotePluginServiceConfig::new(
-        "http://localhost:3000/api".to_string(),
+        "https://chat.ditfa.com/api".to_string(),
         crate::test_support::test_http_client_factory(),
     );
     let auth = DitfaAuth::Headers(AuthHeaders::new(http::HeaderMap::new()));

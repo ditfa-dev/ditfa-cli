@@ -147,7 +147,7 @@ pub(crate) struct TurnMetadataWorkspace {
 /// Caller-owned snapshot of Ditfa metadata sent to ResponsesAPI.
 ///
 /// The full Ditfa turn metadata blob is transported canonically as
-/// `client_metadata["x-codex-turn-metadata"]`. Flat `client_metadata` keys and direct HTTP/ws
+/// `client_metadata["x-ditfa-turn-metadata"]`. Flat `client_metadata` keys and direct HTTP/ws
 /// headers are generated compatibility projections of this snapshot, not separate sources of
 /// truth.
 #[derive(Clone, Debug)]
@@ -243,8 +243,8 @@ impl DitfaResponsesMetadata {
     pub(crate) fn compatibility_headers(&self) -> ApiHeaderMap {
         let mut headers = ApiHeaderMap::new();
         insert_header(&mut headers, X_DITFA_WINDOW_ID_HEADER, &self.window_id);
-        // Direct x-codex-turn-metadata is compatibility output. New per-request consumers should
-        // prefer client_metadata["x-codex-turn-metadata"], which is rendered from this same object.
+        // Direct x-ditfa-turn-metadata is compatibility output. New per-request consumers should
+        // prefer client_metadata["x-ditfa-turn-metadata"], which is rendered from this same object.
         if self.has_turn_metadata()
             && let Some(turn_metadata_json) = self.turn_metadata_json()
         {

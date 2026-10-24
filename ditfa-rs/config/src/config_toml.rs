@@ -261,7 +261,7 @@ pub struct ConfigToml {
 
     /// Preferred backend for storing MCP OAuth credentials.
     /// keyring: Use an OS-specific keyring service.
-    ///          https://github.com/openai/codex/blob/main/ditfa-rs/rmcp-client/src/oauth.rs#L2
+    ///          https://github.com/ditfa-dev/ditfa-cli/blob/main/ditfa-rs/rmcp-client/src/oauth.rs#L2
     /// file: Use a file in the Ditfa home directory.
     /// auto (default): Use the OS-specific keyring service if available, otherwise use a file.
     #[serde(default)]

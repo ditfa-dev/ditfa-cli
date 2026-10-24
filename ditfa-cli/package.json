@@ -1,37 +1,41 @@
 {
   "name": "ditfa",
   "version": "0.0.0-dev",
-  "description": "Ditfa Code is a multi-provider AI coding agent that runs locally on your computer.",
+  "description": "Ditfa CLI: a multi-provider AI coding agent for your terminal (Ditfa, OpenAI, Anthropic, Gemini, OpenRouter, DeepSeek, Ollama, LM Studio).",
   "license": "Apache-2.0",
   "bin": {
     "ditfa": "bin/ditfa.js"
   },
   "type": "module",
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "files": [
-    "bin/ditfa.js"
+    "bin"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Teamtem-dev/ditfa-code.git",
+    "url": "git+https://github.com/ditfa-dev/ditfa-cli.git",
     "directory": "ditfa-cli"
   },
   "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319",
-  "homepage": "https://github.com/Teamtem-dev/ditfa-code",
+  "homepage": "https://ditfa.com/downloads#terminal",
   "bugs": {
-    "url": "https://github.com/Teamtem-dev/ditfa-code/issues"
+    "url": "https://github.com/ditfa-dev/ditfa-cli/issues"
   },
   "keywords": [
+    "ditfa",
     "ai",
     "agent",
-    "coding assistant",
+    "coding-agent",
     "cli",
+    "terminal",
     "openai",
     "anthropic",
     "gemini",
+    "openrouter",
+    "deepseek",
     "ollama",
-    "local llm"
+    "lm-studio"
   ]
 }

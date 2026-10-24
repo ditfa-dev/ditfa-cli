@@ -187,7 +187,7 @@ async fn auto_compaction_remote_emits_started_and_completed_items() -> Result<()
         .iter()
         .map(|request| {
             request
-                .header("x-codex-turn-metadata")
+                .header("x-ditfa-turn-metadata")
                 .as_deref()
                 .map(parse_json_header)
                 .expect("turn request should include turn metadata")
@@ -203,13 +203,13 @@ async fn auto_compaction_remote_emits_started_and_completed_items() -> Result<()
         );
         assert_eq!(
             metadata["window_id"].as_str(),
-            request.header("x-codex-window-id").as_deref()
+            request.header("x-ditfa-window-id").as_deref()
         );
         assert!(metadata.get("compaction").is_none());
     }
 
     let compact_metadata = compact_requests[0]
-        .header("x-codex-turn-metadata")
+        .header("x-ditfa-turn-metadata")
         .as_deref()
         .map(parse_json_header)
         .expect("compact request should include turn metadata");
@@ -233,7 +233,7 @@ async fn auto_compaction_remote_emits_started_and_completed_items() -> Result<()
     );
     assert_eq!(
         compact_metadata["window_id"].as_str(),
-        compact_requests[0].header("x-codex-window-id").as_deref()
+        compact_requests[0].header("x-ditfa-window-id").as_deref()
     );
 
     Ok(())

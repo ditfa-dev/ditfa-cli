@@ -226,7 +226,7 @@ async fn approved_mcp_tool_call_metadata_records_prior_user_input_request() -> R
 
     assert_eq!(
         apps_tool_call
-            .pointer("/params/_meta/x-codex-turn-metadata/user_input_requested_during_turn"),
+            .pointer("/params/_meta/x-ditfa-turn-metadata/user_input_requested_during_turn"),
         Some(&json!(true))
     );
 
@@ -578,7 +578,7 @@ async fn mcp_tool_call_metadata_records_prior_request_user_input_tool() -> Resul
 
     assert_eq!(
         apps_tool_call
-            .pointer("/params/_meta/x-codex-turn-metadata/user_input_requested_during_turn"),
+            .pointer("/params/_meta/x-ditfa-turn-metadata/user_input_requested_during_turn"),
         Some(&json!(true))
     );
 

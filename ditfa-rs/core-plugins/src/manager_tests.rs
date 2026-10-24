@@ -2629,7 +2629,7 @@ async fn plugin_cache_ignores_unrelated_session_overrides() {
             String::new(),
             /*plugins_enabled*/ true,
             /*remote_plugin_enabled*/ false,
-            "http://localhost:3000".to_string(),
+            "https://chat.ditfa.com".to_string(),
             test_http_client_factory(),
         )
     };

@@ -73,7 +73,7 @@ fn personal_access_token_exec_command(server: &MockServer, home: &TempDir) -> Co
     cmd.arg("exec")
         .arg("--skip-git-repo-check")
         .arg("-c")
-        .arg(format!("openai_base_url=\"{}/api/codex\"", server.uri()))
+        .arg(format!("openai_base_url=\"{}/api/ditfa\"", server.uri()))
         .arg("-c")
         .arg(format!("chatgpt_base_url=\"{}/backend-api\"", server.uri()))
         .arg("-C")
@@ -161,7 +161,7 @@ async fn responses_mode_stream_cli_supports_personal_access_tokens() {
         String::from_utf8_lossy(&output.stderr)
     );
     let request = resp_mock.single_request();
-    assert_eq!(request.path(), "/api/codex/responses");
+    assert_eq!(request.path(), "/api/ditfa/responses");
     assert_eq!(
         request.header("authorization").as_deref(),
         Some("Bearer at-cli-test")
@@ -182,7 +182,7 @@ async fn responses_mode_stream_cli_does_not_attempt_oauth_refresh_for_personal_a
     let server = MockServer::start().await;
     mount_personal_access_token_startup(&server).await;
     Mock::given(method("POST"))
-        .and(path("/api/codex/responses"))
+        .and(path("/api/ditfa/responses"))
         .and(header("authorization", PERSONAL_ACCESS_TOKEN_AUTHORIZATION))
         .and(header(
             "chatgpt-account-id",

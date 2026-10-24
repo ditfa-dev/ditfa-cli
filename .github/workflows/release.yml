@@ -1,0 +1,213 @@
+name: Release
+
+# Push a tag like `v0.2.0` to build every platform and publish a GitHub Release.
+# The Downloads page (ditfa.com/downloads) and the install scripts read the
+# assets of the latest release, so asset names must stay stable.
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to (re)build, e.g. v0.2.0
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  TAG: ${{ github.event.inputs.tag || github.ref_name }}
+
+jobs:
+  version:
+    name: Resolve version
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+    steps:
+      - id: version
+        shell: bash
+        run: |
+          if [[ ! "$TAG" =~ ^v([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)$ ]]; then
+            echo "::error::Tag '$TAG' is not a semantic version like v1.2.3"
+            exit 1
+          fi
+          version="${BASH_REMATCH[1]}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          [[ "$version" == *-* ]] && echo "prerelease=true" >> "$GITHUB_OUTPUT" || echo "prerelease=false" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build ${{ matrix.target }}
+    needs: version
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    # A new platform must not hold back the release of the others.
+    continue-on-error: ${{ matrix.experimental == true }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu }
+          - { os: ubuntu-22.04-arm, target: aarch64-unknown-linux-gnu }
+          - { os: macos-14, target: aarch64-apple-darwin }
+          - { os: macos-14, target: x86_64-apple-darwin }
+          - { os: windows-2022, target: x86_64-pc-windows-msvc }
+          - { os: windows-11-arm, target: aarch64-pc-windows-msvc, experimental: true }
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - if: runner.os == 'Linux'
+        uses: ./.github/actions/free-disk
+      - uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ditfa-rs
+          key: ${{ matrix.target }}
+
+      - name: Stamp the version
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          python3 - <<'PY'
+          import os, re, pathlib
+          path = pathlib.Path("ditfa-rs/Cargo.toml")
+          text = path.read_text()
+          text, count = re.subn(r'(\[workspace\.package\]\nversion = )"[^"]*"', rf'\1"{os.environ["VERSION"]}"', text)
+          assert count == 1, "workspace version not found"
+          path.write_text(text)
+          PY
+
+      - name: Build
+        working-directory: ditfa-rs
+        run: |
+          bins=(--bin ditfa --bin ditfa-code-mode-host)
+          if [[ "${{ matrix.target }}" == *windows* ]]; then
+            bins+=(--bin ditfa-windows-sandbox-setup --bin ditfa-command-runner)
+          fi
+          cargo build --release --target ${{ matrix.target }} "${bins[@]}"
+
+      - name: Package
+        id: package
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          out="$RUNNER_TEMP/dist"
+          stage="$RUNNER_TEMP/stage/ditfa"
+          mkdir -p "$out" "$stage"
+          release="ditfa-rs/target/$TARGET/release"
+          if [[ "$TARGET" == *windows* ]]; then
+            cp "$release"/{ditfa,ditfa-code-mode-host,ditfa-windows-sandbox-setup,ditfa-command-runner}.exe "$stage/"
+          else
+            cp "$release/ditfa" "$release/ditfa-code-mode-host" "$stage/"
+            strip "$stage/ditfa" "$stage/ditfa-code-mode-host" 2>/dev/null || true
+          fi
+          cp LICENSE NOTICE README.md "$stage/"
+          if [[ "$TARGET" == *windows* ]]; then
+            archive="ditfa-$TARGET.zip"
+            (cd "$stage" && 7z a -tzip -mx=9 "$out/$archive" . > /dev/null)
+          else
+            archive="ditfa-$TARGET.tar.gz"
+            tar -C "$stage" -czf "$out/$archive" .
+          fi
+          (cd "$out" && python3 -c "import hashlib,sys; p=sys.argv[1]; print(hashlib.sha256(open(p,'rb').read()).hexdigest()+'  '+p)" "$archive" > "$archive.sha256")
+          cat "$out/$archive.sha256"
+          echo "dir=$out" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke test
+        if: matrix.target != 'x86_64-apple-darwin'
+        run: |
+          bin="$RUNNER_TEMP/stage/ditfa/ditfa"
+          [ -f "$bin.exe" ] && bin="$bin.exe"
+          "$bin" --version | tee /dev/stderr | grep -q "${{ needs.version.outputs.version }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.target }}
+          path: ${{ steps.package.outputs.dir }}/*
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub Release
+    needs: [version, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: dist-*
+          merge-multiple: true
+      - name: Combined checksums and installers
+        run: |
+          cp scripts/install/install.sh scripts/install/install.ps1 dist/
+          (cd dist && cat *.sha256 > SHA256SUMS && rm -f *.sha256)
+          ls -la dist
+      - name: Create or update the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRERELEASE: ${{ needs.version.outputs.prerelease }}
+        run: |
+          flags=(--title "Ditfa CLI $TAG" --generate-notes --verify-tag)
+          [ "$PRERELEASE" = "true" ] && flags+=(--prerelease)
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* "${flags[@]}"
+          fi
+
+  npm:
+    name: Publish to npm
+    needs: [version, publish]
+    runs-on: ubuntu-24.04
+    if: needs.version.outputs.prerelease == 'false'
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - name: Check for npm credentials
+        id: auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NPM_TOKEN" ]; then
+            echo "::notice::NPM_TOKEN is not set; skipping npm publish. GitHub Release assets are live."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Download release archives
+        if: steps.auth.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download "$TAG" --dir dist --pattern 'ditfa-*'
+      - name: Build and publish packages
+        if: steps.auth.outputs.enabled == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          VERSION: ${{ needs.version.outputs.version }}
+        run: node ditfa-cli/scripts/publish-npm.mjs --dist dist --version "$VERSION"

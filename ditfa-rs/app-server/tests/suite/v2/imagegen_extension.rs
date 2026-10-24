@@ -133,7 +133,7 @@ async fn standalone_image_generation_returns_saved_path_hint_to_model() -> Resul
         .await
         .context("failed to fetch received requests")?
         .into_iter()
-        .find(|request| request.url.path() == "/api/codex/images/generations")
+        .find(|request| request.url.path() == "/api/ditfa/images/generations")
         .context("image generation request should be sent")?;
     assert_eq!(
         image_request
@@ -183,7 +183,7 @@ async fn standalone_image_generation_failure_emits_terminal_item() -> Result<()>
     let call_id = "image-run-failed";
     let server = responses::start_mock_server().await;
     Mock::given(method("POST"))
-        .and(path("/api/codex/images/generations"))
+        .and(path("/api/ditfa/images/generations"))
         .respond_with(ResponseTemplate::new(500).set_body_string("image backend failed"))
         .expect(1)
         .mount(&server)
@@ -527,7 +527,7 @@ async fn run_image_edit_test(
         .context("failed to fetch received requests")?;
     let image_request = requests
         .iter()
-        .find(|request| request.url.path() == "/api/codex/images/edits")
+        .find(|request| request.url.path() == "/api/ditfa/images/edits")
         .context("image edit request should be sent")?;
     assert_eq!(
         image_request
@@ -578,7 +578,7 @@ async fn wait_for_image_generation_completed(
 
 async fn mount_image_response(server: &MockServer) {
     Mock::given(method("POST"))
-        .and(path("/api/codex/images/generations"))
+        .and(path("/api/ditfa/images/generations"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "created": 1,
             "data": [{"b64_json": RESULT}],
@@ -590,7 +590,7 @@ async fn mount_image_response(server: &MockServer) {
 
 async fn mount_image_edit_response(server: &MockServer) {
     Mock::given(method("POST"))
-        .and(path("/api/codex/images/edits"))
+        .and(path("/api/ditfa/images/edits"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "created": 1,
             "data": [{"b64_json": RESULT}],
@@ -608,7 +608,7 @@ fn create_config_toml(
     let mut config = MockResponsesConfig::new(server_uri)
         .with_model_provider("openai-custom")
         .with_provider_name("OpenAI")
-        .with_provider_base_url(&format!("{server_uri}/api/codex"))
+        .with_provider_base_url(&format!("{server_uri}/api/ditfa"))
         .with_root_config(&format!("chatgpt_base_url = \"{server_uri}\""))
         .with_provider_config("supports_websockets = false\nrequires_openai_auth = true");
     if matches!(mode, ImagegenTestMode::CodeModeOnly) {

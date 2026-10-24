@@ -125,7 +125,7 @@ pub enum DitfaErr {
     #[error("Quota exceeded. Check your plan and billing details.")]
     QuotaExceeded,
     #[error(
-        "To use Ditfa with your ChatGPT plan, upgrade to Plus: http://localhost:3000/explore/plus."
+        "To use Ditfa with your ChatGPT plan, upgrade to Plus: https://chat.ditfa.com/explore/plus."
     )]
     UsageNotIncluded,
     #[error("We're currently experiencing high demand, which may cause temporary errors.")]
@@ -488,7 +488,7 @@ impl std::fmt::Display for UsageLimitReachedError {
 
         let message = match self.plan_type.as_ref() {
             Some(PlanType::Known(KnownPlan::Plus)) => format!(
-                "You've hit your usage limit. Upgrade to Pro (http://localhost:3000/explore/pro), visit http://localhost:3000/ditfa/settings/usage to purchase more credits{}",
+                "You've hit your usage limit. Upgrade to Pro (https://chat.ditfa.com/explore/pro), visit https://chat.ditfa.com/ditfa/settings/usage to purchase more credits{}",
                 retry_suffix_after_or(self.resets_at.as_ref())
             ),
             Some(PlanType::Known(
@@ -504,12 +504,12 @@ impl std::fmt::Display for UsageLimitReachedError {
             }
             Some(PlanType::Known(KnownPlan::Free)) | Some(PlanType::Known(KnownPlan::Go)) => {
                 format!(
-                    "You've hit your usage limit. Upgrade to Plus to continue using Ditfa (http://localhost:3000/explore/plus),{}",
+                    "You've hit your usage limit. Upgrade to Plus to continue using Ditfa (https://chat.ditfa.com/explore/plus),{}",
                     retry_suffix_after_or(self.resets_at.as_ref())
                 )
             }
             Some(PlanType::Known(KnownPlan::Pro | KnownPlan::ProLite)) => format!(
-                "You've hit your usage limit. Visit http://localhost:3000/ditfa/settings/usage to purchase more credits{}",
+                "You've hit your usage limit. Visit https://chat.ditfa.com/ditfa/settings/usage to purchase more credits{}",
                 retry_suffix_after_or(self.resets_at.as_ref())
             ),
             Some(PlanType::Known(KnownPlan::Enterprise))

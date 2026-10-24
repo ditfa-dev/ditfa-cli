@@ -1,151 +1,147 @@
-# Ditfa Code — Multi-Provider AI Coding Agent
+# Ditfa CLI
 
-<p align="center">
-  <strong>Ditfa Code</strong> is an open-source coding agent that reads, writes, and runs code on your machine — connected to OpenAI, Anthropic Claude, Google Gemini, or local models via Ollama, LM Studio, or vLLM.
-</p>
+**Ditfa CLI** is an AI coding agent for your terminal. It reads your code, edits files,
+runs commands in a sandbox, and asks before it does anything risky — with the model of
+your choice: Ditfa, OpenAI, Anthropic Claude, Google Gemini, OpenRouter, DeepSeek, or a
+local model through Ollama, LM Studio, or vLLM.
 
-<p align="center">
-  Use it <strong>in your terminal</strong> with <code>ditfa</code>, or <strong>inside VS Code</strong> with the official extension.
-</p>
-
----
-
-## Features
-
-- 🌐 **Multi-Provider Support** — connect to OpenAI, Anthropic Claude, Google Gemini, or local models.
-- ⚡ **Local Tool Execution** — sandboxed command execution, file manipulation, and git workflows.
-- 🛡️ **Interactive Approvals** — configurable security policies and prompts before anything runs.
-- 💾 **Session Persistence** — persistent threads, history management, and context compression.
-- 🦙 **Local LLM First-Class** — built-in support for Ollama (`http://localhost:11434/v1`) and LM Studio (`http://localhost:1234/v1`).
-- 🧩 **Two surfaces, one agent** — the terminal and the VS Code extension drive the same Rust core over the same protocol.
-
----
+[![CI](https://github.com/ditfa-dev/ditfa-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/ditfa-dev/ditfa-cli/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/ditfa-dev/ditfa-cli)](https://github.com/ditfa-dev/ditfa-cli/releases/latest)
 
 ## Install
 
-### Terminal
+**macOS and Linux**
+
+```shell
+curl -fsSL https://github.com/ditfa-dev/ditfa-cli/releases/latest/download/install.sh | sh
+```
+
+**Windows (PowerShell)**
+
+```powershell
+irm https://github.com/ditfa-dev/ditfa-cli/releases/latest/download/install.ps1 | iex
+```
+
+**npm**
 
 ```shell
 npm install -g ditfa
 ```
 
-Then run it:
+Prefer a manual download? Every [release](https://github.com/ditfa-dev/ditfa-cli/releases/latest)
+has archives for macOS (Apple Silicon and Intel), Linux (x64 and arm64) and Windows
+(x64 and arm64), plus a `SHA256SUMS` file. The installers verify the checksum before
+installing.
+
+## Quick start
+
+1. Create an API key at [chat.ditfa.com/api-keys](https://chat.ditfa.com/api-keys).
+2. Run Ditfa in your project:
 
 ```shell
-ditfa "explain the repository structure"
+export DITFA_API_KEY=dt-...
+cd my-project
+ditfa
 ```
 
-### VS Code
-
-Install **Ditfa Code** from the Marketplace, or from the command line:
+With a Ditfa key set, no configuration is needed: Ditfa picks the best model your plan
+includes. Run a one-off task without the interactive UI:
 
 ```shell
-code --install-extension ditfa.ditfa-code
+ditfa exec "add unit tests for the parser and make them pass"
 ```
 
-The extension needs the `ditfa` binary. Platform-specific builds bundle it; otherwise install it with `npm i -g ditfa` or point `ditfa.executablePath` at your own build.
-
-### Build from source
+## Use any model
 
 ```shell
-git clone https://github.com/Teamtem-dev/ditfa-code.git
-cd ditfa-code
+# OpenAI
+export OPENAI_API_KEY=sk-...
+ditfa -m gpt-5.5
 
-cargo build --release --manifest-path ditfa-rs/Cargo.toml --bin ditfa
+# Anthropic, Gemini, OpenRouter, DeepSeek
+ditfa -c model_provider=anthropic -m claude-sonnet-4-5
+ditfa -c model_provider=gemini -m gemini-2.5-pro
+ditfa -c model_provider=openrouter -m qwen/qwen3-coder
 
-# Binary output:
-./ditfa-rs/target/release/ditfa
+# Local models
+ditfa --oss --local-provider ollama
 ```
 
----
-
-## Usage
-
-```shell
-# Run with the configured default provider
-ditfa "explain the repository structure"
-
-# Switch provider and model via CLI flags
-ditfa --provider anthropic --model claude-3-5-sonnet "refactor src/main.rs"
-ditfa --provider gemini --model gemini-1.5-pro "add unit tests for parser"
-ditfa --provider ollama --model llama3 "summarize recent commits"
-```
-
----
-
-## Provider Configuration Guide
-
-Ditfa Code reads configuration from `~/.ditfa/config.toml`. You can configure API keys, custom base URLs, and default providers. Both the terminal and the VS Code extension read the same file.
-
-### Configuration File (`~/.ditfa/config.toml`) Example
+Set a default in `~/.ditfa/config.toml`:
 
 ```toml
-# Set the default provider and model
-default_provider = "anthropic"
-default_model = "claude-3-5-sonnet"
-
-[model_providers.openai]
-name = "OpenAI"
-env_key = "OPENAI_API_KEY"
-
-[model_providers.anthropic]
-name = "Anthropic"
-base_url = "https://api.anthropic.com/v1"
-env_key = "ANTHROPIC_API_KEY"
-adapter = "anthropic"
-
-[model_providers.gemini]
-name = "Google Gemini"
-base_url = "https://generativelanguage.googleapis.com"
-env_key = "GEMINI_API_KEY"
-adapter = "gemini"
-
-[model_providers.ollama]
-name = "Ollama (Local)"
-base_url = "http://localhost:11434/v1"
-requires_openai_auth = false
-
-[model_providers.vllm]
-name = "vLLM Self-Hosted"
-base_url = "http://localhost:8000/v1"
-adapter = "chat-completions"
-requires_openai_auth = false
+model_provider = "anthropic"
+model = "claude-sonnet-4-5"
 ```
 
-### Environment Variables
+Any OpenAI-compatible server can be added in a few lines. See
+[PROVIDERS.md](./PROVIDERS.md) for the full list, custom providers and how the
+translation layer works.
 
-| Variable | Description |
-|---|---|
-| `DITFA_HOME` | Configuration & session directory (defaults to `~/.ditfa`) |
-| `DITFA_API_KEY` | Default API key override for primary provider |
-| `ANTHROPIC_API_KEY` | API key for Anthropic provider |
-| `GEMINI_API_KEY` | API key for Google Gemini provider |
-| `OPENAI_API_KEY` | API key for OpenAI provider |
-| `DITFA_OSS_PORT` | Custom port override for local Ollama/LM Studio servers |
+## What it does
 
----
+- **Edits and runs code locally** — file edits as reviewable patches, commands in a
+  sandbox (Seatbelt on macOS, Landlock/bubblewrap on Linux, a restricted token on
+  Windows).
+- **Approvals you control** — from "ask before every command" to fully autonomous,
+  per project.
+- **Sessions that persist** — resume any conversation with `ditfa resume`; long
+  sessions are compacted automatically.
+- **MCP** — connect Model Context Protocol servers, or run Ditfa itself as an MCP server.
+- **Skills and AGENTS.md** — project instructions and reusable workflows the agent
+  follows.
+- **Scriptable** — `ditfa exec` with JSON output and `--output-schema` for CI and
+  automations.
+- **VS Code** — the extension in [`ditfa-vscode/`](./ditfa-vscode) drives the same agent.
+
+## Configuration
+
+| Variable              | Purpose                                              |
+| --------------------- | ---------------------------------------------------- |
+| `DITFA_API_KEY`       | Ditfa API key; makes Ditfa the default provider      |
+| `DITFA_HOME`          | Config and session directory (default `~/.ditfa`)    |
+| `OPENAI_API_KEY`      | OpenAI                                               |
+| `ANTHROPIC_API_KEY`   | Anthropic                                            |
+| `GEMINI_API_KEY`      | Google Gemini                                        |
+| `OPENROUTER_API_KEY`  | OpenRouter                                           |
+| `DEEPSEEK_API_KEY`    | DeepSeek                                             |
+| `DITFA_OSS_BASE_URL`  | Base URL of a local Ollama or LM Studio server       |
+
+More in [docs/config.md](./docs/config.md), [docs/sandbox.md](./docs/sandbox.md) and
+[docs/getting-started.md](./docs/getting-started.md).
+
+## Build from source
+
+Requires Rust (the toolchain in `ditfa-rs/rust-toolchain.toml` is installed
+automatically by rustup).
+
+```shell
+git clone https://github.com/ditfa-dev/ditfa-cli.git
+cd ditfa-cli/ditfa-rs
+cargo build --release --bin ditfa
+./target/release/ditfa --version
+```
+
+On a laptop, `cargo build -j 2` keeps the machine responsive while it compiles.
 
 ## Repository layout
 
-| Path | What it is |
-|---|---|
-| [`ditfa-rs/`](./ditfa-rs) | The Rust workspace — agent core, app-server, sandboxing, provider adapters |
-| [`ditfa-cli/`](./ditfa-cli) | npm launcher that ships the `ditfa` binary (published as `ditfa`) |
-| [`ditfa-vscode/`](./ditfa-vscode) | VS Code extension (published as `ditfa.ditfa-code`) |
-| [`sdk/`](./sdk) | TypeScript and Python SDKs |
-| [`docs/`](./docs) | Configuration, sandboxing, and usage documentation |
+| Path                              | Contents                                               |
+| --------------------------------- | ------------------------------------------------------ |
+| [`ditfa-rs/`](./ditfa-rs)         | Rust workspace: agent core, TUI, sandboxing, providers |
+| [`ditfa-cli/`](./ditfa-cli)       | npm launcher for the native binary                     |
+| [`ditfa-vscode/`](./ditfa-vscode) | VS Code extension                                      |
+| [`sdk/`](./sdk)                   | TypeScript and Python SDKs                             |
+| [`docs/`](./docs)                 | User documentation                                     |
+| [`scripts/install/`](./scripts/install) | Install scripts published with each release      |
 
----
+## Releasing
 
-## Architecture & Adding Providers
+Push a tag such as `v0.2.0`. The [release workflow](./.github/workflows/release.yml)
+builds all six platforms, publishes the GitHub Release with checksums and the install
+scripts, and publishes to npm when the `NPM_TOKEN` secret is configured.
 
-See [PROVIDERS.md](./PROVIDERS.md) for a guide on how provider adapters are implemented and how to add a new provider to Ditfa Code.
+## License
 
----
-
-## Credits & Attribution
-
-Ditfa Code is derived from [openai/ditfa](https://github.com/openai/codex), licensed under the Apache License 2.0.
-
-- Original Copyright (c) OpenAI.
-- Preserved `LICENSE` and `NOTICE` files are retained in the project root.
+Apache-2.0. Ditfa CLI is a derivative of an Apache-2.0 project by OpenAI; see [LICENSE](./LICENSE) and
+[NOTICE](./NOTICE).

@@ -470,10 +470,10 @@ mod tests {
     async fn persisted_remote_control_enrollment_round_trips_by_target_and_account() {
         let ditfa_home = TempDir::new().expect("temp dir should create");
         let state_db = remote_control_state_runtime(&ditfa_home).await;
-        let first_target = normalize_remote_control_url("http://localhost:3000/remote/control")
+        let first_target = normalize_remote_control_url("https://chat.ditfa.com/remote/control")
             .expect("first target should parse");
         let second_target =
-            normalize_remote_control_url("https://api.localhost:3000/other/control")
+            normalize_remote_control_url("https://api.staging.chat.ditfa.com/other/control")
                 .expect("second target should parse");
         let first_enrollment = RemoteControlEnrollment {
             remote_control_target: first_target.clone(),
@@ -556,10 +556,10 @@ mod tests {
     async fn clearing_persisted_remote_control_enrollment_removes_only_matching_entry() {
         let ditfa_home = TempDir::new().expect("temp dir should create");
         let state_db = remote_control_state_runtime(&ditfa_home).await;
-        let first_target = normalize_remote_control_url("http://localhost:3000/remote/control")
+        let first_target = normalize_remote_control_url("https://chat.ditfa.com/remote/control")
             .expect("first target should parse");
         let second_target =
-            normalize_remote_control_url("https://api.localhost:3000/other/control")
+            normalize_remote_control_url("https://api.staging.chat.ditfa.com/other/control")
                 .expect("second target should parse");
         let first_enrollment = RemoteControlEnrollment {
             remote_control_target: first_target.clone(),

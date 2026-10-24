@@ -16,7 +16,7 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 import { inspect, promisify } from "node:util";
 
-const DEFAULT_MANUAL_URL = "https://developers.openai.com/codex/codex-manual.md";
+const DEFAULT_MANUAL_URL = "https://raw.githubusercontent.com/ditfa-dev/ditfa-cli/main/docs/getting-started.md";
 const DEFAULT_CACHE_DIR_NAME = "openai-docs-cache";
 const CACHE_FILE_NAME = "ditfa-manual.md";
 const OUTLINE_FILE_NAME = "ditfa-manual.outline.md";

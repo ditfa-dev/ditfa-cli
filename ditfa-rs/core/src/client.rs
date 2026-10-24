@@ -33,6 +33,8 @@ use std::sync::atomic::Ordering;
 use ditfa_api::AgentIdentityTelemetry;
 use ditfa_api::ApiError;
 use ditfa_api::AuthProvider;
+use ditfa_api::ChatCompletionsClient as ApiChatCompletionsClient;
+use ditfa_api::ChatCompletionsOptions as ApiChatCompletionsOptions;
 use ditfa_api::CompactClient as ApiCompactClient;
 use ditfa_api::CompactionInput as ApiCompactionInput;
 use ditfa_api::Compression;
@@ -142,9 +144,9 @@ use ditfa_response_debug_context::telemetry_transport_error_message;
 pub const OPENAI_BETA_HEADER: &str = "OpenAI-Beta";
 pub const X_DITFA_INSTALLATION_ID_HEADER: &str = "x-ditfa-installation-id";
 pub const X_DITFA_TURN_STATE_HEADER: &str = "x-ditfa-turn-state";
-pub const X_DITFA_TURN_METADATA_HEADER: &str = "x-codex-turn-metadata";
+pub const X_DITFA_TURN_METADATA_HEADER: &str = "x-ditfa-turn-metadata";
 pub const X_DITFA_PARENT_THREAD_ID_HEADER: &str = "x-ditfa-parent-thread-id";
-pub const X_DITFA_WINDOW_ID_HEADER: &str = "x-codex-window-id";
+pub const X_DITFA_WINDOW_ID_HEADER: &str = "x-ditfa-window-id";
 pub const X_OPENAI_MEMGEN_REQUEST_HEADER: &str = "x-openai-memgen-request";
 pub const X_OPENAI_SUBAGENT_HEADER: &str = "x-openai-subagent";
 pub const X_RESPONSESAPI_INCLUDE_TIMING_METRICS_HEADER: &str =
@@ -158,6 +160,7 @@ const X_OPENAI_INTERNAL_DITFA_RESPONSES_LITE_HEADER: &str =
     "x-openai-internal-ditfa-responses-lite";
 const REALTIME_CALLS_ENDPOINT: &str = "/realtime/calls";
 const RESPONSES_ENDPOINT: &str = "/responses";
+const CHAT_COMPLETIONS_ENDPOINT: &str = "/chat/completions";
 const RESPONSES_COMPACT_ENDPOINT: &str = "/responses/compact";
 // `/responses/compact` is unary, so the timeout covers the full response rather than one idle
 // period between stream events.
@@ -1408,11 +1411,16 @@ impl ModelClientSession {
             .as_ref()
             .map(AuthManager::unauthorized_recovery);
         let mut pending_retry = PendingUnauthorizedRetry::default();
+        let wire_api = self.client.state.provider.info().wire_api;
+        let endpoint = match wire_api {
+            WireApi::Responses => RESPONSES_ENDPOINT,
+            WireApi::Chat => CHAT_COMPLETIONS_ENDPOINT,
+        };
         loop {
             let client_setup = self.client.current_client_setup().await?;
             let transport = self
                 .client
-                .build_api_transport(&client_setup.api_provider, RESPONSES_ENDPOINT)?;
+                .build_api_transport(&client_setup.api_provider, endpoint)?;
             let request_auth_context = AuthRequestTelemetryContext::new(
                 client_setup.auth.as_ref().map(DitfaAuth::auth_mode),
                 client_setup.api_auth.as_ref(),
@@ -1422,17 +1430,9 @@ impl ModelClientSession {
             let (request_telemetry, sse_telemetry) = Self::build_streaming_telemetry(
                 session_telemetry,
                 request_auth_context,
-                RequestRouteTelemetry::for_endpoint(RESPONSES_ENDPOINT),
+                RequestRouteTelemetry::for_endpoint(endpoint),
                 self.client.state.auth_env_telemetry.clone(),
             );
-            let compression = self.responses_request_compression(client_setup.auth.as_ref());
-            let mut options = self
-                .build_responses_options(
-                    responses_metadata,
-                    compression,
-                    model_info.use_responses_lite,
-                )
-                .await;
 
             let mut request = self.client.build_responses_request(
                 &client_setup.api_provider,
@@ -1448,15 +1448,52 @@ impl ModelClientSession {
             let request_session_telemetry =
                 session_telemetry_for_request(session_telemetry, &request);
             let inference_trace_attempt = inference_trace.start_attempt();
-            inference_trace_attempt.add_request_headers(&mut options.extra_headers);
             inference_trace_attempt.record_started(&request);
-            let client = ApiResponsesClient::new(
-                transport,
-                client_setup.api_provider,
-                client_setup.api_auth,
-            )
-            .with_telemetry(Some(request_telemetry), Some(sse_telemetry));
-            let stream_result = client.stream_request(request, options).await;
+            let stream_result = match wire_api {
+                WireApi::Responses => {
+                    let compression =
+                        self.responses_request_compression(client_setup.auth.as_ref());
+                    let mut options = self
+                        .build_responses_options(
+                            responses_metadata,
+                            compression,
+                            model_info.use_responses_lite,
+                        )
+                        .await;
+                    inference_trace_attempt.add_request_headers(&mut options.extra_headers);
+                    ApiResponsesClient::new(
+                        transport,
+                        client_setup.api_provider,
+                        client_setup.api_auth,
+                    )
+                    .with_telemetry(Some(request_telemetry), Some(sse_telemetry))
+                    .stream_request(request, options)
+                    .await
+                }
+                WireApi::Chat => {
+                    // Third-party servers get only the session ids and the
+                    // originator, none of the first-party Responses headers.
+                    let mut extra_headers = ApiHeaderMap::new();
+                    add_originator_header(
+                        &mut extra_headers,
+                        self.client.state.originator.as_str(),
+                    );
+                    inference_trace_attempt.add_request_headers(&mut extra_headers);
+                    let options = ApiChatCompletionsOptions {
+                        session_id: Some(responses_metadata.session_id.to_string()),
+                        thread_id: Some(responses_metadata.thread_id.to_string()),
+                        extra_headers,
+                    };
+                    ApiChatCompletionsClient::new(
+                        transport,
+                        client_setup.api_provider,
+                        client_setup.api_auth,
+                    )
+                    .with_telemetry(Some(request_telemetry), Some(sse_telemetry))
+                    .stream_request(request, options)
+                    .await
+                }
+            };
 
             match stream_result {
                 Ok(stream) => {
@@ -1802,46 +1839,44 @@ impl ModelClientSession {
         responses_metadata: &DitfaResponsesMetadata,
         inference_trace: &InferenceTraceContext,
     ) -> Result<ResponseStream> {
+        // WebSockets are a Responses API transport; Chat Completions providers always
+        // stream over HTTP.
         let wire_api = self.client.state.provider.info().wire_api;
-        match wire_api {
-            WireApi::Responses => {
-                if self.client.responses_websocket_enabled() {
-                    let request_trace = current_span_w3c_trace_context();
-                    match self
-                        .stream_responses_websocket(
-                            prompt,
-                            model_info,
-                            session_telemetry,
-                            effort.clone(),
-                            summary,
-                            service_tier.clone(),
-                            responses_metadata,
-                            /*warmup*/ false,
-                            request_trace,
-                            inference_trace,
-                        )
-                        .await?
-                    {
-                        WebsocketStreamOutcome::Stream(stream) => return Ok(stream),
-                        WebsocketStreamOutcome::FallbackToHttp => {
-                            self.try_switch_fallback_transport(session_telemetry, model_info);
-                        }
-                    }
-                }
-
-                self.stream_responses_api(
+        if wire_api == WireApi::Responses && self.client.responses_websocket_enabled() {
+            let request_trace = current_span_w3c_trace_context();
+            match self
+                .stream_responses_websocket(
                     prompt,
                     model_info,
                     session_telemetry,
-                    effort,
+                    effort.clone(),
                     summary,
-                    service_tier,
+                    service_tier.clone(),
                     responses_metadata,
+                    /*warmup*/ false,
+                    request_trace,
                     inference_trace,
                 )
-                .await
+                .await?
+            {
+                WebsocketStreamOutcome::Stream(stream) => return Ok(stream),
+                WebsocketStreamOutcome::FallbackToHttp => {
+                    self.try_switch_fallback_transport(session_telemetry, model_info);
+                }
             }
         }
+
+        self.stream_responses_api(
+            prompt,
+            model_info,
+            session_telemetry,
+            effort,
+            summary,
+            service_tier,
+            responses_metadata,
+            inference_trace,
+        )
+        .await
     }
 
     /// Permanently disables WebSockets for this Ditfa session and resets WebSocket state.

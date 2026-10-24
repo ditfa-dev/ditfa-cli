@@ -497,7 +497,7 @@ mod tests {
         jsonwebtoken::encode(
             &header,
             &json!({
-                "iss": "http://localhost:3000/ditfa-backend/agent-identity",
+                "iss": "https://chat.ditfa.com/ditfa-backend/agent-identity",
                 "aud": "ditfa-app-server",
                 "iat": 1_700_000_000usize,
                 "exp": 4_000_000_000usize,

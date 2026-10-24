@@ -106,11 +106,11 @@ async fn responses_api_parent_and_subagent_requests_include_identity_headers() -
     .await?;
 
     let parent_window_id = parent
-        .header("x-codex-window-id")
-        .ok_or_else(|| anyhow!("parent request missing x-codex-window-id"))?;
+        .header("x-ditfa-window-id")
+        .ok_or_else(|| anyhow!("parent request missing x-ditfa-window-id"))?;
     let child_window_id = child
-        .header("x-codex-window-id")
-        .ok_or_else(|| anyhow!("child request missing x-codex-window-id"))?;
+        .header("x-ditfa-window-id")
+        .ok_or_else(|| anyhow!("child request missing x-ditfa-window-id"))?;
     let (parent_thread_id, parent_generation) = split_window_id(&parent_window_id)?;
     let (child_thread_id, child_generation) = split_window_id(&child_window_id)?;
 
@@ -128,8 +128,8 @@ async fn responses_api_parent_and_subagent_requests_include_identity_headers() -
     );
     let child_turn_metadata: serde_json::Value = serde_json::from_str(
         &child
-            .header("x-codex-turn-metadata")
-            .ok_or_else(|| anyhow!("child request missing x-codex-turn-metadata"))?,
+            .header("x-ditfa-turn-metadata")
+            .ok_or_else(|| anyhow!("child request missing x-ditfa-turn-metadata"))?,
     )?;
     assert!(child_turn_metadata.get("forked_from_thread_id").is_none());
     assert_eq!(

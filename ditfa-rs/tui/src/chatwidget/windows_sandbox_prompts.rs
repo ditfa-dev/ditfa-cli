@@ -238,12 +238,12 @@ impl ChatWidget {
         header.push(*Box::new(
             Paragraph::new(if allow_unelevated {
                 vec![
-                    line!["Set up the Ditfa agent sandbox to protect your files and control network access. Learn more <https://developers.openai.com/codex/windows>"],
+                    line!["Set up the Ditfa agent sandbox to protect your files and control network access. Learn more <https://github.com/ditfa-dev/ditfa-cli/blob/main/docs/sandbox.md>"],
                 ]
             } else {
                 vec![
                     line!["Your organization requires the default Ditfa agent sandbox to continue. Set it up to protect your files and control network access."],
-                    line!["Learn more <https://developers.openai.com/codex/windows>"],
+                    line!["Learn more <https://github.com/ditfa-dev/ditfa-cli/blob/main/docs/sandbox.md>"],
                 ]
             })
             .wrap(Wrap { trim: false }),
@@ -359,7 +359,7 @@ impl ChatWidget {
             ]);
         }
         lines.push(line![
-            "Learn more <https://developers.openai.com/codex/windows>"
+            "Learn more <https://github.com/ditfa-dev/ditfa-cli/blob/main/docs/sandbox.md>"
         ]);
 
         let mut header = ColumnRenderable::new();

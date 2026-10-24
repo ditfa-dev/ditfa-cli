@@ -73,7 +73,7 @@ fn create_git_repo() -> Result<(TempDir, String)> {
 
 fn turn_metadata(request: &Value) -> Result<Value> {
     serde_json::from_str(
-        request["client_metadata"]["x-codex-turn-metadata"]
+        request["client_metadata"]["x-ditfa-turn-metadata"]
             .as_str()
             .context("turn metadata")?,
     )

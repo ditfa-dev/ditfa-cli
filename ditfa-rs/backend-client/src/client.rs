@@ -159,7 +159,7 @@ impl Client {
         while base_url.ends_with('/') {
             base_url.pop();
         }
-        if (base_url.starts_with("http://localhost:3000")
+        if (base_url.starts_with("https://chat.ditfa.com")
             || base_url.starts_with("https://chat.openai.com"))
             && !base_url.contains("/backend-api")
         {
@@ -316,7 +316,7 @@ impl Client {
 
     pub async fn get_accounts_check(&self) -> Result<AccountsCheckResponse> {
         let url = match self.path_style {
-            PathStyle::DitfaApi => format!("{}/api/codex/accounts/check", self.base_url),
+            PathStyle::DitfaApi => format!("{}/api/ditfa/accounts/check", self.base_url),
             PathStyle::ChatGptApi => format!("{}/wham/accounts/check", self.base_url),
         };
         let req = self.request(Method::GET, &url).headers(self.headers());
@@ -333,7 +333,7 @@ impl Client {
 
     fn token_usage_profile_url(&self) -> String {
         match self.path_style {
-            PathStyle::DitfaApi => format!("{}/api/codex/profiles/me", self.base_url),
+            PathStyle::DitfaApi => format!("{}/api/ditfa/profiles/me", self.base_url),
             PathStyle::ChatGptApi => format!("{}/wham/profiles/me", self.base_url),
         }
     }
@@ -373,7 +373,7 @@ impl Client {
         cursor: Option<&str>,
     ) -> Result<String> {
         let url = match self.path_style {
-            PathStyle::DitfaApi => format!("{}/api/codex/tasks/list", self.base_url),
+            PathStyle::DitfaApi => format!("{}/api/ditfa/tasks/list", self.base_url),
             PathStyle::ChatGptApi => format!("{}/wham/tasks/list", self.base_url),
         };
         if limit.is_none() && task_filter.is_none() && environment_id.is_none() && cursor.is_none()
@@ -409,7 +409,7 @@ impl Client {
         task_id: &str,
     ) -> Result<(CodeTaskDetailsResponse, String, String)> {
         let url = match self.path_style {
-            PathStyle::DitfaApi => format!("{}/api/codex/tasks/{}", self.base_url, task_id),
+            PathStyle::DitfaApi => format!("{}/api/ditfa/tasks/{}", self.base_url, task_id),
             PathStyle::ChatGptApi => format!("{}/wham/tasks/{}", self.base_url, task_id),
         };
         let req = self.request(Method::GET, &url).headers(self.headers());
@@ -425,7 +425,7 @@ impl Client {
     ) -> Result<TurnAttemptsSiblingTurnsResponse> {
         let url = match self.path_style {
             PathStyle::DitfaApi => format!(
-                "{}/api/codex/tasks/{}/turns/{}/sibling_turns",
+                "{}/api/ditfa/tasks/{}/turns/{}/sibling_turns",
                 self.base_url, task_id, turn_id
             ),
             PathStyle::ChatGptApi => format!(
@@ -446,7 +446,7 @@ impl Client {
         &self,
     ) -> std::result::Result<ConfigBundleResponse, RequestError> {
         let url = match self.path_style {
-            PathStyle::DitfaApi => format!("{}/api/codex/config/bundle", self.base_url),
+            PathStyle::DitfaApi => format!("{}/api/ditfa/config/bundle", self.base_url),
             PathStyle::ChatGptApi => format!("{}/wham/config/bundle", self.base_url),
         };
         let req = self.request(Method::GET, &url).headers(self.headers());
@@ -492,7 +492,7 @@ impl Client {
     /// based on `path_style`. Returns the created task id.
     pub async fn create_task(&self, request_body: serde_json::Value) -> Result<String> {
         let url = match self.path_style {
-            PathStyle::DitfaApi => format!("{}/api/codex/tasks", self.base_url),
+            PathStyle::DitfaApi => format!("{}/api/ditfa/tasks", self.base_url),
             PathStyle::ChatGptApi => format!("{}/wham/tasks", self.base_url),
         };
         let req = self
@@ -615,7 +615,7 @@ impl Client {
     fn send_add_credits_nudge_email_url(&self) -> String {
         match self.path_style {
             PathStyle::DitfaApi => format!(
-                "{}/api/codex/accounts/send_add_credits_nudge_email",
+                "{}/api/ditfa/accounts/send_add_credits_nudge_email",
                 self.base_url
             ),
             PathStyle::ChatGptApi => {
@@ -629,14 +629,14 @@ impl Client {
 
     fn workspace_messages_url(&self) -> String {
         match self.path_style {
-            PathStyle::DitfaApi => format!("{}/api/codex/workspace-messages", self.base_url),
+            PathStyle::DitfaApi => format!("{}/api/ditfa/workspace-messages", self.base_url),
             PathStyle::ChatGptApi => format!("{}/wham/workspace-messages", self.base_url),
         }
     }
 
     fn user_settings_url(&self) -> String {
         match self.path_style {
-            PathStyle::DitfaApi => format!("{}/api/codex/settings/user", self.base_url),
+            PathStyle::DitfaApi => format!("{}/api/ditfa/settings/user", self.base_url),
             PathStyle::ChatGptApi => format!("{}/wham/settings/user", self.base_url),
         }
     }
@@ -1004,13 +1004,13 @@ mod tests {
         let ditfa_client = test_client("https://example.test", PathStyle::DitfaApi);
         assert_eq!(
             ditfa_client.send_add_credits_nudge_email_url(),
-            "https://example.test/api/codex/accounts/send_add_credits_nudge_email"
+            "https://example.test/api/ditfa/accounts/send_add_credits_nudge_email"
         );
 
-        let chatgpt_client = test_client("http://localhost:3000/api", PathStyle::ChatGptApi);
+        let chatgpt_client = test_client("https://chat.ditfa.com/api", PathStyle::ChatGptApi);
         assert_eq!(
             chatgpt_client.send_add_credits_nudge_email_url(),
-            "http://localhost:3000/api/wham/accounts/send_add_credits_nudge_email"
+            "https://chat.ditfa.com/api/wham/accounts/send_add_credits_nudge_email"
         );
 
         assert_eq!(
@@ -1034,13 +1034,13 @@ mod tests {
         let ditfa_client = test_client("https://example.test", PathStyle::DitfaApi);
         assert_eq!(
             ditfa_client.token_usage_profile_url(),
-            "https://example.test/api/codex/profiles/me"
+            "https://example.test/api/ditfa/profiles/me"
         );
 
-        let chatgpt_client = test_client("http://localhost:3000/api", PathStyle::ChatGptApi);
+        let chatgpt_client = test_client("https://chat.ditfa.com/api", PathStyle::ChatGptApi);
         assert_eq!(
             chatgpt_client.token_usage_profile_url(),
-            "http://localhost:3000/api/wham/profiles/me"
+            "https://chat.ditfa.com/api/wham/profiles/me"
         );
     }
 
@@ -1049,13 +1049,13 @@ mod tests {
         let ditfa_client = test_client("https://example.test", PathStyle::DitfaApi);
         assert_eq!(
             ditfa_client.workspace_messages_url(),
-            "https://example.test/api/codex/workspace-messages"
+            "https://example.test/api/ditfa/workspace-messages"
         );
 
-        let chatgpt_client = test_client("http://localhost:3000/api", PathStyle::ChatGptApi);
+        let chatgpt_client = test_client("https://chat.ditfa.com/api", PathStyle::ChatGptApi);
         assert_eq!(
             chatgpt_client.workspace_messages_url(),
-            "http://localhost:3000/api/wham/workspace-messages"
+            "https://chat.ditfa.com/api/wham/workspace-messages"
         );
     }
 
@@ -1063,7 +1063,7 @@ mod tests {
     async fn user_settings_request_uses_expected_paths_and_revalidates_cached_responses() {
         let server = MockServer::start().await;
         for (request_path, commit_attribution_enabled) in [
-            ("/api/codex/settings/user", true),
+            ("/api/ditfa/settings/user", true),
             ("/backend-api/wham/settings/user", false),
         ] {
             Mock::given(method("GET"))
@@ -1124,7 +1124,7 @@ mod tests {
         )
         .unwrap();
         let client = Client::from_auth(
-            "http://localhost:3000/api",
+            "https://chat.ditfa.com/api",
             &auth,
             HttpClientFactory::new(ditfa_http_client::OutboundProxyPolicy::ReqwestDefault),
         );

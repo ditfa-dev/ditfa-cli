@@ -1,0 +1,171 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  # Debug info roughly doubles target/ and CI never needs a debugger.
+  CARGO_PROFILE_DEV_DEBUG: "0"
+  CARGO_PROFILE_TEST_DEBUG: "0"
+  RUST_BACKTRACE: "1"
+
+jobs:
+  lint:
+    name: Format and clippy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: ditfa-rs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/free-disk
+      - uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ditfa-rs
+          shared-key: lint
+      - name: rustfmt
+        run: cargo fmt --all -- --check
+      - name: clippy
+        run: >-
+          cargo clippy --all-targets
+          -p ditfa-api
+          -p ditfa-model-provider-info
+          -p ditfa-http-client
+          -p ditfa-config
+          -p ditfa-core
+          -- -D warnings
+
+  test:
+    name: Tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: ditfa-rs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/free-disk
+      - uses: dtolnay/rust-toolchain@1.95.0
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ditfa-rs
+          shared-key: test
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+      - name: Provider, transport and config tests
+        run: >-
+          cargo nextest run --no-fail-fast
+          -p ditfa-api
+          -p ditfa-model-provider-info
+          -p ditfa-http-client
+          -p ditfa-config
+          -p ditfa-app-server-transport
+          -p ditfa-app-server-protocol
+      - name: Core configuration tests
+        run: cargo nextest run --no-fail-fast -p ditfa-core --lib config::
+
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14, windows-2022]
+    defaults:
+      run:
+        working-directory: ditfa-rs
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - if: runner.os == 'Linux'
+        uses: ./.github/actions/free-disk
+      - uses: dtolnay/rust-toolchain@1.95.0
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ditfa-rs
+          shared-key: build
+      - name: Build the ditfa binary
+        run: cargo build --bin ditfa
+      - name: Smoke test
+        run: |
+          bin=target/debug/ditfa
+          [ -f "$bin.exe" ] && bin="$bin.exe"
+          "$bin" --version
+          "$bin" --help > /dev/null
+
+  brand:
+    name: Naming check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: No upstream naming outside the license notice
+        run: |
+          # Allowed: the Apache-2.0 NOTICE/LICENSE and OpenAI model identifiers,
+          # which the OpenAI API only accepts under their real names.
+          hits=$(git grep -nI -i codex -- . ':!LICENSE' ':!NOTICE' ':!.github/workflows/ci.yml' \
+            | grep -viE 'gpt-[0-9.]+(-[a-z]+)?-codex|codex-(max|mini)' || true)
+          if [ -n "$hits" ]; then
+            echo "$hits" | head -40
+            echo "::error::Found $(echo "$hits" | wc -l) upstream references."
+            exit 1
+          fi
+
+  npm-launcher:
+    name: npm launcher
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Launcher parses and reports a missing binary clearly
+        run: |
+          node --check ditfa-cli/bin/ditfa.js
+          set +e
+          out=$(node ditfa-cli/bin/ditfa.js --version 2>&1)
+          code=$?
+          set -e
+          echo "$out"
+          [ "$code" -ne 0 ] && echo "$out" | grep -q "Reinstall Ditfa"
+
+  extension:
+    name: VS Code extension
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: ditfa-vscode
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: ditfa-vscode/pnpm-lock.yaml
+      - run: pnpm install --ignore-workspace --frozen-lockfile
+      - run: pnpm run typecheck
+      - run: pnpm test
+      - run: node esbuild.mjs --production

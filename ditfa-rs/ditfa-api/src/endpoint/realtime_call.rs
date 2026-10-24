@@ -461,7 +461,7 @@ mod tests {
             CapturingTransport::with_location("/v1/realtime/calls/calls/rtc_backend_test");
         let client = RealtimeCallClient::new(
             transport.clone(),
-            provider("http://localhost:3000/api/codex"),
+            provider("https://chat.ditfa.com/api/ditfa"),
             Arc::new(DummyAuth),
         );
 
@@ -482,7 +482,7 @@ mod tests {
         assert_eq!(request.method, Method::POST);
         assert_eq!(
             request.url,
-            "http://localhost:3000/api/codex/realtime/calls"
+            "https://chat.ditfa.com/api/ditfa/realtime/calls"
         );
         assert_eq!(
             request.body,
@@ -648,7 +648,7 @@ mod tests {
         let transport = CapturingTransport::new();
         let client = RealtimeCallClient::new(
             transport.clone(),
-            provider("http://localhost:3000/api/codex"),
+            provider("https://chat.ditfa.com/api/ditfa"),
             Arc::new(DummyAuth),
         );
 
@@ -672,7 +672,7 @@ mod tests {
         assert_eq!(request.method, Method::POST);
         assert_eq!(
             request.url,
-            "http://localhost:3000/api/codex/realtime/calls?intent=quicksilver&architecture=avas"
+            "https://chat.ditfa.com/api/ditfa/realtime/calls?intent=quicksilver&architecture=avas"
         );
         let mut expected_session = realtime_session_json(realtime_session_config("sess-backend"))
             .expect("session should encode");
@@ -697,7 +697,7 @@ mod tests {
         let transport = CapturingTransport::with_location("/v1/live/rtc_backend_frameless");
         let client = RealtimeCallClient::new(
             transport.clone(),
-            provider("http://localhost:3000/api/codex"),
+            provider("https://chat.ditfa.com/api/ditfa"),
             Arc::new(DummyAuth),
         );
         let mut session_config = frameless_bidi_session_config("sess-backend");
@@ -722,7 +722,7 @@ mod tests {
         assert_eq!(request.method, Method::POST);
         assert_eq!(
             request.url,
-            "http://localhost:3000/api/codex/realtime/calls?intent=quicksilver&architecture=avas"
+            "https://chat.ditfa.com/api/ditfa/realtime/calls?intent=quicksilver&architecture=avas"
         );
         let Some(RequestBody::Json(body)) = request.body else {
             panic!("backend request body should be JSON");

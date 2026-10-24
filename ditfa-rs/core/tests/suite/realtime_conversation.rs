@@ -497,7 +497,7 @@ async fn conversation_webrtc_frameless_chatgpt_sends_ditfa_headers_to_backend() 
     let server = start_mock_server().await;
     let capture = RealtimeCallRequestCapture::new();
     Mock::given(method("POST"))
-        .and(path_regex(".*/backend-api/codex/realtime/calls$"))
+        .and(path_regex(".*/backend-api/ditfa/realtime/calls$"))
         .and(capture.clone())
         .respond_with(
             ResponseTemplate::new(200)
@@ -512,7 +512,7 @@ async fn conversation_webrtc_frameless_chatgpt_sends_ditfa_headers_to_backend() 
     })]]])
     .await;
 
-    let backend_base_url = format!("{}/backend-api/codex", server.uri());
+    let backend_base_url = format!("{}/backend-api/ditfa", server.uri());
     let realtime_ws_base_url = realtime_server.uri().to_string();
     let mut builder = test_ditfa()
         .with_auth(DitfaAuth::create_dummy_chatgpt_auth_for_testing())
@@ -576,7 +576,7 @@ async fn conversation_webrtc_frameless_chatgpt_sends_ditfa_headers_to_backend() 
                 .and_then(|value| value.to_str().ok()),
         ),
         (
-            "/backend-api/codex/realtime/calls",
+            "/backend-api/ditfa/realtime/calls",
             Some("intent=quicksilver&architecture=avas"),
             Some("quicksilver=v2"),
             Some(expected_session_id.as_str()),

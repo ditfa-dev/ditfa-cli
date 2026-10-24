@@ -50,7 +50,7 @@ rustPlatform.buildRustPackage (_: {
   meta = with lib; {
     description = "OpenAI Ditfa command‑line interface rust implementation";
     license = licenses.asl20;
-    homepage = "https://github.com/openai/codex";
+    homepage = "https://github.com/ditfa-dev/ditfa-cli";
     mainProgram = "ditfa";
   };
 })

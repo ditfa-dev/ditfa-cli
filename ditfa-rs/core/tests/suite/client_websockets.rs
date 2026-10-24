@@ -453,7 +453,7 @@ async fn responses_websocket_preconnect_reuses_connection() {
         Some(ditfa_login::default_client::get_ditfa_user_agent())
     );
     assert_eq!(
-        server.single_handshake().header("x-codex-window-id"),
+        server.single_handshake().header("x-ditfa-window-id"),
         Some(TEST_WINDOW_ID.to_string())
     );
     let connection = server.single_connection();
@@ -522,7 +522,7 @@ async fn responses_websocket_request_prewarm_reuses_connection() {
     );
     assert_eq!(warmup["tools"], serde_json::json!([]));
     let warmup_turn_metadata: serde_json::Value = serde_json::from_str(
-        warmup["client_metadata"]["x-codex-turn-metadata"]
+        warmup["client_metadata"]["x-ditfa-turn-metadata"]
             .as_str()
             .expect("warmup turn metadata"),
     )
@@ -575,7 +575,7 @@ async fn responses_websocket_request_prewarm_uses_caller_supplied_metadata() {
         .expect("missing warmup request")
         .body_json();
     let warmup_turn_metadata: serde_json::Value = serde_json::from_str(
-        warmup["client_metadata"]["x-codex-turn-metadata"]
+        warmup["client_metadata"]["x-ditfa-turn-metadata"]
             .as_str()
             .expect("warmup turn metadata"),
     )
@@ -991,7 +991,7 @@ async fn responses_websocket_preconnect_runs_when_only_v2_feature_enabled() {
     assert_eq!(server.handshakes().len(), 1);
     assert_eq!(server.single_connection().len(), 0);
     assert_eq!(
-        server.single_handshake().header("x-codex-turn-metadata"),
+        server.single_handshake().header("x-ditfa-turn-metadata"),
         None
     );
 
@@ -1783,13 +1783,13 @@ async fn responses_websocket_forwards_turn_metadata_on_initial_and_incremental_c
     assert_eq!(second["type"].as_str(), Some("response.create"));
     assert_eq!(second["previous_response_id"].as_str(), Some("resp-1"));
     let first_metadata: serde_json::Value = serde_json::from_str(
-        first["client_metadata"]["x-codex-turn-metadata"]
+        first["client_metadata"]["x-ditfa-turn-metadata"]
             .as_str()
             .expect("first turn metadata"),
     )
     .expect("first metadata should be valid json");
     let second_metadata: serde_json::Value = serde_json::from_str(
-        second["client_metadata"]["x-codex-turn-metadata"]
+        second["client_metadata"]["x-ditfa-turn-metadata"]
             .as_str()
             .expect("second turn metadata"),
     )
@@ -1841,7 +1841,7 @@ async fn responses_websocket_sends_canonical_turn_metadata() {
 
     assert_eq!(body["type"].as_str(), Some("response.create"));
     let turn_metadata: serde_json::Value = serde_json::from_str(
-        body["client_metadata"]["x-codex-turn-metadata"]
+        body["client_metadata"]["x-ditfa-turn-metadata"]
             .as_str()
             .expect("turn metadata"),
     )

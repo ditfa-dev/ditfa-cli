@@ -14,4 +14,4 @@ Our Vulnerability Program Guidelines are defined on our [Bugcrowd program page](
 
 ## How to operate DITFA safely
 
-For details on Ditfa Code security boundaries, including sandboxing, approvals, and network controls, see [Agent approvals & security](https://developers.openai.com/codex/agent-approvals-security).
+For details on Ditfa Code security boundaries, including sandboxing, approvals, and network controls, see [Agent approvals & security](https://github.com/ditfa-dev/ditfa-cli/blob/main/docs/sandbox.md).

@@ -2001,7 +2001,7 @@ fn fake_agent_identity_jwt_with_plan_type(
     let encode = |bytes: &[u8]| base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(bytes);
     let header_b64 = encode(br#"{"alg":"EdDSA","typ":"JWT"}"#);
     let payload = json!({
-        "iss": "http://localhost:3000/ditfa-backend/agent-identity",
+        "iss": "https://chat.ditfa.com/ditfa-backend/agent-identity",
         "aud": "ditfa-app-server",
         "iat": 1_700_000_000usize,
         "exp": 4_000_000_000usize,
@@ -2027,7 +2027,7 @@ fn signed_agent_identity_jwt(
     jsonwebtoken::encode(
         &header,
         &json!({
-            "iss": "http://localhost:3000/ditfa-backend/agent-identity",
+            "iss": "https://chat.ditfa.com/ditfa-backend/agent-identity",
             "aud": "ditfa-app-server",
             "iat": 1_700_000_000usize,
             "exp": 4_000_000_000usize,

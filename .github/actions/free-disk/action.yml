@@ -1,0 +1,10 @@
+name: Free runner disk
+description: Removes preinstalled SDKs the Rust build never uses so target/ fits on the runner.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+        sudo docker image prune --all --force > /dev/null 2>&1 || true
+        df -h /

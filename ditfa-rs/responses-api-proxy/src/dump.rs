@@ -231,7 +231,7 @@ mod tests {
             Header::from_bytes(&b"Cookie"[..], &b"user-session=secret"[..]).expect("cookie header"),
             Header::from_bytes(&b"Content-Type"[..], &b"application/json"[..])
                 .expect("content-type header"),
-            Header::from_bytes(&b"x-codex-window-id"[..], &b"thread-1:0"[..])
+            Header::from_bytes(&b"x-ditfa-window-id"[..], &b"thread-1:0"[..])
                 .expect("window id header"),
             Header::from_bytes(&b"x-ditfa-parent-thread-id"[..], &b"parent-thread-1"[..])
                 .expect("parent thread id header"),
@@ -270,7 +270,7 @@ mod tests {
                         "value": "application/json"
                     },
                     {
-                        "name": "x-codex-window-id",
+                        "name": "x-ditfa-window-id",
                         "value": "thread-1:0"
                     },
                     {

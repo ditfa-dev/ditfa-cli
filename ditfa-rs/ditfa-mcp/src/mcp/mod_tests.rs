@@ -19,7 +19,7 @@ use std::path::PathBuf;
 
 pub(crate) fn test_mcp_config(ditfa_home: PathBuf) -> McpConfig {
     McpConfig {
-        chatgpt_base_url: "http://localhost:3000".to_string(),
+        chatgpt_base_url: "https://chat.ditfa.com".to_string(),
         apps_mcp_product_sku: None,
         ditfa_home,
         mcp_oauth_credentials_store_mode: OAuthCredentialsStoreMode::default(),
@@ -245,27 +245,27 @@ fn selected_mcp_attribution_does_not_join_an_unrelated_local_summary() {
 #[test]
 fn ditfa_apps_mcp_url_for_base_url_uses_plugin_service_paths() {
     assert_eq!(
-        ditfa_apps_mcp_url_for_base_url("http://localhost:3000/api"),
-        "http://localhost:3000/api/ps/mcp"
+        ditfa_apps_mcp_url_for_base_url("https://chat.ditfa.com/api"),
+        "https://chat.ditfa.com/api/ps/mcp"
     );
     assert_eq!(
         ditfa_apps_mcp_url_for_base_url("https://chat.openai.com"),
         "https://chat.openai.com/backend-api/ps/mcp"
     );
     assert_eq!(
-        ditfa_apps_mcp_url_for_base_url("http://localhost:8080/api/codex"),
-        "http://localhost:8080/api/codex/ps/mcp"
+        ditfa_apps_mcp_url_for_base_url("http://localhost:8080/api/ditfa"),
+        "http://localhost:8080/api/ditfa/ps/mcp"
     );
     assert_eq!(
         ditfa_apps_mcp_url_for_base_url("http://localhost:8080"),
-        "http://localhost:8080/api/codex/ps/mcp"
+        "http://localhost:8080/api/ditfa/ps/mcp"
     );
 }
 
 #[test]
 fn ditfa_apps_server_config_uses_plugin_service_path() {
     let config = ditfa_apps_mcp_server_config(
-        "http://localhost:3000",
+        "https://chat.ditfa.com",
         /*apps_mcp_product_sku*/ None,
         /*originator*/ None,
     );
@@ -274,13 +274,13 @@ fn ditfa_apps_server_config_uses_plugin_service_path() {
         _ => panic!("expected streamable http transport for ditfa apps"),
     };
 
-    assert_eq!(url, "http://localhost:3000/api/ps/mcp");
+    assert_eq!(url, "https://chat.ditfa.com/api/ps/mcp");
 }
 
 #[test]
 fn ditfa_apps_server_config_forwards_thread_originator_header() {
     let config = ditfa_apps_mcp_server_config(
-        "http://localhost:3000",
+        "https://chat.ditfa.com",
         /*apps_mcp_product_sku*/ None,
         Some("thread_originator"),
     );
@@ -308,7 +308,7 @@ fn ditfa_apps_server_config_forwards_thread_originator_header() {
 fn ditfa_apps_server_config_sets_product_sku_header() {
     for (configured_product_sku, expected_product_sku) in [(None, "ditfa"), (Some("tpp"), "tpp")] {
         let config = ditfa_apps_mcp_server_config(
-            "http://localhost:3000",
+            "https://chat.ditfa.com",
             configured_product_sku,
             /*originator*/ None,
         );
@@ -336,7 +336,7 @@ fn ditfa_apps_server_config_sets_product_sku_header() {
 #[test]
 fn ditfa_apps_server_config_forwards_originator_and_configured_product_sku_headers() {
     let config = ditfa_apps_mcp_server_config(
-        "http://localhost:3000",
+        "https://chat.ditfa.com",
         Some("tpp"),
         Some("thread_originator"),
     );
@@ -458,7 +458,7 @@ async fn effective_mcp_servers_preserve_runtime_servers() {
     }
     match &ditfa_apps.transport {
         McpServerTransportConfig::StreamableHttp { url, .. } => {
-            assert_eq!(url, "http://localhost:3000/api/ps/mcp");
+            assert_eq!(url, "https://chat.ditfa.com/api/ps/mcp");
         }
         other => panic!("expected streamable http transport, got {other:?}"),
     }

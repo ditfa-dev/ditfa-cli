@@ -1,11 +1,11 @@
 #[cfg(test)]
 use crate::app_command::AppCommand as Op;
-use ditfa_app_server_protocol::McpServerElicitationAction;
-use ditfa_app_server_protocol::RequestId as AppServerRequestId;
-use ditfa_protocol::ThreadId;
 use crossterm::event::KeyCode;
 use crossterm::event::KeyEvent;
 use crossterm::event::KeyModifiers;
+use ditfa_app_server_protocol::McpServerElicitationAction;
+use ditfa_app_server_protocol::RequestId as AppServerRequestId;
+use ditfa_protocol::ThreadId;
 use ratatui::buffer::Buffer;
 use ratatui::layout::Constraint;
 use ratatui::layout::Layout;
@@ -219,10 +219,7 @@ fn validate_external_url(url: &str, require_chatgpt_host: bool) -> Option<Url> {
 
 fn is_allowed_chatgpt_auth_host(host: &str) -> bool {
     let host = host.to_ascii_lowercase();
-    host == "localhost"
-        || host == "localhost:3000"
-        || host.ends_with(".localhost")
-        || host.ends_with(".localhost:3000")
+    host == "chat.ditfa.com" || host.ends_with(".chat.ditfa.com")
 }
 
 pub(crate) struct AppLinkView {
@@ -896,7 +893,7 @@ mod tests {
     fn ditfa_apps_auth_url_elicitation_builds_auth_app_link_params() {
         let target = suggestion_target();
         let request =
-            auth_url_request("http://localhost:3000/apps/google-calendar/connector_calendar");
+            auth_url_request("https://chat.ditfa.com/apps/google-calendar/connector_calendar");
 
         let params = AppLinkViewParams::from_url_app_server_request(
             target.thread_id,
@@ -910,7 +907,7 @@ mod tests {
         assert_eq!(params.title, "Google Calendar");
         assert_eq!(
             params.url,
-            "http://localhost:3000/apps/google-calendar/connector_calendar"
+            "https://chat.ditfa.com/apps/google-calendar/connector_calendar"
         );
         assert_eq!(params.suggestion_type, Some(AppLinkSuggestionType::Auth));
         assert_eq!(params.elicitation_target, Some(target));
@@ -956,9 +953,9 @@ mod tests {
     fn ditfa_apps_auth_url_elicitation_rejects_untrusted_urls() {
         let target = suggestion_target();
         for url in [
-            "http://localhost:3000/apps/google-calendar/connector_calendar",
-            "https://user:pass@localhost:3000/apps/google-calendar/connector_calendar",
-            "http://localhost:3000.evil.example/apps/google-calendar/connector_calendar",
+            "https://chat.ditfa.com/apps/google-calendar/connector_calendar",
+            "https://user:pass@staging.chat.ditfa.com/apps/google-calendar/connector_calendar",
+            "http://chat.ditfa.com.evil.example/apps/google-calendar/connector_calendar",
             "https://evilexample.com/apps/google-calendar/connector_calendar",
         ] {
             let request = auth_url_request(url);
@@ -1622,7 +1619,7 @@ mod tests {
                 title: "Google Calendar".to_string(),
                 description: None,
                 instructions: "Sign in to this app in your browser, then return here.".to_string(),
-                url: "http://localhost:3000/apps/google-calendar/connector_google_calendar"
+                url: "https://chat.ditfa.com/apps/google-calendar/connector_google_calendar"
                     .to_string(),
                 is_installed: true,
                 is_enabled: true,

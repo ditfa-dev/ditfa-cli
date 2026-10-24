@@ -325,7 +325,7 @@ pub(crate) fn empty_mcp_output() -> PlainHistoryCell {
         Line::from(vec![
             "    See the ".into(),
             crate::terminal_hyperlinks::osc8_hyperlink(
-                "https://developers.openai.com/codex/mcp",
+                "https://github.com/ditfa-dev/ditfa-cli/blob/main/docs/config.md",
                 "MCP docs",
             )
             .underlined(),

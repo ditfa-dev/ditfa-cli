@@ -331,7 +331,7 @@ async fn start_app_server_for_archive_command(
     let chatgpt_base_url = config_toml
         .chatgpt_base_url
         .clone()
-        .unwrap_or_else(|| "http://localhost:3000/api/".to_string());
+        .unwrap_or_else(|| "https://chat.ditfa.com/api/".to_string());
     let auth_route_config = resolve_bootstrap_auth_route_config(
         config_toml,
         bootstrap_config

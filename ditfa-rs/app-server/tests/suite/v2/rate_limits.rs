@@ -180,7 +180,7 @@ async fn get_account_rate_limits_returns_snapshot() -> Result<()> {
     });
 
     Mock::given(method("GET"))
-        .and(path("/api/codex/usage"))
+        .and(path("/api/ditfa/usage"))
         .and(header("authorization", "Bearer chatgpt-token"))
         .and(header("chatgpt-account-id", "account-123"))
         .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
@@ -188,7 +188,7 @@ async fn get_account_rate_limits_returns_snapshot() -> Result<()> {
         .mount(&server)
         .await;
     Mock::given(method("GET"))
-        .and(path("/api/codex/rate-limit-reset-credits"))
+        .and(path("/api/ditfa/rate-limit-reset-credits"))
         .and(header("authorization", "Bearer chatgpt-token"))
         .and(header("chatgpt-account-id", "account-123"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
@@ -351,7 +351,7 @@ async fn get_account_rate_limits_preserves_count_when_reset_credit_details_fail(
     write_chatgpt_base_url(ditfa_home.path(), &server.uri())?;
 
     Mock::given(method("GET"))
-        .and(path("/api/codex/usage"))
+        .and(path("/api/ditfa/usage"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "plan_type": "pro",
             "rate_limit": {
@@ -370,7 +370,7 @@ async fn get_account_rate_limits_preserves_count_when_reset_credit_details_fail(
         .mount(&server)
         .await;
     Mock::given(method("GET"))
-        .and(path("/api/codex/rate-limit-reset-credits"))
+        .and(path("/api/ditfa/rate-limit-reset-credits"))
         .respond_with(ResponseTemplate::new(500).set_body_string("boom"))
         .expect(1)
         .mount(&server)
@@ -482,7 +482,7 @@ async fn send_add_credits_nudge_email_posts_expected_body() -> Result<()> {
     write_chatgpt_base_url(ditfa_home.path(), &server_url)?;
 
     Mock::given(method("POST"))
-        .and(path("/api/codex/accounts/send_add_credits_nudge_email"))
+        .and(path("/api/ditfa/accounts/send_add_credits_nudge_email"))
         .and(header("authorization", "Bearer chatgpt-token"))
         .and(header("chatgpt-account-id", "account-123"))
         .and(wiremock::matchers::body_json(json!({
@@ -530,7 +530,7 @@ async fn send_add_credits_nudge_email_maps_cooldown() -> Result<()> {
     write_chatgpt_base_url(ditfa_home.path(), &server_url)?;
 
     Mock::given(method("POST"))
-        .and(path("/api/codex/accounts/send_add_credits_nudge_email"))
+        .and(path("/api/ditfa/accounts/send_add_credits_nudge_email"))
         .respond_with(ResponseTemplate::new(429))
         .mount(&server)
         .await;
@@ -573,7 +573,7 @@ async fn send_add_credits_nudge_email_surfaces_backend_failure() -> Result<()> {
     write_chatgpt_base_url(ditfa_home.path(), &server_url)?;
 
     Mock::given(method("POST"))
-        .and(path("/api/codex/accounts/send_add_credits_nudge_email"))
+        .and(path("/api/ditfa/accounts/send_add_credits_nudge_email"))
         .respond_with(ResponseTemplate::new(500).set_body_string("boom"))
         .mount(&server)
         .await;

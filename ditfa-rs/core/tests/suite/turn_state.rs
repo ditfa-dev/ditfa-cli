@@ -75,11 +75,11 @@ async fn responses_turn_state_persists_within_turn_and_resets_after() -> Result<
             .map(str::to_string)
     };
 
-    let first_turn_id = parse_turn_id(requests[0].header("x-codex-turn-metadata"))
+    let first_turn_id = parse_turn_id(requests[0].header("x-ditfa-turn-metadata"))
         .expect("first request should include turn metadata turn_id");
-    let second_turn_id = parse_turn_id(requests[1].header("x-codex-turn-metadata"))
+    let second_turn_id = parse_turn_id(requests[1].header("x-ditfa-turn-metadata"))
         .expect("follow-up request should include turn metadata turn_id");
-    let third_turn_id = parse_turn_id(requests[2].header("x-codex-turn-metadata"))
+    let third_turn_id = parse_turn_id(requests[2].header("x-ditfa-turn-metadata"))
         .expect("new turn request should include turn metadata turn_id");
 
     assert_eq!(first_turn_id, second_turn_id);

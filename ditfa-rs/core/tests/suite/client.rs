@@ -171,11 +171,11 @@ fn assert_ditfa_client_metadata(
     );
     assert_eq!(client_metadata["session_id"].as_str(), Some(session_id));
     assert_eq!(client_metadata["thread_id"].as_str(), Some(thread_id));
-    let turn_metadata_str = client_metadata["x-codex-turn-metadata"]
+    let turn_metadata_str = client_metadata["x-ditfa-turn-metadata"]
         .as_str()
-        .expect("missing x-codex-turn-metadata client metadata");
+        .expect("missing x-ditfa-turn-metadata client metadata");
     let turn_metadata = serde_json::from_str::<serde_json::Value>(turn_metadata_str)
-        .expect("invalid x-codex-turn-metadata json");
+        .expect("invalid x-ditfa-turn-metadata json");
     assert_eq!(
         turn_metadata["installation_id"].as_str(),
         Some(installation_id)
@@ -187,7 +187,7 @@ fn assert_ditfa_client_metadata(
         turn_metadata["turn_id"].as_str()
     );
     assert_eq!(
-        client_metadata["x-codex-window-id"].as_str(),
+        client_metadata["x-ditfa-window-id"].as_str(),
         turn_metadata["window_id"].as_str()
     );
 }
@@ -1600,7 +1600,7 @@ async fn chatgpt_auth_sends_correct_request() {
 
     let mut model_provider =
         built_in_model_providers(/* openai_base_url */ /*openai_base_url*/ None)["openai"].clone();
-    model_provider.base_url = Some(format!("{}/api/codex", server.uri()));
+    model_provider.base_url = Some(format!("{}/api/ditfa", server.uri()));
     model_provider.supports_websockets = false;
     let mut builder = test_ditfa()
         .with_auth(create_dummy_ditfa_auth())
@@ -1632,7 +1632,7 @@ async fn chatgpt_auth_sends_correct_request() {
     wait_for_event(&ditfa, |ev| matches!(ev, EventMsg::TurnComplete(_))).await;
 
     let request = resp_mock.single_request();
-    assert_eq!(request.path(), "/api/codex/responses");
+    assert_eq!(request.path(), "/api/ditfa/responses");
     let request_authorization = request
         .header("authorization")
         .expect("authorization header");

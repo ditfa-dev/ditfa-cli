@@ -38,9 +38,9 @@ use sha2::Sha512;
 const AGENT_TASK_REGISTRATION_TIMEOUT: Duration = Duration::from_secs(30);
 const AGENT_IDENTITY_JWKS_TIMEOUT: Duration = Duration::from_secs(10);
 const AGENT_IDENTITY_JWT_AUDIENCE: &str = "ditfa-app-server";
-const AGENT_IDENTITY_JWT_ISSUER: &str = "http://localhost:3000/ditfa-backend/agent-identity";
+const AGENT_IDENTITY_JWT_ISSUER: &str = "https://chat.ditfa.com/ditfa-backend/agent-identity";
 const AGENT_REGISTRATION_TIMEOUT: Duration = Duration::from_secs(15);
-const PROD_AGENT_IDENTITY_AUTHAPI_BASE_URL: &str = "http://localhost:3000/auth/api/accounts";
+const PROD_AGENT_IDENTITY_AUTHAPI_BASE_URL: &str = "https://chat.ditfa.com/auth/api/accounts";
 const STAGING_AGENT_IDENTITY_AUTHAPI_BASE_URL: &str = "https://auth.api.openai.org/api/accounts";
 const AGENT_IDENTITY_KEY_SEED_BYTES: usize = 64;
 const AGENT_IDENTITY_KEY_DERIVATION_CONTEXT: &[u8] = b"ditfa-agent-identity-ed25519-v1";
@@ -55,18 +55,18 @@ pub enum ChatGptEnvironment {
 impl ChatGptEnvironment {
     pub fn from_chatgpt_base_url(chatgpt_base_url: &str) -> Result<Self> {
         match chatgpt_base_url.trim_end_matches('/') {
-            "http://localhost:3000"
-            | "http://localhost:3000/api"
-            | "http://localhost:3000/ditfa"
-            | "http://localhost:3000/api/codex"
+            "https://chat.ditfa.com"
+            | "https://chat.ditfa.com/api"
+            | "https://chat.ditfa.com/ditfa"
+            | "https://chat.ditfa.com/api/ditfa"
             | "https://chat.openai.com"
             | "https://chat.openai.com/backend-api"
-            | "https://chat.openai.com/codex"
-            | "https://chat.openai.com/backend-api/codex" => Ok(Self::Production),
-            "https://localhost:3000"
-            | "https://localhost:3000/backend-api"
-            | "https://localhost:3000/ditfa"
-            | "https://localhost:3000/backend-api/codex" => Ok(Self::Staging),
+            | "https://chat.openai.com/ditfa"
+            | "https://chat.openai.com/backend-api/ditfa" => Ok(Self::Production),
+            "https://staging.chat.ditfa.com"
+            | "https://staging.chat.ditfa.com/backend-api"
+            | "https://staging.chat.ditfa.com/ditfa"
+            | "https://staging.chat.ditfa.com/backend-api/ditfa" => Ok(Self::Staging),
             _ => anyhow::bail!(
                 "Agent Identity only supports production and staging ChatGPT environments"
             ),
@@ -75,8 +75,8 @@ impl ChatGptEnvironment {
 
     pub fn chatgpt_base_url(self) -> &'static str {
         match self {
-            Self::Production => "http://localhost:3000/api",
-            Self::Staging => "https://localhost:3000/backend-api",
+            Self::Production => "https://chat.ditfa.com/api",
+            Self::Staging => "https://staging.chat.ditfa.com/backend-api",
         }
     }
 
@@ -878,15 +878,15 @@ J1bwkqKZTB5dHolX9A58e/xXnfZ5P8f3Z83+Izap3FwqQulk7b1WO1MQcHuVg2NN
     #[test]
     fn chatgpt_environment_maps_known_urls_to_authapi() -> anyhow::Result<()> {
         assert_eq!(
-            ChatGptEnvironment::from_chatgpt_base_url("http://localhost:3000/api/codex")?,
+            ChatGptEnvironment::from_chatgpt_base_url("https://chat.ditfa.com/api/ditfa")?,
             ChatGptEnvironment::Production
         );
         assert_eq!(
             ChatGptEnvironment::Production.agent_identity_authapi_base_url(),
-            "http://localhost:3000/auth/api/accounts"
+            "https://chat.ditfa.com/auth/api/accounts"
         );
         assert_eq!(
-            ChatGptEnvironment::from_chatgpt_base_url("https://localhost:3000/backend-api")?,
+            ChatGptEnvironment::from_chatgpt_base_url("https://staging.chat.ditfa.com/backend-api")?,
             ChatGptEnvironment::Staging
         );
         assert_eq!(
@@ -904,8 +904,8 @@ J1bwkqKZTB5dHolX9A58e/xXnfZ5P8f3Z83+Izap3FwqQulk7b1WO1MQcHuVg2NN
     #[test]
     fn agent_registration_url_appends_to_authapi_base_url() {
         assert_eq!(
-            agent_registration_url("http://localhost:3000/auth/api/accounts"),
-            "http://localhost:3000/auth/api/accounts/v1/agent/register"
+            agent_registration_url("https://chat.ditfa.com/auth/api/accounts"),
+            "https://chat.ditfa.com/auth/api/accounts/v1/agent/register"
         );
         assert_eq!(
             agent_registration_url("http://localhost:8080"),
@@ -920,15 +920,15 @@ J1bwkqKZTB5dHolX9A58e/xXnfZ5P8f3Z83+Izap3FwqQulk7b1WO1MQcHuVg2NN
     #[test]
     fn agent_task_registration_url_appends_to_authapi_base_url() {
         assert_eq!(
-            agent_task_registration_url("http://localhost:3000/auth/api/accounts", "agent-runtime-id"),
-            "http://localhost:3000/auth/api/accounts/v1/agent/agent-runtime-id/task/register"
+            agent_task_registration_url("https://chat.ditfa.com/auth/api/accounts", "agent-runtime-id"),
+            "https://chat.ditfa.com/auth/api/accounts/v1/agent/agent-runtime-id/task/register"
         );
         assert_eq!(
             agent_task_registration_url(
-                "http://localhost:3000/auth/api/accounts/",
+                "https://chat.ditfa.com/auth/api/accounts/",
                 "agent-runtime-id"
             ),
-            "http://localhost:3000/auth/api/accounts/v1/agent/agent-runtime-id/task/register"
+            "https://chat.ditfa.com/auth/api/accounts/v1/agent/agent-runtime-id/task/register"
         );
         assert_eq!(
             agent_task_registration_url("http://localhost:8080", "agent-runtime-id"),
@@ -969,24 +969,24 @@ J1bwkqKZTB5dHolX9A58e/xXnfZ5P8f3Z83+Izap3FwqQulk7b1WO1MQcHuVg2NN
     #[test]
     fn agent_identity_jwks_url_uses_agent_identity_jwt_route() {
         assert_eq!(
-            agent_identity_jwks_url("http://localhost:3000/api"),
-            "http://localhost:3000/api/wham/agent-identities/jwks"
+            agent_identity_jwks_url("https://chat.ditfa.com/api"),
+            "https://chat.ditfa.com/api/wham/agent-identities/jwks"
         );
         assert_eq!(
-            agent_identity_jwks_url("http://localhost:3000/api/"),
-            "http://localhost:3000/api/wham/agent-identities/jwks"
+            agent_identity_jwks_url("https://chat.ditfa.com/api/"),
+            "https://chat.ditfa.com/api/wham/agent-identities/jwks"
         );
     }
 
     #[test]
     fn agent_identity_jwks_url_uses_jwt_issuer_base_url() {
         assert_eq!(
-            agent_identity_jwks_url("http://localhost:8080/api/codex"),
-            "http://localhost:8080/api/codex/agent-identities/jwks"
+            agent_identity_jwks_url("http://localhost:8080/api/ditfa"),
+            "http://localhost:8080/api/ditfa/agent-identities/jwks"
         );
         assert_eq!(
-            agent_identity_jwks_url("http://localhost:8080/api/codex/"),
-            "http://localhost:8080/api/codex/agent-identities/jwks"
+            agent_identity_jwks_url("http://localhost:8080/api/ditfa/"),
+            "http://localhost:8080/api/ditfa/agent-identities/jwks"
         );
     }
 

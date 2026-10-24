@@ -962,16 +962,16 @@ mod tests {
     fn canonicalize_git_remote_url_normalizes_github_variants() {
         for remote in [
             "git@github.com:OpenAI/Ditfa.git",
-            "ssh://git@github.com/openai/codex.git",
+            "ssh://git@github.com/ditfa-dev/ditfa-cli.git",
             "ssh://git@github.com:22/OpenAI/Ditfa.git",
-            "https://github.com/openai/codex.git",
+            "https://github.com/ditfa-dev/ditfa-cli.git",
             "https://github.com:443/openai/ditfa.git",
-            "https://token@github.com/openai/codex/",
+            "https://token@github.com/ditfa-dev/ditfa-cli/",
             "github.com/OpenAI/Ditfa.git",
         ] {
             assert_eq!(
                 canonicalize_git_remote_url(remote),
-                Some("github.com/openai/codex".to_string())
+                Some("github.com/ditfa-dev/ditfa-cli".to_string())
             );
         }
     }

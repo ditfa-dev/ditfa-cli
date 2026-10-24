@@ -8,7 +8,7 @@ use std::fmt;
 use crate::default_client::create_default_auth_client;
 use crate::outbound_proxy::AuthRouteConfig;
 
-const PROD_AUTHAPI_BASE_URL: &str = "http://localhost:3000/auth/api/accounts";
+const PROD_AUTHAPI_BASE_URL: &str = "https://chat.ditfa.com/auth/api/accounts";
 const DITFA_AUTHAPI_BASE_URL_ENV_VAR: &str = "DITFA_AUTHAPI_BASE_URL";
 const WHOAMI_PATH: &str = "/v1/user-auth-credential/whoami";
 

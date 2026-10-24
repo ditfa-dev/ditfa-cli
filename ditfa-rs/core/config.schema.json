@@ -4720,6 +4720,13 @@
             "responses"
           ],
           "type": "string"
+        },
+        {
+          "description": "The OpenAI-compatible Chat Completions API at `/v1/chat/completions`.",
+          "enum": [
+            "chat"
+          ],
+          "type": "string"
         }
       ]
     },
@@ -5355,7 +5362,7 @@
         }
       ],
       "default": null,
-      "description": "Preferred backend for storing MCP OAuth credentials. keyring: Use an OS-specific keyring service. https://github.com/openai/codex/blob/main/ditfa-rs/rmcp-client/src/oauth.rs#L2 file: Use a file in the Ditfa home directory. auto (default): Use the OS-specific keyring service if available, otherwise use a file."
+      "description": "Preferred backend for storing MCP OAuth credentials. keyring: Use an OS-specific keyring service. https://github.com/ditfa-dev/ditfa-cli/blob/main/ditfa-rs/rmcp-client/src/oauth.rs#L2 file: Use a file in the Ditfa home directory. auto (default): Use the OS-specific keyring service if available, otherwise use a file."
     },
     "mcp_servers": {
       "additionalProperties": {

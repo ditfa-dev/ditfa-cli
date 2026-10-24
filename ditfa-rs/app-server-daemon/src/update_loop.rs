@@ -54,7 +54,7 @@ const RESTART_RETRY_INTERVAL: Duration = Duration::from_millis(50);
 #[cfg(unix)]
 const UPDATE_INTERVAL: Duration = Duration::from_secs(60 * 60);
 #[cfg(unix)]
-const INSTALL_URL: &str = "http://localhost:3000/install.sh";
+const INSTALL_URL: &str = "https://chat.ditfa.com/install.sh";
 
 #[cfg(unix)]
 pub(crate) async fn run(http_client_factory: HttpClientFactory) -> Result<()> {

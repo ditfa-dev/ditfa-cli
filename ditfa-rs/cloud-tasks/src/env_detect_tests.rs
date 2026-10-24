@@ -17,10 +17,10 @@ use pretty_assertions::assert_eq;
 
 use super::*;
 
-const BASE_URL: &str = "http://localhost:3000/api";
+const BASE_URL: &str = "https://chat.ditfa.com/api";
 const BY_REPO_URL: &str =
-    "http://localhost:3000/api/wham/environments/by-repo/github/openai/ditfa";
-const GLOBAL_URL: &str = "http://localhost:3000/api/wham/environments";
+    "https://chat.ditfa.com/api/wham/environments/by-repo/github/openai/ditfa";
+const GLOBAL_URL: &str = "https://chat.ditfa.com/api/wham/environments";
 
 #[tokio::test]
 async fn production_http_forwards_headers_and_decodes_response() {
@@ -106,7 +106,7 @@ async fn production_http_forwards_headers_and_decodes_response() {
             label: Some("Real".to_string()),
         }
     );
-    assert!(request.starts_with("GET /api/codex/environments HTTP/1.1\r\n"));
+    assert!(request.starts_with("GET /api/ditfa/environments HTTP/1.1\r\n"));
     assert!(
         request
             .to_ascii_lowercase()
@@ -203,7 +203,7 @@ async fn list_requests_exact_repository_and_global_endpoints_and_merges_results(
         &http,
         BASE_URL,
         &HeaderMap::new(),
-        &["https://github.com/openai/codex.git".to_string()],
+        &["https://github.com/ditfa-dev/ditfa-cli.git".to_string()],
     )
     .await
     .expect("environment list should decode");

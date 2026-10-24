@@ -5408,7 +5408,7 @@ mod tests {
             "Ask Ditfa to do anything".to_string(),
             /*disable_paste_burst*/ false,
         );
-        let url = "https://github.com/openai/codex/pull/20252";
+        let url = "https://github.com/ditfa-dev/ditfa-cli/pull/20252";
         composer.set_status_line_enabled(/*enabled*/ true);
         composer.set_status_line(Some(Line::from(Span::styled(
             "PR #20252",

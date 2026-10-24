@@ -354,7 +354,7 @@ mod tests {
                 chatgpt_account_is_fedramp,
                 task_id: Some("task-run-1".to_string()),
             },
-            "http://localhost:3000/auth/api/accounts",
+            "https://chat.ditfa.com/auth/api/accounts",
             &ditfa_login::test_support::transport_default_auth_route_config(),
         )
         .await

@@ -3,7 +3,6 @@ mod auth;
 mod bearer_auth_provider;
 mod models_endpoint;
 mod provider;
-pub mod adapter;
 
 pub use amazon_bedrock::is_supported_amazon_bedrock_region;
 pub use auth::AgentIdentitySessionFallback;

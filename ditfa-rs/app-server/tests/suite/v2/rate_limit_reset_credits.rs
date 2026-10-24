@@ -94,7 +94,7 @@ async fn consume_account_rate_limit_reset_credit_maps_backend_outcomes() -> Resu
     ];
     for (idempotency_key, backend_code, _, windows_reset) in cases {
         Mock::given(method("POST"))
-            .and(path("/api/codex/rate-limit-reset-credits/consume"))
+            .and(path("/api/ditfa/rate-limit-reset-credits/consume"))
             .and(header("authorization", "Bearer chatgpt-token"))
             .and(header("chatgpt-account-id", "account-123"))
             .and(body_json(json!({ "redeem_request_id": idempotency_key })))
@@ -122,7 +122,7 @@ async fn consume_account_rate_limit_reset_credit_maps_backend_outcomes() -> Resu
 async fn consume_account_rate_limit_reset_credit_forwards_selected_credit_id() -> Result<()> {
     let (ditfa_home, server) = chatgpt_test_context().await?;
     Mock::given(method("POST"))
-        .and(path("/api/codex/rate-limit-reset-credits/consume"))
+        .and(path("/api/ditfa/rate-limit-reset-credits/consume"))
         .and(header("authorization", "Bearer chatgpt-token"))
         .and(header("chatgpt-account-id", "account-123"))
         .and(body_json(json!({
@@ -204,7 +204,7 @@ async fn consume_account_rate_limit_reset_credit_rejects_empty_credit_id() -> Re
 async fn consume_account_rate_limit_reset_credit_surfaces_backend_failure() -> Result<()> {
     let (ditfa_home, server) = chatgpt_test_context().await?;
     Mock::given(method("POST"))
-        .and(path("/api/codex/rate-limit-reset-credits/consume"))
+        .and(path("/api/ditfa/rate-limit-reset-credits/consume"))
         .respond_with(ResponseTemplate::new(500).set_body_string("boom"))
         .mount(&server)
         .await;
@@ -229,7 +229,7 @@ async fn consume_account_rate_limit_reset_credit_surfaces_backend_failure() -> R
 async fn consume_timeout_releases_account_auth_queue() -> Result<()> {
     let (ditfa_home, server) = chatgpt_test_context().await?;
     Mock::given(method("POST"))
-        .and(path("/api/codex/rate-limit-reset-credits/consume"))
+        .and(path("/api/ditfa/rate-limit-reset-credits/consume"))
         .respond_with(
             ResponseTemplate::new(200)
                 .set_delay(std::time::Duration::from_secs(/*secs*/ 1))

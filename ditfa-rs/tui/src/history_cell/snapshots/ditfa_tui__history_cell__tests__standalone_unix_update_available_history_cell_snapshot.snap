@@ -4,8 +4,8 @@ expression: rendered
 ---
 ╭─────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ ✨ Update available! 0.0.0 -> 9.9.9                                                                 │
-│ Run sh -c 'curl -fsSL http://localhost:3000/install.sh | DITFA_NON_INTERACTIVE=1 sh' to update. │
+│ Run sh -c 'curl -fsSL https://chat.ditfa.com/install.sh | DITFA_NON_INTERACTIVE=1 sh' to update. │
 │                                                                                                     │
 │ See full release notes:                                                                             │
-│ https://github.com/openai/codex/releases/latest                                                     │
+│ https://github.com/ditfa-dev/ditfa-cli/releases/latest                                                     │
 ╰─────────────────────────────────────────────────────────────────────────────────────────────────────╯

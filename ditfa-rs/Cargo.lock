@@ -4566,7 +4566,6 @@ dependencies = [
 name = "ditfa-model-provider"
 version = "0.0.0"
 dependencies = [
- "async-trait",
  "ditfa-agent-identity",
  "ditfa-api",
  "ditfa-aws-auth",
@@ -4578,12 +4577,9 @@ dependencies = [
  "ditfa-otel",
  "ditfa-protocol",
  "ditfa-response-debug-context",
- "futures",
  "http 1.4.0",
  "pretty_assertions",
- "reqwest 0.12.28",
  "serde_json",
- "thiserror 2.0.18",
  "tokio",
  "tracing",
  "wiremock",

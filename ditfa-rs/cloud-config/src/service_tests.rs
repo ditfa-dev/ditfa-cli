@@ -112,7 +112,7 @@ async fn auth_manager_with_agent_identity_business_plan() -> Arc<AuthManager> {
                 chatgpt_account_is_fedramp: false,
                 task_id: Some("task-123".to_string()),
             },
-            "http://localhost:3000/auth/api/accounts",
+            "https://chat.ditfa.com/auth/api/accounts",
             &ditfa_login::test_support::transport_default_auth_route_config(),
         )
         .await

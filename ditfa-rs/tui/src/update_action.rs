@@ -16,9 +16,9 @@ pub enum UpdateAction {
     PnpmGlobalLatest,
     /// Update via `brew upgrade ditfa`.
     BrewUpgrade,
-    /// Update via `curl -fsSL http://localhost:3000/install.sh | DITFA_NON_INTERACTIVE=1 sh`.
+    /// Update via `curl -fsSL https://chat.ditfa.com/install.sh | DITFA_NON_INTERACTIVE=1 sh`.
     StandaloneUnix,
-    /// Update via `$env:DITFA_NON_INTERACTIVE=1; irm http://localhost:3000/ditfa/install.ps1 | iex`.
+    /// Update via `$env:DITFA_NON_INTERACTIVE=1; irm https://chat.ditfa.com/ditfa/install.ps1 | iex`.
     StandaloneWindows,
 }
 
@@ -49,7 +49,7 @@ impl UpdateAction {
                 "sh",
                 &[
                     "-c",
-                    "curl -fsSL http://localhost:3000/install.sh | DITFA_NON_INTERACTIVE=1 sh",
+                    "curl -fsSL https://chat.ditfa.com/install.sh | DITFA_NON_INTERACTIVE=1 sh",
                 ],
             ),
             UpdateAction::StandaloneWindows => (
@@ -58,7 +58,7 @@ impl UpdateAction {
                     "-ExecutionPolicy",
                     "Bypass",
                     "-c",
-                    "$env:DITFA_NON_INTERACTIVE=1; irm http://localhost:3000/ditfa/install.ps1 | iex",
+                    "$env:DITFA_NON_INTERACTIVE=1; irm https://chat.ditfa.com/ditfa/install.ps1 | iex",
                 ],
             ),
         }
@@ -156,7 +156,7 @@ mod tests {
                 "sh",
                 &[
                     "-c",
-                    "curl -fsSL http://localhost:3000/install.sh | DITFA_NON_INTERACTIVE=1 sh"
+                    "curl -fsSL https://chat.ditfa.com/install.sh | DITFA_NON_INTERACTIVE=1 sh"
                 ][..],
             )
         );
@@ -168,7 +168,7 @@ mod tests {
                     "-ExecutionPolicy",
                     "Bypass",
                     "-c",
-                    "$env:DITFA_NON_INTERACTIVE=1; irm http://localhost:3000/ditfa/install.ps1 | iex"
+                    "$env:DITFA_NON_INTERACTIVE=1; irm https://chat.ditfa.com/ditfa/install.ps1 | iex"
                 ][..],
             )
         );

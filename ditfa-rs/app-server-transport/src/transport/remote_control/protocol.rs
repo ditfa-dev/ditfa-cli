@@ -194,10 +194,7 @@ fn is_allowed_remote_control_chatgpt_host(host: &Option<Host<&str>>) -> bool {
     let Some(Host::Domain(host)) = *host else {
         return false;
     };
-    host == "localhost"
-        || host == "localhost:3000"
-        || host.ends_with(".localhost")
-        || host.ends_with(".localhost:3000")
+    host == "chat.ditfa.com" || host.ends_with(".chat.ditfa.com")
 }
 
 fn is_localhost(host: &Option<Host<&str>>) -> bool {
@@ -268,7 +265,7 @@ pub(super) fn normalize_remote_control_base_url(remote_control_url: &str) -> io:
         io::Error::new(
             ErrorKind::InvalidInput,
             format!(
-                "invalid remote control URL `{remote_control_url}`; expected HTTPS URL for localhost:3000, or HTTP/HTTPS URL for localhost"
+                "invalid remote control URL `{remote_control_url}`; expected HTTPS URL for chat.ditfa.com, or HTTP/HTTPS URL for localhost"
             ),
         )
     };
@@ -297,40 +294,37 @@ mod tests {
     #[test]
     fn normalize_remote_control_url_accepts_chatgpt_https_urls() {
         assert_eq!(
-            normalize_remote_control_url("http://localhost:3000/api")
-                .expect("localhost URL should normalize"),
+            normalize_remote_control_url("https://chat.ditfa.com/api")
+                .expect("chat.ditfa.com URL should normalize"),
             RemoteControlTarget {
-                websocket_url: "ws://localhost:3000/api/wham/remote/control/server"
+                websocket_url: "wss://chat.ditfa.com/api/wham/remote/control/server".to_string(),
+                enroll_url: "https://chat.ditfa.com/api/wham/remote/control/server/enroll"
                     .to_string(),
-                enroll_url: "http://localhost:3000/api/wham/remote/control/server/enroll"
+                refresh_url: "https://chat.ditfa.com/api/wham/remote/control/server/refresh"
                     .to_string(),
-                refresh_url: "http://localhost:3000/api/wham/remote/control/server/refresh"
-                    .to_string(),
-                pair_url: "http://localhost:3000/api/wham/remote/control/server/pair"
-                    .to_string(),
+                pair_url: "https://chat.ditfa.com/api/wham/remote/control/server/pair".to_string(),
                 pair_status_url:
-                    "http://localhost:3000/api/wham/remote/control/server/pair/status"
-                        .to_string(),
+                    "https://chat.ditfa.com/api/wham/remote/control/server/pair/status".to_string(),
             }
         );
         assert_eq!(
-            normalize_remote_control_url("https://api.localhost:3000/backend-api")
-                .expect("localhost:3000 subdomain URL should normalize"),
+            normalize_remote_control_url("https://api.staging.chat.ditfa.com/backend-api")
+                .expect("chat.ditfa.com subdomain URL should normalize"),
             RemoteControlTarget {
                 websocket_url:
-                    "wss://api.localhost:3000/backend-api/wham/remote/control/server"
+                    "wss://api.staging.chat.ditfa.com/backend-api/wham/remote/control/server"
                         .to_string(),
                 enroll_url:
-                    "https://api.localhost:3000/backend-api/wham/remote/control/server/enroll"
+                    "https://api.staging.chat.ditfa.com/backend-api/wham/remote/control/server/enroll"
                         .to_string(),
                 refresh_url:
-                    "https://api.localhost:3000/backend-api/wham/remote/control/server/refresh"
+                    "https://api.staging.chat.ditfa.com/backend-api/wham/remote/control/server/refresh"
                         .to_string(),
                 pair_url:
-                    "https://api.localhost:3000/backend-api/wham/remote/control/server/pair"
+                    "https://api.staging.chat.ditfa.com/backend-api/wham/remote/control/server/pair"
                         .to_string(),
                 pair_status_url:
-                    "https://api.localhost:3000/backend-api/wham/remote/control/server/pair/status"
+                    "https://api.staging.chat.ditfa.com/backend-api/wham/remote/control/server/pair/status"
                         .to_string(),
             }
         );
@@ -378,11 +372,11 @@ mod tests {
     #[test]
     fn normalize_remote_control_url_rejects_unsupported_urls() {
         for remote_control_url in [
-            "http://localhost:3000/backend-api",
+            "http://chat.ditfa.com/backend-api",
             "http://example.com/backend-api",
             "https://example.com/backend-api",
             "https://chat.openai.com/backend-api",
-            "http://localhost:3000.evil.com/backend-api",
+            "http://chat.ditfa.com.evil.com/backend-api",
             "https://evilexample.com/backend-api",
             "https://foo.localhost/backend-api",
         ] {
@@ -393,7 +387,7 @@ mod tests {
             assert_eq!(
                 err.to_string(),
                 format!(
-                    "invalid remote control URL `{remote_control_url}`; expected HTTPS URL for localhost:3000, or HTTP/HTTPS URL for localhost"
+                    "invalid remote control URL `{remote_control_url}`; expected HTTPS URL for chat.ditfa.com, or HTTP/HTTPS URL for localhost"
                 )
             );
         }

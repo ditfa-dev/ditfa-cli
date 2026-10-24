@@ -417,7 +417,7 @@ async fn mcp_tool_call_span_records_error_type_and_error_code() {
             server_name: DITFA_APPS_MCP_SERVER_NAME,
             tool_name: "calendar_search",
             call_id: "call-123",
-            server_origin: Some("http://localhost:3000/api/codex/ps/mcp"),
+            server_origin: Some("https://chat.ditfa.com/api/ditfa/ps/mcp"),
             connector_id: Some("calendar"),
             connector_name: Some("Calendar"),
         },

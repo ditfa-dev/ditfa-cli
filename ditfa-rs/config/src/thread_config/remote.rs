@@ -159,6 +159,7 @@ fn model_provider_from_proto(
     let id = provider.id;
     let wire_api = match proto::WireApi::try_from(provider.wire_api) {
         Ok(proto::WireApi::Responses) => WireApi::Responses,
+        Ok(proto::WireApi::Chat) => WireApi::Chat,
         Ok(proto::WireApi::Unspecified) => {
             return Err(parse_error("remote thread config omitted wire_api"));
         }
@@ -292,6 +293,7 @@ fn proto_string_map(values: HashMap<String, String>) -> proto::StringMap {
 fn proto_wire_api(wire_api: WireApi) -> proto::WireApi {
     match wire_api {
         WireApi::Responses => proto::WireApi::Responses,
+        WireApi::Chat => proto::WireApi::Chat,
     }
 }
 
@@ -455,7 +457,7 @@ mod tests {
                         model_providers: vec![proto::ModelProvider {
                             id: "local".to_string(),
                             name: "Local".to_string(),
-                            base_url: Some("http://127.0.0.1:8061/api/codex".to_string()),
+                            base_url: Some("http://127.0.0.1:8061/api/ditfa".to_string()),
                             env_key: None,
                             env_key_instructions: None,
                             experimental_bearer_token: None,
@@ -525,7 +527,7 @@ mod tests {
     fn expected_provider() -> ModelProviderInfo {
         ModelProviderInfo {
             name: "Local".to_string(),
-            base_url: Some("http://127.0.0.1:8061/api/codex".to_string()),
+            base_url: Some("http://127.0.0.1:8061/api/ditfa".to_string()),
             env_key: None,
             env_key_instructions: None,
             experimental_bearer_token: None,

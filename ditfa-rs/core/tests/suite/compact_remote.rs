@@ -433,7 +433,7 @@ async fn remote_compact_replaces_history_for_followups() -> Result<()> {
     );
     let compact_metadata: Value = serde_json::from_str(
         &compact_request
-            .header("x-codex-turn-metadata")
+            .header("x-ditfa-turn-metadata")
             .expect("remote compact request should include turn metadata"),
     )
     .expect("remote compact turn metadata should be valid json");
@@ -453,7 +453,7 @@ async fn remote_compact_replaces_history_for_followups() -> Result<()> {
     );
     assert_eq!(
         compact_metadata["window_id"].as_str(),
-        compact_request.header("x-codex-window-id").as_deref()
+        compact_request.header("x-ditfa-window-id").as_deref()
     );
     assert_eq!(
         compact_metadata["compaction"],
@@ -474,7 +474,7 @@ async fn remote_compact_replaces_history_for_followups() -> Result<()> {
     let first_response_request = response_requests.first().expect("initial request missing");
     let first_response_metadata: Value = serde_json::from_str(
         &first_response_request
-            .header("x-codex-turn-metadata")
+            .header("x-ditfa-turn-metadata")
             .expect("initial request should include turn metadata"),
     )
     .expect("initial turn metadata should be valid json");
@@ -516,7 +516,7 @@ async fn remote_compact_replaces_history_for_followups() -> Result<()> {
     let follow_up_request = response_requests.last().expect("follow-up request missing");
     let follow_up_metadata: Value = serde_json::from_str(
         &follow_up_request
-            .header("x-codex-turn-metadata")
+            .header("x-ditfa-turn-metadata")
             .expect("follow-up request should include turn metadata"),
     )
     .expect("follow-up turn metadata should be valid json");
@@ -535,7 +535,7 @@ async fn remote_compact_replaces_history_for_followups() -> Result<()> {
     );
     assert_eq!(
         follow_up_metadata["window_id"].as_str(),
-        follow_up_request.header("x-codex-window-id").as_deref()
+        follow_up_request.header("x-ditfa-window-id").as_deref()
     );
     assert_ne!(
         follow_up_metadata["window_id"], compact_metadata["window_id"],
@@ -590,7 +590,7 @@ async fn remote_compact_uses_agent_identity_assertion() -> Result<()> {
                     chatgpt_account_is_fedramp: false,
                     task_id: Some("task-compact".to_string()),
                 },
-                "http://localhost:3000/auth/api/accounts",
+                "https://chat.ditfa.com/auth/api/accounts",
                 &ditfa_login::test_support::transport_default_auth_route_config(),
             )
             .await?,
@@ -999,7 +999,7 @@ async fn remote_compact_v2_reuses_compaction_trigger_for_followups() -> Result<(
     assert_eq!(compact_request.path(), "/v1/responses");
     let compact_metadata: Value = serde_json::from_str(
         &compact_request
-            .header("x-codex-turn-metadata")
+            .header("x-ditfa-turn-metadata")
             .expect("v2 compact request should include turn metadata"),
     )
     .expect("v2 compact turn metadata should be valid json");
@@ -1009,10 +1009,10 @@ async fn remote_compact_v2_reuses_compaction_trigger_for_followups() -> Result<(
     );
     assert_eq!(
         compact_metadata["window_id"].as_str(),
-        compact_request.header("x-codex-window-id").as_deref()
+        compact_request.header("x-ditfa-window-id").as_deref()
     );
     assert_eq!(
-        compact_request.body_json()["client_metadata"]["x-codex-window-id"].as_str(),
+        compact_request.body_json()["client_metadata"]["x-ditfa-window-id"].as_str(),
         compact_metadata["window_id"].as_str()
     );
     assert_eq!(
@@ -1541,7 +1541,7 @@ async fn remote_compact_runs_automatically() -> Result<()> {
     let compact_metadata: Value = serde_json::from_str(
         &compact_mock
             .single_request()
-            .header("x-codex-turn-metadata")
+            .header("x-ditfa-turn-metadata")
             .expect("auto remote compact request should include turn metadata"),
     )
     .expect("auto remote compact turn metadata should be valid json");
@@ -1562,7 +1562,7 @@ async fn remote_compact_runs_automatically() -> Result<()> {
     let initial_metadata: Value = serde_json::from_str(
         &initial_request
             .single_request()
-            .header("x-codex-turn-metadata")
+            .header("x-ditfa-turn-metadata")
             .expect("initial request should include turn metadata"),
     )
     .expect("initial turn metadata should be valid json");
@@ -1577,7 +1577,7 @@ async fn remote_compact_runs_automatically() -> Result<()> {
     let follow_up_request = responses_mock.single_request();
     let follow_up_metadata: Value = serde_json::from_str(
         &follow_up_request
-            .header("x-codex-turn-metadata")
+            .header("x-ditfa-turn-metadata")
             .expect("post-compaction continuation should include turn metadata"),
     )
     .expect("post-compaction turn metadata should be valid json");

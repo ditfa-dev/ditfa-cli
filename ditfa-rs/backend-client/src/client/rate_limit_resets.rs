@@ -79,7 +79,7 @@ impl Client {
 
     fn rate_limit_status_url(&self) -> String {
         match self.path_style {
-            PathStyle::DitfaApi => format!("{}/api/codex/usage", self.base_url),
+            PathStyle::DitfaApi => format!("{}/api/ditfa/usage", self.base_url),
             PathStyle::ChatGptApi => format!("{}/wham/usage", self.base_url),
         }
     }
@@ -87,7 +87,7 @@ impl Client {
     fn rate_limit_reset_credits_url(&self) -> String {
         match self.path_style {
             PathStyle::DitfaApi => {
-                format!("{}/api/codex/rate-limit-reset-credits", self.base_url)
+                format!("{}/api/ditfa/rate-limit-reset-credits", self.base_url)
             }
             PathStyle::ChatGptApi => {
                 format!("{}/wham/rate-limit-reset-credits", self.base_url)
@@ -99,7 +99,7 @@ impl Client {
         match self.path_style {
             PathStyle::DitfaApi => {
                 format!(
-                    "{}/api/codex/rate-limit-reset-credits/consume",
+                    "{}/api/ditfa/rate-limit-reset-credits/consume",
                     self.base_url
                 )
             }

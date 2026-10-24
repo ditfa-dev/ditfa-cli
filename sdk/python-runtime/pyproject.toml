@@ -21,9 +21,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/openai/codex"
-Repository = "https://github.com/openai/codex"
-Issues = "https://github.com/openai/codex/issues"
+Homepage = "https://github.com/ditfa-dev/ditfa-cli"
+Repository = "https://github.com/ditfa-dev/ditfa-cli"
+Issues = "https://github.com/ditfa-dev/ditfa-cli/issues"
 
 [tool.hatch.build]
 exclude = [

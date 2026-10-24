@@ -1,5 +1,12 @@
+Ditfa CLI
+Copyright 2026 Ditfa
+
+This product is a derivative work of OpenAI Codex, licensed under the
+Apache License 2.0. The original notice is reproduced below as the license
+requires.
+
 OpenAI Codex
-Copyright 2025 OpenAI
+Copyright 2025 OpenAI
 
 This project includes code derived from [Ratatui](https://github.com/ratatui/ratatui), licensed under the MIT license.
 Copyright (c) 2016-2022 Florian Dehau

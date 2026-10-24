@@ -54,7 +54,7 @@ use tracing::error;
 use tracing::info;
 use tracing::warn;
 
-pub(super) const DEFAULT_ISSUER: &str = "http://localhost:3000/auth";
+pub(super) const DEFAULT_ISSUER: &str = "https://chat.ditfa.com/auth";
 const DEFAULT_PORT: u16 = 1455;
 // Keep in sync with the Ditfa CLI Hydra redirect URI allow-list.
 const FALLBACK_PORT: u16 = 1457;
@@ -1234,7 +1234,7 @@ mod tests {
     #[test]
     fn redact_sensitive_url_parts_preserves_safe_url_shape() {
         let mut url = url::Url::parse(
-            "https://user:pass@localhost:3000/auth/oauth/token?code=abc123&redirect_uri=http%3A%2F%2Flocalhost%3A1455%2Fauth%2Fcallback#frag",
+            "https://user:pass@staging.chat.ditfa.com/auth/oauth/token?code=abc123&redirect_uri=http%3A%2F%2Flocalhost%3A1455%2Fauth%2Fcallback#frag",
         )
         .expect("valid url");
 
@@ -1242,7 +1242,7 @@ mod tests {
 
         assert_eq!(
             url.as_str(),
-            "http://localhost:3000/auth/oauth/token?code=%3Credacted%3E&redirect_uri=http%3A%2F%2Flocalhost%3A1455%2Fauth%2Fcallback"
+            "https://chat.ditfa.com/auth/oauth/token?code=%3Credacted%3E&redirect_uri=http%3A%2F%2Flocalhost%3A1455%2Fauth%2Fcallback"
         );
     }
 

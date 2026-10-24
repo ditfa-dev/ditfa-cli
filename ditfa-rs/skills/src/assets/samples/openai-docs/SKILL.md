@@ -158,7 +158,7 @@ Read only what you need:
 
 - `https://developers.openai.com/api/docs/guides/latest-model.md` -> current model-selection and "best/latest/current model" questions.
 - `scripts/fetch-ditfa-manual.mjs` -> current Ditfa manual fetch, verification, local temp cache, and outline generation.
-- `https://developers.openai.com/codex/codex-manual.md` -> current Ditfa self-knowledge synthesis, including setup, customization, skills, plugins, MCP, hooks, `AGENTS.md`, automations, and surface behavior; normally access it through the helper path and targeted file reads when temp caching is available.
+- `https://raw.githubusercontent.com/ditfa-dev/ditfa-cli/main/docs/getting-started.md` -> current Ditfa self-knowledge synthesis, including setup, customization, skills, plugins, MCP, hooks, `AGENTS.md`, automations, and surface behavior; normally access it through the helper path and targeted file reads when temp caching is available.
 - `references/latest-model.md` -> bundled fallback for model-selection and "best/latest/current model" questions.
 - `references/upgrade-guide.md` -> bundled routing fallback for model upgrade and upgrade-planning requests.
 - `references/upgrading-to-gpt-5p6-sol.md` -> GPT-5.6 Sol/family migration judgment, compatibility gates, optional feature boundaries, and validation.

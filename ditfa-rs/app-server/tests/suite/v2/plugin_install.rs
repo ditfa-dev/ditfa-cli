@@ -360,7 +360,7 @@ async fn plugin_install_uses_remote_apps_needing_auth_response() -> Result<()> {
                 id: "alpha".to_string(),
                 name: "Alpha".to_string(),
                 description: Some("Alpha connector".to_string()),
-                install_url: Some("http://localhost:3000/apps/alpha/alpha".to_string()),
+                install_url: Some("https://chat.ditfa.com/apps/alpha/alpha".to_string()),
                 category: Some("Developer Tools".to_string()),
             }],
         }
@@ -1239,7 +1239,7 @@ async fn plugin_install_returns_apps_needing_auth() -> Result<()> {
                 id: "alpha".to_string(),
                 name: "Alpha".to_string(),
                 description: Some("Alpha connector".to_string()),
-                install_url: Some("http://localhost:3000/apps/alpha/alpha".to_string()),
+                install_url: Some("https://chat.ditfa.com/apps/alpha/alpha".to_string()),
                 category: Some("Communication".to_string()),
             }],
         }
@@ -1390,7 +1390,7 @@ async fn plugin_install_starts_mcp_oauth_with_formerly_disallowed_plugin_app() -
                 name: "asdk_app_6938a94a61d881918ef32cb999ff937c".to_string(),
                 description: None,
                 install_url: Some(
-                    "http://localhost:3000/apps/asdk-app-6938a94a61d881918ef32cb999ff937c/asdk_app_6938a94a61d881918ef32cb999ff937c"
+                    "https://chat.ditfa.com/apps/asdk-app-6938a94a61d881918ef32cb999ff937c/asdk_app_6938a94a61d881918ef32cb999ff937c"
                         .to_string(),
                 ),
                 category: None,
@@ -1580,7 +1580,7 @@ async fn plugin_install_starts_remote_mcp_oauth_for_install_response_only_app() 
                 id: "alpha".to_string(),
                 name: "alpha".to_string(),
                 description: None,
-                install_url: Some("http://localhost:3000/apps/alpha/alpha".to_string()),
+                install_url: Some("https://chat.ditfa.com/apps/alpha/alpha".to_string()),
                 category: None,
             }],
         }
@@ -1628,7 +1628,7 @@ async fn plugin_install_skips_remote_mcp_oauth_for_bundled_same_name_app() -> Re
                 id: "alpha".to_string(),
                 name: "alpha".to_string(),
                 description: None,
-                install_url: Some("http://localhost:3000/apps/alpha/alpha".to_string()),
+                install_url: Some("https://chat.ditfa.com/apps/alpha/alpha".to_string()),
                 category: None,
             }],
         }
@@ -1715,7 +1715,7 @@ async fn plugin_install_includes_formerly_disallowed_apps_needing_auth() -> Resu
                 id: "alpha".to_string(),
                 name: "Alpha".to_string(),
                 description: Some("Alpha connector".to_string()),
-                install_url: Some("http://localhost:3000/apps/alpha/alpha".to_string()),
+                install_url: Some("https://chat.ditfa.com/apps/alpha/alpha".to_string()),
                 category: None,
             },
             AppSummary {
@@ -1723,7 +1723,7 @@ async fn plugin_install_includes_formerly_disallowed_apps_needing_auth() -> Resu
                 name: "asdk_app_6938a94a61d881918ef32cb999ff937c".to_string(),
                 description: None,
                 install_url: Some(
-                    "http://localhost:3000/apps/asdk-app-6938a94a61d881918ef32cb999ff937c/asdk_app_6938a94a61d881918ef32cb999ff937c"
+                    "https://chat.ditfa.com/apps/asdk-app-6938a94a61d881918ef32cb999ff937c/asdk_app_6938a94a61d881918ef32cb999ff937c"
                         .to_string(),
                 ),
                 category: None,
@@ -1933,7 +1933,7 @@ async fn start_apps_server(
         )
         .route("/ps/apps/batch", post(batch_apps))
         .with_state(state)
-        .nest_service("/api/codex/ps/mcp", mcp_service);
+        .nest_service("/api/ditfa/ps/mcp", mcp_service);
 
     let handle = tokio::spawn(async move {
         let _ = axum::serve(listener, router).await;
@@ -2082,7 +2082,7 @@ fn write_analytics_config(ditfa_home: &std::path::Path, base_url: &str) -> std::
 
 async fn mount_backend_analytics_events(server: &MockServer) {
     Mock::given(method("POST"))
-        .and(path("/backend-api/codex/analytics-events/events"))
+        .and(path("/backend-api/ditfa/analytics-events/events"))
         .respond_with(ResponseTemplate::new(200).set_body_string(r#"{"status":"ok"}"#))
         .mount(server)
         .await;

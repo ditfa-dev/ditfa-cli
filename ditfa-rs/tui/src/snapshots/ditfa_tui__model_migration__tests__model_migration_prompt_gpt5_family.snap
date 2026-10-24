@@ -8,6 +8,6 @@ expression: terminal.backend()
   We recommend switching from gpt-5 to gpt-5.1.
 
   Broad world knowledge with strong general reasoning. Learn more
-  about gpt-5.1 at https://www.ditfa.com/models/gpt-5.1
+  about gpt-5.1 at https://platform.openai.com/docs/models/gpt-5.1
 
   Press enter to continue

@@ -270,7 +270,7 @@ fn new_config(model: Option<String>, arg0_paths: Arg0DispatchPaths) -> anyhow::R
         model_reasoning_summary: None,
         model_catalog: None,
         model_verbosity: None,
-        chatgpt_base_url: "http://localhost:3000/api/".to_string(),
+        chatgpt_base_url: "https://chat.ditfa.com/api/".to_string(),
         respect_system_proxy: false,
         apps_mcp_product_sku: None,
         realtime_audio: RealtimeAudioConfig::default(),

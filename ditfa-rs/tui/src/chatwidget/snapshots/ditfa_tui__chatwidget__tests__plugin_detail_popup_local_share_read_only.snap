@@ -12,7 +12,7 @@ expression: strip_osc8_for_snapshot(&popup)
      Source           Local
      Auth             Auth on install
      Version          remote 7
-     Sharing          Private · creator Test User · http://localhost:3000/ditfa/plugins/share/docs
+     Sharing          Private · creator Test User · https://chat.ditfa.com/ditfa/plugins/share/docs
      Skills           No plugin skills.
      Hooks            No plugin hooks.
 

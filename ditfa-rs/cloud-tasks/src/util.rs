@@ -34,7 +34,7 @@ pub fn normalize_base_url(input: &str) -> String {
     while base_url.ends_with('/') {
         base_url.pop();
     }
-    if (base_url.starts_with("http://localhost:3000")
+    if (base_url.starts_with("https://chat.ditfa.com")
         || base_url.starts_with("https://chat.openai.com"))
         && !base_url.contains("/backend-api")
     {
@@ -99,7 +99,7 @@ pub fn task_url(base_url: &str, task_id: &str) -> String {
     if let Some(root) = normalized.strip_suffix("/backend-api") {
         return format!("{root}/ditfa/tasks/{task_id}");
     }
-    if let Some(root) = normalized.strip_suffix("/api/codex") {
+    if let Some(root) = normalized.strip_suffix("/api/ditfa") {
         return format!("{root}/ditfa/tasks/{task_id}");
     }
     if normalized.ends_with("/ditfa") {

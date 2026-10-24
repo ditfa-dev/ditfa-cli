@@ -2088,7 +2088,7 @@ async fn login_account_chatgpt_redirects_to_hosted_success_page() -> Result<()> 
             (LOGIN_ISSUER_ENV_VAR, Some(issuer.as_str())),
             (
                 LOGIN_OPEN_APP_URL_ENV_VAR,
-                Some("http://localhost:3000/ditfa/open-app"),
+                Some("https://chat.ditfa.com/ditfa/open-app"),
             ),
         ])
         .build_initialized_with_timeout(DEFAULT_READ_TIMEOUT)
@@ -2127,7 +2127,7 @@ async fn login_account_chatgpt_redirects_to_hosted_success_page() -> Result<()> 
     assert_eq!(response.status(), 302);
     assert_eq!(
         response.headers()["location"].to_str()?,
-        "http://localhost:3000/ditfa/open-app?source=login&app_brand=chatgpt"
+        "https://chat.ditfa.com/ditfa/open-app?source=login&app_brand=chatgpt"
     );
     Ok(())
 }

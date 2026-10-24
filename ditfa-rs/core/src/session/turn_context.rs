@@ -5,6 +5,7 @@ use ditfa_core_skills::HostSkillsSnapshot;
 use ditfa_file_system::FileSystemSandboxContext;
 use ditfa_model_provider::SharedModelProvider;
 use ditfa_model_provider::create_model_provider;
+use ditfa_model_provider_info::WireApi;
 use ditfa_protocol::SessionId;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::models::AdditionalPermissionProfile;
@@ -803,7 +804,11 @@ impl Session {
     }
 
     pub(crate) async fn maybe_emit_model_warnings_for_turn(&self, tc: &TurnContext) {
-        if tc.model_info.used_fallback_model_metadata {
+        // Chat Completions providers serve models the bundled catalog never lists, so generic
+        // metadata is expected there rather than a sign of a typo.
+        if tc.model_info.used_fallback_model_metadata
+            && tc.provider.info().wire_api == WireApi::Responses
+        {
             self.send_event(
                 tc,
                 EventMsg::Warning(WarningEvent {

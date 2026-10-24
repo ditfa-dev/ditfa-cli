@@ -232,7 +232,7 @@ pub(crate) fn line_has_mixed_url_and_non_url_tokens(line: &Line<'_>) -> bool {
 ///
 /// Recognized patterns:
 /// - Absolute URLs with a scheme (`https://…`, `ftp://…`, custom `myapp://…`).
-/// - Bare domain URLs (`example.com/path`, `www.example.com`, `localhost:3000/api`).
+/// - Bare domain URLs (`example.com/path`, `www.example.com`, `staging.chat.ditfa.com/api`).
 /// - IPv4 hosts with a path (`192.168.1.1:8080/health`).
 ///
 /// Surrounding punctuation (`()[]{}< >,.;:!'"`) is stripped before
@@ -1312,7 +1312,7 @@ them."#
             "ftp://host/path",
             "www.example.com/path?x=1",
             "example.test/path#frag",
-            "localhost:3000/api",
+            "staging.chat.ditfa.com/api",
             "127.0.0.1:8080/health",
             "(https://example.com/wrapped-in-parens)",
         ];

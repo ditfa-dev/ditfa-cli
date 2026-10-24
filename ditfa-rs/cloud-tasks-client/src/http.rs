@@ -293,7 +293,7 @@ mod api {
 
             let url = match details_path(self.base_url, &id.0) {
                 Some(url) => url,
-                None => format!("{}/api/codex/tasks/{}", self.base_url, id.0),
+                None => format!("{}/api/ditfa/tasks/{}", self.base_url, id.0),
             };
             Err(CloudTaskError::Http(format!(
                 "No assistant text messages in response. GET {url}; content-type={ct}; body={body}"
@@ -577,7 +577,7 @@ mod api {
     fn details_path(base_url: &str, id: &str) -> Option<String> {
         if base_url.contains("/backend-api") {
             Some(format!("{base_url}/wham/tasks/{id}"))
-        } else if base_url.contains("/api/codex") {
+        } else if base_url.contains("/api/ditfa") {
             Some(format!("{base_url}/tasks/{id}"))
         } else {
             None

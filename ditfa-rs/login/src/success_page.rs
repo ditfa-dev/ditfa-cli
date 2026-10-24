@@ -4,7 +4,7 @@ use url::Url;
 
 use crate::server::DEFAULT_ISSUER;
 
-pub const DITFA_OPEN_APP_URL: &str = "http://localhost:3000/ditfa/open-app";
+pub const DITFA_OPEN_APP_URL: &str = "https://chat.ditfa.com/ditfa/open-app";
 
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
 pub enum LoginSuccessPage {

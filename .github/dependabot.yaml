@@ -1,41 +1,23 @@
-# https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference#package-ecosystem-
+# https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
 
 version: 2
 updates:
-  - package-ecosystem: bun
-    directory: .github/actions/ditfa
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 7
   - package-ecosystem: cargo
-    directories:
-      - ditfa-rs
-      - ditfa-rs/*
+    directory: ditfa-rs
     schedule:
       interval: weekly
+    open-pull-requests-limit: 5
     cooldown:
       default-days: 7
-  - package-ecosystem: devcontainers
-    directory: /
+  - package-ecosystem: npm
+    directory: ditfa-vscode
     schedule:
       interval: weekly
-    cooldown:
-      default-days: 7
-  - package-ecosystem: docker
-    directory: ditfa-cli
-    schedule:
-      interval: weekly
+    open-pull-requests-limit: 5
     cooldown:
       default-days: 7
   - package-ecosystem: github-actions
     directory: /
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 7
-  - package-ecosystem: rust-toolchain
-    directory: ditfa-rs
     schedule:
       interval: weekly
     cooldown:

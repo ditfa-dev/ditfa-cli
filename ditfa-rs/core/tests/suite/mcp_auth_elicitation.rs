@@ -77,7 +77,7 @@ async fn ditfa_apps_auth_failure_requests_elicitation_by_default() -> Result<()>
     let server = start_mock_server().await;
     let apps_server = AppsTestServer::mount_searchable(&server).await?;
     Mock::given(method("POST"))
-        .and(path_regex("^/api/codex/ps/mcp/?$"))
+        .and(path_regex("^/api/ditfa/ps/mcp/?$"))
         .and(body_partial_json(json!({
             "method": "tools/call",
             "params": {
@@ -172,7 +172,7 @@ default_tools_approval_mode = "auto"
                         "is_auth_failure": true,
                         "connector_id": "calendar",
                         "connector_name": "Calendar",
-                        "install_url": "http://localhost:3000/apps/calendar/calendar",
+                        "install_url": "https://chat.ditfa.com/apps/calendar/calendar",
                         "auth_reason": "reauthentication_required",
                         "link_id": "link_123",
                         "error_code": "UNAUTHORIZED",
@@ -183,7 +183,7 @@ default_tools_approval_mode = "auto"
             })),
             message: "Reconnect Calendar on Ditfa to restore access for this request."
                 .to_string(),
-            url: "http://localhost:3000/apps/calendar/calendar".to_string(),
+            url: "https://chat.ditfa.com/apps/calendar/calendar".to_string(),
             elicitation_id: format!("ditfa_apps_auth_{call_id}"),
         }
     );

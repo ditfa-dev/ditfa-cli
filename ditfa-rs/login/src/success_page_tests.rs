@@ -64,7 +64,7 @@ fn compose_success_url_uses_hosted_page_when_requested() {
             },
         ),
         LoginSuccessRedirect::Hosted(
-            "http://localhost:3000/ditfa/open-app?source=login&app_brand=chatgpt".to_string()
+            "https://chat.ditfa.com/ditfa/open-app?source=login&app_brand=chatgpt".to_string()
         )
     );
 }

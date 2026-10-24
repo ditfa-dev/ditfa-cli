@@ -27,7 +27,7 @@ Make use of Markdown to format the pull request professionally. Ensure "code thi
 
 Make sure to reference any relevant pull requests or issues, though there should be no need to reference the pull request in its own PR body.
 
-If there is documentation that should be updated on https://developers.openai.com/codex as a result of this change, please note that in a separate section near the end of the pull request. Omit this section if there is no documentation that needs to be updated.
+If there is documentation that should be updated on https://github.com/ditfa-dev/ditfa-cli/tree/main/docs as a result of this change, please note that in a separate section near the end of the pull request. Omit this section if there is no documentation that needs to be updated.
 
 ## Working with Stacks
 

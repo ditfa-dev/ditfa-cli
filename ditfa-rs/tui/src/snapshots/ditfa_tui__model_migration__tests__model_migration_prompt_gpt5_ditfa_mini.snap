@@ -10,6 +10,6 @@ expression: terminal.backend()
 
   Optimized for ditfa. Cheaper, faster, but less capable.
   Learn more about gpt-5.1-codex-mini at
-  https://www.ditfa.com/models/gpt-5.1-codex-mini
+  https://platform.openai.com/docs/models/gpt-5.1-codex-mini
 
   Press enter to continue

@@ -135,8 +135,8 @@ async fn shutdown_thread(ditfa: &Arc<DitfaThread>) -> Result<()> {
 
 fn window_id_parts(request: &ResponsesRequest) -> (String, u64) {
     let window_id = request
-        .header("x-codex-window-id")
-        .expect("missing x-codex-window-id header");
+        .header("x-ditfa-window-id")
+        .expect("missing x-ditfa-window-id header");
     let (thread_id, generation) = window_id
         .rsplit_once(':')
         .expect("window id header should contain a generation");

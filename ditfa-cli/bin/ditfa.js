@@ -14,12 +14,12 @@ const require = createRequire(import.meta.url);
 const ditfaPackageRoot = realpathSync(path.join(__dirname, ".."));
 
 const PLATFORM_PACKAGE_BY_TARGET = {
-  "x86_64-unknown-linux-musl": "@ditfa/linux-x64",
-  "aarch64-unknown-linux-musl": "@ditfa/linux-arm64",
-  "x86_64-apple-darwin": "@ditfa/darwin-x64",
-  "aarch64-apple-darwin": "@ditfa/darwin-arm64",
-  "x86_64-pc-windows-msvc": "@ditfa/win32-x64",
-  "aarch64-pc-windows-msvc": "@ditfa/win32-arm64",
+  "x86_64-unknown-linux-gnu": "ditfa-linux-x64",
+  "aarch64-unknown-linux-gnu": "ditfa-linux-arm64",
+  "x86_64-apple-darwin": "ditfa-darwin-x64",
+  "aarch64-apple-darwin": "ditfa-darwin-arm64",
+  "x86_64-pc-windows-msvc": "ditfa-win32-x64",
+  "aarch64-pc-windows-msvc": "ditfa-win32-arm64",
 };
 
 const { platform, arch } = process;
@@ -30,10 +30,10 @@ switch (platform) {
   case "android":
     switch (arch) {
       case "x64":
-        targetTriple = "x86_64-unknown-linux-musl";
+        targetTriple = "x86_64-unknown-linux-gnu";
         break;
       case "arm64":
-        targetTriple = "aarch64-unknown-linux-musl";
+        targetTriple = "aarch64-unknown-linux-gnu";
         break;
       default:
         break;
@@ -68,7 +68,8 @@ switch (platform) {
 }
 
 if (!targetTriple) {
-  throw new Error(`Unsupported platform: ${platform} (${arch})`);
+  console.error(`ditfa: unsupported platform ${platform} (${arch})`);
+  process.exit(1);
 }
 
 const platformPackage = PLATFORM_PACKAGE_BY_TARGET[targetTriple];
@@ -102,9 +103,10 @@ function findDitfaExecutable() {
       : packageManager === "pnpm"
         ? "pnpm add -g ditfa@latest"
         : "npm install -g ditfa@latest";
-  throw new Error(
-    `Missing optional dependency ${platformPackage}. Reinstall Ditfa: ${updateCommand}`,
+  console.error(
+    `ditfa: missing optional dependency ${platformPackage}. Reinstall Ditfa: ${updateCommand}`,
   );
+  process.exit(1);
 }
 
 const binaryPath = findDitfaExecutable();
@@ -122,7 +124,7 @@ function isPnpmOwnedDitfaInstall(nodeModulesDir) {
 
   try {
     return (
-      realpathSync(path.join(nodeModulesDir, "@openai", "ditfa")) ===
+      realpathSync(path.join(nodeModulesDir, "ditfa")) ===
       ditfaPackageRoot
     );
   } catch {

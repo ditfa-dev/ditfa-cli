@@ -1632,7 +1632,7 @@ enabled = false
     assert_eq!(response.plugin.apps[0].name, "gmail");
     assert_eq!(
         response.plugin.apps[0].install_url.as_deref(),
-        Some("http://localhost:3000/apps/gmail/gmail")
+        Some("https://chat.ditfa.com/apps/gmail/gmail")
     );
     assert_eq!(
         response.plugin.apps[0].category.as_deref(),

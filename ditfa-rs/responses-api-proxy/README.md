@@ -97,7 +97,7 @@ printenv AZURE_OPENAI_API_KEY | env -u AZURE_OPENAI_API_KEY ditfa-responses-api-
 
 Care is taken to restrict access/copying to the value of `OPENAI_API_KEY` retained in memory:
 
-- We leverage [`ditfa_process_hardening`](https://github.com/openai/codex/blob/main/ditfa-rs/process-hardening/README.md) so `ditfa-responses-api-proxy` is run with standard process-hardening techniques.
+- We leverage [`ditfa_process_hardening`](https://github.com/ditfa-dev/ditfa-cli/blob/main/ditfa-rs/process-hardening/README.md) so `ditfa-responses-api-proxy` is run with standard process-hardening techniques.
 - At startup, we allocate a `1024` byte buffer on the stack and copy `"Bearer "` into the start of the buffer.
 - We then read from `stdin`, copying the contents into the buffer after `"Bearer "`.
 - After verifying the key matches `/^[a-zA-Z0-9_-]+$/` (and does not exceed the buffer), we create a `String` from that buffer (so the data is now on the heap).

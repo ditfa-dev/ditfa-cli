@@ -199,7 +199,7 @@ async fn hosted_login_redirects_to_configured_open_app_url() -> Result<()> {
         forced_chatgpt_workspace_id: None,
         ditfa_streamlined_login: false,
         login_success_page: LoginSuccessPage::Hosted {
-            url: Url::parse("http://localhost:3000/ditfa/open-app?source=old")?,
+            url: Url::parse("https://chat.ditfa.com/ditfa/open-app?source=old")?,
             app_brand: LoginSuccessPageBrand::Chatgpt,
         },
         auth_keyring_backend_kind: AuthKeyringBackendKind::Direct,
@@ -219,7 +219,7 @@ async fn hosted_login_redirects_to_configured_open_app_url() -> Result<()> {
     assert_eq!(response.status(), 302);
     assert_eq!(
         response.headers()["location"].to_str()?,
-        "http://localhost:3000/ditfa/open-app?source=login&app_brand=chatgpt"
+        "https://chat.ditfa.com/ditfa/open-app?source=login&app_brand=chatgpt"
     );
     tokio::time::timeout(Duration::from_secs(1), server.block_until_done()).await??;
 

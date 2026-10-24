@@ -74,7 +74,7 @@ async fn app_server_model_verification_renders_warning() {
     assert!(rendered.contains("multiple flags for possible cybersecurity risk"));
     assert!(rendered.contains("extra safety checks are on"));
     assert!(rendered.contains("Trusted Access for Cyber"));
-    assert!(rendered.contains("http://localhost:3000/cyber"));
+    assert!(rendered.contains("https://chat.ditfa.com/cyber"));
 }
 
 #[tokio::test]
@@ -159,7 +159,7 @@ async fn status_line_git_summary_items_render_values() {
     chat.status_line_git_summary = Some(StatusLineGitSummary {
         pull_request: Some(crate::branch_summary::StatusLinePullRequest {
             number: 20_252,
-            url: "https://github.com/openai/codex/pull/20252".to_string(),
+            url: "https://github.com/ditfa-dev/ditfa-cli/pull/20252".to_string(),
         }),
         branch_change_stats: Some(crate::branch_summary::GitBranchDiffStats {
             additions: 143,
@@ -222,7 +222,7 @@ async fn stale_status_line_git_summary_update_is_ignored() {
         StatusLineGitSummary {
             pull_request: Some(crate::branch_summary::StatusLinePullRequest {
                 number: 20_252,
-                url: "https://github.com/openai/codex/pull/20252".to_string(),
+                url: "https://github.com/ditfa-dev/ditfa-cli/pull/20252".to_string(),
             }),
             branch_change_stats: Some(crate::branch_summary::GitBranchDiffStats {
                 additions: 143,

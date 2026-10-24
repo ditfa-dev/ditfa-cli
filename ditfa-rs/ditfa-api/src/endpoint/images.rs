@@ -131,7 +131,7 @@ mod tests {
     fn provider() -> Provider {
         Provider {
             name: "test".to_string(),
-            base_url: "https://example.com/api/codex".to_string(),
+            base_url: "https://example.com/api/ditfa".to_string(),
             query_params: None,
             headers: HeaderMap::new(),
             retry: RetryConfig {
@@ -216,7 +216,7 @@ mod tests {
         let request = captured_request(&transport);
         assert_eq!(
             request.url,
-            "https://example.com/api/codex/images/generations"
+            "https://example.com/api/ditfa/images/generations"
         );
         assert_eq!(
             request.body.as_ref().and_then(RequestBody::json),
@@ -256,7 +256,7 @@ mod tests {
         assert_eq!(response, expected_response());
 
         let request = captured_request(&transport);
-        assert_eq!(request.url, "https://example.com/api/codex/images/edits");
+        assert_eq!(request.url, "https://example.com/api/ditfa/images/edits");
         assert_eq!(
             request.body.as_ref().and_then(RequestBody::json),
             Some(&json!({

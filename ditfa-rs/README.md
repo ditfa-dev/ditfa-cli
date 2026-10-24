@@ -1,3 +1,3 @@
 # Ditfa CLI
 
-[**Ditfa CLI Documentation**](https://developers.openai.com/codex/cli)
+[**Ditfa CLI Documentation**](https://github.com/ditfa-dev/ditfa-cli#readme)

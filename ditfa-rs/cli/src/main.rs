@@ -552,7 +552,7 @@ struct AppServerCommand {
     /// enabled = false
     /// ```
     ///
-    /// See https://developers.openai.com/codex/config-advanced/#metrics for more details.
+    /// See https://github.com/ditfa-dev/ditfa-cli/blob/main/docs/config.md#metrics for more details.
     #[arg(long = "analytics-default-enabled")]
     analytics_default_enabled: bool,
 
@@ -808,7 +808,7 @@ fn run_update_command() -> anyhow::Result<()> {
     {
         let Some(action) = ditfa_tui::get_update_action() else {
             anyhow::bail!(
-                "Could not detect the Ditfa installation method. Please update manually: https://developers.openai.com/codex/cli/"
+                "Could not detect the Ditfa installation method. Please update manually: https://github.com/ditfa-dev/ditfa-cli#readme"
             );
         };
         run_update_action(action)

@@ -224,7 +224,7 @@ deny = [
     # is a direct dependency of the otherwise banned crate
     #{ crate = "ansi_term@0.11.0", wrappers = ["this-crate-directly-depends-on-ansi_term"] },
     # Removing async-trait materially improves debug build times:
-    # https://github.com/openai/codex/pull/27304
+    # https://github.com/ditfa-dev/ditfa-cli/pull/27304
     { crate = "async-trait", wrappers = [
         "hickory-proto",
         "opentelemetry-http",

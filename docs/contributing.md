@@ -97,6 +97,6 @@ Found a vulnerability? Please follow the process in
 
 ### Attribution
 
-Ditfa Code is derived from [openai/ditfa](https://github.com/openai/codex),
+Ditfa Code is derived from [openai/ditfa](https://github.com/ditfa-dev/ditfa-cli),
 licensed under Apache-2.0. Contributions here are made under the same license.
 See [LICENSE](../LICENSE) and [NOTICE](../NOTICE).

@@ -111,16 +111,53 @@ supports_standalone_web_search = true
 }
 
 #[test]
-fn test_deserialize_chat_wire_api_shows_helpful_error() {
-    let provider_toml = r#"
+fn test_deserialize_chat_wire_api() {
+    for wire_api in ["chat", "chat_completions", "chat-completions"] {
+        let provider_toml = format!(
+            r#"
 name = "OpenAI using Chat Completions"
 base_url = "https://api.openai.com/v1"
 env_key = "OPENAI_API_KEY"
-wire_api = "chat"
+wire_api = "{wire_api}"
+        "#
+        );
+
+        let provider: ModelProviderInfo = toml::from_str(&provider_toml).unwrap();
+        assert_eq!(provider.wire_api, WireApi::Chat);
+    }
+}
+
+#[test]
+fn test_deserialize_unknown_wire_api_lists_variants() {
+    let provider_toml = r#"
+name = "Example"
+wire_api = "grpc"
         "#;
 
     let err = toml::from_str::<ModelProviderInfo>(provider_toml).unwrap_err();
-    assert!(err.to_string().contains(CHAT_WIRE_API_REMOVED_ERROR));
+    assert!(err.to_string().contains("responses"));
+    assert!(err.to_string().contains("chat"));
+}
+
+#[test]
+fn test_built_in_hosted_chat_providers() {
+    let providers = built_in_model_providers(/*openai_base_url*/ None);
+    let ditfa = &providers[DITFA_PROVIDER_ID];
+    assert_eq!(ditfa.wire_api, WireApi::Chat);
+    assert_eq!(ditfa.base_url.as_deref(), Some(DITFA_API_BASE_URL));
+    assert_eq!(ditfa.env_key.as_deref(), Some(DITFA_PROVIDER_ENV_KEY));
+    assert!(!ditfa.requires_openai_auth);
+    for id in [
+        ANTHROPIC_PROVIDER_ID,
+        GEMINI_PROVIDER_ID,
+        OPENROUTER_PROVIDER_ID,
+        DEEPSEEK_PROVIDER_ID,
+    ] {
+        let provider = &providers[id];
+        assert_eq!(provider.wire_api, WireApi::Chat, "{id}");
+        assert!(provider.env_key.is_some(), "{id}");
+        assert!(provider.validate().is_ok(), "{id}");
+    }
 }
 
 #[test]
@@ -561,4 +598,27 @@ refresh_interval_ms = 0
     let auth = provider.auth.expect("auth config should deserialize");
     assert_eq!(auth.refresh_interval_ms, 0);
     assert_eq!(auth.refresh_interval(), None);
+}
+
+#[test]
+fn test_configured_provider_overrides_hosted_chat_preset() {
+    let mut configured = HashMap::new();
+    configured.insert(
+        ANTHROPIC_PROVIDER_ID.to_string(),
+        create_chat_provider(
+            "Anthropic via proxy",
+            "https://proxy.example.com/v1",
+            "PROXY_KEY",
+            "",
+        ),
+    );
+    let merged = merge_configured_model_providers(
+        built_in_model_providers(/*openai_base_url*/ None),
+        configured,
+    )
+    .unwrap();
+    assert_eq!(
+        merged[ANTHROPIC_PROVIDER_ID].base_url.as_deref(),
+        Some("https://proxy.example.com/v1")
+    );
 }
