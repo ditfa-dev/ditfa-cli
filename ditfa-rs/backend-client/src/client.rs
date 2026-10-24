@@ -1007,7 +1007,8 @@ mod tests {
             "https://example.test/api/ditfa/accounts/send_add_credits_nudge_email"
         );
 
-        let chatgpt_client = test_client("https://chat.ditfa.com/backend-api", PathStyle::ChatGptApi);
+        let chatgpt_client =
+            test_client("https://chat.ditfa.com/backend-api", PathStyle::ChatGptApi);
         assert_eq!(
             chatgpt_client.send_add_credits_nudge_email_url(),
             "https://chat.ditfa.com/backend-api/wham/accounts/send_add_credits_nudge_email"
@@ -1037,7 +1038,8 @@ mod tests {
             "https://example.test/api/ditfa/profiles/me"
         );
 
-        let chatgpt_client = test_client("https://chat.ditfa.com/backend-api", PathStyle::ChatGptApi);
+        let chatgpt_client =
+            test_client("https://chat.ditfa.com/backend-api", PathStyle::ChatGptApi);
         assert_eq!(
             chatgpt_client.token_usage_profile_url(),
             "https://chat.ditfa.com/backend-api/wham/profiles/me"
@@ -1052,7 +1054,8 @@ mod tests {
             "https://example.test/api/ditfa/workspace-messages"
         );
 
-        let chatgpt_client = test_client("https://chat.ditfa.com/backend-api", PathStyle::ChatGptApi);
+        let chatgpt_client =
+            test_client("https://chat.ditfa.com/backend-api", PathStyle::ChatGptApi);
         assert_eq!(
             chatgpt_client.workspace_messages_url(),
             "https://chat.ditfa.com/backend-api/wham/workspace-messages"

@@ -297,14 +297,18 @@ mod tests {
             normalize_remote_control_url("https://chat.ditfa.com/backend-api")
                 .expect("chat.ditfa.com URL should normalize"),
             RemoteControlTarget {
-                websocket_url: "wss://chat.ditfa.com/backend-api/wham/remote/control/server".to_string(),
+                websocket_url: "wss://chat.ditfa.com/backend-api/wham/remote/control/server"
+                    .to_string(),
                 enroll_url: "https://chat.ditfa.com/backend-api/wham/remote/control/server/enroll"
                     .to_string(),
-                refresh_url: "https://chat.ditfa.com/backend-api/wham/remote/control/server/refresh"
+                refresh_url:
+                    "https://chat.ditfa.com/backend-api/wham/remote/control/server/refresh"
+                        .to_string(),
+                pair_url: "https://chat.ditfa.com/backend-api/wham/remote/control/server/pair"
                     .to_string(),
-                pair_url: "https://chat.ditfa.com/backend-api/wham/remote/control/server/pair".to_string(),
                 pair_status_url:
-                    "https://chat.ditfa.com/backend-api/wham/remote/control/server/pair/status".to_string(),
+                    "https://chat.ditfa.com/backend-api/wham/remote/control/server/pair/status"
+                        .to_string(),
             }
         );
         assert_eq!(

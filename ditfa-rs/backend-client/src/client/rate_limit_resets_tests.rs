@@ -21,7 +21,8 @@ fn rate_limit_reset_contract_uses_expected_paths_and_payloads() {
         "https://example.test/api/ditfa/rate-limit-reset-credits/consume"
     );
     assert_eq!(
-        test_client("https://chat.ditfa.com/backend-api", PathStyle::ChatGptApi).rate_limit_status_url(),
+        test_client("https://chat.ditfa.com/backend-api", PathStyle::ChatGptApi)
+            .rate_limit_status_url(),
         "https://chat.ditfa.com/backend-api/wham/usage"
     );
     assert_eq!(

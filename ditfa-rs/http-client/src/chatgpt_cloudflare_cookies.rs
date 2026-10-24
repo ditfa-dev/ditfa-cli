@@ -127,7 +127,8 @@ mod tests {
     #[test]
     fn stores_and_returns_cloudflare_cookies_for_chatgpt_hosts() {
         let store = ChatGptCloudflareCookieStore::default();
-        let url = reqwest::Url::parse("https://chat.ditfa.com/backend-api/ditfa/responses").unwrap();
+        let url =
+            reqwest::Url::parse("https://chat.ditfa.com/backend-api/ditfa/responses").unwrap();
         let load_balancer = HeaderValue::from_static("__cflb=west; Path=/; Secure; HttpOnly");
         let cfuvid = HeaderValue::from_static("_cfuvid=visitor; Path=/; Secure; HttpOnly");
         let clearance =
@@ -170,7 +171,8 @@ mod tests {
     #[test]
     fn ignores_non_cloudflare_cookies_for_chatgpt_hosts() {
         let store = ChatGptCloudflareCookieStore::default();
-        let url = reqwest::Url::parse("https://chat.ditfa.com/backend-api/ditfa/responses").unwrap();
+        let url =
+            reqwest::Url::parse("https://chat.ditfa.com/backend-api/ditfa/responses").unwrap();
         let set_cookie = HeaderValue::from_static(
             "__Secure-next-auth.session-token=secret; Path=/; Secure; HttpOnly",
         );
@@ -183,7 +185,8 @@ mod tests {
     #[test]
     fn ignores_mixed_non_cloudflare_cookies_for_chatgpt_hosts() {
         let store = ChatGptCloudflareCookieStore::default();
-        let url = reqwest::Url::parse("https://chat.ditfa.com/backend-api/ditfa/responses").unwrap();
+        let url =
+            reqwest::Url::parse("https://chat.ditfa.com/backend-api/ditfa/responses").unwrap();
         let cfuvid = HeaderValue::from_static("_cfuvid=visitor; Path=/; Secure; HttpOnly");
         let account_cookie =
             HeaderValue::from_static("chatgpt_session=secret; Path=/; Secure; HttpOnly");
@@ -228,8 +231,7 @@ mod tests {
 
     #[test]
     fn only_allows_https_urls() {
-        let url =
-            reqwest::Url::parse("http://chat.ditfa.com/backend-api/ditfa/responses").unwrap();
+        let url = reqwest::Url::parse("http://chat.ditfa.com/backend-api/ditfa/responses").unwrap();
 
         assert!(!is_chatgpt_cookie_url(&url));
 

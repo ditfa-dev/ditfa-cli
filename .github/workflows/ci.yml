@@ -42,6 +42,8 @@ jobs:
       - name: rustfmt
         run: cargo fmt --all -- --check
       - name: clippy
+        # Report lint errors even when formatting already failed.
+        if: success() || failure()
         run: >-
           cargo clippy --all-targets
           -p ditfa-api
