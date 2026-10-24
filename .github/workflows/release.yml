@@ -133,7 +133,9 @@ jobs:
         run: |
           bin="$RUNNER_TEMP/stage/ditfa/ditfa"
           [ -f "$bin.exe" ] && bin="$bin.exe"
-          "$bin" --version | tee /dev/stderr | grep -q "${{ needs.version.outputs.version }}"
+          reported=$("$bin" --version)
+          echo "$reported"
+          [[ "$reported" == *"${{ needs.version.outputs.version }}"* ]]
 
       - uses: actions/upload-artifact@v4
         with:
