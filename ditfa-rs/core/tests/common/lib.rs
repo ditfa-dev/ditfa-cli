@@ -32,8 +32,6 @@ pub mod responses;
 pub mod streaming_sse;
 pub mod test_ditfa;
 pub mod test_ditfa_exec;
-pub use test_ditfa;
-pub use test_ditfa_exec;
 mod test_environment;
 pub mod tracing;
 pub mod zsh_fork;
