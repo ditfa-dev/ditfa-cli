@@ -467,12 +467,6 @@
             "code_mode_only": {
               "type": "boolean"
             },
-            "ditfa_git_commit": {
-              "type": "boolean"
-            },
-            "ditfa_hooks": {
-              "type": "boolean"
-            },
             "collab": {
               "type": "boolean"
             },
@@ -495,6 +489,12 @@
               "type": "boolean"
             },
             "deferred_executor": {
+              "type": "boolean"
+            },
+            "ditfa_git_commit": {
+              "type": "boolean"
+            },
+            "ditfa_hooks": {
               "type": "boolean"
             },
             "elevated_windows_sandbox": {
@@ -4959,12 +4959,6 @@
         "code_mode_only": {
           "type": "boolean"
         },
-        "ditfa_git_commit": {
-          "type": "boolean"
-        },
-        "ditfa_hooks": {
-          "type": "boolean"
-        },
         "collab": {
           "type": "boolean"
         },
@@ -4987,6 +4981,12 @@
           "type": "boolean"
         },
         "deferred_executor": {
+          "type": "boolean"
+        },
+        "ditfa_git_commit": {
+          "type": "boolean"
+        },
+        "ditfa_hooks": {
           "type": "boolean"
         },
         "elevated_windows_sandbox": {
