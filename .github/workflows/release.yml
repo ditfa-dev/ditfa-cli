@@ -86,7 +86,8 @@ jobs:
           import os, re, pathlib
           path = pathlib.Path("ditfa-rs/Cargo.toml")
           text = path.read_text()
-          text, count = re.subn(r'(\[workspace\.package\]\nversion = )"[^"]*"', rf'\1"{os.environ["VERSION"]}"', text)
+          # Windows runners may check out with CRLF line endings.
+          text, count = re.subn(r'(\[workspace\.package\]\r?\nversion = )"[^"]*"', rf'\g<1>"{os.environ["VERSION"]}"', text)
           assert count == 1, "workspace version not found"
           path.write_text(text)
           PY
