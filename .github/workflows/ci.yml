@@ -79,7 +79,7 @@ jobs:
           -p ditfa-app-server-transport
           -p ditfa-app-server-protocol
       - name: Core configuration tests
-        run: cargo nextest run --no-fail-fast -p ditfa-core --lib config::
+        run: "cargo nextest run --no-fail-fast -p ditfa-core --lib 'config::'"
 
   build:
     name: Build (${{ matrix.os }})
