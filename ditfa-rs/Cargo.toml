@@ -528,6 +528,9 @@ ignored = [
 # Keep line tables/backtraces while avoiding expensive full variable debug info
 # across local dev builds.
 debug = "limited"
+# Unoptimized code pushes the binary past the +/-128MB branch range of arm64,
+# so debug builds fail to link on Apple Silicon at opt-level 0.
+opt-level = 1
 
 [profile.dev-small]
 inherits = "dev"
