@@ -1,15 +1,15 @@
 use super::*;
+use crossterm::event::KeyCode;
+use crossterm::event::KeyEvent;
 use ditfa_app_server_protocol::AccountRateLimitsUpdatedNotification;
-use ditfa_app_server_protocol::DitfaErrorInfo;
 use ditfa_app_server_protocol::CreditsSnapshot;
+use ditfa_app_server_protocol::DitfaErrorInfo;
 use ditfa_app_server_protocol::ErrorNotification;
 use ditfa_app_server_protocol::GetAccountRateLimitsResponse;
 use ditfa_app_server_protocol::RateLimitReachedType;
 use ditfa_app_server_protocol::RateLimitResetCreditsSummary;
 use ditfa_app_server_protocol::RateLimitSnapshot;
 use ditfa_app_server_protocol::RateLimitWindow;
-use crossterm::event::KeyCode;
-use crossterm::event::KeyEvent;
 use pretty_assertions::assert_eq;
 
 fn rate_limit_snapshot(

@@ -1,8 +1,4 @@
 use anyhow::Ok;
-use ditfa_protocol::protocol::EventMsg;
-use ditfa_protocol::protocol::Op;
-use ditfa_protocol::protocol::SafetyBufferingEvent;
-use ditfa_protocol::user_input::UserInput;
 use core_test_support::responses::ev_completed;
 use core_test_support::responses::ev_response_created;
 use core_test_support::responses::mount_response_once;
@@ -13,6 +9,10 @@ use core_test_support::skip_if_no_network;
 use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_event_match;
+use ditfa_protocol::protocol::EventMsg;
+use ditfa_protocol::protocol::Op;
+use ditfa_protocol::protocol::SafetyBufferingEvent;
+use ditfa_protocol::user_input::UserInput;
 use pretty_assertions::assert_eq;
 use serde_json::json;
 

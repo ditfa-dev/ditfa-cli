@@ -1,5 +1,4 @@
 use anyhow::Result;
-use ditfa_features::Feature;
 use core_test_support::responses::ev_assistant_message;
 use core_test_support::responses::ev_completed;
 use core_test_support::responses::ev_function_call_with_namespace;
@@ -8,6 +7,7 @@ use core_test_support::responses::mount_sse_once_match;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::test_ditfa::test_ditfa;
+use ditfa_features::Feature;
 use pretty_assertions::assert_eq;
 use serde_json::json;
 use std::time::Duration;

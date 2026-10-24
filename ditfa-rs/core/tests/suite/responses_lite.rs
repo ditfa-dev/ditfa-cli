@@ -3,6 +3,10 @@ use std::sync::Arc;
 
 use anyhow::Context;
 use anyhow::Result;
+use core_test_support::responses;
+use core_test_support::skip_if_no_network;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::wait_for_event;
 use ditfa_core::config::Config;
 use ditfa_extension_api::ExtensionRegistry;
 use ditfa_extension_api::ExtensionRegistryBuilder;
@@ -17,10 +21,6 @@ use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::Op;
 use ditfa_protocol::user_input::UserInput;
 use ditfa_web_search_extension::install as install_web_search_extension;
-use core_test_support::responses;
-use core_test_support::skip_if_no_network;
-use core_test_support::test_ditfa::test_ditfa;
-use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
 

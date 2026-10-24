@@ -1,5 +1,8 @@
 #![allow(clippy::unwrap_used)]
 
+use core::time::Duration;
+use core_test_support::load_default_config_for_test;
+use core_test_support::wait_for_event;
 use ditfa_config::CONFIG_TOML_FILE;
 use ditfa_core::NewThread;
 use ditfa_features::Feature;
@@ -8,9 +11,6 @@ use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::InitialHistory;
 use ditfa_protocol::protocol::WarningEvent;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
-use core::time::Duration;
-use core_test_support::load_default_config_for_test;
-use core_test_support::wait_for_event;
 use tempfile::TempDir;
 use tokio::time::timeout;
 use toml::toml;

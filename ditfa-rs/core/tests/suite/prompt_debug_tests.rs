@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
 use anyhow::Result;
+use core_test_support::responses::strip_metadata;
+use core_test_support::responses::strip_response_item_id;
 use ditfa_core::build_prompt_input;
 use ditfa_core::config::ConfigBuilder;
 use ditfa_core::config::ConfigOverrides;
@@ -9,8 +11,6 @@ use ditfa_home::DitfaHomeUserInstructionsProvider;
 use ditfa_protocol::models::ContentItem;
 use ditfa_protocol::models::ResponseItem;
 use ditfa_protocol::user_input::UserInput;
-use core_test_support::responses::strip_metadata;
-use core_test_support::responses::strip_response_item_id;
 use pretty_assertions::assert_eq;
 use tempfile::TempDir;
 

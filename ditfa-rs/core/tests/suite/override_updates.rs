@@ -1,4 +1,10 @@
 use anyhow::Result;
+use core_test_support::TempDirExt;
+use core_test_support::responses::start_mock_server;
+use core_test_support::skip_if_no_network;
+use core_test_support::test_ditfa::local_selections;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::wait_for_event;
 use ditfa_core::config::Constrained;
 use ditfa_protocol::config_types::CollaborationMode;
 use ditfa_protocol::config_types::ModeKind;
@@ -6,12 +12,6 @@ use ditfa_protocol::config_types::Settings;
 use ditfa_protocol::protocol::AskForApproval;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::Op;
-use core_test_support::TempDirExt;
-use core_test_support::responses::start_mock_server;
-use core_test_support::skip_if_no_network;
-use core_test_support::test_ditfa::local_selections;
-use core_test_support::test_ditfa::test_ditfa;
-use core_test_support::wait_for_event;
 use tempfile::TempDir;
 
 fn collab_mode_with_instructions(instructions: Option<&str>) -> CollaborationMode {

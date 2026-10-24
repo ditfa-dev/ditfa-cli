@@ -336,7 +336,7 @@ fn map_api_error_extracts_identity_auth_details_from_headers() {
 
     let err = map_api_error(ApiError::Transport(TransportError::Http {
         status: http::StatusCode::UNAUTHORIZED,
-        url: Some("https://chat.ditfa.com/api/ditfa/models".to_string()),
+        url: Some("https://chat.ditfa.com/backend-api/ditfa/models".to_string()),
         headers: Some(headers),
         body: Some(r#"{"detail":"Unauthorized"}"#.to_string()),
     }));

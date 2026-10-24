@@ -11,6 +11,13 @@ use crate::state::ActiveTurn;
 use crate::test_support::models_manager_with_provider;
 use crate::tools::hook_names::HookToolName;
 use crate::turn_metadata::McpTurnMetadataContext;
+use core_test_support::hooks::trusted_config_layer_stack;
+use core_test_support::responses::ev_assistant_message;
+use core_test_support::responses::ev_completed;
+use core_test_support::responses::ev_response_created;
+use core_test_support::responses::mount_sse_once;
+use core_test_support::responses::sse;
+use core_test_support::responses::start_mock_server;
 use ditfa_config::CONFIG_TOML_FILE;
 use ditfa_config::config_toml::ConfigToml;
 use ditfa_config::types::AppConfig;
@@ -30,13 +37,6 @@ use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::GranularApprovalConfig;
 use ditfa_protocol::protocol::McpInvocation;
 use ditfa_utils_path_uri::PathUri;
-use core_test_support::hooks::trusted_config_layer_stack;
-use core_test_support::responses::ev_assistant_message;
-use core_test_support::responses::ev_completed;
-use core_test_support::responses::ev_response_created;
-use core_test_support::responses::mount_sse_once;
-use core_test_support::responses::sse;
-use core_test_support::responses::start_mock_server;
 use pretty_assertions::assert_eq;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -417,7 +417,7 @@ async fn mcp_tool_call_span_records_error_type_and_error_code() {
             server_name: DITFA_APPS_MCP_SERVER_NAME,
             tool_name: "calendar_search",
             call_id: "call-123",
-            server_origin: Some("https://chat.ditfa.com/api/ditfa/ps/mcp"),
+            server_origin: Some("https://chat.ditfa.com/backend-api/ditfa/ps/mcp"),
             connector_id: Some("calendar"),
             connector_name: Some("Calendar"),
         },

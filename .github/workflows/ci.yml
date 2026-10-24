@@ -157,9 +157,8 @@ jobs:
         working-directory: ditfa-vscode
     steps:
       - uses: actions/checkout@v4
+      # The pnpm version comes from `packageManager` in the root package.json.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.0
       - uses: actions/setup-node@v4
         with:
           node-version: 22

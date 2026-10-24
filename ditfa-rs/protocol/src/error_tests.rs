@@ -447,7 +447,7 @@ fn unexpected_status_prefers_error_message_when_present() {
         body: r#"{"error":{"message":"Workspace is not authorized in this region."},"status":401}"#
             .to_string(),
         user_message: None,
-        url: Some("https://chat.ditfa.com/api/ditfa/responses".to_string()),
+        url: Some("https://chat.ditfa.com/backend-api/ditfa/responses".to_string()),
         cf_ray: None,
         request_id: Some("req-123".to_string()),
         identity_authorization_error: None,
@@ -457,7 +457,7 @@ fn unexpected_status_prefers_error_message_when_present() {
     assert_eq!(
         err.to_string(),
         format!(
-            "unexpected status {status}: Workspace is not authorized in this region., url: https://chat.ditfa.com/api/ditfa/responses, request id: req-123"
+            "unexpected status {status}: Workspace is not authorized in this region., url: https://chat.ditfa.com/backend-api/ditfa/responses, request id: req-123"
         )
     );
 }
@@ -491,7 +491,7 @@ fn unexpected_status_includes_cf_ray_and_request_id() {
         status: StatusCode::UNAUTHORIZED,
         body: "plain text error".to_string(),
         user_message: None,
-        url: Some("https://chat.ditfa.com/api/ditfa/responses".to_string()),
+        url: Some("https://chat.ditfa.com/backend-api/ditfa/responses".to_string()),
         cf_ray: Some("9c81f9f18f2fa49d-LHR".to_string()),
         request_id: Some("req-xyz".to_string()),
         identity_authorization_error: None,
@@ -501,7 +501,7 @@ fn unexpected_status_includes_cf_ray_and_request_id() {
     assert_eq!(
         err.to_string(),
         format!(
-            "unexpected status {status}: plain text error, url: https://chat.ditfa.com/api/ditfa/responses, cf-ray: 9c81f9f18f2fa49d-LHR, request id: req-xyz"
+            "unexpected status {status}: plain text error, url: https://chat.ditfa.com/backend-api/ditfa/responses, cf-ray: 9c81f9f18f2fa49d-LHR, request id: req-xyz"
         )
     );
 }
@@ -512,7 +512,7 @@ fn unexpected_status_includes_identity_auth_details() {
         status: StatusCode::UNAUTHORIZED,
         body: "plain text error".to_string(),
         user_message: None,
-        url: Some("https://chat.ditfa.com/api/ditfa/models".to_string()),
+        url: Some("https://chat.ditfa.com/backend-api/ditfa/models".to_string()),
         cf_ray: Some("cf-ray-auth-401-test".to_string()),
         request_id: Some("req-auth".to_string()),
         identity_authorization_error: Some("missing_authorization_header".to_string()),
@@ -522,7 +522,7 @@ fn unexpected_status_includes_identity_auth_details() {
     assert_eq!(
         err.to_string(),
         format!(
-            "unexpected status {status}: plain text error, url: https://chat.ditfa.com/api/ditfa/models, cf-ray: cf-ray-auth-401-test, request id: req-auth, auth error: missing_authorization_header, auth error code: token_expired"
+            "unexpected status {status}: plain text error, url: https://chat.ditfa.com/backend-api/ditfa/models, cf-ray: cf-ray-auth-401-test, request id: req-auth, auth error: missing_authorization_header, auth error code: token_expired"
         )
     );
 }

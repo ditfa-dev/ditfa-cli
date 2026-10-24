@@ -6,11 +6,6 @@ use std::time::Duration;
 use std::time::Instant;
 
 use anyhow::Result;
-use ditfa_features::Feature;
-use ditfa_login::DitfaAuth;
-use ditfa_mcp::DITFA_APPS_MCP_SERVER_NAME;
-use ditfa_protocol::protocol::EventMsg;
-use ditfa_protocol::protocol::Op;
 use core_test_support::apps_test_server::AppsTestServer;
 use core_test_support::apps_test_server::SEARCH_CALENDAR_CREATE_TOOL;
 use core_test_support::responses::ResponseMock;
@@ -29,6 +24,11 @@ use core_test_support::test_ditfa::TestDitfa;
 use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_mcp_server;
+use ditfa_features::Feature;
+use ditfa_login::DitfaAuth;
+use ditfa_mcp::DITFA_APPS_MCP_SERVER_NAME;
+use ditfa_protocol::protocol::EventMsg;
+use ditfa_protocol::protocol::Op;
 use tempfile::TempDir;
 use wiremock::MockServer;
 

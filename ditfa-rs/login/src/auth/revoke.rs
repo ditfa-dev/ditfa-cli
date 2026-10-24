@@ -155,10 +155,10 @@ fn derive_revoke_token_endpoint(refresh_endpoint: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use core_test_support::skip_if_no_network;
     use ditfa_http_client::ClientRouteClass;
     use ditfa_http_client::HttpClientFactory;
     use ditfa_http_client::OutboundProxyPolicy;
-    use core_test_support::skip_if_no_network;
     use wiremock::Mock;
     use wiremock::MockServer;
     use wiremock::ResponseTemplate;

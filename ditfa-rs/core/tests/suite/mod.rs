@@ -1,4 +1,5 @@
 // Aggregates all former standalone integration tests as modules.
+use ctor::ctor;
 use ditfa_apply_patch::DITFA_CORE_APPLY_PATCH_ARG1;
 #[cfg(unix)]
 use ditfa_exec_server::DITFA_ARG0_EXEC_HELPER_ARG1;
@@ -7,7 +8,6 @@ use ditfa_sandboxing::landlock::DITFA_LINUX_SANDBOX_ARG0;
 use ditfa_test_binary_support::TestBinaryDispatchGuard;
 use ditfa_test_binary_support::TestBinaryDispatchMode;
 use ditfa_test_binary_support::configure_test_binary_dispatch;
-use ctor::ctor;
 
 // This code runs before any other tests are run.
 // It allows the test binary to behave like ditfa and dispatch to apply_patch and ditfa-linux-sandbox
@@ -50,7 +50,6 @@ mod client;
 mod client_websockets;
 mod code_mode;
 mod code_mode_elicitation;
-mod ditfa_delegate;
 mod collaboration_instructions;
 mod compact;
 mod compact_remote;
@@ -58,6 +57,7 @@ mod compact_remote_parity;
 mod compact_resume_fork;
 mod current_time_reminder;
 mod deprecation_notice;
+mod ditfa_delegate;
 mod exec;
 mod exec_policy;
 #[cfg(not(target_os = "windows"))]

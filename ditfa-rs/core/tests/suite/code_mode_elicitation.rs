@@ -3,16 +3,6 @@
 use std::time::Duration;
 
 use anyhow::Result;
-use ditfa_core::config::Config;
-use ditfa_features::Feature;
-use ditfa_protocol::models::PermissionProfile;
-use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::EventMsg;
-use ditfa_protocol::protocol::Op;
-use ditfa_protocol::protocol::ReviewDecision;
-use ditfa_protocol::request_permissions::PermissionGrantScope;
-use ditfa_protocol::request_permissions::RequestPermissionsResponse;
-use ditfa_protocol::user_input::UserInput;
 use core_test_support::responses;
 use core_test_support::responses::ResponseMock;
 use core_test_support::responses::ev_assistant_message;
@@ -28,6 +18,16 @@ use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_event_match;
 use core_test_support::wait_for_event_with_timeout;
+use ditfa_core::config::Config;
+use ditfa_features::Feature;
+use ditfa_protocol::models::PermissionProfile;
+use ditfa_protocol::protocol::AskForApproval;
+use ditfa_protocol::protocol::EventMsg;
+use ditfa_protocol::protocol::Op;
+use ditfa_protocol::protocol::ReviewDecision;
+use ditfa_protocol::request_permissions::PermissionGrantScope;
+use ditfa_protocol::request_permissions::RequestPermissionsResponse;
+use ditfa_protocol::user_input::UserInput;
 use wiremock::MockServer;
 
 const YIELD_TIME_MS: u64 = 1_000;

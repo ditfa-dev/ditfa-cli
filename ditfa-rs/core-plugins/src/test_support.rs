@@ -227,7 +227,7 @@ pub(crate) async fn load_plugins_config(ditfa_home: &Path, cwd: &Path) -> Plugin
             "remote_plugin",
             /*default_enabled*/ true,
         ),
-        "https://chat.ditfa.com/api/".to_string(),
+        "https://chat.ditfa.com/backend-api/".to_string(),
         test_http_client_factory(),
     )
 }

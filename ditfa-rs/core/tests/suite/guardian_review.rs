@@ -1,18 +1,6 @@
 #![cfg(not(target_os = "windows"))]
 
 use anyhow::Result;
-use ditfa_core::config::Constrained;
-use ditfa_core::sandboxing::SandboxPermissions;
-use ditfa_protocol::config_types::ApprovalsReviewer;
-use ditfa_protocol::openai_models::AutoReviewMessages;
-use ditfa_protocol::openai_models::ModelsResponse;
-use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::EventMsg;
-use ditfa_protocol::protocol::Op;
-use ditfa_protocol::protocol::RolloutItem;
-use ditfa_protocol::protocol::RolloutLine;
-use ditfa_protocol::protocol::SandboxPolicy;
-use ditfa_protocol::user_input::UserInput;
 use core_test_support::fs_wait;
 use core_test_support::responses::ev_assistant_message;
 use core_test_support::responses::ev_completed;
@@ -28,6 +16,18 @@ use core_test_support::skip_if_wine_exec;
 use core_test_support::test_ditfa::local_selections;
 use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
+use ditfa_core::config::Constrained;
+use ditfa_core::sandboxing::SandboxPermissions;
+use ditfa_protocol::config_types::ApprovalsReviewer;
+use ditfa_protocol::openai_models::AutoReviewMessages;
+use ditfa_protocol::openai_models::ModelsResponse;
+use ditfa_protocol::protocol::AskForApproval;
+use ditfa_protocol::protocol::EventMsg;
+use ditfa_protocol::protocol::Op;
+use ditfa_protocol::protocol::RolloutItem;
+use ditfa_protocol::protocol::RolloutLine;
+use ditfa_protocol::protocol::SandboxPolicy;
+use ditfa_protocol::user_input::UserInput;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
 use serde_json::json;

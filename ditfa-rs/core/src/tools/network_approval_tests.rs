@@ -1,11 +1,11 @@
 use super::*;
 use crate::sandboxing::SandboxPermissions;
+use core_test_support::PathBufExt;
+use core_test_support::test_path_buf;
 use ditfa_network_proxy::BlockedRequestArgs;
 use ditfa_protocol::models::PermissionProfile;
 use ditfa_protocol::permissions::NetworkSandboxPolicy;
 use ditfa_protocol::protocol::AskForApproval;
-use core_test_support::PathBufExt;
-use core_test_support::test_path_buf;
 use pretty_assertions::assert_eq;
 use tokio_util::sync::CancellationToken;
 

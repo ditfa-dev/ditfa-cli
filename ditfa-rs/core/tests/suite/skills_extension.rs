@@ -1,6 +1,12 @@
 use std::sync::Arc;
 
 use anyhow::Result;
+use core_test_support::responses;
+use core_test_support::responses::ev_completed;
+use core_test_support::responses::ev_response_created;
+use core_test_support::responses::mount_sse_once;
+use core_test_support::responses::sse;
+use core_test_support::test_ditfa::test_ditfa;
 use ditfa_core::config::Config;
 use ditfa_extension_api::ExtensionRegistryBuilder;
 use ditfa_skills_extension::SkillProvider;
@@ -22,12 +28,6 @@ use ditfa_skills_extension::provider::SkillProviderFuture;
 use ditfa_skills_extension::provider::SkillReadRequest;
 use ditfa_skills_extension::provider::SkillSearchRequest;
 use ditfa_utils_string::approx_token_count;
-use core_test_support::responses;
-use core_test_support::responses::ev_completed;
-use core_test_support::responses::ev_response_created;
-use core_test_support::responses::mount_sse_once;
-use core_test_support::responses::sse;
-use core_test_support::test_ditfa::test_ditfa;
 use pretty_assertions::assert_eq;
 
 struct StaticSkillProvider {

@@ -21,19 +21,18 @@ fn rate_limit_reset_contract_uses_expected_paths_and_payloads() {
         "https://example.test/api/ditfa/rate-limit-reset-credits/consume"
     );
     assert_eq!(
-        test_client("https://chat.ditfa.com/api", PathStyle::ChatGptApi)
-            .rate_limit_status_url(),
-        "https://chat.ditfa.com/api/wham/usage"
+        test_client("https://chat.ditfa.com/backend-api", PathStyle::ChatGptApi).rate_limit_status_url(),
+        "https://chat.ditfa.com/backend-api/wham/usage"
     );
     assert_eq!(
-        test_client("https://chat.ditfa.com/api", PathStyle::ChatGptApi)
+        test_client("https://chat.ditfa.com/backend-api", PathStyle::ChatGptApi)
             .rate_limit_reset_credits_url(),
-        "https://chat.ditfa.com/api/wham/rate-limit-reset-credits"
+        "https://chat.ditfa.com/backend-api/wham/rate-limit-reset-credits"
     );
     assert_eq!(
-        test_client("https://chat.ditfa.com/api", PathStyle::ChatGptApi)
+        test_client("https://chat.ditfa.com/backend-api", PathStyle::ChatGptApi)
             .consume_rate_limit_reset_credit_url(),
-        "https://chat.ditfa.com/api/wham/rate-limit-reset-credits/consume"
+        "https://chat.ditfa.com/backend-api/wham/rate-limit-reset-credits/consume"
     );
 
     assert_eq!(

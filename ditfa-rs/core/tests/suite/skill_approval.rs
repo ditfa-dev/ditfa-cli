@@ -2,13 +2,6 @@
 #![cfg(unix)]
 
 use anyhow::Result;
-use ditfa_protocol::models::PermissionProfile;
-use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::EventMsg;
-use ditfa_protocol::protocol::ExecApprovalRequestEvent;
-use ditfa_protocol::protocol::GranularApprovalConfig;
-use ditfa_protocol::protocol::Op;
-use ditfa_protocol::user_input::UserInput;
 use core_test_support::responses::mount_function_call_agent_response;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
@@ -20,6 +13,13 @@ use core_test_support::wait_for_event_match;
 use core_test_support::zsh_fork::build_zsh_fork_test;
 use core_test_support::zsh_fork::restrictive_workspace_write_profile;
 use core_test_support::zsh_fork::zsh_fork_runtime;
+use ditfa_protocol::models::PermissionProfile;
+use ditfa_protocol::protocol::AskForApproval;
+use ditfa_protocol::protocol::EventMsg;
+use ditfa_protocol::protocol::ExecApprovalRequestEvent;
+use ditfa_protocol::protocol::GranularApprovalConfig;
+use ditfa_protocol::protocol::Op;
+use ditfa_protocol::user_input::UserInput;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;

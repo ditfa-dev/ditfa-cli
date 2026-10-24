@@ -1,5 +1,11 @@
 use std::sync::Arc;
 
+use core_test_support::responses::ev_completed;
+use core_test_support::responses::ev_response_created;
+use core_test_support::responses::sse;
+use core_test_support::skip_if_no_network;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::wait_for_event;
 use ditfa_core::ForkSnapshot;
 use ditfa_core::NewThread;
 use ditfa_core::ThreadConfigSnapshot;
@@ -13,12 +19,6 @@ use ditfa_protocol::protocol::RolloutItem;
 use ditfa_protocol::protocol::RolloutLine;
 use ditfa_protocol::protocol::ThreadSettingsAppliedEvent;
 use ditfa_protocol::user_input::UserInput;
-use core_test_support::responses::ev_completed;
-use core_test_support::responses::ev_response_created;
-use core_test_support::responses::sse;
-use core_test_support::skip_if_no_network;
-use core_test_support::test_ditfa::test_ditfa;
-use core_test_support::wait_for_event;
 use wiremock::Mock;
 use wiremock::MockServer;
 use wiremock::ResponseTemplate;

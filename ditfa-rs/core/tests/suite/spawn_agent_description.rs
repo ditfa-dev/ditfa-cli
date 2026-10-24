@@ -2,6 +2,14 @@
 #![allow(clippy::unwrap_used)]
 
 use anyhow::Result;
+use core_test_support::responses::ev_completed;
+use core_test_support::responses::ev_response_created;
+use core_test_support::responses::mount_models_once;
+use core_test_support::responses::mount_sse_once;
+use core_test_support::responses::namespace_child_tool;
+use core_test_support::responses::sse;
+use core_test_support::responses::start_mock_server;
+use core_test_support::test_ditfa::test_ditfa;
 use ditfa_core::config::AgentRoleConfig;
 use ditfa_features::Feature;
 use ditfa_login::DitfaAuth;
@@ -17,14 +25,6 @@ use ditfa_protocol::openai_models::ReasoningEffort;
 use ditfa_protocol::openai_models::ReasoningEffortPreset;
 use ditfa_protocol::openai_models::TruncationPolicyConfig;
 use ditfa_protocol::openai_models::default_input_modalities;
-use core_test_support::responses::ev_completed;
-use core_test_support::responses::ev_response_created;
-use core_test_support::responses::mount_models_once;
-use core_test_support::responses::mount_sse_once;
-use core_test_support::responses::namespace_child_tool;
-use core_test_support::responses::sse;
-use core_test_support::responses::start_mock_server;
-use core_test_support::test_ditfa::test_ditfa;
 use serde_json::Value;
 use std::time::Duration;
 use std::time::Instant;

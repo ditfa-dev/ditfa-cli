@@ -1,6 +1,11 @@
 use anyhow::Result;
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
+use core_test_support::responses;
+use core_test_support::responses::sse;
+use core_test_support::skip_if_no_network;
+use core_test_support::test_ditfa::test_ditfa;
+use core_test_support::wait_for_event;
 use ditfa_core::StartThreadOptions;
 use ditfa_protocol::dynamic_tools::DynamicToolCallOutputContentItem;
 use ditfa_protocol::dynamic_tools::DynamicToolFunctionSpec;
@@ -16,11 +21,6 @@ use ditfa_protocol::openai_models::TruncationPolicyConfig;
 use ditfa_protocol::protocol::EventMsg;
 use ditfa_protocol::protocol::Op;
 use ditfa_protocol::user_input::UserInput;
-use core_test_support::responses;
-use core_test_support::responses::sse;
-use core_test_support::skip_if_no_network;
-use core_test_support::test_ditfa::test_ditfa;
-use core_test_support::wait_for_event;
 use pretty_assertions::assert_eq;
 
 const TEST_WAV_SAMPLE_RATE: u32 = 8_000;

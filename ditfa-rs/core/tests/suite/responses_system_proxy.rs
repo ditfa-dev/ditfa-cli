@@ -1,10 +1,10 @@
 use anyhow::Result;
-use ditfa_features::Feature;
 use core_test_support::responses::ev_completed;
 use core_test_support::responses::ev_response_created;
 use core_test_support::responses::sse;
 use core_test_support::skip_if_no_network;
 use core_test_support::test_ditfa::test_ditfa;
+use ditfa_features::Feature;
 use pretty_assertions::assert_eq;
 use std::time::Duration;
 use tokio::io::AsyncReadExt;

@@ -1,4 +1,5 @@
 use anyhow::Result;
+use core_test_support::test_path_buf;
 use ditfa_protocol::SessionId;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::protocol::EventMsg;
@@ -10,7 +11,6 @@ use ditfa_protocol::protocol::ThreadHistoryMode;
 use ditfa_protocol::protocol::TokenCountEvent;
 use ditfa_protocol::protocol::TokenUsage;
 use ditfa_protocol::protocol::TokenUsageInfo;
-use core_test_support::test_path_buf;
 use serde_json::json;
 use std::fs;
 use std::fs::FileTimes;

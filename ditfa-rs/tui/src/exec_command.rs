@@ -1,8 +1,8 @@
 use std::path::Path;
 use std::path::PathBuf;
 
-use ditfa_shell_command::parse_command::extract_shell_command;
 use dirs::home_dir;
+use ditfa_shell_command::parse_command::extract_shell_command;
 use shlex::try_join;
 
 pub(crate) fn escape_command(command: &[String]) -> String {

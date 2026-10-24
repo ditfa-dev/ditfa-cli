@@ -6,6 +6,7 @@ use std::process::Command;
 use std::process::Stdio;
 use std::time::Duration;
 
+use ctor::ctor;
 use ditfa_exec_server::DITFA_ARG0_EXEC_HELPER_ARG1;
 use ditfa_exec_server::DITFA_FS_HELPER_ARG1;
 use ditfa_exec_server::ExecServerRuntimePaths;
@@ -13,7 +14,6 @@ use ditfa_sandboxing::landlock::DITFA_LINUX_SANDBOX_ARG0;
 use ditfa_test_binary_support::TestBinaryDispatchGuard;
 use ditfa_test_binary_support::TestBinaryDispatchMode;
 use ditfa_test_binary_support::configure_test_binary_dispatch;
-use ctor::ctor;
 
 pub(crate) mod exec_server;
 

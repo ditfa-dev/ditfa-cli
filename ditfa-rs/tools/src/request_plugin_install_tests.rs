@@ -113,7 +113,8 @@ fn build_request_plugin_install_meta_uses_expected_shape() {
         app_metadata: None,
         labels: None,
         install_url: Some(
-            "https://chat.ditfa.com/apps/gmail/connector_68df038e0ba48191908c8434991bbac2".to_string(),
+            "https://chat.ditfa.com/apps/gmail/connector_68df038e0ba48191908c8434991bbac2"
+                .to_string(),
         ),
         is_accessible: false,
         is_enabled: true,

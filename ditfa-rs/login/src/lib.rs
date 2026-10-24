@@ -9,12 +9,12 @@ mod pkce;
 mod server;
 mod success_page;
 
-pub use ditfa_config::types::AuthCredentialsStoreMode;
-pub use ditfa_http_client::BuildCustomCaTransportError as BuildLoginHttpClientError;
 pub use device_code_auth::DeviceCode;
 pub use device_code_auth::complete_device_code_login;
 pub use device_code_auth::request_device_code;
 pub use device_code_auth::run_device_code_login;
+pub use ditfa_config::types::AuthCredentialsStoreMode;
+pub use ditfa_http_client::BuildCustomCaTransportError as BuildLoginHttpClientError;
 pub use server::LoginServer;
 pub use server::ServerOptions;
 pub use server::ShutdownHandle;

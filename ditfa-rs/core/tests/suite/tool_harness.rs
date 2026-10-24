@@ -4,13 +4,6 @@ use core_test_support::test_ditfa::local_selections;
 use std::fs;
 
 use assert_matches::assert_matches;
-use ditfa_protocol::items::TurnItem;
-use ditfa_protocol::models::PermissionProfile;
-use ditfa_protocol::plan_tool::StepStatus;
-use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::EventMsg;
-use ditfa_protocol::protocol::Op;
-use ditfa_protocol::user_input::UserInput;
 use core_test_support::TempDirExt;
 use core_test_support::assert_regex_match;
 use core_test_support::responses;
@@ -27,6 +20,13 @@ use core_test_support::test_ditfa::TestDitfa;
 use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
+use ditfa_protocol::items::TurnItem;
+use ditfa_protocol::models::PermissionProfile;
+use ditfa_protocol::plan_tool::StepStatus;
+use ditfa_protocol::protocol::AskForApproval;
+use ditfa_protocol::protocol::EventMsg;
+use ditfa_protocol::protocol::Op;
+use ditfa_protocol::user_input::UserInput;
 use serde_json::Value;
 use serde_json::json;
 fn call_output(req: &ResponsesRequest, call_id: &str) -> (String, Option<bool>) {

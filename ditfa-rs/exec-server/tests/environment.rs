@@ -3,13 +3,13 @@ mod common;
 use std::time::Duration;
 
 use anyhow::Context;
+use common::exec_server::exec_server;
 use ditfa_exec_server::EnvironmentManager;
 use ditfa_exec_server::REMOTE_ENVIRONMENT_ID;
 use ditfa_exec_server::SelectedCapabilityRootsStatus;
 use ditfa_protocol::capabilities::CapabilityRootLocation;
 use ditfa_protocol::capabilities::SelectedCapabilityRoot;
 use ditfa_utils_path_uri::PathUri;
-use common::exec_server::exec_server;
 use pretty_assertions::assert_eq;
 use tokio::time::sleep;
 use tokio::time::timeout;

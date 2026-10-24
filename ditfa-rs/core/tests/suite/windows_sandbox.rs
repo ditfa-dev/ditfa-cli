@@ -1,4 +1,5 @@
 use anyhow::Context;
+use core_test_support::PathExt;
 use ditfa_core::exec::ExecCapturePolicy;
 use ditfa_core::exec::ExecParams;
 use ditfa_core::exec::process_exec_tool_call;
@@ -13,7 +14,6 @@ use ditfa_protocol::permissions::FileSystemSandboxEntry;
 use ditfa_protocol::permissions::FileSystemSandboxPolicy;
 use ditfa_protocol::permissions::FileSystemSpecialPath;
 use ditfa_protocol::permissions::NetworkSandboxPolicy;
-use core_test_support::PathExt;
 use pretty_assertions::assert_eq;
 use serial_test::serial;
 use std::collections::HashMap;

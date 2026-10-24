@@ -23,7 +23,10 @@ async fn contributes_hosted_plugin_runtime_without_an_executor() -> TestResult {
         .fallback_cwd(Some(ditfa_home.path().to_path_buf()))
         .cli_overrides(vec![
             ("features.apps".to_string(), true.into()),
-            ("chatgpt_base_url".to_string(), "https://chat.ditfa.com".into()),
+            (
+                "chatgpt_base_url".to_string(),
+                "https://chat.ditfa.com".into(),
+            ),
         ])
         .build()
         .await?;
@@ -38,7 +41,7 @@ async fn contributes_hosted_plugin_runtime_without_an_executor() -> TestResult {
     let McpServerTransportConfig::StreamableHttp { url, .. } = &server.transport else {
         panic!("hosted plugin runtime should use streamable HTTP");
     };
-    assert_eq!(url, "https://chat.ditfa.com/api/ps/mcp");
+    assert_eq!(url, "https://chat.ditfa.com/backend-api/ps/mcp");
 
     Ok(())
 }
@@ -99,7 +102,7 @@ async fn default_fallback_overwrites_reserved_config_without_an_extension() -> T
     let McpServerTransportConfig::StreamableHttp { url, .. } = &server.transport else {
         panic!("default Apps MCP should use streamable HTTP");
     };
-    assert_eq!(url, "https://chat.ditfa.com/api/ps/mcp");
+    assert_eq!(url, "https://chat.ditfa.com/backend-api/ps/mcp");
 
     Ok(())
 }

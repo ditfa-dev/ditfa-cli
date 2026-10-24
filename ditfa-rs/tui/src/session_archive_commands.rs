@@ -16,6 +16,9 @@ use crate::legacy_core::config::resolve_bootstrap_auth_keyring_backend_kind;
 use crate::legacy_core::config::resolve_bootstrap_auth_route_config;
 use crate::legacy_core::config::resolve_oss_provider;
 use crate::legacy_core::config::resolve_profile_v2_config_path;
+use color_eyre::eyre::Result;
+use color_eyre::eyre::WrapErr;
+use color_eyre::eyre::eyre;
 use ditfa_app_server_protocol::Thread as AppServerThread;
 use ditfa_app_server_protocol::ThreadListParams;
 use ditfa_app_server_protocol::ThreadSortKey;
@@ -30,9 +33,6 @@ use ditfa_protocol::ThreadId;
 use ditfa_utils_cli::CliConfigOverrides;
 use ditfa_utils_home_dir::find_ditfa_home;
 use ditfa_utils_oss::get_default_model_for_oss_provider;
-use color_eyre::eyre::Result;
-use color_eyre::eyre::WrapErr;
-use color_eyre::eyre::eyre;
 
 use super::RemoteAppServerEndpoint;
 
@@ -331,7 +331,7 @@ async fn start_app_server_for_archive_command(
     let chatgpt_base_url = config_toml
         .chatgpt_base_url
         .clone()
-        .unwrap_or_else(|| "https://chat.ditfa.com/api/".to_string());
+        .unwrap_or_else(|| "https://chat.ditfa.com/backend-api/".to_string());
     let auth_route_config = resolve_bootstrap_auth_route_config(
         config_toml,
         bootstrap_config

@@ -1,6 +1,7 @@
 use anyhow::Context;
 use anyhow::Result;
 use base64::Engine;
+use core_test_support::skip_if_no_network;
 use ditfa_config::types::AuthCredentialsStoreMode;
 use ditfa_login::AuthDotJson;
 use ditfa_login::AuthKeyringBackendKind;
@@ -14,7 +15,6 @@ use ditfa_login::save_auth;
 use ditfa_login::token_data::IdTokenInfo;
 use ditfa_login::token_data::TokenData;
 use ditfa_protocol::auth::AuthMode;
-use core_test_support::skip_if_no_network;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
 use serde_json::json;

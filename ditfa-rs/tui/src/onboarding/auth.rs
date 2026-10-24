@@ -1074,7 +1074,7 @@ mod tests {
                 /*enable_ditfa_api_key_env*/ false,
                 AuthCredentialsStoreMode::File,
                 AuthKeyringBackendKind::default(),
-                "https://chat.ditfa.com/api/".to_string(),
+                "https://chat.ditfa.com/backend-api/".to_string(),
                 auth_route_config,
             )
             .await,

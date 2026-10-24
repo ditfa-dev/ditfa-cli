@@ -1,22 +1,6 @@
 #![cfg(not(target_os = "windows"))]
 
 use anyhow::Ok;
-use ditfa_features::Feature;
-use ditfa_protocol::config_types::CollaborationMode;
-use ditfa_protocol::config_types::ModeKind;
-use ditfa_protocol::config_types::Settings;
-use ditfa_protocol::items::AgentMessageContent;
-use ditfa_protocol::items::TurnItem;
-use ditfa_protocol::models::PermissionProfile;
-use ditfa_protocol::models::WebSearchAction;
-use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::EventMsg;
-use ditfa_protocol::protocol::ItemCompletedEvent;
-use ditfa_protocol::protocol::ItemStartedEvent;
-use ditfa_protocol::protocol::Op;
-use ditfa_protocol::user_input::ByteRange;
-use ditfa_protocol::user_input::TextElement;
-use ditfa_protocol::user_input::UserInput;
 use core_test_support::PathBufExt;
 use core_test_support::responses::ev_assistant_message;
 use core_test_support::responses::ev_completed;
@@ -39,6 +23,22 @@ use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_event_match;
+use ditfa_features::Feature;
+use ditfa_protocol::config_types::CollaborationMode;
+use ditfa_protocol::config_types::ModeKind;
+use ditfa_protocol::config_types::Settings;
+use ditfa_protocol::items::AgentMessageContent;
+use ditfa_protocol::items::TurnItem;
+use ditfa_protocol::models::PermissionProfile;
+use ditfa_protocol::models::WebSearchAction;
+use ditfa_protocol::protocol::AskForApproval;
+use ditfa_protocol::protocol::EventMsg;
+use ditfa_protocol::protocol::ItemCompletedEvent;
+use ditfa_protocol::protocol::ItemStartedEvent;
+use ditfa_protocol::protocol::Op;
+use ditfa_protocol::user_input::ByteRange;
+use ditfa_protocol::user_input::TextElement;
+use ditfa_protocol::user_input::UserInput;
 use pretty_assertions::assert_eq;
 
 fn disabled_plan_turn(

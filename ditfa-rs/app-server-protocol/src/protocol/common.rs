@@ -1780,8 +1780,8 @@ mod tests {
     use ditfa_protocol::config_types::MultiAgentMode;
     use ditfa_protocol::models::BUILT_IN_PERMISSION_PROFILE_READ_ONLY;
     use ditfa_protocol::parse_command::ParsedCommand;
-    use ditfa_protocol::protocol::DitfaResponseHandoffMode;
     use ditfa_protocol::protocol::ConversationTextRole;
+    use ditfa_protocol::protocol::DitfaResponseHandoffMode;
     use ditfa_protocol::protocol::RealtimeConversationVersion;
     use ditfa_protocol::protocol::RealtimeOutputModality;
     use ditfa_protocol::protocol::RealtimeVoice;

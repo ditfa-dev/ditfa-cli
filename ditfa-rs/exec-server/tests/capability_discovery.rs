@@ -1,5 +1,6 @@
 mod common;
 
+use common::exec_server::exec_server;
 use ditfa_exec_server::CAPABILITY_ROOTS_DISCOVER_METHOD;
 use ditfa_exec_server::CapabilityRootDiscovery;
 use ditfa_exec_server::CapabilityRootsDiscoverParams;
@@ -10,7 +11,6 @@ use ditfa_exec_server_protocol::CapabilityRootDiscoverRequest;
 use ditfa_exec_server_protocol::JSONRPCMessage;
 use ditfa_exec_server_protocol::JSONRPCResponse;
 use ditfa_utils_path_uri::PathUri;
-use common::exec_server::exec_server;
 use pretty_assertions::assert_eq;
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]

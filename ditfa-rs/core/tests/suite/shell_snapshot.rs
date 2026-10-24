@@ -1,14 +1,4 @@
 use anyhow::Result;
-#[cfg(target_os = "macos")]
-use ditfa_core::shell::get_shell_by_model_provided_path;
-use ditfa_features::Feature;
-use ditfa_protocol::models::PermissionProfile;
-use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::EventMsg;
-use ditfa_protocol::protocol::ExecCommandBeginEvent;
-use ditfa_protocol::protocol::ExecCommandEndEvent;
-use ditfa_protocol::protocol::Op;
-use ditfa_protocol::user_input::UserInput;
 use core_test_support::responses::ev_assistant_message;
 use core_test_support::responses::ev_completed;
 use core_test_support::responses::ev_function_call;
@@ -21,6 +11,16 @@ use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_event_match;
+#[cfg(target_os = "macos")]
+use ditfa_core::shell::get_shell_by_model_provided_path;
+use ditfa_features::Feature;
+use ditfa_protocol::models::PermissionProfile;
+use ditfa_protocol::protocol::AskForApproval;
+use ditfa_protocol::protocol::EventMsg;
+use ditfa_protocol::protocol::ExecCommandBeginEvent;
+use ditfa_protocol::protocol::ExecCommandEndEvent;
+use ditfa_protocol::protocol::Op;
+use ditfa_protocol::user_input::UserInput;
 use pretty_assertions::assert_eq;
 use serde_json::json;
 use std::collections::HashMap;

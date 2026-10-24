@@ -4,6 +4,8 @@
 //! when a config mutation must be owned by the app server rather than written
 //! to the local `config.toml` directly.
 
+use color_eyre::eyre::Result;
+use color_eyre::eyre::WrapErr;
 use ditfa_app_server_client::AppServerRequestHandle;
 use ditfa_app_server_protocol::ClientRequest;
 use ditfa_app_server_protocol::ConfigBatchWriteParams;
@@ -20,8 +22,6 @@ use ditfa_features::FEATURES;
 use ditfa_protocol::config_types::SERVICE_TIER_DEFAULT_REQUEST_VALUE;
 use ditfa_protocol::config_types::TrustLevel;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
-use color_eyre::eyre::Result;
-use color_eyre::eyre::WrapErr;
 use serde_json::Value as JsonValue;
 use std::fmt::Display;
 use std::path::Path;

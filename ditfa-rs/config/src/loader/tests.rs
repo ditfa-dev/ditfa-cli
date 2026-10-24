@@ -159,7 +159,8 @@ model = "gpt-work"
         "unexpected error message: {message}"
     );
     assert!(
-        message.contains("https://github.com/ditfa-dev/ditfa-cli/blob/main/docs/config.md#profiles"),
+        message
+            .contains("https://github.com/ditfa-dev/ditfa-cli/blob/main/docs/config.md#profiles"),
         "unexpected error message: {message}"
     );
 }

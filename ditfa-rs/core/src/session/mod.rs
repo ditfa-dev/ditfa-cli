@@ -179,7 +179,6 @@ use tracing::warn;
 use uuid::Uuid;
 
 use crate::client::ModelClient;
-use crate::ditfa_thread::ThreadConfigSnapshot;
 #[cfg(test)]
 use crate::compact::collect_user_messages;
 use crate::config::Config;
@@ -190,6 +189,7 @@ use crate::config::PermissionProfileState;
 use crate::config::StartedNetworkProxy;
 use crate::config::resolve_web_search_mode_for_turn;
 use crate::context_manager::ContextManager;
+use crate::ditfa_thread::ThreadConfigSnapshot;
 use crate::thread_rollout_truncation::initial_history_has_prior_user_turns;
 use ditfa_config::CONFIG_TOML_FILE;
 use ditfa_config::ConfigLayerSource;
@@ -352,9 +352,9 @@ use ditfa_protocol::models::ResponseItem;
 use ditfa_protocol::openai_models::ReasoningEffort as ReasoningEffortConfig;
 use ditfa_protocol::protocol::ApplyPatchApprovalRequestEvent;
 use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::CompactedItem;
 use ditfa_protocol::protocol::DeprecationNoticeEvent;
+use ditfa_protocol::protocol::DitfaErrorInfo;
 use ditfa_protocol::protocol::ErrorEvent;
 use ditfa_protocol::protocol::Event;
 use ditfa_protocol::protocol::EventMsg;

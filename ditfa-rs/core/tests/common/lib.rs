@@ -2,9 +2,9 @@
 
 use anyhow::Context as _;
 use anyhow::ensure;
+use ctor::ctor;
 use ditfa_arg0::Arg0PathEntryGuard;
 use ditfa_utils_cargo_bin::CargoBinError;
-use ctor::ctor;
 use std::sync::OnceLock;
 use tempfile::TempDir;
 
@@ -32,8 +32,8 @@ pub mod responses;
 pub mod streaming_sse;
 pub mod test_ditfa;
 pub mod test_ditfa_exec;
-pub use test_ditfa as test_ditfa;
-pub use test_ditfa_exec as test_ditfa_exec;
+pub use test_ditfa;
+pub use test_ditfa_exec;
 mod test_environment;
 pub mod tracing;
 pub mod zsh_fork;

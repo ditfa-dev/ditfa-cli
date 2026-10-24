@@ -13,10 +13,10 @@
 //! advertised order. Raising never silently crosses into Max or Ultra; those
 //! efforts require the explicit advanced-reasoning picker.
 
+use crossterm::event::KeyEvent;
 use ditfa_protocol::config_types::ModeKind;
 use ditfa_protocol::openai_models::ModelPreset;
 use ditfa_protocol::openai_models::ReasoningEffort as ReasoningEffortConfig;
-use crossterm::event::KeyEvent;
 
 use super::ChatWidget;
 use super::PARENT_OWNED_INPUT_MESSAGE;

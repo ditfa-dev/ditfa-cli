@@ -1,8 +1,8 @@
 use crate::types::AccountsCheckResponse;
 use crate::types::CodeTaskDetailsResponse;
+use crate::types::ConfigBundleResponse;
 use crate::types::DitfaUserSettingsResponse;
 use crate::types::DitfaWorkspaceMessagesResponse;
-use crate::types::ConfigBundleResponse;
 use crate::types::PaginatedListTaskListItem;
 use crate::types::RateLimitReachedKind as BackendRateLimitReachedKind;
 use crate::types::RateLimitStatusPayload;
@@ -1007,10 +1007,10 @@ mod tests {
             "https://example.test/api/ditfa/accounts/send_add_credits_nudge_email"
         );
 
-        let chatgpt_client = test_client("https://chat.ditfa.com/api", PathStyle::ChatGptApi);
+        let chatgpt_client = test_client("https://chat.ditfa.com/backend-api", PathStyle::ChatGptApi);
         assert_eq!(
             chatgpt_client.send_add_credits_nudge_email_url(),
-            "https://chat.ditfa.com/api/wham/accounts/send_add_credits_nudge_email"
+            "https://chat.ditfa.com/backend-api/wham/accounts/send_add_credits_nudge_email"
         );
 
         assert_eq!(
@@ -1037,10 +1037,10 @@ mod tests {
             "https://example.test/api/ditfa/profiles/me"
         );
 
-        let chatgpt_client = test_client("https://chat.ditfa.com/api", PathStyle::ChatGptApi);
+        let chatgpt_client = test_client("https://chat.ditfa.com/backend-api", PathStyle::ChatGptApi);
         assert_eq!(
             chatgpt_client.token_usage_profile_url(),
-            "https://chat.ditfa.com/api/wham/profiles/me"
+            "https://chat.ditfa.com/backend-api/wham/profiles/me"
         );
     }
 
@@ -1052,10 +1052,10 @@ mod tests {
             "https://example.test/api/ditfa/workspace-messages"
         );
 
-        let chatgpt_client = test_client("https://chat.ditfa.com/api", PathStyle::ChatGptApi);
+        let chatgpt_client = test_client("https://chat.ditfa.com/backend-api", PathStyle::ChatGptApi);
         assert_eq!(
             chatgpt_client.workspace_messages_url(),
-            "https://chat.ditfa.com/api/wham/workspace-messages"
+            "https://chat.ditfa.com/backend-api/wham/workspace-messages"
         );
     }
 
@@ -1124,7 +1124,7 @@ mod tests {
         )
         .unwrap();
         let client = Client::from_auth(
-            "https://chat.ditfa.com/api",
+            "https://chat.ditfa.com/backend-api",
             &auth,
             HttpClientFactory::new(ditfa_http_client::OutboundProxyPolicy::ReqwestDefault),
         );

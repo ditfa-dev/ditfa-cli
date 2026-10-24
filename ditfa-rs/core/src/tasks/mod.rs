@@ -22,9 +22,9 @@ use tracing::trace;
 use tracing::trace_span;
 use tracing::warn;
 
-use crate::ditfa_thread::BackgroundTerminalInfo;
 use crate::config::Config;
 use crate::context::ContextualUserFragment;
+use crate::ditfa_thread::BackgroundTerminalInfo;
 use crate::hook_runtime::inspect_pending_input;
 use crate::hook_runtime::record_additional_contexts;
 use crate::hook_runtime::record_pending_input;
@@ -53,11 +53,11 @@ use ditfa_protocol::protocol::TurnAbortedEvent;
 use ditfa_protocol::protocol::TurnCompleteEvent;
 use ditfa_protocol::protocol::WarningEvent;
 
+pub(crate) use compact::CompactTask;
 use ditfa_features::Feature;
 use ditfa_protocol::error::DitfaErr;
 use ditfa_protocol::error::Result as DitfaResult;
 use ditfa_protocol::models::ContentItem;
-pub(crate) use compact::CompactTask;
 pub(crate) use regular::RegularTask;
 pub(crate) use review::ReviewTask;
 pub(crate) use user_shell::UserShellCommandMode;

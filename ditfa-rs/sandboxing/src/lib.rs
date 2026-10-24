@@ -13,8 +13,8 @@ mod windows;
 pub use bwrap::find_system_bwrap_in_path;
 #[cfg(target_os = "linux")]
 pub use bwrap::system_bwrap_warning;
-pub use ditfa_windows_sandbox::WindowsSandboxProxySettingsMode;
 pub use denial::is_likely_sandbox_denied;
+pub use ditfa_windows_sandbox::WindowsSandboxProxySettingsMode;
 pub use manager::SandboxCommand;
 pub use manager::SandboxDirectSpawnTransformRequest;
 pub use manager::SandboxExecRequest;

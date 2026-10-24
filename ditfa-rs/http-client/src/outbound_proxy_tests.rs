@@ -599,15 +599,15 @@ fn reports_direct_and_unsupported_proxy_tokens() {
 fn no_proxy_matches_exact_suffix_wildcard_and_port() {
     let origin = RequestOrigin {
         scheme: "https".to_string(),
-        host: "localhost".to_string(),
+        host: "api.openai.com".to_string(),
         port: 443,
     };
-    assert!(no_proxy_matches_origin("localhost", &origin));
+    assert!(no_proxy_matches_origin("api.openai.com", &origin));
     assert!(!no_proxy_matches_origin("openai.com", &origin));
     assert!(no_proxy_matches_origin(".openai.com", &origin));
     assert!(no_proxy_matches_origin("*.openai.com", &origin));
-    assert!(no_proxy_matches_origin("localhost:443", &origin));
-    assert!(!no_proxy_matches_origin("localhost:8443", &origin));
+    assert!(no_proxy_matches_origin("api.openai.com:443", &origin));
+    assert!(!no_proxy_matches_origin("api.openai.com:8443", &origin));
 }
 
 #[test]

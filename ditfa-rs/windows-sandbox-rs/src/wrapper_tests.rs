@@ -8,11 +8,11 @@ use ditfa_protocol::permissions::NetworkSandboxPolicy;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
 use pretty_assertions::assert_eq;
 
-use super::DITFA_HOME_FLAG;
-use super::DITFA_WINDOWS_SANDBOX_ARG1;
 use super::COMMAND_CWD_FLAG;
 use super::DENY_READ_PATHS_JSON_FLAG;
 use super::DENY_WRITE_PATHS_JSON_FLAG;
+use super::DITFA_HOME_FLAG;
+use super::DITFA_WINDOWS_SANDBOX_ARG1;
 use super::ENV_JSON_FLAG;
 use super::NETWORK_PROXY_RESTRICTING_SID_FLAG;
 use super::PERMISSION_PROFILE_FLAG;

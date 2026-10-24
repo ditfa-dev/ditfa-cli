@@ -1,10 +1,5 @@
 #![cfg(not(target_os = "windows"))]
 
-use ditfa_protocol::models::PermissionProfile;
-use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::EventMsg;
-use ditfa_protocol::protocol::Op;
-use ditfa_protocol::user_input::UserInput;
 use core_test_support::responses;
 use core_test_support::skip_if_no_network;
 use core_test_support::test_ditfa::TestDitfa;
@@ -12,6 +7,11 @@ use core_test_support::test_ditfa::local_selections;
 use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::test_ditfa::turn_permission_fields;
 use core_test_support::wait_for_event;
+use ditfa_protocol::models::PermissionProfile;
+use ditfa_protocol::protocol::AskForApproval;
+use ditfa_protocol::protocol::EventMsg;
+use ditfa_protocol::protocol::Op;
+use ditfa_protocol::user_input::UserInput;
 use pretty_assertions::assert_eq;
 use responses::ev_assistant_message;
 use responses::ev_completed;

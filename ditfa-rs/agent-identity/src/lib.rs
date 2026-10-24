@@ -10,11 +10,11 @@ use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use chrono::SecondsFormat;
 use chrono::Utc;
+use crypto_box::SecretKey as Curve25519SecretKey;
 use ditfa_http_client::HttpClient;
 use ditfa_http_client::HttpError;
 use ditfa_protocol::auth::PlanType as AuthPlanType;
 use ditfa_protocol::protocol::SessionSource;
-use crypto_box::SecretKey as Curve25519SecretKey;
 use ed25519_dalek::Signer as _;
 use ed25519_dalek::SigningKey;
 use ed25519_dalek::VerifyingKey;
@@ -56,9 +56,9 @@ impl ChatGptEnvironment {
     pub fn from_chatgpt_base_url(chatgpt_base_url: &str) -> Result<Self> {
         match chatgpt_base_url.trim_end_matches('/') {
             "https://chat.ditfa.com"
-            | "https://chat.ditfa.com/api"
+            | "https://chat.ditfa.com/backend-api"
             | "https://chat.ditfa.com/ditfa"
-            | "https://chat.ditfa.com/api/ditfa"
+            | "https://chat.ditfa.com/backend-api/ditfa"
             | "https://chat.openai.com"
             | "https://chat.openai.com/backend-api"
             | "https://chat.openai.com/ditfa"
@@ -75,7 +75,7 @@ impl ChatGptEnvironment {
 
     pub fn chatgpt_base_url(self) -> &'static str {
         match self {
-            Self::Production => "https://chat.ditfa.com/api",
+            Self::Production => "https://chat.ditfa.com/backend-api",
             Self::Staging => "https://staging.chat.ditfa.com/backend-api",
         }
     }
@@ -878,7 +878,7 @@ J1bwkqKZTB5dHolX9A58e/xXnfZ5P8f3Z83+Izap3FwqQulk7b1WO1MQcHuVg2NN
     #[test]
     fn chatgpt_environment_maps_known_urls_to_authapi() -> anyhow::Result<()> {
         assert_eq!(
-            ChatGptEnvironment::from_chatgpt_base_url("https://chat.ditfa.com/api/ditfa")?,
+            ChatGptEnvironment::from_chatgpt_base_url("https://chat.ditfa.com/backend-api/ditfa")?,
             ChatGptEnvironment::Production
         );
         assert_eq!(
@@ -886,7 +886,9 @@ J1bwkqKZTB5dHolX9A58e/xXnfZ5P8f3Z83+Izap3FwqQulk7b1WO1MQcHuVg2NN
             "https://chat.ditfa.com/auth/api/accounts"
         );
         assert_eq!(
-            ChatGptEnvironment::from_chatgpt_base_url("https://staging.chat.ditfa.com/backend-api")?,
+            ChatGptEnvironment::from_chatgpt_base_url(
+                "https://staging.chat.ditfa.com/backend-api"
+            )?,
             ChatGptEnvironment::Staging
         );
         assert_eq!(
@@ -920,7 +922,10 @@ J1bwkqKZTB5dHolX9A58e/xXnfZ5P8f3Z83+Izap3FwqQulk7b1WO1MQcHuVg2NN
     #[test]
     fn agent_task_registration_url_appends_to_authapi_base_url() {
         assert_eq!(
-            agent_task_registration_url("https://chat.ditfa.com/auth/api/accounts", "agent-runtime-id"),
+            agent_task_registration_url(
+                "https://chat.ditfa.com/auth/api/accounts",
+                "agent-runtime-id"
+            ),
             "https://chat.ditfa.com/auth/api/accounts/v1/agent/agent-runtime-id/task/register"
         );
         assert_eq!(
@@ -969,12 +974,12 @@ J1bwkqKZTB5dHolX9A58e/xXnfZ5P8f3Z83+Izap3FwqQulk7b1WO1MQcHuVg2NN
     #[test]
     fn agent_identity_jwks_url_uses_agent_identity_jwt_route() {
         assert_eq!(
-            agent_identity_jwks_url("https://chat.ditfa.com/api"),
-            "https://chat.ditfa.com/api/wham/agent-identities/jwks"
+            agent_identity_jwks_url("https://chat.ditfa.com/backend-api"),
+            "https://chat.ditfa.com/backend-api/wham/agent-identities/jwks"
         );
         assert_eq!(
-            agent_identity_jwks_url("https://chat.ditfa.com/api/"),
-            "https://chat.ditfa.com/api/wham/agent-identities/jwks"
+            agent_identity_jwks_url("https://chat.ditfa.com/backend-api/"),
+            "https://chat.ditfa.com/backend-api/wham/agent-identities/jwks"
         );
     }
 

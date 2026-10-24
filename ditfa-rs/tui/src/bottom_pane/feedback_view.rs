@@ -1,12 +1,12 @@
+use crossterm::event::KeyCode;
+use crossterm::event::KeyEvent;
+use crossterm::event::KeyModifiers;
 use ditfa_feedback::DITFA_APP_DIRECTORY_CACHE_ATTACHMENT_FILENAME;
 use ditfa_feedback::DITFA_APPS_TOOLS_CACHE_ATTACHMENT_FILENAME;
 use ditfa_feedback::DOCTOR_REPORT_ATTACHMENT_FILENAME;
 use ditfa_feedback::FEEDBACK_DIAGNOSTICS_ATTACHMENT_FILENAME;
 use ditfa_feedback::FeedbackDiagnostics;
 use ditfa_feedback::WINDOWS_SANDBOX_LOG_ATTACHMENT_FILENAME;
-use crossterm::event::KeyCode;
-use crossterm::event::KeyEvent;
-use crossterm::event::KeyModifiers;
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 use ratatui::style::Stylize;
