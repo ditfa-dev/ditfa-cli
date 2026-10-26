@@ -48,7 +48,7 @@ jobs:
     name: Build ${{ matrix.target }}
     needs: version
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 120
+    timeout-minutes: 180
     # A new platform must not hold back the release of the others.
     continue-on-error: ${{ matrix.experimental == true }}
     strategy:

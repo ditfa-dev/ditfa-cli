@@ -545,6 +545,10 @@ split-debuginfo = "off"
 # Keep release binaries symbolicateable until packaging has archived the
 # sidecar symbols and stripped the binaries.
 strip = false
+# Balance parallel code generation against binary size: with the default 16
+# units the aarch64-apple-darwin text section outgrows the +/-128MB arm64
+# branch range and the release link fails.
+codegen-units = 4
 
 # Balance parallel release code generation against binary size.
 codegen-units = 4
