@@ -48,7 +48,8 @@ jobs:
     name: Build ${{ matrix.target }}
     needs: version
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 180
+    # The arm64 macOS release build alone takes ~3h on the hosted runner.
+    timeout-minutes: 330
     # A new platform must not hold back the release of the others.
     continue-on-error: ${{ matrix.experimental == true }}
     strategy:
