@@ -550,9 +550,6 @@ strip = false
 # branch range and the release link fails.
 codegen-units = 4
 
-# Balance parallel release code generation against binary size.
-codegen-units = 4
-
 [profile.profiling]
 inherits = "release"
 debug = "full"
