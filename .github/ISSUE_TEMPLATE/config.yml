@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and usage help
+    url: https://github.com/ditfa-dev/ditfa-cli/discussions
+    about: Ask about CLI setup, model providers and workflows.
+  - name: Report a security vulnerability privately
+    url: https://github.com/ditfa-dev/ditfa-cli/security/advisories/new
+    about: Do not disclose vulnerabilities or credentials in public issues.
+  - name: Desktop installation issues
+    url: https://github.com/ditfa-dev/ditfa-releases/issues/new/choose
+    about: Report desktop installer and download problems in the releases repository.

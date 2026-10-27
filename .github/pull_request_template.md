@@ -1,8 +1,11 @@
-# External (non-OpenAI) Pull Request Requirements
+## What changes and why
 
-External code contributions are by invitation only. Please read the dedicated "Contributing" markdown file for details:
-https://github.com/ditfa-dev/ditfa-cli/blob/main/docs/contributing.md
+Describe the problem and the resulting behavior. Link a related issue if available.
 
-If your PR conforms to our contribution guidelines, replace this text with a detailed and high quality description of your changes.
+## Validation
 
-Include a link to a bug report or enhancement request.
+Describe the checks you ran and their results. Include screenshots for visible changes.
+
+## Release and security impact
+
+Note compatibility changes, migration needs or new permissions. Report vulnerabilities privately instead of including exploit details here.

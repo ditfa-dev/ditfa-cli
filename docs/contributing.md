@@ -1,6 +1,6 @@
 ## Contributing
 
-Ditfa Code is open source and contributions are welcome.
+Ditfa CLI is open source and contributions are welcome.
 
 ### Before you start
 
@@ -97,6 +97,6 @@ Found a vulnerability? Please follow the process in
 
 ### Attribution
 
-Ditfa Code is derived from [openai/ditfa](https://github.com/ditfa-dev/ditfa-cli),
+Ditfa CLI is derived from an Apache-2.0 project by OpenAI,
 licensed under Apache-2.0. Contributions here are made under the same license.
 See [LICENSE](../LICENSE) and [NOTICE](../NOTICE).

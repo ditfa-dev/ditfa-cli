@@ -1,147 +1,121 @@
+![Ditfa CLI — an AI coding agent for your terminal](.github/assets/cli-banner.png)
+
 # Ditfa CLI
 
-**Ditfa CLI** is an AI coding agent for your terminal. It reads your code, edits files,
-runs commands in a sandbox, and asks before it does anything risky — with the model of
-your choice: Ditfa, OpenAI, Anthropic Claude, Google Gemini, OpenRouter, DeepSeek, or a
-local model through Ollama, LM Studio, or vLLM.
+**An AI coding agent for your terminal, built in Rust.** Read a codebase, make reviewable edits and run commands with configurable sandbox and approval controls. Choose Ditfa, another supported model provider, or a local model.
 
 [![CI](https://github.com/ditfa-dev/ditfa-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/ditfa-dev/ditfa-cli/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/ditfa-dev/ditfa-cli)](https://github.com/ditfa-dev/ditfa-cli/releases/latest)
+[![Release](https://img.shields.io/github/v/release/ditfa-dev/ditfa-cli?color=558ebd)](https://github.com/ditfa-dev/ditfa-cli/releases/latest)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-558ebd)](LICENSE)
+
+[Website](https://ditfa.com) · [Downloads](https://ditfa.com/downloads#terminal) · [Getting started](docs/getting-started.md) · [Model providers](PROVIDERS.md) · [Discussions](https://github.com/ditfa-dev/ditfa-cli/discussions)
 
 ## Install
 
-**macOS and Linux**
+### macOS and Linux
 
-```shell
-curl -fsSL https://github.com/ditfa-dev/ditfa-cli/releases/latest/download/install.sh | sh
+Download the installer, review it, then run it:
+
+```sh
+curl -fsSL https://github.com/ditfa-dev/ditfa-cli/releases/latest/download/install.sh -o install.sh
+# Review install.sh before running it.
+sh install.sh
+ditfa --version
 ```
 
-**Windows (PowerShell)**
+### Windows PowerShell
 
 ```powershell
-irm https://github.com/ditfa-dev/ditfa-cli/releases/latest/download/install.ps1 | iex
+Invoke-WebRequest https://github.com/ditfa-dev/ditfa-cli/releases/latest/download/install.ps1 -OutFile install.ps1
+# Review install.ps1 before running it.
+& .\install.ps1
+ditfa --version
 ```
 
-**npm**
+### Package manager or manual download
 
-```shell
-npm install -g ditfa
-```
+The npm package is named [`ditfa`](https://www.npmjs.com/package/ditfa) and requires Node.js 18 or later. Install it with `bun add --global ditfa` or `npm install --global ditfa`.
 
-Prefer a manual download? Every [release](https://github.com/ditfa-dev/ditfa-cli/releases/latest)
-has archives for macOS (Apple Silicon and Intel), Linux (x64 and arm64) and Windows
-(x64 and arm64), plus a `SHA256SUMS` file. The installers verify the checksum before
-installing.
+Prefer native binaries? Download an archive and `SHA256SUMS` from the [latest release](https://github.com/ditfa-dev/ditfa-cli/releases/latest). Builds are available for macOS, Linux and Windows on x64 and arm64; availability can vary by release. The native installers verify the archive checksum. See [installation details](docs/install.md) for building from source.
 
-## Quick start
+## Start your first task
 
-1. Create an API key at [chat.ditfa.com/api-keys](https://chat.ditfa.com/api-keys).
-2. Run Ditfa in your project:
+Create a key at [chat.ditfa.com/api-keys](https://chat.ditfa.com/api-keys), set it in your shell and open a project:
 
-```shell
-export DITFA_API_KEY=dt-...
+```sh
+export DITFA_API_KEY="your-ditfa-api-key"
 cd my-project
 ditfa
 ```
 
-With a Ditfa key set, no configuration is needed: Ditfa picks the best model your plan
-includes. Run a one-off task without the interactive UI:
+In PowerShell, use `$env:DITFA_API_KEY = "your-ditfa-api-key"`. Keep your key out of source control. With a Ditfa key configured and no provider override, the CLI selects an available model for your account.
 
-```shell
+Try: **“Explain this project and suggest a small improvement.”** Review the proposed edits and command approvals before accepting changes.
+
+For a task from a script:
+
+```sh
 ditfa exec "add unit tests for the parser and make them pass"
 ```
 
-## Use any model
+## Choose how you work
 
-```shell
-# OpenAI
-export OPENAI_API_KEY=sk-...
-ditfa -m gpt-5.5
+| Capability | What you can do |
+| --- | --- |
+| Code editing | Inspect files, propose patches and run project commands locally. |
+| Model providers | Use Ditfa, OpenAI, Anthropic, Gemini, OpenRouter, DeepSeek or an OpenAI-compatible endpoint. |
+| Local models | Connect Ollama, LM Studio or another compatible local server. |
+| Execution controls | Configure sandbox access and command approval policies for your workflow. |
+| Persistent sessions | Continue earlier work with `ditfa resume`. |
+| MCP and skills | Connect tools through Model Context Protocol and add reusable workflows and `AGENTS.md` instructions. |
+| Automation | Use `ditfa exec`, JSON output and output schemas in scripts. |
+| Editor integration | Explore the [VS Code extension](ditfa-vscode) and [SDKs](sdk). |
 
-# Anthropic, Gemini, OpenRouter, DeepSeek
-ditfa -c model_provider=anthropic -m claude-sonnet-4-5
-ditfa -c model_provider=gemini -m gemini-2.5-pro
-ditfa -c model_provider=openrouter -m qwen/qwen3-coder
+### Bring a model provider
 
-# Local models
+Set the provider's API key and select a model available to your account:
+
+```sh
+export ANTHROPIC_API_KEY="your-provider-api-key"
+ditfa -c model_provider=anthropic -m YOUR_MODEL_ID
+
+# Or connect a local Ollama server.
 ditfa --oss --local-provider ollama
 ```
 
-Set a default in `~/.ditfa/config.toml`:
+Provider and model support depend on the endpoint and account you use. See [PROVIDERS.md](PROVIDERS.md) for exact environment variables, wire protocols and custom endpoints.
 
-```toml
-model_provider = "anthropic"
-model = "claude-sonnet-4-5"
-```
+## Documentation
 
-Any OpenAI-compatible server can be added in a few lines. See
-[PROVIDERS.md](./PROVIDERS.md) for the full list, custom providers and how the
-translation layer works.
+| Guide | Start here for |
+| --- | --- |
+| [Getting started](docs/getting-started.md) | Your first session, common commands and setup checks |
+| [Model providers](PROVIDERS.md) | Hosted providers, API keys and local models |
+| [Sandbox and approvals](docs/sandbox.md) | Execution boundaries and safer workflows |
+| [Configuration](docs/config.md) | Configuration entry points |
+| [Contributing](CONTRIBUTING.md) | Development setup and pull requests |
+| [Security policy](SECURITY.md) | Private vulnerability reporting |
 
-## What it does
+## Build and contribute
 
-- **Edits and runs code locally** — file edits as reviewable patches, commands in a
-  sandbox (Seatbelt on macOS, Landlock/bubblewrap on Linux, a restricted token on
-  Windows).
-- **Approvals you control** — from "ask before every command" to fully autonomous,
-  per project.
-- **Sessions that persist** — resume any conversation with `ditfa resume`; long
-  sessions are compacted automatically.
-- **MCP** — connect Model Context Protocol servers, or run Ditfa itself as an MCP server.
-- **Skills and AGENTS.md** — project instructions and reusable workflows the agent
-  follows.
-- **Scriptable** — `ditfa exec` with JSON output and `--output-schema` for CI and
-  automations.
-- **VS Code** — the extension in [`ditfa-vscode/`](./ditfa-vscode) drives the same agent.
+Install Rust through rustup; the repository pins its toolchain in `ditfa-rs/rust-toolchain.toml`.
 
-## Configuration
-
-| Variable              | Purpose                                              |
-| --------------------- | ---------------------------------------------------- |
-| `DITFA_API_KEY`       | Ditfa API key; makes Ditfa the default provider      |
-| `DITFA_HOME`          | Config and session directory (default `~/.ditfa`)    |
-| `OPENAI_API_KEY`      | OpenAI                                               |
-| `ANTHROPIC_API_KEY`   | Anthropic                                            |
-| `GEMINI_API_KEY`      | Google Gemini                                        |
-| `OPENROUTER_API_KEY`  | OpenRouter                                           |
-| `DEEPSEEK_API_KEY`    | DeepSeek                                             |
-| `DITFA_OSS_BASE_URL`  | Base URL of a local Ollama or LM Studio server       |
-
-More in [docs/config.md](./docs/config.md), [docs/sandbox.md](./docs/sandbox.md) and
-[docs/getting-started.md](./docs/getting-started.md).
-
-## Build from source
-
-Requires Rust (the toolchain in `ditfa-rs/rust-toolchain.toml` is installed
-automatically by rustup).
-
-```shell
+```sh
 git clone https://github.com/ditfa-dev/ditfa-cli.git
 cd ditfa-cli/ditfa-rs
 cargo build --release --bin ditfa
 ./target/release/ditfa --version
 ```
 
-On a laptop, `cargo build -j 2` keeps the machine responsive while it compiles.
+The Rust workspace is large. Use `cargo build -j 2` to limit parallel compilation on smaller machines. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 
-## Repository layout
+## Help and feedback
 
-| Path                              | Contents                                               |
-| --------------------------------- | ------------------------------------------------------ |
-| [`ditfa-rs/`](./ditfa-rs)         | Rust workspace: agent core, TUI, sandboxing, providers |
-| [`ditfa-cli/`](./ditfa-cli)       | npm launcher for the native binary                     |
-| [`ditfa-vscode/`](./ditfa-vscode) | VS Code extension                                      |
-| [`sdk/`](./sdk)                   | TypeScript and Python SDKs                             |
-| [`docs/`](./docs)                 | User documentation                                     |
-| [`scripts/install/`](./scripts/install) | Install scripts published with each release      |
+- **Questions and ideas:** [GitHub Discussions](https://github.com/ditfa-dev/ditfa-cli/discussions).
+- **Reproducible bugs:** [open an issue](https://github.com/ditfa-dev/ditfa-cli/issues/new/choose), including your version, operating system and reproduction steps. Remove keys, private code and personal information from logs.
+- **Security vulnerabilities:** use [private reporting](https://github.com/ditfa-dev/ditfa-cli/security/advisories/new), as described in [SECURITY.md](SECURITY.md).
+- **Desktop downloads:** visit [ditfa-releases](https://github.com/ditfa-dev/ditfa-releases).
 
-## Releasing
+## License and attribution
 
-Push a tag such as `v0.2.0`. The [release workflow](./.github/workflows/release.yml)
-builds all six platforms, publishes the GitHub Release with checksums and the install
-scripts, and publishes to npm when the `NPM_TOKEN` secret is configured.
-
-## License
-
-Apache-2.0. Ditfa CLI is a derivative of an Apache-2.0 project by OpenAI; see [LICENSE](./LICENSE) and
-[NOTICE](./NOTICE).
+Ditfa CLI is licensed under [Apache-2.0](LICENSE). It is derived from an Apache-2.0 project by OpenAI. See [NOTICE](NOTICE) for attribution. Third-party model names and trademarks belong to their respective owners.
