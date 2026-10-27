@@ -13,23 +13,27 @@
 macOS and Linux:
 
 ```bash
-curl -fsSL https://github.com/ditfa-dev/ditfa-cli/releases/latest/download/install.sh | sh
+curl -fsSL https://github.com/ditfa-dev/ditfa-cli/releases/latest/download/install.sh -o install.sh
+# Review install.sh before running it.
+sh install.sh
 ```
 
 Windows (PowerShell):
 
 ```powershell
-irm https://github.com/ditfa-dev/ditfa-cli/releases/latest/download/install.ps1 | iex
+Invoke-WebRequest https://github.com/ditfa-dev/ditfa-cli/releases/latest/download/install.ps1 -OutFile install.ps1
+# Review install.ps1 before running it.
+& .\install.ps1
 ```
 
 Both scripts verify the archive against `SHA256SUMS` before installing. Set
 `DITFA_VERSION=0.1.0` to pin a release or `DITFA_INSTALL_DIR` to choose the
-folder. With Node.js you can also run `npm install -g ditfa`.
+folder. The npm launcher is not currently published; use native release assets.
 
 Archives for every platform are on the
 [releases page](https://github.com/ditfa-dev/ditfa-cli/releases/latest).
 
-For VS Code, install the **Ditfa Code** extension:
+For VS Code, install the **Ditfa CLI** extension:
 
 ```bash
 code --install-extension ditfa.ditfa-code
@@ -54,7 +58,7 @@ cargo install --locked dotslash
 # Install nextest for the `just test` helper.
 cargo install --locked cargo-nextest
 
-# Build Ditfa Code.
+# Build Ditfa CLI.
 cargo build
 
 # Launch the TUI with a sample prompt.
@@ -81,7 +85,7 @@ cargo build --release --manifest-path ditfa-rs/Cargo.toml --bin ditfa
 
 ## Tracing / verbose logging
 
-Ditfa Code is written in Rust, so it honors the `RUST_LOG` environment variable to configure its logging behavior.
+Ditfa CLI is written in Rust, so it honors the `RUST_LOG` environment variable to configure its logging behavior.
 
 The TUI records diagnostics in bounded local stores by default. Set `log_dir` explicitly to enable a plaintext TUI log for a run:
 

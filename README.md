@@ -32,11 +32,11 @@ Invoke-WebRequest https://github.com/ditfa-dev/ditfa-cli/releases/latest/downloa
 ditfa --version
 ```
 
-### Package manager or manual download
+### Manual download
 
-The npm package is named [`ditfa`](https://www.npmjs.com/package/ditfa) and requires Node.js 18 or later. Install it with `bun add --global ditfa` or `npm install --global ditfa`.
+Download an archive and `SHA256SUMS` from the [latest release](https://github.com/ditfa-dev/ditfa-cli/releases/latest). Builds are available for macOS, Linux and Windows on x64 and arm64; availability can vary by release. The native installers verify the archive checksum. See [installation details](docs/install.md) for building from source.
 
-Prefer native binaries? Download an archive and `SHA256SUMS` from the [latest release](https://github.com/ditfa-dev/ditfa-cli/releases/latest). Builds are available for macOS, Linux and Windows on x64 and arm64; availability can vary by release. The native installers verify the archive checksum. See [installation details](docs/install.md) for building from source.
+The repository includes [npm launcher source](ditfa-cli), but the `ditfa` package is not currently available in the public npm registry. Use the native installers or release archives above.
 
 ## Start your first task
 
