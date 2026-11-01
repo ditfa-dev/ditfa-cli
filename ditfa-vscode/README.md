@@ -2,7 +2,7 @@
 
 An AI coding agent that reads, writes, and runs code in your workspace, and shows its work.
 
-Works in VS Code, Cursor, Windsurf, Antigravity, VSCodium, and other editors built on VS Code.
+For VS Code and editors built on it, such as Cursor, Windsurf, and VSCodium.
 
 ---
 
