@@ -48,7 +48,7 @@ export function renderEntry(entry: ChatEntry, ctx: RenderContext): string | null
       if (!ctx.showReasoning || (!entry.summary.trim() && !entry.streaming)) {
         return null;
       }
-      const open = entry.streaming || ctx.expanded.has(entry.id);
+      const open = Boolean(entry.streaming) || ctx.expanded.has(entry.id);
       return `
         <button class="fold" type="button" data-toggle="${escapeHtml(entry.id)}" aria-expanded="${open}">
           <span class="caret${open ? " open" : ""}">${icons.caret}</span>
