@@ -71,7 +71,7 @@ jobs:
           version="${GITHUB_REF_NAME#vscode-v}"
           manifest=$(node -p "require('./ditfa-vscode/package.json').version")
           [ "$version" = "$manifest" ] || { echo "tag $version, manifest $manifest"; exit 1; }
-          mv dist/*.vsix "dist/ditfa-code-$version.vsix"
+          test -f "dist/ditfa-code-$version.vsix"
       - name: Write the release notes
         run: |
           version="${GITHUB_REF_NAME#vscode-v}"
