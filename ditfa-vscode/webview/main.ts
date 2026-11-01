@@ -307,7 +307,7 @@ function renderGate(): void {
     // Keep the mark's animation and only move the bar.
     const bar = host.querySelector<HTMLElement>(".progress-fill");
     if (bar) {
-      bar.style.width = `${install.percent ?? 100}%`;
+      bar.style.width = `${whole(install.percent, 100)}%`;
     }
     const label = host.querySelector(".progress-label");
     if (label) {
@@ -391,7 +391,7 @@ function installLabel(): string {
       return "Unpacking";
     default:
       return install?.percent !== null && install?.percent !== undefined
-        ? `Downloading ${install.percent}%`
+        ? `Downloading ${whole(install.percent)}%`
         : "Downloading";
   }
 }
@@ -668,7 +668,7 @@ function renderAttachments(): void {
   );
   if (activeEditor) {
     const selection = activeEditor.selection
-      ? `:${activeEditor.selection.start}${activeEditor.selection.end !== activeEditor.selection.start ? `-${activeEditor.selection.end}` : ""}`
+      ? `:${whole(activeEditor.selection.start)}${activeEditor.selection.end !== activeEditor.selection.start ? `-${whole(activeEditor.selection.end)}` : ""}`
       : "";
     chips.unshift(
       `<button class="mini-chip active-file${includeActiveFile ? "" : " off"}" type="button" data-toggle-active title="${includeActiveFile ? "Ditfa can see this file. Click to hide it." : "Click to let Ditfa see this file."}">${icons.eye}<span>${escapeHtml(activeEditor.label)}${selection}</span></button>`,
@@ -799,7 +799,7 @@ function renderPopover(): void {
       host.innerHTML = popover.items
         .map(
           (item, index) => `
-          <button class="pop-row${index === (popover as { index: number }).index ? " selected" : ""}" type="button" data-pick="${index}">
+          <button class="pop-row${index === (popover as { index: number }).index ? " selected" : ""}" type="button" data-pick="${whole(index)}">
             <span class="pop-icon">${item.kind === "folder" ? icons.folder : icons.file}</span>
             <span class="pop-text"><span>${escapeHtml(item.label)}</span><small>${escapeHtml(item.path)}</small></span>
           </button>`,
@@ -810,7 +810,7 @@ function renderPopover(): void {
       host.innerHTML = popover.items
         .map(
           (item, index) => `
-          <button class="pop-row${index === (popover as { index: number }).index ? " selected" : ""}" type="button" data-pick="${index}">
+          <button class="pop-row${index === (popover as { index: number }).index ? " selected" : ""}" type="button" data-pick="${whole(index)}">
             <span class="pop-text"><span>/${escapeHtml(item.label)}</span><small>${escapeHtml(item.detail)}</small></span>
             ${item.kind === "skill" ? '<span class="pop-tag">skill</span>' : ""}
           </button>`,

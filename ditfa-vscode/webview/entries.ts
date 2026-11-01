@@ -5,7 +5,7 @@ import type {
   FileChangeSummary,
 } from "../src/session/types";
 import { icons } from "./icons";
-import { escapeHtml, renderMarkdown, stripAnsi, token } from "./markdown";
+import { escapeHtml, renderMarkdown, stripAnsi, token, whole } from "./markdown";
 
 /**
  * Pure rendering of transcript rows and approval cards. Everything that comes
@@ -150,7 +150,7 @@ export function renderFileRow(entryId: string, change: FileChangeSummary): strin
   const kindMark = change.kind === "add" ? "A" : change.kind === "delete" ? "D" : "M";
   return `
     <button class="file-row" type="button" data-diff-entry="${escapeHtml(entryId)}" data-diff-path="${escapeHtml(change.path)}" title="${escapeHtml(change.path)}">
-      <span class="file-kind kind-${change.kind}">${kindMark}</span>
+      <span class="file-kind kind-${token(change.kind)}">${kindMark}</span>
       <span class="file-name">${escapeHtml(change.label)}</span>
       <span class="diffstat">${diffStat(change.additions, change.deletions)}</span>
     </button>`;
@@ -167,7 +167,7 @@ export function sumChanges(changes: FileChangeSummary[]): { additions: number; d
 }
 
 export function diffStat(additions: number, deletions: number): string {
-  return `<span class="add">+${additions}</span> <span class="del">-${deletions}</span>`;
+  return `<span class="add">+${whole(additions)}</span> <span class="del">-${whole(deletions)}</span>`;
 }
 
 /** Shows what an edit will do right in the card, before anything reaches the disk. */
@@ -278,7 +278,7 @@ export function commandStatusLabel(entry: Pick<CommandEntry, "status" | "exitCod
     return "stopped";
   }
   if (entry.exitCode) {
-    return `exit ${entry.exitCode}`;
+    return `exit ${whole(entry.exitCode)}`;
   }
   return entry.durationMs !== null ? formatDuration(entry.durationMs) : "";
 }
@@ -296,7 +296,8 @@ function patchStatusLabel(status: string): string {
   }
 }
 
-export function formatDuration(ms: number): string {
+export function formatDuration(value: number): string {
+  const ms = whole(value);
   if (ms < 1000) {
     return `${ms}ms`;
   }
@@ -306,7 +307,8 @@ export function formatDuration(ms: number): string {
   return `${Math.floor(ms / 60_000)}m ${Math.round((ms % 60_000) / 1000)}s`;
 }
 
-export function formatTokens(count: number): string {
+export function formatTokens(value: number): string {
+  const count = whole(value);
   if (count < 1000) {
     return String(count);
   }
@@ -326,6 +328,7 @@ function tailLines(text: string, max: number): string {
 }
 
 export function timeAgo(at: number, now = Date.now()): string {
+  at = whole(at);
   const minutes = Math.floor((now - at) / 60_000);
   if (minutes < 1) {
     return "just now";
