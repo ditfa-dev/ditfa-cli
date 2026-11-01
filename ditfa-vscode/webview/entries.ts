@@ -5,7 +5,7 @@ import type {
   FileChangeSummary,
 } from "../src/session/types";
 import { icons } from "./icons";
-import { escapeHtml, renderMarkdown, stripAnsi } from "./markdown";
+import { escapeHtml, renderMarkdown, stripAnsi, token } from "./markdown";
 
 /**
  * Pure rendering of transcript rows and approval cards. Everything that comes
@@ -63,7 +63,7 @@ export function renderEntry(entry: ChatEntry, ctx: RenderContext): string | null
     case "fileChange": {
       const totals = sumChanges(entry.changes);
       return `
-        <div class="tool-card patch-${entry.status}">
+        <div class="tool-card patch-${token(entry.status)}">
           <div class="tool-head">
             <span class="tool-icon">${icons.file}</span>
             <span class="tool-title">${entry.changes.length} file${entry.changes.length === 1 ? "" : "s"}</span>
@@ -76,7 +76,7 @@ export function renderEntry(entry: ChatEntry, ctx: RenderContext): string | null
 
     case "toolCall":
       return `
-        <div class="tool-line status-${entry.status}">
+        <div class="tool-line status-${token(entry.status)}">
           <span class="tool-icon">${icons.tool}</span>
           <span class="tool-title">${escapeHtml(entry.title)}</span>
           <span class="tool-status">${entry.status === "running" ? "running" : entry.status === "failed" ? "failed" : entry.durationMs ? formatDuration(entry.durationMs) : ""}</span>
@@ -105,7 +105,7 @@ export function renderEntry(entry: ChatEntry, ctx: RenderContext): string | null
     }
 
     case "notice":
-      return `<div class="notice notice-${entry.tone}">${escapeHtml(entry.text)}</div>`;
+      return `<div class="notice notice-${token(entry.tone)}">${escapeHtml(entry.text)}</div>`;
 
     case "error": {
       const action = entry.action ? ERROR_ACTIONS[entry.action] : null;
@@ -113,7 +113,7 @@ export function renderEntry(entry: ChatEntry, ctx: RenderContext): string | null
         <div class="error-card${entry.retrying ? " retrying" : ""}">
           <div class="error-title">${entry.retrying ? `${escapeHtml(entry.message)}` : escapeHtml(entry.message)}</div>
           ${entry.details ? `<pre class="error-details">${escapeHtml(entry.details)}</pre>` : ""}
-          ${action ? `<button type="button" class="ghost-button" data-error-action="${entry.action}">${action}</button>` : ""}
+          ${action ? `<button type="button" class="ghost-button" data-error-action="${token(entry.action)}">${action}</button>` : ""}
         </div>`;
     }
   }
@@ -132,7 +132,7 @@ function renderCommand(entry: CommandEntry, ctx: RenderContext): string {
   const failed = entry.status === "failed" || (entry.exitCode ?? 0) !== 0;
   const open = entry.status === "running" || ctx.expanded.has(entry.id) !== failed;
   return `
-    <div class="tool-card command status-${failed ? "failed" : entry.status}">
+    <div class="tool-card command status-${failed ? "failed" : token(entry.status)}">
       <button class="tool-head" type="button" ${hasOutput ? `data-toggle-inverse="${failed ? "1" : ""}" data-toggle="${escapeHtml(entry.id)}"` : ""} aria-expanded="${open}">
         <span class="tool-icon">${icons.terminal}</span>
         <span class="tool-title" title="${escapeHtml(entry.command)}">${entry.summary ? escapeHtml(entry.summary) : `<code>${escapeHtml(entry.command)}</code>`}</span>
@@ -193,7 +193,7 @@ export function renderApproval(request: ApprovalRequest): string {
     <div class="approval-title">${icons.shield}<span>${title}</span></div>
     ${reason ? `<div class="approval-reason" dir="auto">${escapeHtml(reason)}</div>` : ""}`;
   const card = (kind: string, body: string) =>
-    `<div class="approval" data-approval-id="${escapeHtml(request.id)}" data-approval-kind="${kind}">${body}</div>`;
+    `<div class="approval" data-approval-id="${escapeHtml(request.id)}" data-approval-kind="${token(kind)}">${body}</div>`;
 
   switch (request.kind) {
     case "command":

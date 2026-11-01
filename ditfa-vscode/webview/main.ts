@@ -26,7 +26,7 @@ import {
   type RenderContext,
 } from "./entries";
 import { icons } from "./icons";
-import { escapeHtml, renderMarkdown } from "./markdown";
+import { escapeHtml, renderMarkdown, token, whole } from "./markdown";
 import { markSvg } from "./mark";
 
 declare function acquireVsCodeApi(): {
@@ -338,7 +338,7 @@ function renderGate(): void {
       host.innerHTML = `${lines}<div class="gate-body">
         ${markSvg("ripple", "gate-mark")}
         <h1>Setting up</h1>
-        <div class="progress"><div class="progress-fill" style="width:${install?.percent ?? 100}%"></div></div>
+        <div class="progress"><div class="progress-fill" style="width:${whole(install?.percent, 100)}%"></div></div>
         <p class="progress-label">${installLabel()}</p>
       </div>`;
       break;
@@ -455,7 +455,7 @@ function buildEntry(entry: ChatEntry): HTMLElement | null {
     return null;
   }
   const node = document.createElement("div");
-  node.className = `entry entry-${entry.kind}`;
+  node.className = `entry entry-${token(entry.kind)}`;
   node.dataset.entryId = entry.id;
   node.innerHTML = html;
   return node;
@@ -600,14 +600,14 @@ function renderPlan(): void {
     <button class="plan-head" type="button" data-toggle-plan aria-expanded="${planOpen}">
       <span class="caret${planOpen ? " open" : ""}">${icons.caret}</span>
       <span class="plan-current">${escapeHtml(current?.step ?? "Plan")}</span>
-      <span class="plan-count">${done}/${state.plan.length}</span>
+      <span class="plan-count">${whole(done)}/${whole(state.plan.length)}</span>
     </button>
     ${
       planOpen
         ? `<ul class="plan-list">${state.plan
             .map(
               (step) =>
-                `<li class="plan-step plan-${step.status}"><span class="plan-marker">${step.status === "completed" ? icons.check : ""}</span><span dir="auto">${escapeHtml(step.step)}</span></li>`,
+                `<li class="plan-step plan-${token(step.status)}"><span class="plan-marker">${step.status === "completed" ? icons.check : ""}</span><span dir="auto">${escapeHtml(step.step)}</span></li>`,
             )
             .join("")}</ul>${state.planExplanation ? `<div class="plan-note" dir="auto">${escapeHtml(state.planExplanation)}</div>` : ""}`
         : ""
@@ -642,7 +642,7 @@ function renderChanges(): void {
   const files = new Set(latest.changes.map((change) => change.path)).size;
   const totals = sumChanges(latest.changes);
   host.innerHTML = `
-    <span class="changes-text">${files} file${files === 1 ? "" : "s"} changed <span class="diffstat">${diffStat(totals.additions, totals.deletions)}</span></span>
+    <span class="changes-text">${whole(files)} file${files === 1 ? "" : "s"} changed <span class="diffstat">${diffStat(totals.additions, totals.deletions)}</span></span>
     <button type="button" class="ghost-button" data-review="${escapeHtml(latest.turnId)}">Review</button>
     <button type="button" class="ghost-button" data-restore="${escapeHtml(latest.turnId)}">Undo</button>
   `;
@@ -710,7 +710,7 @@ function renderToolbar(): void {
   if (usage && usage.percentUsed !== null) {
     const percent = usage.percentUsed;
     const circumference = 2 * Math.PI * 6;
-    ring.innerHTML = `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" class="ring-track"/><circle cx="8" cy="8" r="6" class="ring-fill${percent > 85 ? " high" : ""}" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference * (1 - percent / 100)}"/></svg>`;
+    ring.innerHTML = `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" class="ring-track"/><circle cx="8" cy="8" r="6" class="ring-fill${percent > 85 ? " high" : ""}" stroke-dasharray="${whole(circumference * 100) / 100}" stroke-dashoffset="${whole(circumference * (1 - percent / 100) * 100) / 100}"/></svg>`;
     ring.title = `${Math.round(percent)}% of context (${formatTokens(usage.used)} of ${formatTokens(usage.contextWindow ?? 0)}), ${formatTokens(usage.total)} tokens this conversation. Click to compact.`;
   }
 }
@@ -718,7 +718,7 @@ function renderToolbar(): void {
 function modeRows(index: number): string {
   return MODES.map(
     (mode, position) => `
-      <button class="pop-row${position === index ? " selected" : ""}${mode.id === state.header.mode ? " current" : ""}" type="button" data-mode="${mode.id}">
+      <button class="pop-row${position === index ? " selected" : ""}${mode.id === state.header.mode ? " current" : ""}" type="button" data-mode="${token(mode.id)}">
         <span class="pop-icon">${mode.icon}</span>
         <span class="pop-text"><span>${mode.label}</span><small>${mode.detail}</small></span>
         ${mode.id === state.header.mode ? icons.check : ""}

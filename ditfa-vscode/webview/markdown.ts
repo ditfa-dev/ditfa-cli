@@ -205,15 +205,33 @@ function inline(text: string): string {
   });
 }
 
+/**
+ * Escapes text for HTML content and quoted attributes. The NUL sentinel used by
+ * `inline` is dropped first so model output can never forge a placeholder.
+ */
 export function escapeHtml(value: string): string {
-  return value
-    .split(SENTINEL)
-    .join("")
+  return String(value)
+    .replace(/\u0000/g, "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+/**
+ * For values that end up in a class name or an attribute name. Anything beyond
+ * letters, digits, `_` and `-` is dropped, so a value from the engine cannot
+ * break out of the attribute whatever it contains.
+ */
+export function token(value: unknown): string {
+  return String(value).replace(/[^\w-]/g, "");
+}
+
+/** A whole number for a style or a count, never a string. */
+export function whole(value: unknown, fallback = 0): number {
+  const number = Math.round(Number(value));
+  return Number.isFinite(number) ? number : fallback;
 }
 
 /**
