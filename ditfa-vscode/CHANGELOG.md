@@ -3,6 +3,48 @@
 All notable changes to the Ditfa Code extension are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.0] — 2026-11-01
+
+A rebuild of the panel and the layer under it.
+
+### Added
+
+- One-click engine install with SHA-256 verification, and diagnostics.
+- Setup with no CLI and no account: Ditfa sign-in, API keys in the system keychain, or local models.
+- Checkpoints: restore any message to revert file changes and rewind, without Git.
+- Plan, Ask first, Auto, and Full access modes, applied per message and enforced by the sandbox.
+- Model menu in the panel, listing what the provider really offers.
+- Conversation search, rename, and delete in the panel.
+- `/` commands and skills, inline edit, Fix with Ditfa, Fix Terminal Output, pasted images.
+- Inline diff preview in the approval card.
+- Context meter, per-turn tokens and model, an optional token limit, and a loop guard.
+- Conversations restored on reload, including commands and diffs.
+- Automatic engine restart with the conversation resumed.
+- New look built on the Ditfa mark and its motion.
+
+### Fixed
+
+- **Attached files never reached the model.** `mention` inputs are for plugins and are dropped by the core.
+- **Sign-in used the wrong flow** for Ditfa accounts; it now runs `ditfa login`.
+- **Every user message appeared twice.**
+- **Click handlers stacked up** on each state update, so collapse toggles cancelled themselves, and the draft was wiped.
+- **Context percentage used lifetime tokens**, reaching 100% far too early.
+- **New and deleted files showed wrong stats and an empty diff**: they carry content, not a diff.
+- **Provider model lists showed OpenAI models** for every provider.
+- **A retried request added a card per attempt**, and a fatal error appeared twice.
+- **An approval stayed on screen** after the turn was interrupted.
+- **A server killed by a signal looked alive**, and MCP elicitation requests failed.
+- **A hung or failing engine gave no reason.** Starting now times out and shows stderr.
+- Writing to a dead server could crash the extension host (EPIPE).
+- Picking a model failed with no folder open and dirtied `.vscode/settings.json` otherwise.
+- `Cmd+Shift+D` no longer overrides Run and Debug.
+- A window with no folder ran the agent against `/`.
+
+### Changed
+
+- The engine starts with the panel, not with the editor, and a missing engine no longer opens a modal on startup.
+- Streaming updates are batched, and command output is capped.
+
 ## [0.1.0] — Unreleased
 
 First release.

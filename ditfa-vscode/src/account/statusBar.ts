@@ -1,9 +1,10 @@
 import * as vscode from "vscode";
 
+import type { ConnectionState } from "../session/types";
 import type { AccountView } from "./accountManager";
 
 export interface StatusBarModel {
-  connection: "starting" | "ready" | "unavailable";
+  connection: ConnectionState;
   provider: string | null;
   model: string | null;
   turnActive: boolean;
@@ -20,7 +21,7 @@ export class DitfaStatusBar implements vscode.Disposable {
 
   constructor() {
     this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    this.item.command = "ditfa.showAccount";
+    this.item.command = "ditfa.openChat";
     this.item.name = "Ditfa Code";
     this.item.show();
   }
@@ -42,7 +43,7 @@ export class DitfaStatusBar implements vscode.Disposable {
     if (model.connection === "unavailable") {
       return "$(error) Ditfa";
     }
-    if (model.connection === "starting") {
+    if (model.connection !== "ready") {
       return "$(loading~spin) Ditfa";
     }
 
@@ -59,10 +60,14 @@ export class DitfaStatusBar implements vscode.Disposable {
 
     switch (model.connection) {
       case "starting":
-        lines.push("Starting the ditfa app-server…");
+      case "installing":
+        lines.push("Starting the Ditfa engine…");
+        break;
+      case "missingBinary":
+        lines.push("Open the Ditfa panel to finish setup.");
         break;
       case "unavailable":
-        lines.push("$(error) Not connected — run `Ditfa: Show Logs` for details.");
+        lines.push("$(error) Not connected — run `Ditfa: Run Diagnostics` for details.");
         break;
       case "ready":
         lines.push(`Provider: ${model.provider ?? "default"}`);
@@ -79,7 +84,7 @@ export class DitfaStatusBar implements vscode.Disposable {
         lines.push(`Usage: ${Math.round(model.account.usagePercent)}% of the current window`);
       }
     } else if (model.connection === "ready") {
-      lines.push("", "Not signed in — run `Ditfa: Sign In`.");
+      lines.push("", "Not signed in.");
     }
 
     const tooltip = new vscode.MarkdownString(lines.join("\n\n"));
