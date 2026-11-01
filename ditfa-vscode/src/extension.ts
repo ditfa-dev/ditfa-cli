@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import { registerCommands } from "./commands/register";
 import { DitfaController } from "./controller";
 import { ChatViewProvider } from "./ui/chatViewProvider";
+import { DitfaCodeActions } from "./ui/codeActions";
 import { Logger } from "./util/logger";
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -19,15 +20,14 @@ export function activate(context: vscode.ExtensionContext): void {
       // Keep the transcript when the user switches to another sidebar view.
       webviewOptions: { retainContextWhenHidden: true },
     }),
+    vscode.languages.registerCodeActionsProvider({ scheme: "file" }, new DitfaCodeActions(), {
+      providedCodeActionKinds: DitfaCodeActions.kinds,
+    }),
   );
 
   registerCommands(context, controller, view, logger);
-
-  // Connect eagerly so the first message does not pay for process startup, but
-  // never block activation on it.
-  void controller.connect().catch((error) => {
-    logger.error("initial connection failed", error);
-  });
+  // The engine starts with the panel, not with the editor: activation stays cheap
+  // in every window the user never asks Ditfa anything in.
 }
 
 export function deactivate(): void {

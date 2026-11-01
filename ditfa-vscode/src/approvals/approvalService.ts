@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-import type { ServerRequest } from "../protocol";
+import type { RequestId, ServerRequest } from "../protocol";
 import type { ApprovalAnswer, ApprovalRequest, FileChangeSummary } from "../session/types";
 import type { Logger } from "../util/logger";
 
@@ -20,6 +20,9 @@ export class ApprovalService implements vscode.Disposable {
   private readonly outstanding = new Map<string, Outstanding>();
   private readonly changeEmitter = new vscode.EventEmitter<ApprovalRequest[]>();
   private counter = 0;
+  /** The JSON-RPC request behind the approval being asked right now. */
+  private currentRequestId: RequestId | null = null;
+  private readonly byRequestId = new Map<RequestId, Set<string>>();
 
   readonly onChange = this.changeEmitter.event;
 
@@ -35,6 +38,31 @@ export class ApprovalService implements vscode.Disposable {
 
   /** Handles a server request, returning the JSON-RPC result payload. */
   async handle(request: ServerRequest): Promise<unknown> {
+    this.currentRequestId = request.id;
+    try {
+      return await this.dispatch(request);
+    } finally {
+      this.byRequestId.delete(request.id);
+    }
+  }
+
+  /**
+   * The server settled a request on its own: the turn was interrupted, or an
+   * automatic review answered it. Its card must not sit there asking.
+   */
+  serverResolved(requestId: RequestId): void {
+    for (const id of this.byRequestId.get(requestId) ?? []) {
+      const entry = this.outstanding.get(id);
+      if (entry) {
+        this.outstanding.delete(id);
+        entry.resolve(cancelAnswer(id, entry.request.kind));
+      }
+    }
+    this.byRequestId.delete(requestId);
+    this.changeEmitter.fire(this.pending);
+  }
+
+  private async dispatch(request: ServerRequest): Promise<unknown> {
     switch (request.method) {
       case "item/commandExecution/requestApproval": {
         const params = request.params;
@@ -101,6 +129,19 @@ export class ApprovalService implements vscode.Disposable {
         return { answers };
       }
 
+      case "mcpServer/elicitation/request": {
+        const params = request.params;
+        const answer = await this.ask({
+          kind: "elicitation",
+          id: this.nextId(),
+          server: params.serverName,
+          message: params.message,
+          url: params.mode === "url" ? params.url : null,
+        });
+        const accepted = answer.kind === "elicitation" && answer.decision === "accept";
+        return { action: accepted ? "accept" : "decline", content: accepted ? {} : null, _meta: null };
+      }
+
       // Legacy approval methods, kept so older ditfa builds still work.
       case "execCommandApproval": {
         const params = request.params as { command?: string[] | string; cwd?: string };
@@ -164,6 +205,11 @@ export class ApprovalService implements vscode.Disposable {
   private ask(request: ApprovalRequest): Promise<ApprovalAnswer> {
     return new Promise<ApprovalAnswer>((resolve) => {
       this.outstanding.set(request.id, { request, resolve });
+      if (this.currentRequestId !== null) {
+        const ids = this.byRequestId.get(this.currentRequestId) ?? new Set<string>();
+        ids.add(request.id);
+        this.byRequestId.set(this.currentRequestId, ids);
+      }
       this.changeEmitter.fire(this.pending);
     });
   }
@@ -183,6 +229,8 @@ function cancelAnswer(id: string, kind: ApprovalRequest["kind"]): ApprovalAnswer
       return { id, kind: "permissions", decision: "decline" };
     case "userInput":
       return { id, kind: "userInput", value: "" };
+    case "elicitation":
+      return { id, kind: "elicitation", decision: "decline" };
   }
 }
 

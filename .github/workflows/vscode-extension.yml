@@ -1,0 +1,101 @@
+name: VS Code extension
+
+# Push a tag like `vscode-v0.2.0` to test the extension, attach the VSIX to a
+# GitHub Release, and publish it to both registries in one job, so the VS Code
+# Marketplace and Open VSX can never serve different builds.
+#
+# Marketplace: set the repository variable VSCE_TRUSTED_PUBLISHING=true once the
+# publisher trusts this workflow, or provide the VSCE_PAT secret.
+# Open VSX: provide the OVSX_PAT secret.
+# A registry with no credentials is skipped; the GitHub Release always happens.
+
+on:
+  pull_request:
+    paths: ["ditfa-vscode/**", ".github/workflows/vscode-extension.yml"]
+  push:
+    tags: ["vscode-v[0-9]+.[0-9]+.[0-9]+*"]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Test and package
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ditfa-vscode
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: ditfa-vscode/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run typecheck
+      - run: pnpm test
+      - name: Package
+        run: pnpm run package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vsix
+          path: ditfa-vscode/*.vsix
+          if-no-files-found: error
+
+  publish:
+    name: Publish
+    if: startsWith(github.ref, 'refs/tags/vscode-v')
+    needs: check
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: vsix
+          path: dist
+      - name: Check the tag matches the manifest
+        run: |
+          version="${GITHUB_REF_NAME#vscode-v}"
+          manifest=$(node -p "require('./ditfa-vscode/package.json').version")
+          [ "$version" = "$manifest" ] || { echo "tag $version, manifest $manifest"; exit 1; }
+          mv dist/*.vsix "dist/ditfa-code-$version.vsix"
+      - name: GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # `--latest=false`: the CLI install scripts follow the repository's latest release.
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.vsix \
+            --title "Ditfa Code for VS Code ${GITHUB_REF_NAME#vscode-v}" \
+            --notes "Install from the VS Code Marketplace or Open VSX, or from this file: \`code --install-extension ditfa-code-${GITHUB_REF_NAME#vscode-v}.vsix\`." \
+            --latest=false
+      - name: VS Code Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          TRUSTED: ${{ vars.VSCE_TRUSTED_PUBLISHING }}
+        run: |
+          if [ "$TRUSTED" = "true" ]; then
+            npx --yes @vscode/vsce publish --packagePath dist/*.vsix --oidc
+          elif [ -n "$VSCE_PAT" ]; then
+            npx --yes @vscode/vsce publish --packagePath dist/*.vsix
+          else
+            echo "No Marketplace credentials; skipped."
+          fi
+      - name: Open VSX
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [ -n "$OVSX_PAT" ]; then
+            npx --yes ovsx publish dist/*.vsix -p "$OVSX_PAT"
+          else
+            echo "No Open VSX token; skipped."
+          fi

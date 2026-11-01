@@ -1,3 +1,4 @@
+import { isAbsolute, join } from "node:path";
 import * as vscode from "vscode";
 
 import type { FileChangeSummary } from "../session/types";
@@ -35,11 +36,12 @@ export class DiffService implements vscode.Disposable {
     this.documents.clear();
   }
 
-  async showChange(change: FileChangeSummary, applied: boolean): Promise<void> {
-    const fileUri = vscode.Uri.file(change.path);
+  async showChange(change: FileChangeSummary, applied: boolean, cwd?: string): Promise<void> {
+    const fileUri = resolveUri(change.path, cwd);
 
     if (change.kind === "add") {
-      const content = applied ? await this.readFile(fileUri) : extractAddedContent(change.diff);
+      // Adds and deletes carry the whole file in `diff`, not a unified diff.
+      const content = applied ? await this.readFile(fileUri) : change.diff;
       await this.openDiff(
         this.virtualUri(`${change.label} (new)`, ""),
         this.virtualUri(change.label, content ?? ""),
@@ -49,7 +51,7 @@ export class DiffService implements vscode.Disposable {
     }
 
     if (change.kind === "delete") {
-      const content = applied ? extractRemovedContent(change.diff) : await this.readFile(fileUri);
+      const content = applied ? change.diff : await this.readFile(fileUri);
       await this.openDiff(
         this.virtualUri(change.label, content ?? ""),
         this.virtualUri(`${change.label} (deleted)`, ""),
@@ -79,6 +81,36 @@ export class DiffService implements vscode.Disposable {
         return;
       }
       throw error;
+    }
+  }
+
+  /** Opens every file a turn touched as one scrolling review. */
+  async showAll(title: string, changes: FileChangeSummary[], cwd?: string): Promise<void> {
+    const resources: [vscode.Uri, vscode.Uri, vscode.Uri][] = [];
+    for (const change of changes) {
+      const fileUri = resolveUri(change.path, cwd);
+      const onDisk = (await this.readFile(fileUri)) ?? "";
+      let before = "";
+      if (change.kind === "delete") {
+        before = change.diff;
+      } else if (change.kind === "update") {
+        try {
+          before = revertUnifiedDiff(onDisk, change.diff);
+        } catch {
+          before = onDisk;
+        }
+      }
+      resources.push([fileUri, this.virtualUri(`${change.label} (before)`, before), fileUri]);
+    }
+    try {
+      await vscode.commands.executeCommand("vscode.changes", title, resources);
+    } catch (error) {
+      // Older hosts and some forks lack the multi-file editor.
+      this.logger.debug(`vscode.changes unavailable: ${error instanceof Error ? error.message : error}`);
+      const first = changes[0];
+      if (first) {
+        await this.showChange(first, true, cwd);
+      }
     }
   }
 
@@ -115,26 +147,6 @@ export class DiffService implements vscode.Disposable {
   }
 }
 
-function extractAddedContent(diff: string): string {
-  return collectLines(diff, "+");
-}
-
-function extractRemovedContent(diff: string): string {
-  return collectLines(diff, "-");
-}
-
-function collectLines(diff: string, marker: "+" | "-"): string {
-  const doubled = marker.repeat(3);
-  const lines: string[] = [];
-  for (const line of diff.split("\n")) {
-    if (line.startsWith(doubled) || line.startsWith("@@") || line.startsWith("diff --git")) {
-      continue;
-    }
-    if (line.startsWith(marker)) {
-      lines.push(line.slice(1));
-    } else if (line.startsWith(" ")) {
-      lines.push(line.slice(1));
-    }
-  }
-  return lines.join("\n");
+function resolveUri(path: string, cwd?: string): vscode.Uri {
+  return vscode.Uri.file(cwd && !isAbsolute(path) ? join(cwd, path) : path);
 }
