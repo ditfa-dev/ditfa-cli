@@ -1626,8 +1626,8 @@ mod tests {
     use ditfa_protocol::protocol::AgentReasoningEvent;
     use ditfa_protocol::protocol::AgentReasoningRawContentEvent;
     use ditfa_protocol::protocol::ApplyPatchApprovalRequestEvent;
-    use ditfa_protocol::protocol::DitfaErrorInfo;
     use ditfa_protocol::protocol::CompactedItem;
+    use ditfa_protocol::protocol::DitfaErrorInfo;
     use ditfa_protocol::protocol::DynamicToolCallResponseEvent;
     use ditfa_protocol::protocol::EnteredReviewModeEvent;
     use ditfa_protocol::protocol::ExecCommandEndEvent;

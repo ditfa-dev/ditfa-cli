@@ -1,5 +1,5 @@
-use ditfa_utils_absolute_path::AbsolutePathBuf;
 use dirs::home_dir;
+use ditfa_utils_absolute_path::AbsolutePathBuf;
 use std::path::PathBuf;
 
 /// Returns the path to the Ditfa configuration directory, which can be
@@ -65,8 +65,8 @@ fn find_ditfa_home_from_env(ditfa_home_env: Option<&str>) -> std::io::Result<Abs
 #[cfg(test)]
 mod tests {
     use super::find_ditfa_home_from_env;
-    use ditfa_utils_absolute_path::AbsolutePathBuf;
     use dirs::home_dir;
+    use ditfa_utils_absolute_path::AbsolutePathBuf;
     use pretty_assertions::assert_eq;
     use std::fs;
     use std::io::ErrorKind;

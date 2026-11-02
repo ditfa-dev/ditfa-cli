@@ -1,14 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
 use anyhow::Result;
-use ditfa_core::config::Constrained;
-use ditfa_mcp::DITFA_APPS_MCP_SERVER_NAME;
-use ditfa_protocol::approvals::ElicitationRequest;
-use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::ElicitationAction;
-use ditfa_protocol::protocol::EventMsg;
-use ditfa_protocol::protocol::Op;
-use ditfa_protocol::user_input::UserInput;
 use core_test_support::PathExt;
 use core_test_support::apps_test_server::AppsTestServer;
 use core_test_support::apps_test_server::SEARCH_CALENDAR_CREATE_TOOL;
@@ -23,6 +15,14 @@ use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
 use core_test_support::wait_for_event;
+use ditfa_core::config::Constrained;
+use ditfa_mcp::DITFA_APPS_MCP_SERVER_NAME;
+use ditfa_protocol::approvals::ElicitationRequest;
+use ditfa_protocol::protocol::AskForApproval;
+use ditfa_protocol::protocol::ElicitationAction;
+use ditfa_protocol::protocol::EventMsg;
+use ditfa_protocol::protocol::Op;
+use ditfa_protocol::user_input::UserInput;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
 use serde_json::json;
@@ -181,8 +181,7 @@ default_tools_approval_mode = "auto"
                     },
                 },
             })),
-            message: "Reconnect Calendar on Ditfa to restore access for this request."
-                .to_string(),
+            message: "Reconnect Calendar on Ditfa to restore access for this request.".to_string(),
             url: "https://chat.ditfa.com/apps/calendar/calendar".to_string(),
             elicitation_id: format!("ditfa_apps_auth_{call_id}"),
         }

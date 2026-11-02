@@ -33,7 +33,6 @@ pub static INTERACTIVE_SESSION_SOURCES: LazyLock<Vec<SessionSource>> = LazyLock:
     ]
 });
 
-pub use ditfa_protocol::protocol::SessionMeta;
 pub use compression::RolloutLineReader;
 pub use compression::existing_rollout_path;
 pub use compression::open_rollout_line_reader;
@@ -42,6 +41,7 @@ pub use compression::spawn_rollout_compression_worker;
 pub use config::Config;
 pub use config::RolloutConfig;
 pub use config::RolloutConfigView;
+pub use ditfa_protocol::protocol::SessionMeta;
 pub use list::Cursor;
 pub use list::SortDirection;
 pub use list::ThreadItem;

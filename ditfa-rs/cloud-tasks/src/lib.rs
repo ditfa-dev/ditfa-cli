@@ -52,7 +52,7 @@ async fn init_backend(user_agent_suffix: &str) -> anyhow::Result<BackendContext>
         Some("mock") | Some("MOCK")
     );
     let base_url = std::env::var("DITFA_CLOUD_TASKS_BASE_URL")
-        .unwrap_or_else(|_| "https://chat.ditfa.com/api".to_string());
+        .unwrap_or_else(|_| "https://chat.ditfa.com/backend-api".to_string());
 
     set_user_agent_suffix(user_agent_suffix);
 
@@ -2316,7 +2316,7 @@ mod tests {
         ];
         let lines = format_task_list_lines(
             &tasks,
-            "https://chat.ditfa.com/api",
+            "https://chat.ditfa.com/backend-api",
             now,
             /*colorize*/ false,
         );
@@ -2366,8 +2366,8 @@ mod tests {
     fn parse_task_id_from_url_and_raw() {
         let raw = parse_task_id("task_i_abc123").expect("raw id");
         assert_eq!(raw.0, "task_i_abc123");
-        let url =
-            parse_task_id("https://chat.ditfa.com/ditfa/tasks/task_i_123456?foo=bar").expect("url id");
+        let url = parse_task_id("https://chat.ditfa.com/ditfa/tasks/task_i_123456?foo=bar")
+            .expect("url id");
         assert_eq!(url.0, "task_i_123456");
         assert!(parse_task_id("   ").is_err());
     }

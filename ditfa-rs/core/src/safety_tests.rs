@@ -1,4 +1,5 @@
 use super::*;
+use core_test_support::PathExt;
 use ditfa_protocol::models::PermissionProfile;
 use ditfa_protocol::permissions::NetworkSandboxPolicy;
 use ditfa_protocol::protocol::FileSystemAccessMode;
@@ -8,7 +9,6 @@ use ditfa_protocol::protocol::FileSystemSpecialPath;
 use ditfa_protocol::protocol::GranularApprovalConfig;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
 use ditfa_utils_path_uri::PathUri;
-use core_test_support::PathExt;
 use pretty_assertions::assert_eq;
 use tempfile::TempDir;
 

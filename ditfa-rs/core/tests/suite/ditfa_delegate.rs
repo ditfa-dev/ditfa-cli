@@ -1,7 +1,3 @@
-use ditfa_protocol::protocol::EventMsg;
-use ditfa_protocol::protocol::Op;
-use ditfa_protocol::protocol::ReviewRequest;
-use ditfa_protocol::protocol::ReviewTarget;
 use core_test_support::responses::ev_completed;
 use core_test_support::responses::ev_reasoning_item_added;
 use core_test_support::responses::ev_reasoning_summary_text_delta;
@@ -12,6 +8,10 @@ use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
 use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
+use ditfa_protocol::protocol::EventMsg;
+use ditfa_protocol::protocol::Op;
+use ditfa_protocol::protocol::ReviewRequest;
+use ditfa_protocol::protocol::ReviewTarget;
 use pretty_assertions::assert_eq;
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]

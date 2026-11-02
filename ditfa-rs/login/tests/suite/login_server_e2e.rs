@@ -8,6 +8,7 @@ use std::time::Duration;
 
 use anyhow::Result;
 use base64::Engine;
+use core_test_support::skip_if_no_network;
 use ditfa_config::types::AuthCredentialsStoreMode;
 use ditfa_http_client::HttpClientBuilder;
 use ditfa_login::AuthKeyringBackendKind;
@@ -15,7 +16,6 @@ use ditfa_login::LoginSuccessPage;
 use ditfa_login::LoginSuccessPageBrand;
 use ditfa_login::ServerOptions;
 use ditfa_login::run_login_server;
-use core_test_support::skip_if_no_network;
 use pretty_assertions::assert_eq;
 use tempfile::tempdir;
 use url::Url;

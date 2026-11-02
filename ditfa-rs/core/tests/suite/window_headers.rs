@@ -1,11 +1,5 @@
 use super::compact::COMPACT_WARNING_MESSAGE;
 use anyhow::Result;
-use ditfa_core::DitfaThread;
-use ditfa_core::compact::SUMMARIZATION_PROMPT;
-use ditfa_protocol::protocol::EventMsg;
-use ditfa_protocol::protocol::Op;
-use ditfa_protocol::protocol::WarningEvent;
-use ditfa_protocol::user_input::UserInput;
 use core_test_support::responses::ResponsesRequest;
 use core_test_support::responses::ev_assistant_message;
 use core_test_support::responses::ev_completed;
@@ -15,6 +9,12 @@ use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
 use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
+use ditfa_core::DitfaThread;
+use ditfa_core::compact::SUMMARIZATION_PROMPT;
+use ditfa_protocol::protocol::EventMsg;
+use ditfa_protocol::protocol::Op;
+use ditfa_protocol::protocol::WarningEvent;
+use ditfa_protocol::user_input::UserInput;
 use pretty_assertions::assert_eq;
 use std::sync::Arc;
 

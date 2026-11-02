@@ -28,6 +28,7 @@ use crate::onboarding::mark_url_hyperlink;
 use crate::render::renderable::ColumnRenderable;
 use crate::render::renderable::Renderable;
 use crate::tui::FrameRequester;
+use crossterm::event::KeyCode;
 use ditfa_app_server_protocol::PluginAuthPolicy;
 use ditfa_app_server_protocol::PluginAvailability;
 use ditfa_app_server_protocol::PluginDetail;
@@ -46,7 +47,6 @@ use ditfa_core_plugins::remote::REMOTE_WORKSPACE_SHARED_WITH_ME_MARKETPLACE_NAME
 use ditfa_core_plugins::remote::REMOTE_WORKSPACE_SHARED_WITH_ME_PRIVATE_MARKETPLACE_NAME;
 use ditfa_core_plugins::remote::REMOTE_WORKSPACE_SHARED_WITH_ME_UNLISTED_MARKETPLACE_NAME;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
-use crossterm::event::KeyCode;
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 use ratatui::prelude::Widget;

@@ -1,5 +1,6 @@
 #![cfg(target_os = "macos")]
 
+use core_test_support::PathExt;
 use ditfa_core::exec::ExecCapturePolicy;
 use ditfa_core::exec::ExecParams;
 use ditfa_core::exec::process_exec_tool_call;
@@ -11,7 +12,6 @@ use ditfa_protocol::exec_output::ExecToolCallOutput;
 use ditfa_protocol::models::PermissionProfile;
 use ditfa_sandboxing::SandboxType;
 use ditfa_sandboxing::get_platform_sandbox;
-use core_test_support::PathExt;
 use std::collections::HashMap;
 use tempfile::TempDir;
 
