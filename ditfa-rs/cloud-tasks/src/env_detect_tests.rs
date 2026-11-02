@@ -17,10 +17,10 @@ use pretty_assertions::assert_eq;
 
 use super::*;
 
-const BASE_URL: &str = "https://chat.ditfa.com/api";
+const BASE_URL: &str = "https://chat.ditfa.com/backend-api";
 const BY_REPO_URL: &str =
-    "https://chat.ditfa.com/api/wham/environments/by-repo/github/openai/ditfa";
-const GLOBAL_URL: &str = "https://chat.ditfa.com/api/wham/environments";
+    "https://chat.ditfa.com/backend-api/wham/environments/by-repo/github/openai/ditfa";
+const GLOBAL_URL: &str = "https://chat.ditfa.com/backend-api/wham/environments";
 
 #[tokio::test]
 async fn production_http_forwards_headers_and_decodes_response() {

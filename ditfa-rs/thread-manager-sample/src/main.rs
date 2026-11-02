@@ -16,12 +16,12 @@ use ditfa_core_api::AskForApproval;
 use ditfa_core_api::AuthCredentialsStoreMode;
 use ditfa_core_api::AuthManager;
 use ditfa_core_api::AutoCompactTokenLimitScope;
-use ditfa_core_api::DitfaAppsToolsCache;
-use ditfa_core_api::DitfaHomeUserInstructionsProvider;
-use ditfa_core_api::DitfaThread;
 use ditfa_core_api::Config;
 use ditfa_core_api::ConfigLayerStack;
 use ditfa_core_api::Constrained;
+use ditfa_core_api::DitfaAppsToolsCache;
+use ditfa_core_api::DitfaHomeUserInstructionsProvider;
+use ditfa_core_api::DitfaThread;
 use ditfa_core_api::EnvironmentManager;
 use ditfa_core_api::EventMsg;
 use ditfa_core_api::ExecServerRuntimePaths;
@@ -270,7 +270,7 @@ fn new_config(model: Option<String>, arg0_paths: Arg0DispatchPaths) -> anyhow::R
         model_reasoning_summary: None,
         model_catalog: None,
         model_verbosity: None,
-        chatgpt_base_url: "https://chat.ditfa.com/api/".to_string(),
+        chatgpt_base_url: "https://chat.ditfa.com/backend-api/".to_string(),
         respect_system_proxy: false,
         apps_mcp_product_sku: None,
         realtime_audio: RealtimeAudioConfig::default(),

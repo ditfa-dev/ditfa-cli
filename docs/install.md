@@ -4,17 +4,36 @@
 
 | Requirement                 | Details                                                         |
 | --------------------------- | --------------------------------------------------------------- |
-| Operating systems           | macOS 12+, Ubuntu 20.04+/Debian 10+, or Windows 11 **via WSL2** |
+| Operating systems           | macOS 12+, Linux with glibc 2.35+ (Ubuntu 22.04+, Debian 12+), Windows 10/11 |
 | Git (optional, recommended) | 2.23+ for built-in PR helpers                                   |
 | RAM                         | 4-GB minimum (8-GB recommended)                                 |
 
 ### Install a release
 
+macOS and Linux:
+
 ```bash
-npm install -g ditfa
+curl -fsSL https://github.com/ditfa-dev/ditfa-cli/releases/latest/download/install.sh -o install.sh
+# Review install.sh before running it.
+sh install.sh
 ```
 
-For VS Code, install the **Ditfa Code** extension:
+Windows (PowerShell):
+
+```powershell
+Invoke-WebRequest https://github.com/ditfa-dev/ditfa-cli/releases/latest/download/install.ps1 -OutFile install.ps1
+# Review install.ps1 before running it.
+& .\install.ps1
+```
+
+Both scripts verify the archive against `SHA256SUMS` before installing. Set
+`DITFA_VERSION=0.1.0` to pin a release or `DITFA_INSTALL_DIR` to choose the
+folder. The npm launcher is not currently published; use native release assets.
+
+Archives for every platform are on the
+[releases page](https://github.com/ditfa-dev/ditfa-cli/releases/latest).
+
+For VS Code, install the **Ditfa CLI** extension:
 
 ```bash
 code --install-extension ditfa.ditfa-code
@@ -24,8 +43,8 @@ code --install-extension ditfa.ditfa-code
 
 ```bash
 # Clone the repository and navigate to the root of the Cargo workspace.
-git clone https://github.com/Teamtem-dev/ditfa-code.git
-cd ditfa-code/ditfa-rs
+git clone https://github.com/ditfa-dev/ditfa-cli.git
+cd ditfa-cli/ditfa-rs
 
 # Install the Rust toolchain, if necessary.
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -39,7 +58,7 @@ cargo install --locked dotslash
 # Install nextest for the `just test` helper.
 cargo install --locked cargo-nextest
 
-# Build Ditfa Code.
+# Build Ditfa CLI.
 cargo build
 
 # Launch the TUI with a sample prompt.
@@ -66,7 +85,7 @@ cargo build --release --manifest-path ditfa-rs/Cargo.toml --bin ditfa
 
 ## Tracing / verbose logging
 
-Ditfa Code is written in Rust, so it honors the `RUST_LOG` environment variable to configure its logging behavior.
+Ditfa CLI is written in Rust, so it honors the `RUST_LOG` environment variable to configure its logging behavior.
 
 The TUI records diagnostics in bounded local stores by default. Set `log_dir` explicitly to enable a plaintext TUI log for a run:
 

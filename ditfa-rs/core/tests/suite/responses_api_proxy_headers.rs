@@ -3,12 +3,6 @@
 
 use anyhow::Result;
 use anyhow::anyhow;
-use ditfa_features::Feature;
-use ditfa_protocol::models::PermissionProfile;
-use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::EventMsg;
-use ditfa_protocol::protocol::Op;
-use ditfa_protocol::user_input::UserInput;
 use core_test_support::responses::ResponseMock;
 use core_test_support::responses::ResponsesRequest;
 use core_test_support::responses::ev_assistant_message;
@@ -23,6 +17,12 @@ use core_test_support::test_ditfa::TestDitfa;
 use core_test_support::test_ditfa::local_selections;
 use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::test_ditfa::turn_permission_fields;
+use ditfa_features::Feature;
+use ditfa_protocol::models::PermissionProfile;
+use ditfa_protocol::protocol::AskForApproval;
+use ditfa_protocol::protocol::EventMsg;
+use ditfa_protocol::protocol::Op;
+use ditfa_protocol::user_input::UserInput;
 use pretty_assertions::assert_eq;
 use serde_json::json;
 use std::time::Duration;

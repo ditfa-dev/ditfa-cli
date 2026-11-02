@@ -3,13 +3,6 @@
 
 use anyhow::Context;
 use anyhow::Result;
-use ditfa_config::types::McpServerConfig;
-use ditfa_config::types::McpServerTransportConfig;
-use ditfa_protocol::models::PermissionProfile;
-use ditfa_protocol::protocol::AskForApproval;
-use ditfa_protocol::protocol::EventMsg;
-use ditfa_protocol::protocol::Op;
-use ditfa_protocol::user_input::UserInput;
 use core_test_support::TempDirExt;
 use core_test_support::assert_regex_match;
 use core_test_support::responses;
@@ -26,6 +19,13 @@ use core_test_support::test_ditfa::local_selections;
 use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
 use core_test_support::wait_for_mcp_server;
+use ditfa_config::types::McpServerConfig;
+use ditfa_config::types::McpServerTransportConfig;
+use ditfa_protocol::models::PermissionProfile;
+use ditfa_protocol::protocol::AskForApproval;
+use ditfa_protocol::protocol::EventMsg;
+use ditfa_protocol::protocol::Op;
+use ditfa_protocol::user_input::UserInput;
 use serde_json::Value;
 use serde_json::json;
 use std::collections::HashMap;

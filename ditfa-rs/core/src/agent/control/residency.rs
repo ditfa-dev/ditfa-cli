@@ -1,7 +1,7 @@
 use super::AgentControl;
 use crate::agent::AgentStatus;
-use crate::ditfa_thread::DitfaThread;
 use crate::config::Config;
+use crate::ditfa_thread::DitfaThread;
 use crate::thread_manager::ThreadManagerState;
 use ditfa_protocol::ThreadId;
 use ditfa_protocol::error::DitfaErr;

@@ -2,6 +2,7 @@
 
 mod common;
 
+use common::exec_server::exec_server;
 use ditfa_exec_server::ExecResponse;
 use ditfa_exec_server::InitializeParams;
 use ditfa_exec_server::InitializeResponse;
@@ -13,7 +14,6 @@ use ditfa_exec_server::WriteStatus;
 use ditfa_exec_server_protocol::JSONRPCMessage;
 use ditfa_exec_server_protocol::JSONRPCResponse;
 use ditfa_utils_path_uri::PathUri;
-use common::exec_server::exec_server;
 use pretty_assertions::assert_eq;
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]

@@ -6,6 +6,8 @@ use std::collections::BTreeMap;
 use std::io::ErrorKind;
 use std::time::Duration;
 
+use common::exec_server::ExecServerHarness;
+use common::exec_server::exec_server;
 use ditfa_exec_server::HttpHeader;
 use ditfa_exec_server::HttpRedirectPolicy;
 use ditfa_exec_server::HttpRequestBodyDeltaNotification;
@@ -17,8 +19,6 @@ use ditfa_exec_server_protocol::JSONRPCMessage;
 use ditfa_exec_server_protocol::JSONRPCNotification;
 use ditfa_exec_server_protocol::JSONRPCResponse;
 use ditfa_exec_server_protocol::RequestId;
-use common::exec_server::ExecServerHarness;
-use common::exec_server::exec_server;
 use pretty_assertions::assert_eq;
 use serde::de::DeserializeOwned;
 use serde_json::Value;

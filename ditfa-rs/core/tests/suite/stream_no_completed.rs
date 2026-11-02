@@ -1,11 +1,6 @@
 //! Verifies that the agent retries when the SSE stream terminates before
 //! delivering a `response.completed` event.
 
-use ditfa_model_provider_info::ModelProviderInfo;
-use ditfa_model_provider_info::WireApi;
-use ditfa_protocol::protocol::EventMsg;
-use ditfa_protocol::protocol::Op;
-use ditfa_protocol::user_input::UserInput;
 use core_test_support::responses;
 use core_test_support::skip_if_no_network;
 use core_test_support::streaming_sse::StreamingSseChunk;
@@ -13,6 +8,11 @@ use core_test_support::streaming_sse::start_streaming_sse_server;
 use core_test_support::test_ditfa::TestDitfa;
 use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event;
+use ditfa_model_provider_info::ModelProviderInfo;
+use ditfa_model_provider_info::WireApi;
+use ditfa_protocol::protocol::EventMsg;
+use ditfa_protocol::protocol::Op;
+use ditfa_protocol::user_input::UserInput;
 
 fn sse_incomplete() -> String {
     responses::sse(vec![serde_json::json!({

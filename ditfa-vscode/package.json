@@ -1,22 +1,21 @@
 {
   "name": "ditfa-code",
   "displayName": "Ditfa Code",
-  "description": "Multi-provider AI coding agent inside VS Code. Connect to OpenAI, Anthropic, Gemini, or local models via Ollama and LM Studio.",
-  "version": "0.1.1",
+  "description": "The AI coding agent that shows its work. Tab autocomplete, any model, your own keys or a Ditfa plan, review and undo every change hunk by hunk, checkpoints without Git, and a sandbox the engine enforces.",
+  "version": "0.3.0",
   "publisher": "ditfa",
   "license": "Apache-2.0",
   "icon": "media/icon.png",
   "engines": {
-    "vscode": "^1.90.0",
-    "node": ">=20"
+    "vscode": "^1.90.0"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Teamtem-dev/ditfa-code.git",
+    "url": "git+https://github.com/ditfa-dev/ditfa-cli.git",
     "directory": "ditfa-vscode"
   },
   "bugs": {
-    "url": "https://github.com/Teamtem-dev/ditfa-code/issues"
+    "url": "https://github.com/ditfa-dev/ditfa-cli/issues"
   },
   "categories": [
     "AI",
@@ -28,14 +27,26 @@
     "ai",
     "agent",
     "coding assistant",
+    "copilot alternative",
+    "inline completion",
+    "tab completion",
+    "autocomplete",
+    "autonomous coding",
+    "chat",
+    "mcp",
     "openai",
     "anthropic",
+    "claude",
     "gemini",
+    "openrouter",
+    "deepseek",
     "ollama",
-    "local llm"
+    "lm studio",
+    "local llm",
+    "byok"
   ],
   "galleryBanner": {
-    "color": "#0B0D10",
+    "color": "#04070d",
     "theme": "dark"
   },
   "main": "./dist/extension.js",
@@ -46,6 +57,10 @@
     "untrustedWorkspaces": {
       "supported": false,
       "description": "Ditfa Code executes commands and edits files in the workspace, which requires trust."
+    },
+    "virtualWorkspaces": {
+      "supported": false,
+      "description": "Ditfa Code runs commands and edits files on disk."
     }
   },
   "contributes": {
@@ -69,13 +84,6 @@
         }
       ]
     },
-    "viewsWelcome": [
-      {
-        "view": "ditfa.chatView",
-        "contents": "Ditfa Code is starting…\n\nIf this persists, the `ditfa` binary could not be found.\n[Locate the ditfa binary](command:ditfa.locateBinary)\n[Open Settings](command:ditfa.openSettings)",
-        "when": "ditfa.state == 'unavailable'"
-      }
-    ],
     "commands": [
       {
         "command": "ditfa.openChat",
@@ -85,36 +93,19 @@
       },
       {
         "command": "ditfa.newThread",
-        "title": "New Thread",
+        "title": "New Conversation",
         "category": "Ditfa",
         "icon": "$(add)"
       },
       {
-        "command": "ditfa.resumeThread",
-        "title": "Resume Thread…",
-        "category": "Ditfa",
-        "icon": "$(history)"
-      },
-      {
         "command": "ditfa.interrupt",
-        "title": "Interrupt Current Turn",
+        "title": "Stop Current Turn",
         "category": "Ditfa",
         "icon": "$(debug-stop)"
       },
       {
-        "command": "ditfa.selectModel",
-        "title": "Select Model…",
-        "category": "Ditfa",
-        "icon": "$(sparkle)"
-      },
-      {
         "command": "ditfa.selectProvider",
         "title": "Select Provider…",
-        "category": "Ditfa"
-      },
-      {
-        "command": "ditfa.selectApprovalMode",
-        "title": "Select Approval Mode…",
         "category": "Ditfa"
       },
       {
@@ -138,8 +129,38 @@
         "category": "Ditfa"
       },
       {
+        "command": "ditfa.addFileToChat",
+        "title": "Add File to Chat",
+        "category": "Ditfa"
+      },
+      {
         "command": "ditfa.explainSelection",
         "title": "Explain Selection",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.inlineEdit",
+        "title": "Edit Selection…",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.fixProblems",
+        "title": "Fix with Ditfa",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.fixTerminalOutput",
+        "title": "Fix Terminal Output",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.completion.toggle",
+        "title": "Turn Tab Autocomplete On or Off",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.completion.setup",
+        "title": "Set Up Tab Autocomplete…",
         "category": "Ditfa"
       },
       {
@@ -155,7 +176,12 @@
       },
       {
         "command": "ditfa.restartServer",
-        "title": "Restart Ditfa Server",
+        "title": "Restart Engine",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.runDoctor",
+        "title": "Run Diagnostics",
         "category": "Ditfa"
       },
       {
@@ -179,21 +205,6 @@
     "menus": {
       "view/title": [
         {
-          "command": "ditfa.newThread",
-          "when": "view == ditfa.chatView",
-          "group": "navigation@1"
-        },
-        {
-          "command": "ditfa.resumeThread",
-          "when": "view == ditfa.chatView",
-          "group": "navigation@2"
-        },
-        {
-          "command": "ditfa.selectModel",
-          "when": "view == ditfa.chatView",
-          "group": "navigation@3"
-        },
-        {
           "command": "ditfa.openTerminal",
           "when": "view == ditfa.chatView",
           "group": "1_ditfa@1"
@@ -204,19 +215,19 @@
           "group": "1_ditfa@2"
         },
         {
-          "command": "ditfa.selectApprovalMode",
-          "when": "view == ditfa.chatView",
-          "group": "1_ditfa@3"
-        },
-        {
-          "command": "ditfa.restartServer",
+          "command": "ditfa.runDoctor",
           "when": "view == ditfa.chatView",
           "group": "9_ditfa@1"
         },
         {
-          "command": "ditfa.showLogs",
+          "command": "ditfa.restartServer",
           "when": "view == ditfa.chatView",
           "group": "9_ditfa@2"
+        },
+        {
+          "command": "ditfa.showLogs",
+          "when": "view == ditfa.chatView",
+          "group": "9_ditfa@3"
         }
       ],
       "editor/context": [
@@ -226,12 +237,35 @@
           "group": "ditfa@1"
         },
         {
-          "command": "ditfa.explainSelection",
+          "command": "ditfa.inlineEdit",
           "when": "editorHasSelection",
           "group": "ditfa@2"
+        },
+        {
+          "command": "ditfa.explainSelection",
+          "when": "editorHasSelection",
+          "group": "ditfa@3"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "ditfa.addFileToChat",
+          "when": "!explorerResourceIsFolder",
+          "group": "ditfa@1"
+        }
+      ],
+      "terminal/context": [
+        {
+          "command": "ditfa.fixTerminalOutput",
+          "when": "terminalTextSelected",
+          "group": "ditfa@1"
         }
       ],
       "commandPalette": [
+        {
+          "command": "ditfa.fixProblems",
+          "when": "false"
+        },
         {
           "command": "ditfa.locateBinary",
           "when": "false"
@@ -245,13 +279,19 @@
     "keybindings": [
       {
         "command": "ditfa.openChat",
-        "key": "ctrl+shift+d",
-        "mac": "cmd+shift+d"
+        "key": "ctrl+alt+j",
+        "mac": "cmd+alt+j"
       },
       {
         "command": "ditfa.addSelectionToChat",
-        "key": "ctrl+alt+d",
-        "mac": "cmd+alt+d",
+        "key": "ctrl+alt+l",
+        "mac": "cmd+alt+l",
+        "when": "editorHasSelection"
+      },
+      {
+        "command": "ditfa.inlineEdit",
+        "key": "ctrl+alt+e",
+        "mac": "cmd+alt+e",
         "when": "editorHasSelection"
       }
     ],
@@ -273,7 +313,7 @@
         "ditfa.provider": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Model provider id from `config.toml` (for example `openai`, `anthropic`, `gemini`, `ollama`). Empty uses the ditfa default.",
+          "markdownDescription": "Model provider: `ditfa`, `openai`, `anthropic`, `gemini`, `openrouter`, `deepseek`, `ollama`, `lmstudio`, or any id from `config.toml`. Empty uses the engine default.",
           "scope": "resource"
         },
         "ditfa.model": {
@@ -317,7 +357,7 @@
             "Never ask (relies entirely on the sandbox)"
           ],
           "default": "on-request",
-          "description": "When Ditfa asks for approval before running commands.",
+          "description": "When Ditfa asks before acting. The mode menu in the chat panel sets this.",
           "scope": "resource"
         },
         "ditfa.sandboxMode": {
@@ -333,8 +373,75 @@
             "No sandbox — the agent has full access to the machine"
           ],
           "default": "workspace-write",
-          "description": "Sandbox policy applied to agent-run commands.",
+          "description": "Sandbox the engine applies to the agent. The mode menu in the chat panel sets this.",
           "scope": "resource"
+        },
+        "ditfa.allowNetwork": {
+          "type": "boolean",
+          "default": false,
+          "description": "Let sandboxed commands reach the network, for example to install packages.",
+          "scope": "resource"
+        },
+        "ditfa.maxTokensPerTurn": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "markdownDescription": "Stop a turn once it has used this many tokens. `0` turns the limit off.",
+          "scope": "resource"
+        },
+        "ditfa.completion.enabled": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Suggest code as you type; press `Tab` to accept. Off until you turn it on, because the code around your cursor is sent to the provider you choose. Use **Ditfa: Set Up Tab Autocomplete** to pick one.",
+          "scope": "window"
+        },
+        "ditfa.completion.provider": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Provider for Tab autocomplete. Empty follows the chat provider. A fast, cheap provider works best here, and a local one keeps code on your machine.",
+          "scope": "window"
+        },
+        "ditfa.completion.model": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Model for Tab autocomplete. Pick a small, fast one: suggestions should arrive in about a second. Empty uses the chat model, or a code model a local server has loaded.",
+          "scope": "window"
+        },
+        "ditfa.completion.debounceMs": {
+          "type": "number",
+          "default": 300,
+          "minimum": 0,
+          "maximum": 2000,
+          "markdownDescription": "How long to wait after you stop typing before asking for a suggestion."
+        },
+        "ditfa.completion.maxTokens": {
+          "type": "number",
+          "default": 128,
+          "minimum": 16,
+          "maximum": 1024,
+          "markdownDescription": "The longest a suggestion may be, in tokens."
+        },
+        "ditfa.completion.multiline": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Allow suggestions that run over several lines. A suggestion never runs past the current line when code follows the cursor on it."
+        },
+        "ditfa.completion.contextFiles": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Include short excerpts of your other open files so suggestions can match them. Files that look like secrets, such as `.env` and key files, are never used."
+        },
+        "ditfa.completion.disabledLanguages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "plaintext",
+            "scminput",
+            "git-commit"
+          ],
+          "markdownDescription": "Language ids Tab autocomplete stays quiet in."
         },
         "ditfa.showReasoning": {
           "type": "boolean",
@@ -364,7 +471,7 @@
           "additionalProperties": {
             "type": "string"
           },
-          "markdownDescription": "Extra environment variables passed to the `ditfa` process, for example `{ \"ANTHROPIC_API_KEY\": \"...\" }`. Prefer `config.toml` for secrets.",
+          "markdownDescription": "Extra environment variables for the `ditfa` process. API keys belong in the panel's provider setup, which stores them in your system keychain; these are plain text.",
           "scope": "machine-overridable"
         }
       }
@@ -378,10 +485,11 @@
     "typecheck": "tsc --noEmit",
     "icon": "node scripts/generate-icon.mjs",
     "test": "vitest run",
-    "package": "pnpm run build && vsce package --no-dependencies",
+    "package": "pnpm run build && pnpm run check-bundle && vsce package --no-dependencies",
     "publish:vsce": "vsce publish --no-dependencies",
     "publish:ovsx": "ovsx publish --no-dependencies",
-    "vscode:prepublish": "pnpm run build"
+    "vscode:prepublish": "pnpm run build",
+    "check-bundle": "node scripts/check-bundle-size.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.19.18",
@@ -392,5 +500,8 @@
     "typescript": "^5.9.2",
     "vitest": "^2.1.8"
   },
-  "homepage": "https://github.com/Teamtem-dev/ditfa-code"
+  "homepage": "https://ditfa.com/downloads",
+  "extensionKind": [
+    "workspace"
+  ]
 }
