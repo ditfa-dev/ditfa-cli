@@ -102,8 +102,8 @@ use ditfa_utils_cli::SharedCliOptions;
 use ditfa_utils_oss::ensure_oss_provider_ready;
 use ditfa_utils_oss::get_default_model_for_oss_provider;
 use event_processor_with_human_output::EventProcessorWithHumanOutput;
-pub use event_processor_with_jsonl_output::DitfaStatus;
 pub use event_processor_with_jsonl_output::CollectedThreadEvents;
+pub use event_processor_with_jsonl_output::DitfaStatus;
 pub use event_processor_with_jsonl_output::EventProcessorWithJsonOutput;
 pub use exec_events::AgentMessageItem;
 pub use exec_events::CollabAgentState;
@@ -350,7 +350,7 @@ pub async fn run_main(cli: Cli, arg0_paths: Arg0DispatchPaths) -> anyhow::Result
     let chatgpt_base_url = bootstrap_config_toml
         .chatgpt_base_url
         .clone()
-        .unwrap_or_else(|| "https://chat.ditfa.com/api/".to_string());
+        .unwrap_or_else(|| "https://chat.ditfa.com/backend-api/".to_string());
     let auth_route_config = resolve_bootstrap_auth_route_config(
         bootstrap_config_toml,
         bootstrap_config

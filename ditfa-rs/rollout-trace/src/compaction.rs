@@ -17,9 +17,9 @@ use tracing::warn;
 
 use crate::inference::trace_response_item_json;
 use crate::model::AgentThreadId;
-use crate::model::DitfaTurnId;
 use crate::model::CompactionId;
 use crate::model::CompactionRequestId;
+use crate::model::DitfaTurnId;
 use crate::payload::RawPayloadKind;
 use crate::raw_event::RawTraceEventContext;
 use crate::raw_event::RawTraceEventPayload;

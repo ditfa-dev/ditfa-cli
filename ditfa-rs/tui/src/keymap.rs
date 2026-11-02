@@ -20,11 +20,11 @@
 
 use crate::key_hint;
 use crate::key_hint::KeyBinding;
+use crossterm::event::KeyCode;
+use crossterm::event::KeyModifiers;
 use ditfa_config::types::KeybindingsSpec;
 use ditfa_config::types::MAX_FUNCTION_KEY;
 use ditfa_config::types::TuiKeymap;
-use crossterm::event::KeyCode;
-use crossterm::event::KeyModifiers;
 use serde::Serialize;
 use std::collections::HashMap;
 

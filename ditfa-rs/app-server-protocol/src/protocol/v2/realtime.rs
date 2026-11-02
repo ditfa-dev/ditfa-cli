@@ -1,5 +1,5 @@
-use ditfa_protocol::protocol::DitfaResponseHandoffMode;
 use ditfa_protocol::protocol::ConversationTextRole;
+use ditfa_protocol::protocol::DitfaResponseHandoffMode;
 use ditfa_protocol::protocol::RealtimeAudioFrame as CoreRealtimeAudioFrame;
 use ditfa_protocol::protocol::RealtimeConversationVersion;
 use ditfa_protocol::protocol::RealtimeOutputModality;

@@ -1,14 +1,14 @@
 #![cfg(not(target_os = "windows"))]
 
 use anyhow::Ok;
-use ditfa_features::Feature;
-use ditfa_protocol::protocol::DeprecationNoticeEvent;
-use ditfa_protocol::protocol::EventMsg;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
 use core_test_support::test_ditfa::TestDitfa;
 use core_test_support::test_ditfa::test_ditfa;
 use core_test_support::wait_for_event_match;
+use ditfa_features::Feature;
+use ditfa_protocol::protocol::DeprecationNoticeEvent;
+use ditfa_protocol::protocol::EventMsg;
 use pretty_assertions::assert_eq;
 use std::collections::BTreeMap;
 

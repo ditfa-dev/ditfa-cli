@@ -1,19 +1,22 @@
 import { describe, expect, it } from "vitest";
 
-import { countDiffLines, mapThreadItem, summarizeChange } from "../src/session/itemMapper";
+import { countDiffLines, displayCommand, mapThreadItem, summarizeChange } from "../src/session/itemMapper";
 import type { ThreadItem } from "../src/protocol";
 
 const AT = 1_700_000_000_000;
 
 describe("mapThreadItem", () => {
-  it("flattens a user message and lifts its mentions into attachments", () => {
+  it("flattens a user message and lifts its context block into attachments", () => {
     const item = {
       type: "userMessage",
       id: "u1",
       clientId: null,
       content: [
-        { type: "text", text: "look at this", text_elements: [] },
-        { type: "mention", name: "main.rs", path: "src/main.rs" },
+        {
+          type: "text",
+          text: "look at this\n\n<ditfa-context>\n- file: src/main.rs\n</ditfa-context>",
+          text_elements: [],
+        },
       ],
     } as ThreadItem;
 
@@ -24,6 +27,8 @@ describe("mapThreadItem", () => {
       at: AT,
       text: "look at this",
       attachments: ["src/main.rs"],
+      clientId: null,
+      turnId: null,
     });
   });
 
@@ -68,9 +73,35 @@ describe("mapThreadItem", () => {
     expect(mapThreadItem(item, AT)).toMatchObject({ kind: "fileChange", status: "aborted" });
   });
 
-  it("drops plan items, which render from turn/plan/updated instead", () => {
+  it("keeps a written plan as its own transcript row", () => {
     const item = { type: "plan", id: "p1", text: "do the thing" } as ThreadItem;
-    expect(mapThreadItem(item, AT)).toBeNull();
+    expect(mapThreadItem(item, AT)).toMatchObject({ kind: "plan", text: "do the thing" });
+  });
+
+  it("shows the command, not the login shell wrapping it", () => {
+    expect(displayCommand("/bin/zsh -lc 'echo hello'")).toBe("echo hello");
+    expect(displayCommand("bash -c \"npm test\"")).toBe("npm test");
+    expect(displayCommand("/bin/zsh -lc 'echo it'\\''s'")).toBe("echo it's");
+    expect(displayCommand("ls -la")).toBe("ls -la");
+  });
+
+  it("counts a new file's content as additions, since adds carry no diff", () => {
+    const summary = summarizeChange({
+      path: "/w/new.txt",
+      kind: { type: "add" },
+      diff: "one\ntwo\n+three\n",
+    });
+    expect(summary).toMatchObject({ additions: 3, deletions: 0 });
+  });
+
+  it("strips the server's move note so the hunks still parse", () => {
+    const summary = summarizeChange({
+      path: "/w/a.txt",
+      kind: { type: "update", move_path: "/w/b.txt" },
+      diff: "@@ -1 +1 @@\n-a\n+b\n\n\nMoved to: /w/b.txt",
+    });
+    expect(summary.diff).toBe("@@ -1 +1 @@\n-a\n+b\n");
+    expect(summary.movePath).toBe("/w/b.txt");
   });
 
   it("keeps unfamiliar tool calls visible rather than dropping them", () => {

@@ -50,7 +50,7 @@ async fn remote_plugin_list_routes_the_complete_query_url() {
 fn cached_remote_plugin_catalog_scopes_returns_existing_scopes() {
     let ditfa_home = tempfile::tempdir().expect("create ditfa home");
     let config = RemotePluginServiceConfig::new(
-        "https://chat.ditfa.com/api".to_string(),
+        "https://chat.ditfa.com/backend-api".to_string(),
         crate::test_support::test_http_client_factory(),
     );
     let auth = DitfaAuth::create_dummy_chatgpt_auth_for_testing();

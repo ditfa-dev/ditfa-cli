@@ -2,9 +2,9 @@ use std::fmt;
 use std::io;
 use std::io::stdout;
 
+use crossterm::Command;
 use ditfa_terminal_detection::Multiplexer;
 use ditfa_terminal_detection::terminal_info;
-use crossterm::Command;
 use ratatui::crossterm::execute;
 
 #[derive(Debug)]

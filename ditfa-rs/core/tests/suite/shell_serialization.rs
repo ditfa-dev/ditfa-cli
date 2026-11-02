@@ -1,7 +1,6 @@
 #![cfg(not(target_os = "windows"))]
 
 use anyhow::Result;
-use ditfa_protocol::models::PermissionProfile;
 use core_test_support::assert_regex_match;
 use core_test_support::responses::ev_assistant_message;
 use core_test_support::responses::ev_completed;
@@ -13,6 +12,7 @@ use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
 use core_test_support::skip_if_target_windows;
 use core_test_support::test_ditfa::test_ditfa;
+use ditfa_protocol::models::PermissionProfile;
 use pretty_assertions::assert_eq;
 use regex_lite::Regex;
 use serde_json::Value;

@@ -27,6 +27,9 @@ pub(super) use crate::token_usage::TokenUsage;
 pub(super) use crate::token_usage::TokenUsageInfo;
 pub(super) use crate::tui::FrameRequester;
 pub(super) use assert_matches::assert_matches;
+pub(super) use crossterm::event::KeyCode;
+pub(super) use crossterm::event::KeyEvent;
+pub(super) use crossterm::event::KeyModifiers;
 pub(super) use ditfa_app_server_protocol::AddCreditsNudgeCreditType;
 pub(super) use ditfa_app_server_protocol::AddCreditsNudgeEmailStatus;
 pub(super) use ditfa_app_server_protocol::AdditionalFileSystemPermissions as AppServerAdditionalFileSystemPermissions;
@@ -34,7 +37,6 @@ pub(super) use ditfa_app_server_protocol::AdditionalNetworkPermissions as AppSer
 pub(super) use ditfa_app_server_protocol::AdditionalPermissionProfile as AppServerAdditionalPermissionProfile;
 pub(super) use ditfa_app_server_protocol::AppSummary;
 pub(super) use ditfa_app_server_protocol::AutoReviewDecisionSource as AppServerGuardianApprovalReviewDecisionSource;
-pub(super) use ditfa_app_server_protocol::DitfaErrorInfo;
 pub(super) use ditfa_app_server_protocol::CollabAgentState as AppServerCollabAgentState;
 pub(super) use ditfa_app_server_protocol::CollabAgentStatus as AppServerCollabAgentStatus;
 pub(super) use ditfa_app_server_protocol::CollabAgentTool as AppServerCollabAgentTool;
@@ -46,6 +48,7 @@ pub(super) use ditfa_app_server_protocol::CommandExecutionSource as AppServerCom
 pub(super) use ditfa_app_server_protocol::CommandExecutionStatus as AppServerCommandExecutionStatus;
 pub(super) use ditfa_app_server_protocol::ConfigWarningNotification;
 pub(super) use ditfa_app_server_protocol::CreditsSnapshot;
+pub(super) use ditfa_app_server_protocol::DitfaErrorInfo;
 pub(super) use ditfa_app_server_protocol::ErrorNotification;
 pub(super) use ditfa_app_server_protocol::ExecPolicyAmendment;
 pub(super) use ditfa_app_server_protocol::FileUpdateChange;
@@ -166,9 +169,6 @@ pub(super) use ditfa_terminal_detection::TerminalName;
 pub(super) use ditfa_utils_absolute_path::AbsolutePathBuf;
 pub(super) use ditfa_utils_approval_presets::builtin_approval_presets;
 pub(super) use ditfa_utils_path_uri::LegacyAppPathString;
-pub(super) use crossterm::event::KeyCode;
-pub(super) use crossterm::event::KeyEvent;
-pub(super) use crossterm::event::KeyModifiers;
 pub(super) use insta::assert_snapshot;
 pub(super) use serde_json::json;
 #[cfg(target_os = "windows")]

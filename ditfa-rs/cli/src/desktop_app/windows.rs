@@ -86,8 +86,8 @@ fn display_workspace_path(workspace: &Path) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::ditfa_new_thread_url;
     use super::display_workspace_path;
+    use super::ditfa_new_thread_url;
     use pretty_assertions::assert_eq;
     use std::path::Path;
 
