@@ -62,6 +62,23 @@ export function renderMarkdown(source: string): RenderedMarkdown {
       continue;
     }
 
+    if (isTableStart(lines, index)) {
+      closeList();
+      const rows: string[][] = [];
+      const head = cells(line);
+      index += 2;
+      while (index < lines.length && (lines[index] ?? "").includes("|") && (lines[index] ?? "").trim()) {
+        rows.push(cells(lines[index] ?? ""));
+        index += 1;
+      }
+      const headHtml = head.map((cell) => `<th>${inline(cell)}</th>`).join("");
+      const bodyHtml = rows
+        .map((row) => `<tr>${row.map((cell) => `<td>${inline(cell)}</td>`).join("")}</tr>`)
+        .join("");
+      out.push(`<div class="table-wrap"><table><thead><tr>${headHtml}</tr></thead><tbody>${bodyHtml}</tbody></table></div>`);
+      continue;
+    }
+
     const heading = /^(#{1,4})\s+(.*)$/.exec(line);
     if (heading) {
       closeList();
@@ -137,6 +154,35 @@ export function renderMarkdown(source: string): RenderedMarkdown {
   return { html: out.join(""), codeBlocks };
 }
 
+function isTableStart(lines: string[], index: number): boolean {
+  const separator = lines[index + 1] ?? "";
+  return (
+    (lines[index] ?? "").includes("|") &&
+    separator.includes("|") &&
+    /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/.test(separator)
+  );
+}
+
+function cells(row: string): string[] {
+  return row
+    .trim()
+    .replace(/^\||\|$/g, "")
+    .split("|")
+    .map((cell) => cell.trim());
+}
+
+/** `src/app.ts:12`: a code span that names a file becomes a link to it. */
+const FILE_REFERENCE = /^((?:[\w@.-]+\/)*[\w@.-]+\.[a-zA-Z][\w]{0,7})(?::(\d+))?(?::\d+)?$/;
+
+function codeSpan(code: string): string {
+  const match = FILE_REFERENCE.exec(code);
+  if (!match?.[1] || !(code.includes("/") || match[2])) {
+    return `<code>${code}</code>`;
+  }
+  const line = match[2] ? ` data-line="${match[2]}"` : "";
+  return `<a class="file-link" href="#" data-open-file="${match[1]}"${line}><code>${code}</code></a>`;
+}
+
 function inline(text: string): string {
   let result = escapeHtml(text);
 
@@ -155,19 +201,37 @@ function inline(text: string): string {
 
   const placeholder = new RegExp(`${SENTINEL}(\\d+)${SENTINEL}`, "g");
   return result.replace(placeholder, (_match, index: string) => {
-    return `<code>${codeSpans[Number(index)] ?? ""}</code>`;
+    return codeSpan(codeSpans[Number(index)] ?? "");
   });
 }
 
+/**
+ * Escapes text for HTML content and quoted attributes. The NUL sentinel used by
+ * `inline` is dropped first so model output can never forge a placeholder.
+ */
 export function escapeHtml(value: string): string {
-  return value
-    .split(SENTINEL)
-    .join("")
+  return String(value)
+    .replace(/\u0000/g, "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+/**
+ * For values that end up in a class name or an attribute name. Anything beyond
+ * letters, digits, `_` and `-` is dropped, so a value from the engine cannot
+ * break out of the attribute whatever it contains.
+ */
+export function token(value: unknown): string {
+  return String(value).replace(/[^\w-]/g, "");
+}
+
+/** A whole number for a style or a count, never a string. */
+export function whole(value: unknown, fallback = 0): number {
+  const number = Math.round(Number(value));
+  return Number.isFinite(number) ? number : fallback;
 }
 
 /**

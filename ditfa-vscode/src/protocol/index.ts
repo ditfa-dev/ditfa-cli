@@ -29,6 +29,12 @@ import type { ThreadCompactStartParams } from "./generated/v2/ThreadCompactStart
 import type { ThreadCompactStartResponse } from "./generated/v2/ThreadCompactStartResponse";
 import type { ThreadUnsubscribeParams } from "./generated/v2/ThreadUnsubscribeParams";
 import type { ThreadUnsubscribeResponse } from "./generated/v2/ThreadUnsubscribeResponse";
+import type { ThreadRollbackParams } from "./generated/v2/ThreadRollbackParams";
+import type { ThreadRollbackResponse } from "./generated/v2/ThreadRollbackResponse";
+import type { ThreadDeleteParams } from "./generated/v2/ThreadDeleteParams";
+import type { ThreadDeleteResponse } from "./generated/v2/ThreadDeleteResponse";
+import type { SkillsListParams } from "./generated/v2/SkillsListParams";
+import type { SkillsListResponse } from "./generated/v2/SkillsListResponse";
 
 import type { TurnStartParams } from "./generated/v2/TurnStartParams";
 import type { TurnStartResponse } from "./generated/v2/TurnStartResponse";
@@ -63,6 +69,9 @@ export type { ThreadStartResponse } from "./generated/v2/ThreadStartResponse";
 export type { ThreadResumeResponse } from "./generated/v2/ThreadResumeResponse";
 export type { ThreadItem } from "./generated/v2/ThreadItem";
 export type { ThreadStatus } from "./generated/v2/ThreadStatus";
+export type { CommandAction } from "./generated/v2/CommandAction";
+export type { SandboxPolicy } from "./generated/v2/SandboxPolicy";
+export type { SkillMetadata } from "./generated/v2/SkillMetadata";
 export type { Turn } from "./generated/v2/Turn";
 export type { TurnStatus } from "./generated/v2/TurnStatus";
 export type { TurnError } from "./generated/v2/TurnError";
@@ -116,6 +125,9 @@ export interface RequestMap {
   "thread/archive": { params: ThreadArchiveParams; result: ThreadArchiveResponse };
   "thread/compact/start": { params: ThreadCompactStartParams; result: ThreadCompactStartResponse };
   "thread/unsubscribe": { params: ThreadUnsubscribeParams; result: ThreadUnsubscribeResponse };
+  "thread/rollback": { params: ThreadRollbackParams; result: ThreadRollbackResponse };
+  "thread/delete": { params: ThreadDeleteParams; result: ThreadDeleteResponse };
+  "skills/list": { params: SkillsListParams; result: SkillsListResponse };
 
   "turn/start": { params: TurnStartParams; result: TurnStartResponse };
   "turn/interrupt": { params: TurnInterruptParams; result: TurnInterruptResponse };
