@@ -1,7 +1,12 @@
 import * as vscode from "vscode";
 
-import type { ServerRequest } from "../protocol";
-import type { ApprovalAnswer, ApprovalRequest, FileChangeSummary } from "../session/types";
+import type { RequestId, ServerRequest } from "../protocol";
+import type {
+  ApprovalAnswer,
+  ApprovalRequest,
+  FileChangeSummary,
+  HunkSkip,
+} from "../session/types";
 import type { Logger } from "../util/logger";
 
 interface Outstanding {
@@ -20,6 +25,14 @@ export class ApprovalService implements vscode.Disposable {
   private readonly outstanding = new Map<string, Outstanding>();
   private readonly changeEmitter = new vscode.EventEmitter<ApprovalRequest[]>();
   private counter = 0;
+  /** The JSON-RPC request behind the approval being asked right now. */
+  private currentRequestId: RequestId | null = null;
+  private readonly byRequestId = new Map<RequestId, Set<string>>();
+  /**
+   * Hunks the user left out of an approved edit. The engine can only take a whole
+   * patch, so these come back out once it has landed.
+   */
+  private readonly skips = new Map<string, HunkSkip[]>();
 
   readonly onChange = this.changeEmitter.event;
 
@@ -35,6 +48,31 @@ export class ApprovalService implements vscode.Disposable {
 
   /** Handles a server request, returning the JSON-RPC result payload. */
   async handle(request: ServerRequest): Promise<unknown> {
+    this.currentRequestId = request.id;
+    try {
+      return await this.dispatch(request);
+    } finally {
+      this.byRequestId.delete(request.id);
+    }
+  }
+
+  /**
+   * The server settled a request on its own: the turn was interrupted, or an
+   * automatic review answered it. Its card must not sit there asking.
+   */
+  serverResolved(requestId: RequestId): void {
+    for (const id of this.byRequestId.get(requestId) ?? []) {
+      const entry = this.outstanding.get(id);
+      if (entry) {
+        this.outstanding.delete(id);
+        entry.resolve(cancelAnswer(id, entry.request.kind));
+      }
+    }
+    this.byRequestId.delete(requestId);
+    this.changeEmitter.fire(this.pending);
+  }
+
+  private async dispatch(request: ServerRequest): Promise<unknown> {
     switch (request.method) {
       case "item/commandExecution/requestApproval": {
         const params = request.params;
@@ -60,6 +98,7 @@ export class ApprovalService implements vscode.Disposable {
           grantRoot: params.grantRoot ?? null,
           changes: this.lookupFileChanges(params.itemId),
         });
+        this.rememberSkips(params.itemId, answer);
         return {
           decision: answer.kind === "fileChange" ? answer.decision : "cancel",
         };
@@ -101,6 +140,19 @@ export class ApprovalService implements vscode.Disposable {
         return { answers };
       }
 
+      case "mcpServer/elicitation/request": {
+        const params = request.params;
+        const answer = await this.ask({
+          kind: "elicitation",
+          id: this.nextId(),
+          server: params.serverName,
+          message: params.message,
+          url: params.mode === "url" ? params.url : null,
+        });
+        const accepted = answer.kind === "elicitation" && answer.decision === "accept";
+        return { action: accepted ? "accept" : "decline", content: accepted ? {} : null, _meta: null };
+      }
+
       // Legacy approval methods, kept so older ditfa builds still work.
       case "execCommandApproval": {
         const params = request.params as { command?: string[] | string; cwd?: string };
@@ -126,12 +178,31 @@ export class ApprovalService implements vscode.Disposable {
           grantRoot: request.params.grantRoot ?? null,
           changes: this.lookupFileChanges(request.params.callId),
         });
+        this.rememberSkips(request.params.callId, answer);
         return { decision: toLegacyDecision(answer) };
       }
 
       default:
         this.logger.warn(`unhandled server request: ${request.method}`);
         throw new Error(`Ditfa Code does not handle ${request.method}.`);
+    }
+  }
+
+  /** What to take back out of the change `itemId` once it has been applied, if anything. */
+  takeSkips(itemId: string): HunkSkip[] | undefined {
+    const skips = this.skips.get(itemId);
+    this.skips.delete(itemId);
+    return skips;
+  }
+
+  private rememberSkips(itemId: string, answer: ApprovalAnswer): void {
+    if (
+      answer.kind === "fileChange" &&
+      (answer.decision === "accept" || answer.decision === "acceptForSession") &&
+      answer.skip &&
+      answer.skip.length > 0
+    ) {
+      this.skips.set(itemId, answer.skip);
     }
   }
 
@@ -153,6 +224,7 @@ export class ApprovalService implements vscode.Disposable {
       entry.resolve(cancelAnswer(id, entry.request.kind));
     }
     this.outstanding.clear();
+    this.skips.clear();
     this.changeEmitter.fire([]);
   }
 
@@ -164,6 +236,11 @@ export class ApprovalService implements vscode.Disposable {
   private ask(request: ApprovalRequest): Promise<ApprovalAnswer> {
     return new Promise<ApprovalAnswer>((resolve) => {
       this.outstanding.set(request.id, { request, resolve });
+      if (this.currentRequestId !== null) {
+        const ids = this.byRequestId.get(this.currentRequestId) ?? new Set<string>();
+        ids.add(request.id);
+        this.byRequestId.set(this.currentRequestId, ids);
+      }
       this.changeEmitter.fire(this.pending);
     });
   }
@@ -183,6 +260,8 @@ function cancelAnswer(id: string, kind: ApprovalRequest["kind"]): ApprovalAnswer
       return { id, kind: "permissions", decision: "decline" };
     case "userInput":
       return { id, kind: "userInput", value: "" };
+    case "elicitation":
+      return { id, kind: "elicitation", decision: "decline" };
   }
 }
 
