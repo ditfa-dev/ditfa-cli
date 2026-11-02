@@ -74,4 +74,39 @@ describe("planRevert", () => {
     );
     expect(plan.steps[0]?.path).toBe("/w/new.ts");
   });
+
+  it("leaves out hunks the user already took back", async () => {
+    // The file as it is now: the first hunk was undone by hand, the second stays.
+    const original = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"].join("\n") + "\n";
+    const diff = [
+      "@@ -1,3 +1,3 @@",
+      " a",
+      "-b",
+      "+B",
+      " c",
+      "@@ -10,3 +10,4 @@",
+      " j",
+      " k",
+      "+K2",
+      " l",
+    ].join("\n");
+    const now = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "K2", "l"].join("\n") + "\n";
+    const plan = await planRevert(
+      [change({ path: "/w/a.txt", diff, reverted: [0] })],
+      "/w",
+      disk({ "/w/a.txt": now }),
+    );
+    expect(plan.skipped).toEqual([]);
+    expect(plan.steps).toEqual([{ path: "/w/a.txt", content: original }]);
+  });
+
+  it("has nothing to do for a file the user already deleted or restored", async () => {
+    const plan = await planRevert(
+      [change({ path: "/w/new.ts", kind: "add", diff: "x\n", undone: true })],
+      "/w",
+      disk({}),
+    );
+    expect(plan.steps).toEqual([]);
+    expect(plan.skipped).toEqual([]);
+  });
 });

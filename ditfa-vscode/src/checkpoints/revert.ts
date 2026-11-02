@@ -1,6 +1,6 @@
 import { isAbsolute, join } from "node:path";
 
-import { PatchApplyError, revertUnifiedDiff } from "../diff/patch";
+import { effectiveDiff, PatchApplyError, revertUnifiedDiff } from "../diff/patch";
 import type { FileChangeSummary } from "../session/types";
 
 /**
@@ -51,6 +51,10 @@ export async function planRevert(
     if (conflicted.has(path)) {
       continue;
     }
+    // The user already took this one back out; there is nothing left to reverse.
+    if (change.undone) {
+      continue;
+    }
 
     switch (change.kind) {
       case "add":
@@ -63,6 +67,11 @@ export async function planRevert(
         break;
 
       case "update": {
+        // Hunks the user undid by hand are already gone from the file.
+        const diff = effectiveDiff(change.diff, change.reverted ?? []);
+        if (diff === "") {
+          break;
+        }
         const destination = change.movePath ? absolute(change.movePath, cwd) : path;
         const after = await current(destination);
         if (after === null) {
@@ -70,7 +79,7 @@ export async function planRevert(
           break;
         }
         try {
-          const before = revertUnifiedDiff(after, change.diff);
+          const before = revertUnifiedDiff(after, diff);
           contents.set(path, before);
           if (destination !== path) {
             contents.set(destination, null);

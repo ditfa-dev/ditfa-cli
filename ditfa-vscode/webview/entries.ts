@@ -1,7 +1,9 @@
+import { hunkStats, listHunks, type DiffHunk } from "../src/diff/patch";
 import type {
   ApprovalRequest,
   ChatEntry,
   CommandEntry,
+  FileChangeEntry,
   FileChangeSummary,
 } from "../src/session/types";
 import { icons } from "./icons";
@@ -70,7 +72,11 @@ export function renderEntry(entry: ChatEntry, ctx: RenderContext): string | null
             <span class="diffstat">${diffStat(totals.additions, totals.deletions)}</span>
             <span class="tool-status">${patchStatusLabel(entry.status)}</span>
           </div>
-          <div class="file-list">${entry.changes.map((change) => renderFileRow(entry.id, change)).join("")}</div>
+          <div class="file-list">${entry.changes
+            .map((change) =>
+              entry.status === "applied" ? renderReviewItem(entry, change, ctx) : renderFileRow(entry.id, change),
+            )
+            .join("")}</div>
         </div>`;
     }
 
@@ -156,6 +162,82 @@ export function renderFileRow(entryId: string, change: FileChangeSummary): strin
     </button>`;
 }
 
+/** Where a hunk sits in the edited file, for people rather than for patch tools. */
+function hunkRange(hunk: DiffHunk): string {
+  const last = hunk.newStart + Math.max(hunk.newLines, 1) - 1;
+  return hunk.newStart === last ? `Line ${whole(hunk.newStart)}` : `Lines ${whole(hunk.newStart)}–${whole(last)}`;
+}
+
+function hunkLines(hunk: DiffHunk, limit: number): string {
+  const lines = hunk.lines.filter((line) => line[0] !== "\\");
+  const rows = lines
+    .slice(0, limit)
+    .map((line) => {
+      const type = line.startsWith("+") ? "add" : line.startsWith("-") ? "del" : "";
+      return `<div class="diff-line ${type}">${escapeHtml(line) || " "}</div>`;
+    })
+    .join("");
+  const more = lines.length > limit ? `<div class="diff-line hunk">… ${whole(lines.length - limit)} more lines</div>` : "";
+  return `${rows}${more}`;
+}
+
+/**
+ * One file of an applied edit: open its diff, look at each hunk, and take back the
+ * ones that are not wanted. The edit has already landed, so undoing is a second
+ * step the user chooses, never one they have to remember to make.
+ */
+function renderReviewItem(entry: FileChangeEntry, change: FileChangeSummary, ctx: RenderContext): string {
+  const hunks = change.kind === "update" ? listHunks(change.diff) : [];
+  const reverted = new Set(change.reverted ?? []);
+  const gone = change.undone === true || (hunks.length > 0 && reverted.size >= hunks.length);
+  const remaining = hunks.length - reverted.size;
+  const key = `hunks:${entry.id}:${change.path}`;
+  const open = ctx.expanded.has(key) && !gone;
+  const where = `data-review-entry="${escapeHtml(entry.id)}" data-review-path="${escapeHtml(change.path)}"`;
+
+  let action = "";
+  if (gone) {
+    action = '<span class="undone-mark">Undone</span>';
+  } else if (hunks.length > 0) {
+    action = `<button type="button" class="mini-action" ${where} data-review-toggle="${escapeHtml(key)}" aria-expanded="${open}">${hunks.length > 1 ? `${whole(remaining)} changes` : "Review"}</button>`;
+  } else {
+    action = `<button type="button" class="mini-action" ${where} data-undo-file="1">Undo</button>`;
+  }
+
+  let body = "";
+  if (open) {
+    body = `<div class="hunk-list">${hunks
+      .map((hunk, index) => {
+        const stats = hunkStats(hunk);
+        const isGone = reverted.has(index);
+        return `
+          <div class="hunk${isGone ? " reverted" : ""}">
+            <div class="hunk-head">
+              <span class="hunk-range">${hunkRange(hunk)}</span>
+              <span class="diffstat">${diffStat(stats.additions, stats.deletions)}</span>
+              ${
+                isGone
+                  ? '<span class="undone-mark">Undone</span>'
+                  : `<button type="button" class="mini-action" ${where} data-revert-hunk="${whole(index)}">Undo</button>`
+              }
+            </div>
+            <div class="diff-body">${hunkLines(hunk, 40)}</div>
+          </div>`;
+      })
+      .join("")}${
+      remaining > 1
+        ? `<div class="hunk-foot"><button type="button" class="mini-action" ${where} data-undo-file="1">Undo all in this file</button></div>`
+        : ""
+    }</div>`;
+  }
+
+  return `
+    <div class="file-item${gone ? " undone" : ""}">
+      <div class="file-line">${renderFileRow(entry.id, change)}${action}</div>
+      ${body}
+    </div>`;
+}
+
 export function sumChanges(changes: FileChangeSummary[]): { additions: number; deletions: number } {
   return changes.reduce(
     (acc, change) => ({
@@ -170,8 +252,31 @@ export function diffStat(additions: number, deletions: number): string {
   return `<span class="add">+${whole(additions)}</span> <span class="del">-${whole(deletions)}</span>`;
 }
 
-/** Shows what an edit will do right in the card, before anything reaches the disk. */
+/**
+ * Shows what an edit will do right in the card, before anything reaches the disk.
+ * An edit with several hunks gets a checkbox on each: the engine takes a patch
+ * whole, so unticked hunks are taken back out the moment it lands.
+ */
 function renderDiffPreview(change: FileChangeSummary): string {
+  const hunks = change.kind === "update" ? listHunks(change.diff) : [];
+  if (hunks.length > 1) {
+    const blocks = hunks
+      .map((hunk, index) => {
+        const stats = hunkStats(hunk);
+        return `
+          <div class="hunk-pick">
+            <label class="hunk-pick-head">
+              <input type="checkbox" checked data-hunk-pick="${whole(index)}" data-hunk-path="${escapeHtml(change.path)}" />
+              <span class="hunk-range">${hunkRange(hunk)}</span>
+              <span class="diffstat">${diffStat(stats.additions, stats.deletions)}</span>
+            </label>
+            <div class="diff-body">${hunkLines(hunk, 60)}</div>
+          </div>`;
+      })
+      .join("");
+    return `<details class="diff-preview" open><summary>${escapeHtml(change.label)} <span class="diffstat">${diffStat(change.additions, change.deletions)}</span> <span class="hunk-count">${whole(hunks.length)} changes</span></summary>${blocks}</details>`;
+  }
+
   const raw = change.diff.split("\n");
   const lines =
     change.kind === "update"

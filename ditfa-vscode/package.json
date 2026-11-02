@@ -1,8 +1,8 @@
 {
   "name": "ditfa-code",
   "displayName": "Ditfa Code",
-  "description": "The AI coding agent that shows its work. Any model, your own keys or a Ditfa plan, checkpoints without Git, and a sandbox the engine enforces.",
-  "version": "0.2.0",
+  "description": "The AI coding agent that shows its work. Tab autocomplete, any model, your own keys or a Ditfa plan, review and undo every change hunk by hunk, checkpoints without Git, and a sandbox the engine enforces.",
+  "version": "0.3.0",
   "publisher": "ditfa",
   "license": "Apache-2.0",
   "icon": "media/icon.png",
@@ -27,6 +27,10 @@
     "ai",
     "agent",
     "coding assistant",
+    "copilot alternative",
+    "inline completion",
+    "tab completion",
+    "autocomplete",
     "autonomous coding",
     "chat",
     "mcp",
@@ -147,6 +151,16 @@
       {
         "command": "ditfa.fixTerminalOutput",
         "title": "Fix Terminal Output",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.completion.toggle",
+        "title": "Turn Tab Autocomplete On or Off",
+        "category": "Ditfa"
+      },
+      {
+        "command": "ditfa.completion.setup",
+        "title": "Set Up Tab Autocomplete…",
         "category": "Ditfa"
       },
       {
@@ -374,6 +388,60 @@
           "minimum": 0,
           "markdownDescription": "Stop a turn once it has used this many tokens. `0` turns the limit off.",
           "scope": "resource"
+        },
+        "ditfa.completion.enabled": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Suggest code as you type; press `Tab` to accept. Off until you turn it on, because the code around your cursor is sent to the provider you choose. Use **Ditfa: Set Up Tab Autocomplete** to pick one.",
+          "scope": "window"
+        },
+        "ditfa.completion.provider": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Provider for Tab autocomplete. Empty follows the chat provider. A fast, cheap provider works best here, and a local one keeps code on your machine.",
+          "scope": "window"
+        },
+        "ditfa.completion.model": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Model for Tab autocomplete. Pick a small, fast one: suggestions should arrive in about a second. Empty uses the chat model, or a code model a local server has loaded.",
+          "scope": "window"
+        },
+        "ditfa.completion.debounceMs": {
+          "type": "number",
+          "default": 300,
+          "minimum": 0,
+          "maximum": 2000,
+          "markdownDescription": "How long to wait after you stop typing before asking for a suggestion."
+        },
+        "ditfa.completion.maxTokens": {
+          "type": "number",
+          "default": 128,
+          "minimum": 16,
+          "maximum": 1024,
+          "markdownDescription": "The longest a suggestion may be, in tokens."
+        },
+        "ditfa.completion.multiline": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Allow suggestions that run over several lines. A suggestion never runs past the current line when code follows the cursor on it."
+        },
+        "ditfa.completion.contextFiles": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Include short excerpts of your other open files so suggestions can match them. Files that look like secrets, such as `.env` and key files, are never used."
+        },
+        "ditfa.completion.disabledLanguages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "plaintext",
+            "scminput",
+            "git-commit"
+          ],
+          "markdownDescription": "Language ids Tab autocomplete stays quiet in."
         },
         "ditfa.showReasoning": {
           "type": "boolean",

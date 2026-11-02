@@ -217,6 +217,14 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         await controller.restoreCheckpoint(message.turnId);
         break;
 
+      case "revertHunks":
+        await controller.revertHunks(message.entryId, message.path, message.hunks);
+        break;
+
+      case "undoFile":
+        await controller.undoFile(message.entryId, message.path);
+        break;
+
       case "openFile": {
         const root = resolveWorkspaceRoot();
         const uri =

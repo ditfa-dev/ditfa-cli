@@ -15,6 +15,7 @@ import { mergeTranscript, type TranscriptStore } from "./transcriptStore";
 import type {
   ChatEntry,
   ErrorAction,
+  FileChangeEntry,
   FileChangeSummary,
   PlanStep,
   TokenUsageView,
@@ -80,6 +81,8 @@ export class ThreadSession implements vscode.Disposable {
   private lastUserMessage: { text: string; input: UserInput[] } | null = null;
   private commandCounts = new Map<string, number>();
   private clientMessageCounter = 0;
+  /** Things the agent should hear with the next message, such as hunks the user undid. */
+  private readonly notes: string[] = [];
 
   private readonly entryEmitter = new vscode.EventEmitter<ChatEntry>();
   private readonly removeEmitter = new vscode.EventEmitter<string>();
@@ -92,6 +95,7 @@ export class ThreadSession implements vscode.Disposable {
   private readonly turnEmitter = new vscode.EventEmitter<boolean>();
   private readonly contextEmitter = new vscode.EventEmitter<ThreadContext | null>();
   private readonly loopEmitter = new vscode.EventEmitter<string>();
+  private readonly appliedEmitter = new vscode.EventEmitter<FileChangeEntry>();
 
   readonly onEntry = this.entryEmitter.event;
   readonly onRemoveEntry = this.removeEmitter.event;
@@ -102,6 +106,8 @@ export class ThreadSession implements vscode.Disposable {
   readonly onContextChanged = this.contextEmitter.event;
   /** Fires with the command the agent keeps repeating. */
   readonly onLoopDetected = this.loopEmitter.event;
+  /** Fires when a file change moves from waiting to applied. */
+  readonly onFileChangeApplied = this.appliedEmitter.event;
 
   constructor(
     private readonly client: AppServerClient,
@@ -291,6 +297,34 @@ export class ThreadSession implements vscode.Disposable {
     );
   }
 
+  /**
+   * Records that the user took changes back out of an applied edit, so the card
+   * shows it, a later restore reverses the right diff, and the agent is told.
+   */
+  markReverted(entryId: string, path: string, hunks: number[], undone: boolean, note: string): void {
+    const entry = this.entries.get(entryId);
+    if (entry?.kind !== "fileChange") {
+      return;
+    }
+    const changes = entry.changes.map((change) =>
+      change.path !== path
+        ? change
+        : {
+            ...change,
+            reverted: [...new Set([...(change.reverted ?? []), ...hunks])].sort((a, b) => a - b),
+            undone: change.undone || undone,
+          },
+    );
+    this.upsert({ ...entry, changes });
+    this.notes.push(note);
+    void this.persist();
+  }
+
+  /** Hands over, and forgets, what the agent should be told with the next message. */
+  takeNotes(): string[] {
+    return this.notes.splice(0);
+  }
+
   get latestTurnId(): string | null {
     return this.turnOrder[this.turnOrder.length - 1] ?? null;
   }
@@ -399,7 +433,15 @@ export class ThreadSession implements vscode.Disposable {
         if (entry.kind === "user" && this.adoptEcho(entry)) {
           break;
         }
+        const previous = this.entries.get(entry.id);
         this.upsert(this.preserveStreamedText(entry));
+        if (
+          entry.kind === "fileChange" &&
+          entry.status === "applied" &&
+          !(previous?.kind === "fileChange" && previous.status === "applied")
+        ) {
+          this.appliedEmitter.fire(entry);
+        }
         if (entry.kind === "command" && notification.method === "item/started") {
           this.trackCommand(entry.command);
         }
@@ -503,6 +545,7 @@ export class ThreadSession implements vscode.Disposable {
     this.turnEmitter.dispose();
     this.contextEmitter.dispose();
     this.loopEmitter.dispose();
+    this.appliedEmitter.dispose();
   }
 
   private orderedEntries(): ChatEntry[] {
@@ -575,6 +618,7 @@ export class ThreadSession implements vscode.Disposable {
     this.lastErrorMessage = null;
     this.lastUserMessage = null;
     this.commandCounts.clear();
+    this.notes.length = 0;
     this.resetEmitter.fire();
   }
 

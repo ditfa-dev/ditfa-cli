@@ -937,6 +937,11 @@ function onRootKey(event: KeyboardEvent): void {
 
 function onInput(event: Event): void {
   const target = event.target as HTMLInputElement;
+  const card = target.closest<HTMLElement>("[data-approval-kind]");
+  if (card && target.matches("input[data-hunk-pick]")) {
+    syncApprovalButtons(card);
+    return;
+  }
   if (target.id === "model-filter" && popover?.kind === "models") {
     popover.filter = target.value;
     popover.index = 0;
@@ -1147,8 +1152,32 @@ function onDataClick(target: HTMLElement, hit: (selector: string) => HTMLElement
   const rename = hit("[data-rename]")?.dataset.rename;
   const remove = hit("[data-delete]")?.dataset.delete;
   const approval = hit("[data-approval-id]");
+  const reviewToggle = hit("[data-review-toggle]");
+  const revertHunk = hit("[data-revert-hunk]");
+  const undoFile = hit("[data-undo-file]");
 
-  if (setup) {
+  if (reviewToggle) {
+    const key = reviewToggle.dataset.reviewToggle ?? "";
+    if (expanded.has(key)) {
+      expanded.delete(key);
+    } else {
+      expanded.add(key);
+    }
+    rerenderEntry(reviewToggle.dataset.reviewEntry ?? "");
+  } else if (revertHunk) {
+    vscode.postMessage({
+      type: "revertHunks",
+      entryId: revertHunk.dataset.reviewEntry ?? "",
+      path: revertHunk.dataset.reviewPath ?? "",
+      hunks: [Number(revertHunk.dataset.revertHunk)],
+    });
+  } else if (undoFile) {
+    vscode.postMessage({
+      type: "undoFile",
+      entryId: undoFile.dataset.reviewEntry ?? "",
+      path: undoFile.dataset.reviewPath ?? "",
+    });
+  } else if (setup) {
     vscode.postMessage({ type: "setupProvider", id: setup });
   } else if (mode) {
     closePopover();
@@ -1266,7 +1295,10 @@ function handleApprovalClick(node: HTMLElement, target: HTMLElement): void {
 
   const decision = target.closest<HTMLElement>("[data-decision]")?.dataset.decision;
   if (decision) {
-    if (kind === "command" || kind === "fileChange") {
+    if (kind === "fileChange") {
+      const skip = unticked(node);
+      answer({ id, kind, decision: decision as "accept", ...(skip.length > 0 ? { skip } : {}) });
+    } else if (kind === "command") {
       answer({ id, kind, decision: decision as "accept" });
     } else if (kind === "permissions" || kind === "elicitation") {
       answer({ id, kind, decision: decision as "accept" });
@@ -1281,6 +1313,32 @@ function handleApprovalClick(node: HTMLElement, target: HTMLElement): void {
   if (target.closest("[data-freeform]")) {
     const input = node.querySelector<HTMLInputElement>(".approval-input");
     answer({ id, kind: "userInput", value: input?.value ?? "" });
+  }
+}
+
+/** Hunks left unticked on an approval card, grouped by file. */
+function unticked(card: HTMLElement): { path: string; hunks: number[] }[] {
+  const byPath = new Map<string, number[]>();
+  for (const box of card.querySelectorAll<HTMLInputElement>("input[data-hunk-pick]")) {
+    if (!box.checked) {
+      const path = box.dataset.hunkPath ?? "";
+      byPath.set(path, [...(byPath.get(path) ?? []), Number(box.dataset.hunkPick)]);
+    }
+  }
+  return [...byPath].map(([path, hunks]) => ({ path, hunks }));
+}
+
+/** Keeps the Apply button honest about how much of the edit it will keep. */
+function syncApprovalButtons(card: HTMLElement): void {
+  const boxes = [...card.querySelectorAll<HTMLInputElement>("input[data-hunk-pick]")];
+  if (boxes.length === 0) {
+    return;
+  }
+  const kept = boxes.filter((box) => box.checked).length;
+  const apply = card.querySelector<HTMLButtonElement>('button[data-decision="accept"]');
+  if (apply) {
+    apply.textContent = kept === boxes.length ? "Apply" : `Apply ${kept} of ${boxes.length}`;
+    apply.disabled = kept === 0;
   }
 }
 

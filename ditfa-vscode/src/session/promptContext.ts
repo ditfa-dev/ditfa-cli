@@ -23,8 +23,9 @@ export function buildUserInput(
   attachments: ContextAttachment[],
   activeFile: ActiveFileContext | null,
   skill: { name: string; path: string } | null,
+  notes: string[] = [],
 ): UserInput[] {
-  const block = renderContextBlock(attachments, activeFile);
+  const block = renderContextBlock(attachments, activeFile, notes);
   const input: UserInput[] = [
     { type: "text", text: block ? `${text}\n\n${block}` : text, text_elements: [] },
   ];
@@ -48,6 +49,7 @@ export function buildUserInput(
 function renderContextBlock(
   attachments: ContextAttachment[],
   activeFile: ActiveFileContext | null,
+  notes: string[],
 ): string {
   const lines: string[] = [];
   const snippets: string[] = [];
@@ -74,6 +76,11 @@ function renderContextBlock(
   if (activeFile && !attachments.some((item) => item.path === activeFile.path)) {
     const line = activeFile.line === null ? "" : ` (cursor at line ${activeFile.line})`;
     lines.push(`- open in editor: ${activeFile.path}${line}`);
+  }
+
+  // One line each: the block is line-oriented and the transcript strips it whole.
+  for (const note of notes) {
+    lines.push(`- note: ${note.replace(/\s+/g, " ").trim()}`);
   }
 
   if (lines.length === 0) {
