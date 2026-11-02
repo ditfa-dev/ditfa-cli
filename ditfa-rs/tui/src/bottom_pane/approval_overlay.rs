@@ -38,6 +38,10 @@ use crate::keymap::primary_binding;
 use crate::render::highlight::highlight_bash_to_lines;
 use crate::render::renderable::ColumnRenderable;
 use crate::render::renderable::Renderable;
+use crossterm::event::KeyCode;
+use crossterm::event::KeyEvent;
+use crossterm::event::KeyEventKind;
+use crossterm::event::KeyModifiers;
 use ditfa_app_server_protocol::AdditionalPermissionProfile;
 use ditfa_app_server_protocol::CommandExecutionApprovalDecision;
 use ditfa_app_server_protocol::FileChangeApprovalDecision;
@@ -56,10 +60,6 @@ use ditfa_protocol::request_permissions::PermissionGrantScope;
 use ditfa_protocol::request_permissions::RequestPermissionProfile;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
 use ditfa_utils_path_uri::LegacyAppPathString;
-use crossterm::event::KeyCode;
-use crossterm::event::KeyEvent;
-use crossterm::event::KeyEventKind;
-use crossterm::event::KeyModifiers;
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 use ratatui::style::Stylize;
@@ -1106,6 +1106,7 @@ fn elicitation_options(keymap: &ApprovalKeymap) -> Vec<ApprovalOption> {
 mod tests {
     use super::*;
     use crate::app_event::AppEvent;
+    use crossterm::event::KeyModifiers;
     use ditfa_app_server_protocol::AdditionalFileSystemPermissions;
     use ditfa_app_server_protocol::AdditionalNetworkPermissions;
     use ditfa_app_server_protocol::ExecPolicyAmendment;
@@ -1114,7 +1115,6 @@ mod tests {
     use ditfa_protocol::models::FileSystemPermissions;
     use ditfa_protocol::models::NetworkPermissions;
     use ditfa_utils_absolute_path::AbsolutePathBuf;
-    use crossterm::event::KeyModifiers;
     use insta::assert_snapshot;
     use pretty_assertions::assert_eq;
     use tokio::sync::mpsc::unbounded_channel;

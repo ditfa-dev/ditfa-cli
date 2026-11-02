@@ -5,12 +5,13 @@ use crate::sandboxing::ExecOptions;
 use crate::shell::ShellType;
 use crate::tools::sandboxing::SandboxAttempt;
 use crate::tools::sandboxing::managed_network_for_sandbox_permissions;
-#[cfg(target_os = "macos")]
-use ditfa_network_proxy::DITFA_PROXY_GIT_SSH_COMMAND_MARKER;
+use core_test_support::PathBufExt;
 use ditfa_network_proxy::CUSTOM_CA_ENV_KEYS;
 use ditfa_network_proxy::ConfigReloader;
 use ditfa_network_proxy::ConfigReloaderFuture;
 use ditfa_network_proxy::ConfigState;
+#[cfg(target_os = "macos")]
+use ditfa_network_proxy::DITFA_PROXY_GIT_SSH_COMMAND_MARKER;
 use ditfa_network_proxy::NetworkProxy;
 use ditfa_network_proxy::NetworkProxyConfig;
 use ditfa_network_proxy::NetworkProxyConstraints;
@@ -25,7 +26,6 @@ use ditfa_sandboxing::SandboxManager;
 use ditfa_sandboxing::SandboxType;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
 use ditfa_utils_path_uri::PathUri;
-use core_test_support::PathBufExt;
 use pretty_assertions::assert_eq;
 use std::path::PathBuf;
 use std::process::Command;

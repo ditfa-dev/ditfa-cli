@@ -1,6 +1,6 @@
 ---
 name: ditfa-bug
-description: Diagnose GitHub bug reports in Teamtem-dev/ditfa-code. Use when given a GitHub issue URL from Teamtem-dev/ditfa-code and asked to decide next steps such as verifying against the repo, requesting more info, or explaining why it is not a bug; follow any additional user-provided instructions.
+description: Diagnose GitHub bug reports in ditfa-dev/ditfa-cli. Use when given a GitHub issue URL from ditfa-dev/ditfa-cli and asked to decide next steps such as verifying against the repo, requesting more info, or explaining why it is not a bug; follow any additional user-provided instructions.
 ---
 
 # Ditfa Code Bug
@@ -13,15 +13,15 @@ Diagnose a Ditfa Code GitHub bug report and decide the next action: verify again
 
 1. Confirm the input
 
-- Require a GitHub issue URL that points to `github.com/Teamtem-dev/ditfa-code/issues/…`.
+- Require a GitHub issue URL that points to `github.com/ditfa-dev/ditfa-cli/issues/…`.
 - If the URL is missing or not in the right repo, ask the user for the correct link.
 
 2. Network access
 
 - Always access the issue over the network immediately, even if you think access is blocked or unavailable.
 - Prefer the GitHub API over HTML pages because the HTML is noisy:
-  - Issue: `https://api.github.com/repos/Teamtem-dev/ditfa-code/issues/<number>`
-  - Comments: `https://api.github.com/repos/Teamtem-dev/ditfa-code/issues/<number>/comments`
+  - Issue: `https://api.github.com/repos/ditfa-dev/ditfa-cli/issues/<number>`
+  - Comments: `https://api.github.com/repos/ditfa-dev/ditfa-cli/issues/<number>/comments`
 - If the environment requires explicit approval, request it on demand via the tool and continue without additional user prompting.
 - Only if the network attempt fails after requesting approval, explain what you can do offline (e.g., draft a response template) and ask how to proceed.
 

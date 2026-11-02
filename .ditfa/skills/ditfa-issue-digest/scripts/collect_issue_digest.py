@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Collect recent Teamtem-dev/ditfa-code issue activity for owner-focused digests."""
+"""Collect recent ditfa-dev/ditfa-cli issue activity for owner-focused digests."""
 
 import argparse
 import json
@@ -29,7 +29,7 @@ def parse_args():
         description="Collect recent GitHub issue activity for a Ditfa Code owner digest."
     )
     parser.add_argument(
-        "--repo", default="Teamtem-dev/ditfa-code", help="OWNER/REPO, default Teamtem-dev/ditfa-code"
+        "--repo", default="ditfa-dev/ditfa-cli", help="OWNER/REPO, default ditfa-dev/ditfa-cli"
     )
     parser.add_argument(
         "--labels",

@@ -1,9 +1,9 @@
 use crate::StartThreadOptions;
 use crate::ThreadManager;
 use crate::agent::AgentControl;
-use crate::ditfa_thread::DitfaThread;
 use crate::config::Config;
 use crate::config::test_config;
+use crate::ditfa_thread::DitfaThread;
 use crate::thread_manager::ThreadManagerState;
 use ditfa_features::Feature;
 use ditfa_login::DitfaAuth;

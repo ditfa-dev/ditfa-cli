@@ -1,10 +1,12 @@
 use super::*;
 
-use crate::responses_metadata::DitfaResponsesRequestKind;
 use crate::responses_metadata::CompactionTurnMetadata;
+use crate::responses_metadata::DitfaResponsesRequestKind;
 use crate::responses_metadata::INSTALLATION_ID_KEY;
 use crate::responses_metadata::WINDOW_ID_KEY;
 use crate::sandbox_tags::permission_profile_sandbox_tag;
+use core_test_support::PathBufExt;
+use core_test_support::PathExt;
 use ditfa_analytics::CompactionImplementation;
 use ditfa_analytics::CompactionPhase;
 use ditfa_analytics::CompactionReason;
@@ -15,8 +17,6 @@ use ditfa_protocol::protocol::SessionSource;
 use ditfa_protocol::protocol::SubAgentSource;
 use ditfa_protocol::protocol::ThreadSource;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
-use core_test_support::PathBufExt;
-use core_test_support::PathExt;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
 use std::collections::HashMap;

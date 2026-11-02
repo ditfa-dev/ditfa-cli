@@ -16,14 +16,14 @@ def test_build_search_queries_uses_each_owner_and_kind_label():
     since = collect_issue_digest.parse_timestamp("2026-04-25T12:34:56Z", "--since")
 
     queries = collect_issue_digest.build_search_queries(
-        "Teamtem-dev/ditfa-code", ["tui", "exec"], since
+        "ditfa-dev/ditfa-cli", ["tui", "exec"], since
     )
 
     assert queries == [
-        "repo:Teamtem-dev/ditfa-code is:issue updated:>=2026-04-25 label:tui label:bug",
-        "repo:Teamtem-dev/ditfa-code is:issue updated:>=2026-04-25 label:tui label:enhancement",
-        "repo:Teamtem-dev/ditfa-code is:issue updated:>=2026-04-25 label:exec label:bug",
-        "repo:Teamtem-dev/ditfa-code is:issue updated:>=2026-04-25 label:exec label:enhancement",
+        "repo:ditfa-dev/ditfa-cli is:issue updated:>=2026-04-25 label:tui label:bug",
+        "repo:ditfa-dev/ditfa-cli is:issue updated:>=2026-04-25 label:tui label:enhancement",
+        "repo:ditfa-dev/ditfa-cli is:issue updated:>=2026-04-25 label:exec label:bug",
+        "repo:ditfa-dev/ditfa-cli is:issue updated:>=2026-04-25 label:exec label:enhancement",
     ]
 
 
@@ -31,12 +31,12 @@ def test_build_search_queries_can_scan_all_labels():
     since = collect_issue_digest.parse_timestamp("2026-04-25T12:34:56Z", "--since")
 
     queries = collect_issue_digest.build_search_queries(
-        "Teamtem-dev/ditfa-code", [], since, all_labels=True
+        "ditfa-dev/ditfa-cli", [], since, all_labels=True
     )
 
     assert queries == [
-        "repo:Teamtem-dev/ditfa-code is:issue updated:>=2026-04-25 label:bug",
-        "repo:Teamtem-dev/ditfa-code is:issue updated:>=2026-04-25 label:enhancement",
+        "repo:ditfa-dev/ditfa-cli is:issue updated:>=2026-04-25 label:bug",
+        "repo:ditfa-dev/ditfa-cli is:issue updated:>=2026-04-25 label:enhancement",
     ]
 
 
@@ -128,7 +128,7 @@ def test_summarize_issue_keeps_new_comments_and_reaction_signals():
     issue = {
         "number": 123,
         "title": "TUI does not redraw",
-        "html_url": "https://github.com/Teamtem-dev/ditfa-code/issues/123",
+        "html_url": "https://github.com/ditfa-dev/ditfa-cli/issues/123",
         "state": "open",
         "created_at": "2026-04-24T20:00:00Z",
         "updated_at": "2026-04-25T10:00:00Z",
@@ -144,7 +144,7 @@ def test_summarize_issue_keeps_new_comments_and_reaction_signals():
             "id": 1,
             "created_at": "2026-04-25T11:00:00Z",
             "updated_at": "2026-04-25T11:00:00Z",
-            "html_url": "https://github.com/Teamtem-dev/ditfa-code/issues/123#issuecomment-1",
+            "html_url": "https://github.com/ditfa-dev/ditfa-cli/issues/123#issuecomment-1",
             "user": {"login": "bob"},
             "author_association": "MEMBER",
             "body": "I can reproduce this on main.",
@@ -154,7 +154,7 @@ def test_summarize_issue_keeps_new_comments_and_reaction_signals():
             "id": 2,
             "created_at": "2026-04-24T11:00:00Z",
             "updated_at": "2026-04-24T11:00:00Z",
-            "html_url": "https://github.com/Teamtem-dev/ditfa-code/issues/123#issuecomment-2",
+            "html_url": "https://github.com/ditfa-dev/ditfa-cli/issues/123#issuecomment-2",
             "user": {"login": "carol"},
             "author_association": "NONE",
             "body": "Older comment.",
@@ -176,7 +176,7 @@ def test_summarize_issue_keeps_new_comments_and_reaction_signals():
         "number": 123,
         "title": "TUI does not redraw",
         "description": "TUI does not redraw",
-        "url": "https://github.com/Teamtem-dev/ditfa-code/issues/123",
+        "url": "https://github.com/ditfa-dev/ditfa-cli/issues/123",
         "state": "open",
         "author": "alice",
         "author_association": "NONE",
@@ -223,7 +223,7 @@ def test_summarize_issue_keeps_new_comments_and_reaction_signals():
                 "author_association": "MEMBER",
                 "created_at": "2026-04-25T11:00:00Z",
                 "updated_at": "2026-04-25T11:00:00Z",
-                "url": "https://github.com/Teamtem-dev/ditfa-code/issues/123#issuecomment-1",
+                "url": "https://github.com/ditfa-dev/ditfa-cli/issues/123#issuecomment-1",
                 "human_user_interaction": True,
                 "reactions": {"+1": 3, "heart": 1},
                 "reaction_total": 4,
@@ -324,7 +324,7 @@ def test_fetch_comments_uses_since_filter_and_page_cap(monkeypatch):
     since = collect_issue_digest.parse_timestamp("2026-04-25T00:00:00Z", "--since")
 
     payload = collect_issue_digest.fetch_comments(
-        "Teamtem-dev/ditfa-code", 123, since=since, max_pages=1
+        "ditfa-dev/ditfa-cli", 123, since=since, max_pages=1
     )
 
     assert len(payload["items"]) == 100
@@ -333,7 +333,7 @@ def test_fetch_comments_uses_since_filter_and_page_cap(monkeypatch):
     assert calls == [
         [
             "api",
-            "repos/Teamtem-dev/ditfa-code/issues/123/comments?since=2026-04-25T00%3A00%3A00Z&per_page=100&page=1",
+            "repos/ditfa-dev/ditfa-cli/issues/123/comments?since=2026-04-25T00%3A00%3A00Z&per_page=100&page=1",
         ]
     ]
 
@@ -356,7 +356,7 @@ def test_attention_markers_count_human_user_interactions():
     issue = {
         "number": 456,
         "title": "Agent context is exploding",
-        "html_url": "https://github.com/Teamtem-dev/ditfa-code/issues/456",
+        "html_url": "https://github.com/ditfa-dev/ditfa-cli/issues/456",
         "state": "open",
         "created_at": "2026-04-25T01:00:00Z",
         "updated_at": "2026-04-25T12:00:00Z",
@@ -432,7 +432,7 @@ def test_reactions_count_toward_attention_markers():
     issue = {
         "number": 789,
         "title": "Support 1M token context",
-        "html_url": "https://github.com/Teamtem-dev/ditfa-code/issues/789",
+        "html_url": "https://github.com/ditfa-dev/ditfa-cli/issues/789",
         "state": "open",
         "created_at": "2026-04-24T01:00:00Z",
         "updated_at": "2026-04-25T12:00:00Z",
@@ -517,7 +517,7 @@ def test_user_interactions_are_deduped_by_human_login():
     issue = {
         "number": 790,
         "title": "Repeated pings should not boost attention",
-        "html_url": "https://github.com/Teamtem-dev/ditfa-code/issues/790",
+        "html_url": "https://github.com/ditfa-dev/ditfa-cli/issues/790",
         "state": "open",
         "created_at": "2026-04-25T01:00:00Z",
         "updated_at": "2026-04-25T12:00:00Z",
@@ -565,7 +565,7 @@ def test_digest_rows_are_table_ready_with_concise_descriptions():
                 "number": 1,
                 "title": "Quiet bug",
                 "description": "Quiet bug",
-                "url": "https://github.com/Teamtem-dev/ditfa-code/issues/1",
+                "url": "https://github.com/ditfa-dev/ditfa-cli/issues/1",
                 "owner_labels": ["context"],
                 "kind_labels": ["bug"],
                 "state": "open",
@@ -590,7 +590,7 @@ def test_digest_rows_are_table_ready_with_concise_descriptions():
                 "number": 2,
                 "title": "Busy bug",
                 "description": "High-volume bug report",
-                "url": "https://github.com/Teamtem-dev/ditfa-code/issues/2",
+                "url": "https://github.com/ditfa-dev/ditfa-cli/issues/2",
                 "owner_labels": ["agent"],
                 "kind_labels": ["bug"],
                 "state": "open",
@@ -616,13 +616,13 @@ def test_digest_rows_are_table_ready_with_concise_descriptions():
 
     assert rows[0] == {
         "ref": 1,
-        "ref_markdown": "[1](https://github.com/Teamtem-dev/ditfa-code/issues/2)",
+        "ref_markdown": "[1](https://github.com/ditfa-dev/ditfa-cli/issues/2)",
         "marker": "🔥",
         "attention_marker": "🔥",
         "number": 2,
         "description": "High-volume bug report",
         "title": "Busy bug",
-        "url": "https://github.com/Teamtem-dev/ditfa-code/issues/2",
+        "url": "https://github.com/ditfa-dev/ditfa-cli/issues/2",
         "area": "agent",
         "kind": "bug",
         "state": "open",
@@ -640,7 +640,7 @@ def test_summary_inputs_are_model_ready_without_preclustering():
             "number": 20,
             "title": "Windows app Browser Use external navigation fails",
             "description": "Browser Use navigation or app-server failure",
-            "url": "https://github.com/Teamtem-dev/ditfa-code/issues/20",
+            "url": "https://github.com/ditfa-dev/ditfa-cli/issues/20",
             "labels": ["app", "bug"],
             "owner_labels": ["app"],
             "kind_labels": ["bug"],
@@ -657,7 +657,7 @@ def test_summary_inputs_are_model_ready_without_preclustering():
             "number": 21,
             "title": "On Windows, cmake output waits until timeout",
             "description": "Windows command timeout/capture problem",
-            "url": "https://github.com/Teamtem-dev/ditfa-code/issues/21",
+            "url": "https://github.com/ditfa-dev/ditfa-cli/issues/21",
             "labels": ["app", "bug"],
             "owner_labels": ["app"],
             "kind_labels": ["bug"],
@@ -674,7 +674,7 @@ def test_summary_inputs_are_model_ready_without_preclustering():
             "number": 22,
             "title": "Windows computer use tool fails to click buttons",
             "description": "Computer-use workflow failure",
-            "url": "https://github.com/Teamtem-dev/ditfa-code/issues/22",
+            "url": "https://github.com/ditfa-dev/ditfa-cli/issues/22",
             "labels": ["app", "bug"],
             "owner_labels": ["app"],
             "kind_labels": ["bug"],
@@ -694,11 +694,11 @@ def test_summary_inputs_are_model_ready_without_preclustering():
     assert rows == [
         {
             "ref": 1,
-            "ref_markdown": "[1](https://github.com/Teamtem-dev/ditfa-code/issues/20)",
+            "ref_markdown": "[1](https://github.com/ditfa-dev/ditfa-cli/issues/20)",
             "number": 20,
             "title": "Windows app Browser Use external navigation fails",
             "description": "Browser Use navigation or app-server failure",
-            "url": "https://github.com/Teamtem-dev/ditfa-code/issues/20",
+            "url": "https://github.com/ditfa-dev/ditfa-cli/issues/20",
             "labels": ["app", "bug"],
             "owner_labels": ["app"],
             "kind_labels": ["bug"],
@@ -712,11 +712,11 @@ def test_summary_inputs_are_model_ready_without_preclustering():
         },
         {
             "ref": 2,
-            "ref_markdown": "[2](https://github.com/Teamtem-dev/ditfa-code/issues/21)",
+            "ref_markdown": "[2](https://github.com/ditfa-dev/ditfa-cli/issues/21)",
             "number": 21,
             "title": "On Windows, cmake output waits until timeout",
             "description": "Windows command timeout/capture problem",
-            "url": "https://github.com/Teamtem-dev/ditfa-code/issues/21",
+            "url": "https://github.com/ditfa-dev/ditfa-cli/issues/21",
             "labels": ["app", "bug"],
             "owner_labels": ["app"],
             "kind_labels": ["bug"],
@@ -730,11 +730,11 @@ def test_summary_inputs_are_model_ready_without_preclustering():
         },
         {
             "ref": 3,
-            "ref_markdown": "[3](https://github.com/Teamtem-dev/ditfa-code/issues/22)",
+            "ref_markdown": "[3](https://github.com/ditfa-dev/ditfa-cli/issues/22)",
             "number": 22,
             "title": "Windows computer use tool fails to click buttons",
             "description": "Computer-use workflow failure",
-            "url": "https://github.com/Teamtem-dev/ditfa-code/issues/22",
+            "url": "https://github.com/ditfa-dev/ditfa-cli/issues/22",
             "labels": ["app", "bug"],
             "owner_labels": ["app"],
             "kind_labels": ["bug"],
