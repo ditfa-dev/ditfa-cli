@@ -1,4 +1,4 @@
-# Ditfa Code for VS Code
+# Ditfa for VS Code
 
 An AI coding agent that reads, writes, and runs code in your workspace, and shows its work.
 
@@ -6,7 +6,7 @@ For VS Code and editors built on it, such as Cursor, Windsurf, and VSCodium.
 
 ---
 
-## Why Ditfa Code
+## Why Ditfa
 
 - **Works in one click.** No CLI to install first: the panel downloads its engine, checks it against the published SHA-256, and connects. Remote-SSH and WSL windows install on the remote side.
 - **Any model, no account required.** Sign in with Ditfa, bring a key for OpenAI, Anthropic, Gemini, OpenRouter, or DeepSeek, or point it at Ollama or LM Studio. Keys live in your system keychain.
@@ -22,7 +22,7 @@ For VS Code and editors built on it, such as Cursor, Windsurf, and VSCodium.
 
 ## Getting started
 
-1. Open **Ditfa Code** in the activity bar, or press <kbd>Ctrl/Cmd</kbd>+<kbd>Alt</kbd>+<kbd>J</kbd>.
+1. Open **Ditfa** in the activity bar, or press <kbd>Ctrl/Cmd</kbd>+<kbd>Alt</kbd>+<kbd>J</kbd>.
 2. Choose how to reach a model.
 3. Ask for something. Use `@` to attach files and `/` for commands and skills.
 

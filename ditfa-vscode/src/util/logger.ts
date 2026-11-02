@@ -19,7 +19,7 @@ export class Logger implements vscode.Disposable {
   private level: LogLevel;
   private readonly subscription: vscode.Disposable;
 
-  constructor(name = "Ditfa Code") {
+  constructor(name = "Ditfa") {
     this.channel = vscode.window.createOutputChannel(name);
     this.level = readLevel();
     this.subscription = vscode.workspace.onDidChangeConfiguration((event) => {

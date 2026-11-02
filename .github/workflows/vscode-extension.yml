@@ -81,7 +81,7 @@ jobs:
             printf 'Download `ditfa-code-%s.vsix` below, then run:\n\n' "$version"
             printf '```bash\ncode --install-extension ditfa-code-%s.vsix\n```\n\n' "$version"
             printf 'In Cursor, Windsurf, or VSCodium, use **Extensions: Install from VSIX**.\n'
-            printf 'Open **Ditfa Code** in the activity bar and it sets up the rest.\n\n'
+            printf 'Open **Ditfa** in the activity bar and it sets up the rest.\n\n'
             awk -v heading="## [$version]" \
               'index($0, "## [") == 1 { if (found) exit; found = index($0, heading) == 1; next } found' \
               ditfa-vscode/CHANGELOG.md
@@ -94,7 +94,7 @@ jobs:
         run: |
           version="${GITHUB_REF_NAME#vscode-v}"
           gh release create "$GITHUB_REF_NAME" "dist/ditfa-code-$version.vsix" "dist/ditfa-code-$version.vsix.sha256" \
-            --title "Ditfa Code $version for VS Code" \
+            --title "Ditfa $version for VS Code" \
             --notes-file dist/notes.md \
             --verify-tag \
             --latest=false

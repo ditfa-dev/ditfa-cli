@@ -1,8 +1,8 @@
 {
   "name": "ditfa-code",
-  "displayName": "Ditfa Code",
+  "displayName": "Ditfa",
   "description": "The AI coding agent that shows its work. Tab autocomplete, any model, your own keys or a Ditfa plan, review and undo every change hunk by hunk, checkpoints without Git, and a sandbox the engine enforces.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "publisher": "ditfa",
   "license": "Apache-2.0",
   "icon": "media/icon.png",
@@ -56,11 +56,11 @@
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": false,
-      "description": "Ditfa Code executes commands and edits files in the workspace, which requires trust."
+      "description": "Ditfa executes commands and edits files in the workspace, which requires trust."
     },
     "virtualWorkspaces": {
       "supported": false,
-      "description": "Ditfa Code runs commands and edits files on disk."
+      "description": "Ditfa runs commands and edits files on disk."
     }
   },
   "contributes": {
@@ -68,7 +68,7 @@
       "activitybar": [
         {
           "id": "ditfa",
-          "title": "Ditfa Code",
+          "title": "Ditfa",
           "icon": "media/activity-icon.svg"
         }
       ]
@@ -80,7 +80,7 @@
           "name": "Chat",
           "type": "webview",
           "icon": "media/activity-icon.svg",
-          "contextualTitle": "Ditfa Code"
+          "contextualTitle": "Ditfa"
         }
       ]
     },
@@ -296,7 +296,7 @@
       }
     ],
     "configuration": {
-      "title": "Ditfa Code",
+      "title": "Ditfa",
       "properties": {
         "ditfa.executablePath": {
           "type": "string",
@@ -463,7 +463,7 @@
             "trace"
           ],
           "default": "info",
-          "description": "Verbosity of the Ditfa Code output channel."
+          "description": "Verbosity of the Ditfa output channel."
         },
         "ditfa.env": {
           "type": "object",

@@ -184,7 +184,7 @@ export class ApprovalService implements vscode.Disposable {
 
       default:
         this.logger.warn(`unhandled server request: ${request.method}`);
-        throw new Error(`Ditfa Code does not handle ${request.method}.`);
+        throw new Error(`Ditfa does not handle ${request.method}.`);
     }
   }
 

@@ -10,7 +10,7 @@ import { Logger } from "./util/logger";
 export function activate(context: vscode.ExtensionContext): void {
   const logger = new Logger();
   context.subscriptions.push(logger);
-  logger.info(`Ditfa Code ${context.extension.packageJSON.version ?? "dev"} activating`);
+  logger.info(`Ditfa ${context.extension.packageJSON.version ?? "dev"} activating`);
 
   const controller = new DitfaController(context, logger);
   const view = new ChatViewProvider(context, controller, logger);

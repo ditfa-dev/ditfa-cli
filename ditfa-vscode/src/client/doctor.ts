@@ -27,7 +27,7 @@ export interface DoctorInput {
  */
 export async function buildDoctorReport(input: DoctorInput): Promise<string> {
   const lines: string[] = [
-    "# Ditfa Code diagnostics",
+    "# Ditfa diagnostics",
     "",
     `- Extension: ${input.extensionVersion}`,
     `- Editor: ${vscode.env.appName} ${vscode.version}`,
