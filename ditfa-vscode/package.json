@@ -492,7 +492,7 @@
     "check-bundle": "node scripts/check-bundle-size.mjs"
   },
   "devDependencies": {
-    "@types/node": "^20.19.18",
+    "@types/node": "^26.6.5",
     "@types/vscode": "^1.90.0",
     "@vscode/vsce": "^3.2.2",
     "esbuild": "0.28.1",
