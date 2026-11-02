@@ -1,4 +1,5 @@
-import type { FileUpdateChange, ThreadItem } from "../protocol";
+import type { CommandAction, FileUpdateChange, ThreadItem } from "../protocol";
+import { parseUserText } from "./promptContext";
 import type {
   ChatEntry,
   CommandStatus,
@@ -12,18 +13,33 @@ import type {
  * a `toolCall` entry rather than being dropped, so the user still sees that
  * something happened.
  */
-export function mapThreadItem(item: ThreadItem, at: number): ChatEntry | null {
+export function mapThreadItem(item: ThreadItem, at: number, turnId?: string | null): ChatEntry | null {
+  const entry = mapItem(item, at);
+  return entry ? { ...entry, turnId: turnId ?? null } : null;
+}
+
+function mapItem(item: ThreadItem, at: number): ChatEntry | null {
   switch (item.type) {
     case "userMessage": {
-      const text = item.content
+      const raw = item.content
         .map((input) => (input.type === "text" ? input.text : ""))
         .join("")
         .trim();
-      const attachments = item.content
-        .filter((input) => input.type === "mention" || input.type === "localImage")
-        .map((input) => ("path" in input ? input.path : ""))
-        .filter(Boolean);
-      return { id: item.id, kind: "user", at, text, attachments };
+      const parsed = parseUserText(raw);
+      const images = item.content.flatMap((input) => {
+        if (input.type === "localImage") {
+          return [basename(input.path)];
+        }
+        return input.type === "image" ? ["image"] : [];
+      });
+      return {
+        id: item.id,
+        kind: "user",
+        at,
+        text: parsed.text,
+        attachments: [...parsed.attachments, ...images],
+        clientId: item.clientId,
+      };
     }
 
     case "agentMessage":
@@ -35,15 +51,15 @@ export function mapThreadItem(item: ThreadItem, at: number): ChatEntry | null {
     }
 
     case "plan":
-      // Plan text is rendered from `turn/plan/updated`, not as a transcript row.
-      return null;
+      return { id: item.id, kind: "plan", at, text: item.text };
 
     case "commandExecution":
       return {
         id: item.id,
         kind: "command",
         at,
-        command: item.command,
+        command: displayCommand(item.command),
+        summary: describeActions(item.commandActions),
         cwd: item.cwd,
         status: mapCommandStatus(item.status),
         output: item.aggregatedOutput ?? "",
@@ -86,15 +102,14 @@ export function mapThreadItem(item: ThreadItem, at: number): ChatEntry | null {
       return { id: item.id, kind: "webSearch", at, query: describeWebSearch(item) };
 
     case "imageView":
-      return {
-        id: item.id,
-        kind: "toolCall",
-        at,
-        title: `Viewed image ${item.path}`,
-        detail: null,
-        status: "completed",
-        durationMs: null,
-      };
+      return staticTool(item.id, at, `Viewed image ${basename(item.path)}`);
+
+    case "imageGeneration":
+      return staticTool(item.id, at, "Generated an image");
+
+    case "collabAgentToolCall":
+    case "subAgentActivity":
+      return staticTool(item.id, at, "Delegated work to a sub-agent");
 
     case "enteredReviewMode":
       return { id: item.id, kind: "notice", at, tone: "info", text: `Started review: ${item.review}` };
@@ -116,6 +131,46 @@ export function mapThreadItem(item: ThreadItem, at: number): ChatEntry | null {
   }
 }
 
+function staticTool(id: string, at: number, title: string): ChatEntry {
+  return { id, kind: "toolCall", at, title, detail: null, status: "completed", durationMs: null };
+}
+
+/**
+ * The server reports the shell invocation it actually spawned. Users did not
+ * type `/bin/zsh -lc '…'`, so show the command inside it.
+ */
+export function displayCommand(command: string): string {
+  const match = /^(?:\S*\/)?(?:bash|zsh|sh|dash)\s+-l?c\s+([\s\S]+)$/.exec(command.trim());
+  if (!match?.[1]) {
+    return command;
+  }
+  const inner = match[1].trim();
+  if (inner.length >= 2 && inner.startsWith("'") && inner.endsWith("'")) {
+    return inner.slice(1, -1).replace(/'\\''/g, "'");
+  }
+  if (inner.length >= 2 && inner.startsWith('"') && inner.endsWith('"')) {
+    return inner.slice(1, -1).replace(/\\(["\\$`])/g, "$1");
+  }
+  return inner;
+}
+
+function describeActions(actions: CommandAction[] | null | undefined): string | null {
+  if (!actions || actions.length !== 1) {
+    return null;
+  }
+  const action = actions[0];
+  switch (action?.type) {
+    case "read":
+      return `Read ${action.name}`;
+    case "listFiles":
+      return `Listed ${action.path ?? "files"}`;
+    case "search":
+      return action.query ? `Searched for “${action.query}”` : "Searched the workspace";
+    default:
+      return null;
+  }
+}
+
 function describeWebSearch(item: Extract<ThreadItem, { type: "webSearch" }>): string {
   const action = (item as { action?: unknown }).action;
   if (action && typeof action === "object" && "query" in action) {
@@ -127,16 +182,26 @@ function describeWebSearch(item: Extract<ThreadItem, { type: "webSearch" }>): st
   return "web search";
 }
 
+const MOVE_SUFFIX = /\n*Moved to: [^\n]*\s*$/;
+
 export function summarizeChange(change: FileUpdateChange): FileChangeSummary {
-  const { additions, deletions } = countDiffLines(change.diff);
+  const kind = change.kind.type;
+  // Adds and deletes carry the file's content, not a diff: every line counts.
+  const counts =
+    kind === "update"
+      ? countDiffLines(change.diff)
+      : kind === "add"
+        ? { additions: countContentLines(change.diff), deletions: 0 }
+        : { additions: 0, deletions: countContentLines(change.diff) };
+
   return {
     path: change.path,
     label: basename(change.path),
-    kind: change.kind.type,
+    kind,
     movePath: change.kind.type === "update" ? change.kind.move_path : null,
-    additions,
-    deletions,
-    diff: change.diff,
+    ...counts,
+    // The server appends a human note after a moved file's hunks.
+    diff: kind === "update" ? change.diff.replace(MOVE_SUFFIX, "\n") : change.diff,
   };
 }
 
@@ -158,6 +223,14 @@ export function countDiffLines(diff: string): { additions: number; deletions: nu
     }
   }
   return { additions, deletions };
+}
+
+function countContentLines(content: string): number {
+  if (content.length === 0) {
+    return 0;
+  }
+  const lines = content.split("\n").length;
+  return content.endsWith("\n") ? lines - 1 : lines;
 }
 
 function basename(path: string): string {
