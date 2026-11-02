@@ -1,6 +1,7 @@
 use crate::shell::ShellType;
 
 use super::*;
+use core_test_support::test_path_buf;
 use ditfa_protocol::models::PermissionProfile;
 use ditfa_protocol::permissions::FileSystemAccessMode;
 use ditfa_protocol::permissions::FileSystemPath;
@@ -11,7 +12,6 @@ use ditfa_protocol::permissions::NetworkSandboxPolicy;
 use ditfa_protocol::permissions::project_roots_glob_pattern;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
 use ditfa_utils_absolute_path::test_support::PathBufExt;
-use core_test_support::test_path_buf;
 use pretty_assertions::assert_eq;
 use std::path::Path;
 use std::path::PathBuf;

@@ -1366,7 +1366,9 @@ mod tests {
                     git_info: Some(GitInfoPatch {
                         sha: Some(Some("abc123".to_string())),
                         branch: Some(Some("main".to_string())),
-                        origin_url: Some(Some("https://github.com/ditfa-dev/ditfa-cli".to_string())),
+                        origin_url: Some(Some(
+                            "https://github.com/ditfa-dev/ditfa-cli".to_string(),
+                        )),
                     }),
                     ..Default::default()
                 },
@@ -1464,7 +1466,9 @@ mod tests {
                     git_info: Some(GitInfoPatch {
                         sha: Some(Some("abc123".to_string())),
                         branch: Some(Some("main".to_string())),
-                        origin_url: Some(Some("https://github.com/ditfa-dev/ditfa-cli".to_string())),
+                        origin_url: Some(Some(
+                            "https://github.com/ditfa-dev/ditfa-cli".to_string(),
+                        )),
                     }),
                     ..Default::default()
                 },
@@ -1523,7 +1527,9 @@ mod tests {
                     git_info: Some(GitInfoPatch {
                         sha: Some(Some("abc123".to_string())),
                         branch: Some(Some("main".to_string())),
-                        origin_url: Some(Some("https://github.com/ditfa-dev/ditfa-cli".to_string())),
+                        origin_url: Some(Some(
+                            "https://github.com/ditfa-dev/ditfa-cli".to_string(),
+                        )),
                     }),
                     ..Default::default()
                 },

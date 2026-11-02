@@ -5,12 +5,12 @@ use anyhow::Context;
 use chrono::DateTime;
 use clap::Parser;
 use clap::ValueEnum;
+use dirs::home_dir;
 use ditfa_state::LogQuery;
 use ditfa_state::LogRow;
 use ditfa_state::SqliteConfig;
 use ditfa_state::StateRuntime;
 use ditfa_utils_absolute_path::AbsolutePathBuf;
-use dirs::home_dir;
 use owo_colors::OwoColorize;
 
 #[derive(Debug, Parser)]

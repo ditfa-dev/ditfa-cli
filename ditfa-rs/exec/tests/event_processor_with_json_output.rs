@@ -40,7 +40,6 @@ use pretty_assertions::assert_eq;
 use serde_json::json;
 
 use ditfa_exec::AgentMessageItem;
-use ditfa_exec::DitfaStatus;
 use ditfa_exec::CollabAgentState;
 use ditfa_exec::CollabAgentStatus;
 use ditfa_exec::CollabTool;
@@ -49,6 +48,7 @@ use ditfa_exec::CollabToolCallStatus;
 use ditfa_exec::CollectedThreadEvents;
 use ditfa_exec::CommandExecutionItem;
 use ditfa_exec::CommandExecutionStatus;
+use ditfa_exec::DitfaStatus;
 use ditfa_exec::ErrorItem;
 use ditfa_exec::EventProcessorWithJsonOutput;
 use ditfa_exec::ExecThreadItem;

@@ -23,6 +23,8 @@ pub use app::AppExitInfo;
 pub use app::ExitReason;
 use app_server_session::AppServerSession;
 use app_server_session::ThreadParamsMode;
+use color_eyre::eyre::WrapErr;
+use cwd_prompt::CwdPromptAction;
 use ditfa_app_server_client::AppServerClient;
 use ditfa_app_server_client::DEFAULT_IN_PROCESS_CHANNEL_CAPACITY;
 use ditfa_app_server_client::InProcessAppServerClient;
@@ -64,8 +66,6 @@ use ditfa_utils_absolute_path::canonicalize_existing_preserving_symlinks;
 use ditfa_utils_home_dir::find_ditfa_home;
 use ditfa_utils_oss::ensure_oss_provider_ready;
 use ditfa_utils_oss::get_default_model_for_oss_provider;
-use color_eyre::eyre::WrapErr;
-use cwd_prompt::CwdPromptAction;
 pub use session_archive_commands::DeleteConfirmation;
 pub use session_archive_commands::SessionArchiveAction;
 pub use session_archive_commands::SessionArchiveCommandOptions;
@@ -1029,7 +1029,7 @@ pub async fn run_main(
     let chatgpt_base_url = bootstrap_config_toml
         .chatgpt_base_url
         .clone()
-        .unwrap_or_else(|| "https://chat.ditfa.com/api/".to_string());
+        .unwrap_or_else(|| "https://chat.ditfa.com/backend-api/".to_string());
     let auth_route_config = resolve_bootstrap_auth_route_config(
         bootstrap_config_toml,
         bootstrap_config

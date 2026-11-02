@@ -19,10 +19,10 @@ classifiers = [
 dependencies = ["pydantic>=2.12", "openai-ditfa-cli-bin==0.144.4"]
 
 [project.urls]
-Homepage = "https://github.com/Teamtem-dev/ditfa-code"
-Repository = "https://github.com/Teamtem-dev/ditfa-code"
-Issues = "https://github.com/Teamtem-dev/ditfa-code/issues"
-Documentation = "https://github.com/Teamtem-dev/ditfa-code/tree/main/sdk/python/docs"
+Homepage = "https://github.com/ditfa-dev/ditfa-cli"
+Repository = "https://github.com/ditfa-dev/ditfa-cli"
+Issues = "https://github.com/ditfa-dev/ditfa-cli/issues"
+Documentation = "https://github.com/ditfa-dev/ditfa-cli/tree/main/sdk/python/docs"
 
 [dependency-groups]
 format = ["ruff>=0.15.8"]

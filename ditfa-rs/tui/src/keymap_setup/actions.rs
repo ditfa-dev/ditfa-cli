@@ -13,9 +13,9 @@
 
 use std::collections::BTreeSet;
 
+use crossterm::event::KeyEvent;
 use ditfa_config::types::KeybindingsSpec;
 use ditfa_config::types::TuiKeymap;
-use crossterm::event::KeyEvent;
 
 use crate::key_hint::KeyBinding;
 use crate::keymap::RuntimeKeymap;

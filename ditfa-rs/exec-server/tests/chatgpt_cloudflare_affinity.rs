@@ -15,6 +15,8 @@ use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
+use common::exec_server::ExecServerHarness;
+use common::exec_server::exec_server_with_env;
 use ditfa_exec_server::HttpRedirectPolicy;
 use ditfa_exec_server::HttpRequestParams;
 use ditfa_exec_server::HttpRequestResponse;
@@ -22,8 +24,6 @@ use ditfa_exec_server::InitializeParams;
 use ditfa_exec_server_protocol::JSONRPCMessage;
 use ditfa_exec_server_protocol::JSONRPCResponse;
 use ditfa_exec_server_protocol::RequestId;
-use common::exec_server::ExecServerHarness;
-use common::exec_server::exec_server_with_env;
 use pretty_assertions::assert_eq;
 use rcgen::BasicConstraints;
 use rcgen::CertificateParams;
@@ -41,7 +41,7 @@ use serde::de::DeserializeOwned;
 use serde_json::Value;
 use tempfile::TempDir;
 
-const CHATGPT_MCP_URL: &str = "https://chat.ditfa.com/api/ps/mcp";
+const CHATGPT_MCP_URL: &str = "https://chat.ditfa.com/backend-api/ps/mcp";
 const NON_CHATGPT_MCP_URL: &str = "https://api.openai.com/backend-api/ps/mcp";
 
 #[derive(Debug)]
@@ -102,7 +102,11 @@ async fn exec_server_replays_only_chatgpt_cloudflare_cookies() -> anyhow::Result
             first.request_line.as_str(),
             first.headers.get("cookie"),
         ),
-        ("staging.chat.ditfa.com", "POST /backend-api/ps/mcp HTTP/1.1", None,)
+        (
+            "staging.chat.ditfa.com",
+            "POST /backend-api/ps/mcp HTTP/1.1",
+            None,
+        )
     );
 
     let west_response = execute_http_request(&mut server, CHATGPT_MCP_URL, "west").await?;
@@ -206,10 +210,8 @@ fn generate_tls_material() -> anyhow::Result<TlsMaterial> {
     let ca_key_pair = KeyPair::generate_for(&PKCS_ECDSA_P256_SHA256)?;
     let ca = CertifiedIssuer::self_signed(ca_params, ca_key_pair)?;
 
-    let mut server_params = CertificateParams::new(vec![
-        "localhost".to_string(),
-        "api.openai.com".to_string(),
-    ])?;
+    let mut server_params =
+        CertificateParams::new(vec!["localhost".to_string(), "api.openai.com".to_string()])?;
     server_params.extended_key_usages = vec![ExtendedKeyUsagePurpose::ServerAuth];
     server_params.key_usages = vec![
         KeyUsagePurpose::DigitalSignature,

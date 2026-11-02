@@ -2,9 +2,9 @@
 
 use crate::model::AgentThreadId;
 use crate::model::CodeCellRuntimeStatus;
-use crate::model::DitfaTurnId;
 use crate::model::CompactionId;
 use crate::model::CompactionRequestId;
+use crate::model::DitfaTurnId;
 use crate::model::EdgeId;
 use crate::model::ExecutionStatus;
 use crate::model::InferenceCallId;

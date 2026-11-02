@@ -2,11 +2,11 @@
 
 mod common;
 
+use common::exec_server::exec_server;
 use ditfa_exec_server::InitializeParams;
 use ditfa_exec_server::InitializeResponse;
 use ditfa_exec_server_protocol::JSONRPCMessage;
 use ditfa_exec_server_protocol::JSONRPCResponse;
-use common::exec_server::exec_server;
 use pretty_assertions::assert_eq;
 use uuid::Uuid;
 

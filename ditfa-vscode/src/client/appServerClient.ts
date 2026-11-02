@@ -1,4 +1,5 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { homedir } from "node:os";
 import * as vscode from "vscode";
 
 import {
@@ -54,6 +55,10 @@ interface Pending {
 
 const CLIENT_NAME = "ditfa_vscode";
 const CLIENT_TITLE = "Ditfa Code VS Code Extension";
+/** A server that has not answered `initialize` by now is not going to. */
+const HANDSHAKE_TIMEOUT_MS = 30_000;
+/** Enough stderr to explain a failed start without keeping a whole log around. */
+const STDERR_TAIL_CHARS = 2_000;
 
 /**
  * Owns the `ditfa app-server` child process and the JSON-RPC conversation with it.
@@ -70,8 +75,11 @@ export class AppServerClient implements vscode.Disposable {
   private child: ChildProcessWithoutNullStreams | undefined;
   private serverRequestHandler: ServerRequestHandler | undefined;
   private stdoutBuffer = "";
+  private stderrTail = "";
   private nextId = 1;
   private closed = false;
+  private exited = false;
+  private serverVersion: string | null = null;
 
   readonly onNotification = this.notificationEmitter.event;
   readonly onExit = this.exitEmitter.event;
@@ -84,8 +92,15 @@ export class AppServerClient implements vscode.Disposable {
    */
   static async start(options: AppServerOptions): Promise<AppServerClient> {
     const client = new AppServerClient(options);
-    await client.spawnProcess();
-    await client.handshake();
+    try {
+      await client.spawnProcess();
+      await client.handshake();
+    } catch (error) {
+      const detail = client.lastError();
+      client.dispose();
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(detail ? `${message}\n${detail}` : message);
+    }
     return client;
   }
 
@@ -94,7 +109,23 @@ export class AppServerClient implements vscode.Disposable {
   }
 
   get isRunning(): boolean {
-    return !this.closed && this.child !== undefined && this.child.exitCode === null;
+    // `exitCode` stays null after a crash by signal, so it cannot answer this alone.
+    return !this.closed && !this.exited && this.child !== undefined;
+  }
+
+  /** Engine version from the handshake, for diagnostics. */
+  get version(): string | null {
+    return this.serverVersion;
+  }
+
+  /** The tail of stderr with log noise removed; what a user needs when a start fails. */
+  lastError(): string {
+    return this.stderrTail
+      .split("\n")
+      .filter((line) => line.trim() && !line.includes("could not create PATH aliases"))
+      .slice(-4)
+      .join("\n")
+      .replace(/\u001B\[[0-9;]*m/g, "");
   }
 
   async request<M extends RequestMethod>(
@@ -146,12 +177,12 @@ export class AppServerClient implements vscode.Disposable {
     this.exitEmitter.dispose();
     const child = this.child;
     this.child = undefined;
-    if (child && child.exitCode === null) {
+    if (child && !this.exited) {
       // SIGTERM lets the server flush rollout state; SIGKILL is the backstop.
       child.kill("SIGTERM");
       const pid = child.pid;
       setTimeout(() => {
-        if (pid !== undefined && child.exitCode === null) {
+        if (pid !== undefined && !this.exited) {
           child.kill("SIGKILL");
         }
       }, 3000).unref?.();
@@ -169,18 +200,29 @@ export class AppServerClient implements vscode.Disposable {
     childEnv.NO_COLOR = "1";
 
     logger.info(`spawning: ${executable} app-server --listen stdio://`);
-    const child = spawn(executable, ["app-server", "--listen", "stdio://"], {
-      cwd,
-      env: childEnv,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
+    // npm's Windows shim is a batch file, which only a shell can start.
+    const viaShell = /\.(cmd|bat)$/i.test(executable);
+    const child = spawn(
+      viaShell ? `"${executable}"` : executable,
+      ["app-server", "--listen", "stdio://"],
+      {
+        cwd: cwd ?? homedir(),
+        env: childEnv,
+        stdio: ["pipe", "pipe", "pipe"],
+        shell: viaShell,
+        windowsHide: true,
+      },
+    );
 
     this.child = child;
     child.stdout.setEncoding("utf8");
     child.stderr.setEncoding("utf8");
 
     child.stdout.on("data", (chunk: string) => this.consumeStdout(chunk));
+    // Writing to a server that just died raises EPIPE here; `exit` reports it properly.
+    child.stdin.on("error", (error) => logger.debug(`app-server stdin: ${error.message}`));
     child.stderr.on("data", (chunk: string) => {
+      this.stderrTail = (this.stderrTail + chunk).slice(-STDERR_TAIL_CHARS);
       for (const line of chunk.split("\n")) {
         if (line.trim()) {
           logger.debug(`[app-server] ${line.trimEnd()}`);
@@ -194,6 +236,7 @@ export class AppServerClient implements vscode.Disposable {
     });
 
     child.on("exit", (code, signal) => {
+      this.exited = true;
       logger.warn(`app-server exited (code=${code ?? "null"}, signal=${signal ?? "null"})`);
       this.rejectAllPending(
         new AppServerClosedError(`The ditfa app-server exited (code ${code ?? "null"}).`),
@@ -218,7 +261,15 @@ export class AppServerClient implements vscode.Disposable {
   }
 
   private async handshake(): Promise<void> {
-    const response = await this.request("initialize", {
+    let timer: NodeJS.Timeout | undefined;
+    const timeout = new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(
+        () => reject(new Error("The ditfa engine did not respond while starting.")),
+        HANDSHAKE_TIMEOUT_MS,
+      );
+    });
+
+    const initialize = this.request("initialize", {
       clientInfo: {
         name: CLIENT_NAME,
         title: CLIENT_TITLE,
@@ -239,6 +290,8 @@ export class AppServerClient implements vscode.Disposable {
       },
     });
 
+    const response = await Promise.race([initialize, timeout]).finally(() => clearTimeout(timer));
+    this.serverVersion = /\/(\d+\.\d+\.\d+[^\s]*)/.exec(response.userAgent)?.[1] ?? null;
     this.notify("initialized");
     this.options.logger.info(
       `app-server ready — ${response.userAgent} (${response.platformOs}), home ${response.ditfaHome}`,
@@ -302,7 +355,7 @@ export class AppServerClient implements vscode.Disposable {
   private async handleServerRequest(id: RequestId, request: ServerRequest): Promise<void> {
     const handler = this.serverRequestHandler;
     if (!handler) {
-      this.send({
+      this.respond({
         id,
         error: { code: -32601, message: `No handler registered for ${request.method}` },
       });
@@ -310,11 +363,20 @@ export class AppServerClient implements vscode.Disposable {
     }
     try {
       const result = await handler(request);
-      this.send({ id, result: result ?? {} });
+      this.respond({ id, result: result ?? {} });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.options.logger.error(`server request ${request.method} failed`, error);
-      this.send({ id, error: { code: -32000, message } });
+      this.respond({ id, error: { code: -32000, message } });
+    }
+  }
+
+  /** An approval can outlive the server; answering a dead one is not an error. */
+  private respond(payload: unknown): void {
+    try {
+      this.send(payload);
+    } catch (error) {
+      this.options.logger.debug(`dropped response: ${error instanceof Error ? error.message : error}`);
     }
   }
 

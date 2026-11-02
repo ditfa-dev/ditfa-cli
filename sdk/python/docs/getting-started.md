@@ -161,6 +161,6 @@ source .venv/bin/activate
 
 ## Next Stops
 
-- [API reference](https://github.com/Teamtem-dev/ditfa-code/blob/main/sdk/python/docs/api-reference.md)
-- [FAQ](https://github.com/Teamtem-dev/ditfa-code/blob/main/sdk/python/docs/faq.md)
-- [Runnable examples](https://github.com/Teamtem-dev/ditfa-code/blob/main/sdk/python/examples/README.md)
+- [API reference](https://github.com/ditfa-dev/ditfa-cli/blob/main/sdk/python/docs/api-reference.md)
+- [FAQ](https://github.com/ditfa-dev/ditfa-cli/blob/main/sdk/python/docs/faq.md)
+- [Runnable examples](https://github.com/ditfa-dev/ditfa-cli/blob/main/sdk/python/examples/README.md)

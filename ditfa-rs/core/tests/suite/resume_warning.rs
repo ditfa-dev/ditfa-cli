@@ -2,6 +2,9 @@
 
 use std::sync::Arc;
 
+use core::time::Duration;
+use core_test_support::load_default_config_for_test;
+use core_test_support::wait_for_event;
 use ditfa_core::NewThread;
 use ditfa_login::DitfaAuth;
 use ditfa_protocol::ThreadId;
@@ -16,9 +19,6 @@ use ditfa_protocol::protocol::TurnContextItem;
 use ditfa_protocol::protocol::TurnStartedEvent;
 use ditfa_protocol::protocol::UserMessageEvent;
 use ditfa_protocol::protocol::WarningEvent;
-use core::time::Duration;
-use core_test_support::load_default_config_for_test;
-use core_test_support::wait_for_event;
 use tempfile::TempDir;
 
 fn resume_history(

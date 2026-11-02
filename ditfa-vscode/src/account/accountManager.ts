@@ -23,13 +23,11 @@ export interface AccountView {
  * subscription's rate-limit window is left.
  *
  * Sign-in itself always happens in the user's browser or in a VS Code input box —
- * the extension never handles the credential beyond passing an API key the user
- * explicitly typed straight to the local server.
+ * the extension never holds a password, only keys the user explicitly typed.
  */
 export class AccountManager implements vscode.Disposable {
   private state: AccountState = { account: null, requiresAuth: false, rateLimits: null };
   private readonly emitter = new vscode.EventEmitter<AccountState>();
-  private activeLoginId: string | null = null;
 
   readonly onChange = this.emitter.event;
 
@@ -96,59 +94,33 @@ export class AccountManager implements vscode.Disposable {
         };
         this.emitter.fire(this.state);
         break;
-      case "account/login/completed": {
-        const { success, error } = notification.params;
-        this.activeLoginId = null;
-        if (success) {
-          void vscode.window.showInformationMessage("Signed in to Ditfa.");
-          void this.refresh();
-        } else {
-          void vscode.window.showErrorMessage(`Ditfa sign-in failed: ${error ?? "unknown error"}`);
-        }
-        break;
-      }
       default:
         break;
     }
   }
 
-  /** Runs the sign-in flow the user picks. Resolves once the flow has been started. */
-  async signIn(): Promise<void> {
-    const method = await vscode.window.showQuickPick(
-      [
-        {
-          id: "chatgpt" as const,
-          label: "$(globe) Sign in with a Ditfa subscription",
-          detail: "Opens your browser to authorize this machine",
-        },
-        {
-          id: "deviceCode" as const,
-          label: "$(device-mobile) Sign in with a device code",
-          detail: "For remote or headless machines with no browser",
-        },
-        {
-          id: "apiKey" as const,
-          label: "$(key) Use an API key",
-          detail: "Pay-as-you-go with your own provider key",
-        },
-      ],
-      { title: "Ditfa: Sign In", placeHolder: "How do you want to authenticate?" },
-    );
-    if (!method) {
-      return;
-    }
+  /**
+   * Signs in to a Ditfa account. `ditfa login` is the flow that mints the
+   * account's API key; the server's own login methods cover other backends.
+   * It runs in a terminal because it shows a code the user has to confirm.
+   */
+  async signIn(executable: string, onFinished: () => void): Promise<void> {
+    const terminal = vscode.window.createTerminal({
+      name: "Ditfa sign-in",
+      shellPath: executable,
+      shellArgs: ["login"],
+      iconPath: new vscode.ThemeIcon("sign-in"),
+    });
+    terminal.show();
 
-    switch (method.id) {
-      case "chatgpt":
-        await this.startBrowserLogin();
-        break;
-      case "deviceCode":
-        await this.startDeviceCodeLogin();
-        break;
-      case "apiKey":
-        await this.startApiKeyLogin();
-        break;
-    }
+    const listener = vscode.window.onDidCloseTerminal((closed) => {
+      if (closed === terminal) {
+        listener.dispose();
+        if (closed.exitStatus?.code === 0) {
+          onFinished();
+        }
+      }
+    });
   }
 
   async signOut(): Promise<void> {
@@ -164,15 +136,6 @@ export class AccountManager implements vscode.Disposable {
     this.state = { account: null, requiresAuth: this.state.requiresAuth, rateLimits: null };
     this.emitter.fire(this.state);
     void vscode.window.showInformationMessage("Signed out of Ditfa.");
-  }
-
-  async cancelLogin(): Promise<void> {
-    const loginId = this.activeLoginId;
-    if (!loginId) {
-      return;
-    }
-    this.activeLoginId = null;
-    await this.client.request("account/login/cancel", { loginId });
   }
 
   /** Renders account, plan, and usage as a readable report. */
@@ -225,78 +188,10 @@ export class AccountManager implements vscode.Disposable {
     this.emitter.dispose();
   }
 
-  private async startBrowserLogin(): Promise<void> {
-    const response = await this.client.request("account/login/start", {
-      type: "chatgpt",
-      ditfaStreamlinedLogin: true,
-      useHostedLoginSuccessPage: true,
-    });
-    if (response.type !== "chatgpt") {
-      return;
-    }
-    this.activeLoginId = response.loginId;
-
-    const opened = await vscode.env.openExternal(vscode.Uri.parse(response.authUrl));
-    if (!opened) {
-      void vscode.window.showWarningMessage(
-        `Open this URL to finish signing in: ${response.authUrl}`,
-      );
-    }
-
-    void vscode.window
-      .withProgress(
-        { location: vscode.ProgressLocation.Notification, title: "Waiting for Ditfa sign-in…", cancellable: true },
-        (_progress, token) =>
-          new Promise<void>((resolve) => {
-            token.onCancellationRequested(() => {
-              void this.cancelLogin();
-              resolve();
-            });
-            // `account/login/completed` clears activeLoginId; poll for that.
-            const timer = setInterval(() => {
-              if (this.activeLoginId !== response.loginId) {
-                clearInterval(timer);
-                resolve();
-              }
-            }, 500);
-          }),
-      )
-      .then(undefined, () => undefined);
-  }
-
-  private async startDeviceCodeLogin(): Promise<void> {
-    const response = await this.client.request("account/login/start", { type: "chatgptDeviceCode" });
-    if (response.type !== "chatgptDeviceCode") {
-      return;
-    }
-    this.activeLoginId = response.loginId;
-
-    const action = await vscode.window.showInformationMessage(
-      `Go to ${response.verificationUrl} and enter code ${response.userCode}`,
-      "Copy code",
-      "Open page",
-    );
-    if (action === "Copy code") {
-      await vscode.env.clipboard.writeText(response.userCode);
-    } else if (action === "Open page") {
-      await vscode.env.openExternal(vscode.Uri.parse(response.verificationUrl));
-    }
-  }
-
-  private async startApiKeyLogin(): Promise<void> {
-    const apiKey = await vscode.window.showInputBox({
-      title: "Ditfa: API Key",
-      prompt: "The key is sent to the local ditfa server and stored in your ditfa home directory",
-      password: true,
-      ignoreFocusOut: true,
-      validateInput: (value) => (value.trim().length === 0 ? "Enter an API key" : undefined),
-    });
-    if (!apiKey) {
-      return;
-    }
-    await this.client.request("account/login/start", { type: "apiKey", apiKey: apiKey.trim() });
+  /** OpenAI keys go through the server, which stores them in the ditfa home. */
+  async saveOpenAiKey(apiKey: string): Promise<void> {
+    await this.client.request("account/login/start", { type: "apiKey", apiKey });
     await this.refresh();
-    void vscode.window.showInformationMessage("API key saved.");
   }
 }
 

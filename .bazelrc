@@ -34,7 +34,7 @@ common:windows --test_env=COMSPEC
 common:windows --test_env=WINDIR
 # Rust's libtest harness runs test bodies on std-spawned threads. The default
 # 2 MiB stack can be too small for large async test futures on Windows CI; see
-# https://github.com/Teamtem-dev/ditfa-code/pull/19067 for the motivating failure.
+# https://github.com/ditfa-dev/ditfa-cli/pull/19067 for the motivating failure.
 common --test_env=RUST_MIN_STACK=8388608 # 8 MiB
 
 common --test_output=errors
@@ -91,7 +91,7 @@ common:remote --jobs=800
 common:ci --remote_download_minimal
 common:ci --keep_going
 common:ci --verbose_failures
-common:ci --build_metadata=REPO_URL=https://github.com/Teamtem-dev/ditfa-code.git
+common:ci --build_metadata=REPO_URL=https://github.com/ditfa-dev/ditfa-cli.git
 common:ci --build_metadata=ROLE=CI
 common:ci --build_metadata=VISIBILITY=PUBLIC
 # rules_rust derives debug level from Bazel toolchain/compilation-mode settings,

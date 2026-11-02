@@ -1176,12 +1176,12 @@ mod tests {
     use crate::app::test_support::make_test_app;
     use crate::legacy_core::config::edit::ConfigEdit;
     use crate::test_support::PathBufExt;
+    use crossterm::event::KeyCode;
+    use crossterm::event::KeyEvent;
     use ditfa_config::ConfigLayerEntry;
     use ditfa_config::ConfigLayerStack;
     use ditfa_protocol::models::PermissionProfile;
     use ditfa_protocol::openai_models::ReasoningEffortPreset;
-    use crossterm::event::KeyCode;
-    use crossterm::event::KeyEvent;
     use pretty_assertions::assert_eq;
     use tempfile::tempdir;
 
