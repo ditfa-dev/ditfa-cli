@@ -3540,7 +3540,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
- "core-foundation 0.9.4",
+ "core-foundation 0.10.1",
  "ditfa-execpolicy",
  "ditfa-features",
  "ditfa-file-system",
@@ -5456,7 +5456,7 @@ dependencies = [
 name = "ditfa-utils-sleep-inhibitor"
 version = "0.0.0"
 dependencies = [
- "core-foundation 0.9.4",
+ "core-foundation 0.10.1",
  "libc",
  "tracing",
  "windows-sys 0.61.2",
