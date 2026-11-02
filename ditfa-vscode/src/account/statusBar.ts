@@ -22,7 +22,7 @@ export class DitfaStatusBar implements vscode.Disposable {
   constructor() {
     this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     this.item.command = "ditfa.openChat";
-    this.item.name = "Ditfa Code";
+    this.item.name = "Ditfa";
     this.item.show();
   }
 
@@ -56,7 +56,7 @@ export class DitfaStatusBar implements vscode.Disposable {
   }
 
   private buildTooltip(model: StatusBarModel): vscode.MarkdownString {
-    const lines: string[] = ["**Ditfa Code**", ""];
+    const lines: string[] = ["**Ditfa**", ""];
 
     switch (model.connection) {
       case "starting":

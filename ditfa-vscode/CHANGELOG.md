@@ -1,7 +1,14 @@
 # Changelog
 
-All notable changes to the Ditfa Code extension are documented here.
+All notable changes to the Ditfa extension are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [0.3.1] — 2026-11-02
+
+### Changed
+
+- Reuse the canonical desktop app icon unchanged for the Marketplace tile.
+- Use **Ditfa** consistently in the extension listing, panel, status bar, diagnostics, and release notes. The extension identifier remains `ditfa.ditfa-code` so existing installations receive updates.
 
 ## [0.3.0] — 2026-11-02
 

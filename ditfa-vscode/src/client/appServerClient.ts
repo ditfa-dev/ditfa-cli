@@ -54,7 +54,7 @@ interface Pending {
 }
 
 const CLIENT_NAME = "ditfa_vscode";
-const CLIENT_TITLE = "Ditfa Code VS Code Extension";
+const CLIENT_TITLE = "Ditfa VS Code Extension";
 /** A server that has not answered `initialize` by now is not going to. */
 const HANDSHAKE_TIMEOUT_MS = 30_000;
 /** Enough stderr to explain a failed start without keeping a whole log around. */
@@ -172,7 +172,7 @@ export class AppServerClient implements vscode.Disposable {
       return;
     }
     this.closed = true;
-    this.rejectAllPending(new AppServerClosedError("Ditfa Code was shut down."));
+    this.rejectAllPending(new AppServerClosedError("Ditfa was shut down."));
     this.notificationEmitter.dispose();
     this.exitEmitter.dispose();
     const child = this.child;

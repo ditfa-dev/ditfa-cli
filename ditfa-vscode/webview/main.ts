@@ -329,7 +329,7 @@ function renderGate(): void {
       host.innerHTML = `${lines}<div class="gate-body">
         ${markSvg("assemble", "gate-mark")}
         <h1>One step to go</h1>
-        <p>Ditfa Code runs on a small engine on this machine. It is downloaded once from GitHub and checked against its published checksum.</p>
+        <p>Ditfa runs on a small engine on this machine. It is downloaded once from GitHub and checked against its published checksum.</p>
         <button class="primary large" type="button" data-install>Install the engine</button>
         <button class="link" type="button" data-locate>I already have ditfa installed</button>
       </div>`;
