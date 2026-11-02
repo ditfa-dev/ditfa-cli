@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 
 import type { FileChangeSummary } from "../session/types";
 import type { Logger } from "../util/logger";
-import { applyUnifiedDiff, PatchApplyError, revertUnifiedDiff } from "./patch";
+import { applyUnifiedDiff, effectiveDiff, PatchApplyError, revertUnifiedDiff } from "./patch";
 
 const SCHEME = "ditfa-diff";
 
@@ -66,9 +66,16 @@ export class DiffService implements vscode.Disposable {
       return;
     }
 
+    // Hunks the user undid are no longer part of what landed.
+    const diff = applied ? effectiveDiff(change.diff, change.reverted ?? []) : change.diff;
+    if (diff === "") {
+      void vscode.window.showInformationMessage(`You undid every change Ditfa made to ${change.label}.`);
+      return;
+    }
+
     try {
-      const before = applied ? revertUnifiedDiff(onDisk, change.diff) : onDisk;
-      const after = applied ? onDisk : applyUnifiedDiff(onDisk, change.diff);
+      const before = applied ? revertUnifiedDiff(onDisk, diff) : onDisk;
+      const after = applied ? onDisk : applyUnifiedDiff(onDisk, diff);
       const left = this.virtualUri(`${change.label} (before)`, before);
       // The right side points at the real file once the patch has landed so the
       // diff stays editable and live.
@@ -95,7 +102,7 @@ export class DiffService implements vscode.Disposable {
         before = change.diff;
       } else if (change.kind === "update") {
         try {
-          before = revertUnifiedDiff(onDisk, change.diff);
+          before = revertUnifiedDiff(onDisk, effectiveDiff(change.diff, change.reverted ?? []));
         } catch {
           before = onDisk;
         }
@@ -147,6 +154,6 @@ export class DiffService implements vscode.Disposable {
   }
 }
 
-function resolveUri(path: string, cwd?: string): vscode.Uri {
+export function resolveUri(path: string, cwd?: string): vscode.Uri {
   return vscode.Uri.file(cwd && !isAbsolute(path) ? join(cwd, path) : path);
 }

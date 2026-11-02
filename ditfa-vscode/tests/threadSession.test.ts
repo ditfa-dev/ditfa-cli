@@ -250,4 +250,34 @@ describe("ThreadSession", () => {
     await session.resume(THREAD, options.settings, "/w");
     expect(entries().map((entry) => entry.id)).toEqual(["c1", "m2"]);
   });
+
+  describe("undone hunks", () => {
+    const patch = (status: string) => ({
+      type: "fileChange",
+      id: "f1",
+      status,
+      changes: [{ path: "src/a.ts", kind: { type: "update", move_path: null }, diff: "@@ -1,1 +1,1 @@\n-a\n+b\n" }],
+    });
+
+    it("announces a change only when it lands, once", () => {
+      const applied = vi.fn();
+      session.onFileChangeApplied(applied);
+
+      notify(session, "item/started", { item: patch("inProgress"), turnId: "t" });
+      expect(applied).not.toHaveBeenCalled();
+      notify(session, "item/completed", { item: patch("completed"), turnId: "t" });
+      notify(session, "item/completed", { item: patch("completed"), turnId: "t" });
+      expect(applied).toHaveBeenCalledTimes(1);
+    });
+
+    it("remembers what was undone and tells the agent once", () => {
+      notify(session, "item/completed", { item: patch("completed"), turnId: "t" });
+      session.markReverted("f1", "src/a.ts", [0], false, "the user undid it");
+
+      const entry = entries().find((candidate) => candidate.id === "f1");
+      expect(entry).toMatchObject({ kind: "fileChange", changes: [{ path: "src/a.ts", reverted: [0] }] });
+      expect(session.takeNotes()).toEqual(["the user undid it"]);
+      expect(session.takeNotes()).toEqual([]);
+    });
+  });
 });

@@ -53,6 +53,17 @@ describe("buildUserInput", () => {
   });
 });
 
+describe("notes for the agent", () => {
+  it("travel in the context block and never reach the transcript", () => {
+    const [first] = buildUserInput("carry on", [], null, null, [
+      "the user undid part of your edit to src/a.ts (lines 4-9).\nDo not apply it again.",
+    ]);
+    const text = (first as { text: string }).text;
+    expect(text).toContain("- note: the user undid part of your edit to src/a.ts (lines 4-9). Do not apply it again.");
+    expect(parseUserText(text)).toEqual({ text: "carry on", attachments: [] });
+  });
+});
+
 describe("parseUserText", () => {
   it("round-trips what the transcript shows", () => {
     const [first] = buildUserInput(

@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 
 import { registerCommands } from "./commands/register";
+import { CompletionService } from "./completion/inlineProvider";
 import { DitfaController } from "./controller";
 import { ChatViewProvider } from "./ui/chatViewProvider";
 import { DitfaCodeActions } from "./ui/codeActions";
@@ -13,7 +14,8 @@ export function activate(context: vscode.ExtensionContext): void {
 
   const controller = new DitfaController(context, logger);
   const view = new ChatViewProvider(context, controller, logger);
-  context.subscriptions.push(controller, view);
+  const completion = new CompletionService(context, controller.completion, logger);
+  context.subscriptions.push(controller, view, completion);
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(ChatViewProvider.viewType, view, {

@@ -31,6 +31,16 @@ export interface FileChangeSummary {
   deletions: number;
   /** Unified diff for updates; the full file content for adds and deletes. */
   diff: string;
+  /** Indexes of the hunks the user undid after the change landed. Updates only. */
+  reverted?: number[];
+  /** The user undid the whole change. Adds and deletes only. */
+  undone?: boolean;
+}
+
+/** Hunks of one file the user left out of an approved change. */
+export interface HunkSkip {
+  path: string;
+  hunks: number[];
 }
 
 interface EntryBase {
@@ -194,7 +204,13 @@ export type ApprovalRequest =
 
 export type ApprovalAnswer =
   | { id: string; kind: "command"; decision: "accept" | "acceptForSession" | "decline" | "cancel" }
-  | { id: string; kind: "fileChange"; decision: "accept" | "acceptForSession" | "decline" | "cancel" }
+  | {
+      id: string;
+      kind: "fileChange";
+      decision: "accept" | "acceptForSession" | "decline" | "cancel";
+      /** Hunks to take back out as soon as the engine has applied the change. */
+      skip?: HunkSkip[];
+    }
   | { id: string; kind: "permissions"; decision: "accept" | "decline" }
   | { id: string; kind: "userInput"; value: string }
   | { id: string; kind: "elicitation"; decision: "accept" | "decline" };
@@ -365,6 +381,8 @@ export type WebviewMessage =
   | { type: "openDiff"; entryId: string; path: string }
   | { type: "reviewTurn"; turnId: string }
   | { type: "restoreCheckpoint"; turnId: string }
+  | { type: "revertHunks"; entryId: string; path: string; hunks: number[] }
+  | { type: "undoFile"; entryId: string; path: string }
   | { type: "openFile"; path: string; line?: number }
   | { type: "openExternal"; url: string }
   | { type: "selectModel"; model: string; effort: string | null }

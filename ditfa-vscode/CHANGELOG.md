@@ -3,6 +3,19 @@
 All notable changes to the Ditfa Code extension are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.0] — 2026-11-02
+
+### Added
+
+- **Tab autocomplete.** Inline suggestions accepted with <kbd>Tab</kbd>, from any provider Ditfa supports or a local model. Local code models use fill-in-the-middle; everything else uses chat completions. Off until you set it up and turn it on; never uses files that look like secrets; pauses after repeated failures.
+- **Choose hunks before an edit lands.** Every hunk of a multi-hunk edit has a checkbox in the approval card; unticked hunks are taken back out as soon as the patch is applied.
+- **Undo any hunk, or a whole file, after an edit.** Hunks are located by content, so it still works after other edits moved the lines. The agent is told what you took back.
+- Status-bar item for Tab autocomplete, and **Ditfa: Set Up Tab Autocomplete…**.
+
+### Changed
+
+- Restoring a checkpoint, the diff editor, and the turn review all account for hunks you already undid.
+
 ## [0.2.0] — 2026-11-01
 
 A rebuild of the panel and the layer under it.

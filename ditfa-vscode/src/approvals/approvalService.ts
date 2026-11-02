@@ -1,7 +1,12 @@
 import * as vscode from "vscode";
 
 import type { RequestId, ServerRequest } from "../protocol";
-import type { ApprovalAnswer, ApprovalRequest, FileChangeSummary } from "../session/types";
+import type {
+  ApprovalAnswer,
+  ApprovalRequest,
+  FileChangeSummary,
+  HunkSkip,
+} from "../session/types";
 import type { Logger } from "../util/logger";
 
 interface Outstanding {
@@ -23,6 +28,11 @@ export class ApprovalService implements vscode.Disposable {
   /** The JSON-RPC request behind the approval being asked right now. */
   private currentRequestId: RequestId | null = null;
   private readonly byRequestId = new Map<RequestId, Set<string>>();
+  /**
+   * Hunks the user left out of an approved edit. The engine can only take a whole
+   * patch, so these come back out once it has landed.
+   */
+  private readonly skips = new Map<string, HunkSkip[]>();
 
   readonly onChange = this.changeEmitter.event;
 
@@ -88,6 +98,7 @@ export class ApprovalService implements vscode.Disposable {
           grantRoot: params.grantRoot ?? null,
           changes: this.lookupFileChanges(params.itemId),
         });
+        this.rememberSkips(params.itemId, answer);
         return {
           decision: answer.kind === "fileChange" ? answer.decision : "cancel",
         };
@@ -167,12 +178,31 @@ export class ApprovalService implements vscode.Disposable {
           grantRoot: request.params.grantRoot ?? null,
           changes: this.lookupFileChanges(request.params.callId),
         });
+        this.rememberSkips(request.params.callId, answer);
         return { decision: toLegacyDecision(answer) };
       }
 
       default:
         this.logger.warn(`unhandled server request: ${request.method}`);
         throw new Error(`Ditfa Code does not handle ${request.method}.`);
+    }
+  }
+
+  /** What to take back out of the change `itemId` once it has been applied, if anything. */
+  takeSkips(itemId: string): HunkSkip[] | undefined {
+    const skips = this.skips.get(itemId);
+    this.skips.delete(itemId);
+    return skips;
+  }
+
+  private rememberSkips(itemId: string, answer: ApprovalAnswer): void {
+    if (
+      answer.kind === "fileChange" &&
+      (answer.decision === "accept" || answer.decision === "acceptForSession") &&
+      answer.skip &&
+      answer.skip.length > 0
+    ) {
+      this.skips.set(itemId, answer.skip);
     }
   }
 
@@ -194,6 +224,7 @@ export class ApprovalService implements vscode.Disposable {
       entry.resolve(cancelAnswer(id, entry.request.kind));
     }
     this.outstanding.clear();
+    this.skips.clear();
     this.changeEmitter.fire([]);
   }
 

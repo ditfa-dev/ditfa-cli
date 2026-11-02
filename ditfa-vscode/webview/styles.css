@@ -1326,3 +1326,96 @@ button.large {
     transition: none;
   }
 }
+
+/* Reviewing an applied edit hunk by hunk, and choosing hunks before it lands. */
+.file-item.undone .file-row {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+.file-line {
+  display: flex;
+  align-items: center;
+}
+.file-line .file-row {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+.mini-action {
+  flex: none;
+  margin-inline-end: 6px;
+  padding: 1px 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.mini-action:hover {
+  color: var(--fg);
+  background: var(--hover);
+}
+.undone-mark {
+  flex: none;
+  margin-inline-end: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.hunk-list {
+  margin: 0 8px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.hunk + .hunk {
+  border-top: 1px solid var(--border);
+}
+.hunk.reverted {
+  opacity: 0.5;
+}
+.hunk-head,
+.hunk-pick-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 8px;
+  font-size: 11.5px;
+}
+.hunk-head .hunk-range,
+.hunk-pick-head .hunk-range {
+  flex: 1;
+  color: var(--muted);
+}
+.hunk-head .mini-action {
+  margin-inline-end: 0;
+}
+.hunk-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 8px;
+  border-top: 1px solid var(--border);
+}
+.hunk-pick {
+  border-top: 1px solid var(--border);
+}
+.hunk-pick-head {
+  cursor: pointer;
+}
+.hunk-pick-head input {
+  margin: 0;
+}
+.hunk-pick .diff-body {
+  max-height: 160px;
+}
+.hunk-count {
+  color: var(--muted);
+  font-size: 11px;
+}
+.hunk-list .diff-body {
+  max-height: 180px;
+}
+.approval-actions button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

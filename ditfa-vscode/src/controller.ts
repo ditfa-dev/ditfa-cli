@@ -17,6 +17,8 @@ import {
 import { buildDoctorReport } from "./client/doctor";
 import { installEngine } from "./client/installer";
 import { DiffService } from "./diff/diffService";
+import { CompletionSetup } from "./completion/setup";
+import { HunkReview } from "./diff/hunkReview";
 import {
   BUILT_IN_PROVIDERS,
   PROVIDER_ENV_KEYS,
@@ -106,6 +108,9 @@ export class DitfaController implements vscode.Disposable {
   private readonly keys: ApiKeys;
   private readonly store: TranscriptStore;
   private readonly diffs: DiffService;
+  private readonly hunkReview: HunkReview;
+  /** Tab autocomplete's way into this controller's keys and providers. */
+  readonly completion: CompletionSetup;
   private readonly statusBar: DitfaStatusBar;
   private readonly subscriptions: vscode.Disposable[] = [];
   private serviceSubscriptions: vscode.Disposable[] = [];
@@ -135,6 +140,18 @@ export class DitfaController implements vscode.Disposable {
     this.keys = new ApiKeys(context.secrets);
     this.store = new TranscriptStore(join(context.globalStorageUri.fsPath, "transcripts"), logger);
     this.diffs = new DiffService(logger);
+    this.hunkReview = new HunkReview(
+      () => this.session,
+      () => this.threadCwd(),
+      logger,
+    );
+    this.completion = new CompletionSetup({
+      keys: this.keys,
+      providers: async () =>
+        this.providers ? this.providers.listProviders(resolveWorkspaceRoot()) : BUILT_IN_PROVIDERS,
+      chatProvider: () => this.effectiveProviderId(),
+      chatModel: () => readSettings().model || this.session?.snapshot().context?.model || this.configuredModel || "",
+    });
     this.statusBar = new DitfaStatusBar();
     this.updateStatusBar();
 
@@ -311,7 +328,7 @@ export class DitfaController implements vscode.Disposable {
       }
       this.budgetTripped = false;
       const active = includeActiveFile && readSettings().attachActiveFile ? this.activeFileContext() : null;
-      const input = buildUserInput(text, attachments, active, skill);
+      const input = buildUserInput(text, attachments, active, skill, session.takeNotes());
       const labels = attachments.map((item) => item.label);
       await session.send({ text, attachments: labels }, input, this.turnOptions());
     } catch (error) {
@@ -404,6 +421,35 @@ export class DitfaController implements vscode.Disposable {
       .entries.find((candidate) => candidate.id === entryId && candidate.kind === "fileChange");
     const applied = entry?.kind === "fileChange" && entry.status === "applied";
     await this.diffs.showChange(change, applied, this.threadCwd());
+  }
+
+  /**
+   * The agent believes the whole patch landed. When the user left hunks out mid-turn,
+   * say so now, as a steer, instead of letting it build on lines that are gone.
+   */
+  private async tellAgentWhatWasLeftOut(session: ThreadSession): Promise<void> {
+    if (!session.turnActive) {
+      return;
+    }
+    const notes = session.takeNotes();
+    if (notes.length === 0) {
+      return;
+    }
+    const text = notes.join("\n");
+    try {
+      await session.send({ text, attachments: [] }, [{ type: "text", text, text_elements: [] }], this.turnOptions());
+    } catch (error) {
+      this.logger.warn(`could not tell the agent about the hunks left out: ${error instanceof Error ? error.message : error}`);
+    }
+  }
+
+  /** Takes chosen hunks of an applied edit back out. */
+  async revertHunks(entryId: string, path: string, hunks: number[]): Promise<void> {
+    await this.hunkReview.revertHunks(entryId, path, hunks);
+  }
+
+  async undoFile(entryId: string, path: string): Promise<void> {
+    await this.hunkReview.undoFile(entryId, path);
   }
 
   async reviewTurn(turnId: string): Promise<void> {
@@ -931,6 +977,12 @@ export class DitfaController implements vscode.Disposable {
       session.onContextChanged(() => {
         this.pushHeader();
         this.updateStatusBar();
+      }),
+      session.onFileChangeApplied((entry) => {
+        const skips = approvals.takeSkips(entry.id);
+        if (skips) {
+          void this.hunkReview.applySkips(entry, skips).then(() => this.tellAgentWhatWasLeftOut(session));
+        }
       }),
       session.onLoopDetected((command) => {
         session.notice(`Stopped: the agent ran \`${command}\` six times in a row without progress.`, "warning");
